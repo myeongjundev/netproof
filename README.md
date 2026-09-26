@@ -3,6 +3,18 @@
 AI나 내가 예상한 "이 통신은 된다/안 된다"를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 주는 웹앱.
 SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판정 규칙은 [`docs/semantics.md`](docs/semantics.md).
 
+![판정기: 예시 구성에서 HTTPS가 ACL 101 1번 규칙에 막힌 판정과 가는 길](docs/screens/judge.png)
+
+| 사례 게시판 | 사례 상세 · 검토자 확인 |
+|---|---|
+| ![판정·받은 답·실제 결과 상태가 보이는 사례 목록](docs/screens/board.png) | ![판정 증거와 작성자가 적은 실제 결과, 검토자 확인](docs/screens/case-detail.png) |
+
+| 대시보드(검토자) | 휴대폰 · 돌아오는 길에서 막힘 |
+|---|---|
+| ![범위 안 일치, 범위 밖 비율, AI 답이 실제와 다른 수](docs/screens/dashboard.png) | <img src="docs/screens/mobile-result.png" alt="휴대폰 화면: 돌아오는 길에서 R2에 경로가 없어 막힌 판정" width="260"> |
+
+> 화면의 닉네임과 사례는 설명용 예시입니다(합성 사례, 실제 실습 결과가 아님). 동기들의 실제 사례는 사용자 테스트에서 모읍니다.
+
 ## 구조
 
 | 폴더 | 내용 |
@@ -51,3 +63,7 @@ npm --prefix web test                               # 화면: 입력 변환·주
 ## 하지 않는 것
 
 실제 네트워크에 패킷을 보내지 않는다(ADR-011). IPv6·NAT·동적 라우팅·VLAN·상태 기반 방화벽은 v1 범위 밖이며, 판정에 필요하면 "판정 불가(UNSUPPORTED)"로 멈춘다.
+
+## 라이선스
+
+[MIT](LICENSE)
