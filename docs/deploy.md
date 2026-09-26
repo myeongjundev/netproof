@@ -15,11 +15,11 @@ DB는 Supabase PostgreSQL을 **데이터베이스로만** 쓴다. 로그인은 �
 
 | 순서 | 누가 | 할 일 |
 |---|---|---|
-| 1 | 본인 | Supabase 가입 → New project. 지역은 Northeast Asia (Seoul). DB 비밀번호는 비밀번호 관리자에 저장 |
+| 1 | 본인 | Supabase(8번 과제 때 가입한 계정) → New project. 지역은 Northeast Asia (Seoul). DB 비밀번호는 비밀번호 관리자에 저장. 무료 요금제는 동시에 켜 둘 수 있는 프로젝트 수에 제한이 있으니 8번 과제 프로젝트와 함께 둘 수 있는지 확인 |
 | 2 | 본인 | Project → Connect → **Transaction pooler** 연결 주소(포트 6543)를 복사 |
 | 3 | 본인 | 아래 "표 만들기"를 본인 터미널에서 실행 |
-| 4 | 본인 | Supabase → Table Editor에서 `users`·`sessions`·`cases`에 RLS가 켜졌는지, Security Advisor에 "RLS disabled" 경고가 없는지 확인 |
-| 5 | 본인 | Vercel 가입(GitHub로) → Add New → Project → `myeongjundev/netproof` 가져오기 → Environment Variables에 아래 두 값 → Deploy |
+| 4 | 본인 | Supabase → Table Editor에서 `users`·`sessions`·`cases`에 RLS가 켜졌는지, Security Advisor에 "RLS disabled" 경고가 없는지 확인. 8번 과제처럼 **Data API를 끈다**(이 앱은 쓰지 않는다) |
+| 5 | 본인 | Vercel(8번 과제와 같은 계정) → Add New → Project → `myeongjundev/netproof` 가져오기 → Environment Variables에 아래 두 값 → Deploy |
 | 6 | 함께 | 배포 로그와 공개 주소 확인(판정기 · 가입 · 사례 저장 · 로그아웃) |
 | 7 | 본인 | "검토자 지정" 실행 |
 
@@ -45,7 +45,7 @@ Supabase는 `public` 스키마의 표를 REST API(anon·authenticated 역할)로
 | `DATABASE_URL` | Transaction pooler 주소(2번). `postgresql://`로 시작하는 그대로 넣는다. 서버가 psycopg 주소로 바꾸고 `sslmode=require`를 붙인다 |
 | `NETPROOF_SECURE_COOKIES` | `1` (세션 쿠키에 Secure) |
 
-빌드 설정은 `vercel.json`에 있어 Framework Preset은 Other 그대로 둔다.
+빌드 설정은 `vercel.json`에 있어 Framework Preset은 Other 그대로 둔다. 함수 지역은 `vercel.json`의 `regions`로 서울(`icn1`)에 고정했다 — 기본값(미국 `iad1`)이면 서울 Supabase까지 요청마다 태평양을 건넌다(8번 과제 `docs/evidence/11-production-startup.md`에서 겪은 일). 배포 뒤 Settings → Functions에서 지역이 Seoul인지 본다.
 
 ### 검토자 지정 (7)
 
@@ -62,6 +62,7 @@ Remove-Item Env:DATABASE_URL
 - **Supabase 무료 프로젝트는 한동안 쓰지 않으면 일시 정지될 수 있다.** 사용자 테스트 기간에는 주기적으로 접속하고, 정지되면 대시보드에서 다시 켠다(현재 정책은 가입할 때 확인).
 - **첫 배포는 로그를 꼭 본다.** `vercel.json`의 `includeFiles`(서버·엔진·사례 폴더를 함수에 싣는 설정)는 로컬에서 흉내 낼 수 없어, 함수가 `netproof_api`를 못 찾으면 여기부터 본다.
 - DB 비밀번호를 바꾸면 Vercel의 `DATABASE_URL`도 바꾸고 다시 배포한다.
+- 8번 과제(Java·Hibernate)는 준비된 문장 때문에 Session pooler(5432)를 썼다. 이 앱은 prepare를 꺼서 Transaction pooler(6543)로 된다. 둘 중 무엇이든 동작하지만 서버리스에는 Transaction pooler가 맞다.
 - 서버리스라 요청마다 DB에 새로 연결한다(NullPool). 동시 접속이 많아지면 Supabase 풀러가 연결 수를 맞춘다.
 
 ## 로컬에서 같은 조건으로 시험

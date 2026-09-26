@@ -40,6 +40,7 @@ def test_api_folder_has_only_the_entry_file():
 def test_vercel_config_matches_layout():
     config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
     assert config["outputDirectory"] == "web/dist"
+    assert config["regions"] == ["icn1"]  # 서울 Supabase와 같은 지역
     assert config["rewrites"] == [{"source": "/api/(.*)", "destination": "/api/index"}]
     include = config["functions"]["api/index.py"]["includeFiles"]
     for folder in ("server/netproof_api", "engine/src", "cases"):
