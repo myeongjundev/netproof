@@ -1,9 +1,10 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
 
-from netproof_api import create_app
+from netproof_api import create_app, database_url, engine_options
 from netproof_api.models import ROLE_REVIEWER, User, db
 
 CASE = json.loads((Path(__file__).resolve().parents[2] / "cases" / "synthetic-01-https-acl.json").read_text(encoding="utf-8"))
@@ -55,7 +56,16 @@ class Api:
 
 @pytest.fixture
 def app(tmp_path):
-    return create_app({"SQLALCHEMY_DATABASE_URI": f"sqlite:///{tmp_path / 'test.db'}", "TESTING": True})
+    """기본은 임시 SQLite. NETPROOF_TEST_DATABASE_URL을 주면 같은 테스트를 PostgreSQL에서 돌린다(매번 표를 새로 만든다)."""
+    url = os.environ.get("NETPROOF_TEST_DATABASE_URL")
+    if not url:
+        return create_app({"SQLALCHEMY_DATABASE_URI": f"sqlite:///{tmp_path / 'test.db'}", "TESTING": True})
+    url = database_url(url)
+    app = create_app({"SQLALCHEMY_DATABASE_URI": url, "SQLALCHEMY_ENGINE_OPTIONS": engine_options(url), "TESTING": True})
+    with app.app_context():
+        db.drop_all()
+    app.test_cli_runner().invoke(args=["init-db"])
+    return app
 
 
 @pytest.fixture
