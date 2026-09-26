@@ -1,0 +1,69 @@
+{
+  "id": "synthetic-01",
+  "title": "HTTPS가 ACL에 막힘",
+  "source": "합성 사례(Claude 작성). 실제 장비 결과 없음 — 정답 근거로 쓰지 않는다",
+  "network": {
+    "devices": [
+      {
+        "id": "PC1",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.10.10.10/24"
+          }
+        ],
+        "gateway": "10.10.10.1"
+      },
+      {
+        "id": "R1",
+        "kind": "router",
+        "interfaces": [
+          {
+            "name": "g0/0",
+            "ip": "10.10.10.1/24",
+            "acl_in": "101"
+          },
+          {
+            "name": "g0/1",
+            "ip": "10.20.20.1/24"
+          }
+        ]
+      },
+      {
+        "id": "SRV",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.20.20.5/24"
+          }
+        ],
+        "gateway": "10.20.20.1"
+      }
+    ],
+    "acls": {
+      "101": [
+        "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+        "access-list 101 permit ip any any"
+      ]
+    }
+  },
+  "flow": {
+    "src": "10.10.10.10",
+    "dst": "10.20.20.5",
+    "proto": "tcp",
+    "dst_port": 443
+  },
+  "claim": {
+    "expected": "PASS",
+    "source": "plan.md 예시 속 AI 답",
+    "text": "PC1에서 10.20.20.5의 HTTPS 서비스에 접근할 수 있다."
+  },
+  "expect": {
+    "result": "DENY",
+    "device": "R1",
+    "step": "acl_in",
+    "rule_seq": 1
+  }
+}

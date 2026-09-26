@@ -1,0 +1,82 @@
+{
+  "id": "synthetic-02",
+  "title": "돌아오는 경로 없음",
+  "source": "합성 사례(Claude 작성). 실제 장비 결과 없음 — 정답 근거로 쓰지 않는다",
+  "network": {
+    "devices": [
+      {
+        "id": "PC1",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.10.10.10/24"
+          }
+        ],
+        "gateway": "10.10.10.1"
+      },
+      {
+        "id": "R1",
+        "kind": "router",
+        "interfaces": [
+          {
+            "name": "g0/0",
+            "ip": "10.10.10.1/24"
+          },
+          {
+            "name": "s0/0",
+            "ip": "192.168.12.1/30"
+          }
+        ],
+        "routes": [
+          {
+            "prefix": "10.30.30.0/24",
+            "next_hop": "192.168.12.2"
+          }
+        ]
+      },
+      {
+        "id": "R2",
+        "kind": "router",
+        "interfaces": [
+          {
+            "name": "s0/0",
+            "ip": "192.168.12.2/30"
+          },
+          {
+            "name": "g0/0",
+            "ip": "10.30.30.1/24"
+          }
+        ]
+      },
+      {
+        "id": "SRV2",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.30.30.5/24"
+          }
+        ],
+        "gateway": "10.30.30.1"
+      }
+    ],
+    "acls": {}
+  },
+  "flow": {
+    "src": "10.10.10.10",
+    "dst": "10.30.30.5",
+    "proto": "icmp"
+  },
+  "claim": {
+    "expected": "PASS",
+    "source": "본인 예상(예시)",
+    "text": "R1에 10.30.30.0/24 경로를 넣었으니 ping이 된다."
+  },
+  "expect": {
+    "result": "DENY",
+    "device": "R2",
+    "step": "route",
+    "rule_seq": null
+  }
+}

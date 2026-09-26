@@ -1,0 +1,255 @@
+"""판정·예시·사례 게시판·대시보드 API."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from flask import Blueprint, current_app, jsonify, request
+
+from netproof_engine import __version__ as ENGINE_VERSION
+from netproof_engine import compare, verify
+
+from .auth import current_user, error, login_required, reviewer_required
+from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, db, utcnow
+
+bp = Blueprint("cases", __name__, url_prefix="/api")
+
+LIMITS = {"devices": 40, "interfaces": 16, "routes": 100, "acl_lines": 500}
+CLAIM_KINDS = ("ai", "self")
+
+
+def _body() -> dict:
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+
+def _limit_problem(network) -> str | None:
+    """형태가 틀린 입력은 엔진이 INVALID로 돌려주므로 여기서는 크기만 본다."""
+    if not isinstance(network, dict):
+        return None
+    devices = network.get("devices") or []
+    if isinstance(devices, list):
+        if len(devices) > LIMITS["devices"]:
+            return f"장비는 {LIMITS['devices']}개까지입니다"
+        for device in devices:
+            if not isinstance(device, dict):
+                continue
+            for key in ("interfaces", "routes"):
+                items = device.get(key) or []
+                if isinstance(items, list) and len(items) > LIMITS[key]:
+                    return f"장비 하나의 {key}는 {LIMITS[key]}개까지입니다"
+    acls = network.get("acls") or {}
+    if isinstance(acls, dict) and sum(len(v) for v in acls.values() if isinstance(v, list)) > LIMITS["acl_lines"]:
+        return f"ACL 줄은 모두 합쳐 {LIMITS['acl_lines']}줄까지입니다"
+    return None
+
+
+def _clean_claim(raw) -> dict | None:
+    if not isinstance(raw, dict) or raw.get("expected") not in ("PASS", "DENY"):
+        return None
+    return {
+        "expected": raw["expected"],
+        "kind": raw.get("kind") if raw.get("kind") in CLAIM_KINDS else None,
+        "source": str(raw.get("source") or "")[:200],
+        "text": str(raw.get("text") or "")[:2000],
+    }
+
+
+def _judge(network, flow, claim) -> tuple[dict, str]:
+    verdict = verify(network if isinstance(network, dict) else {}, flow if isinstance(flow, dict) else {})
+    return verdict, compare(verdict, claim["expected"] if claim else None)
+
+
+@bp.post("/verify")
+def verify_endpoint():
+    data = _body()
+    if problem := _limit_problem(data.get("network")):
+        return error(422, problem)
+    verdict, comparison = _judge(data.get("network"), data.get("flow"), _clean_claim(data.get("claim")))
+    return jsonify({**verdict, "comparison": comparison})
+
+
+@bp.get("/examples")
+def examples():
+    items = []
+    for path in sorted(Path(current_app.config["CASES_DIR"]).glob("*.json")):
+        case = json.loads(path.read_text(encoding="utf-8"))
+        items.append({key: case.get(key) for key in ("id", "title", "source", "network", "flow", "claim")})
+    return jsonify(items)
+
+
+def _owned(case_id: int):
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return None, error(404, "없는 사례입니다")
+    if case.owner_id != current_user().id:
+        return None, error(403, "자기 사례만 고칠 수 있습니다", reason="not_owner")
+    return case, None
+
+
+@bp.get("/cases")
+@login_required
+def list_cases():
+    query = Case.query.order_by(Case.created_at.desc(), Case.id.desc())
+    if request.args.get("mine") == "1":
+        query = query.filter_by(owner_id=current_user().id)
+    return jsonify([case.summary() for case in query.limit(200)])
+
+
+@bp.post("/cases")
+@login_required
+def create_case():
+    data = _body()
+    title = str(data.get("title") or "").strip()
+    if not 1 <= len(title) <= 80:
+        return error(400, "제목은 1~80자여야 합니다")
+    network, flow = data.get("network"), data.get("flow")
+    if not isinstance(network, dict) or not isinstance(flow, dict):
+        return error(400, "network와 flow가 필요합니다")
+    if problem := _limit_problem(network):
+        return error(422, problem)
+    claim = _clean_claim(data.get("claim"))
+    # 화면이 보낸 판정은 받지 않는다. 저장되는 판정은 언제나 서버가 계산한 값이다.
+    verdict, comparison = _judge(network, flow, claim)
+    case = Case(
+        owner_id=current_user().id, title=title, network=network, flow=flow, claim=claim,
+        verdict=verdict, result=verdict["result"], comparison=comparison, engine_version=ENGINE_VERSION,
+    )
+    db.session.add(case)
+    db.session.commit()
+    return jsonify(case.detail()), 201
+
+
+@bp.get("/cases/<int:case_id>")
+@login_required
+def get_case(case_id: int):
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return error(404, "없는 사례입니다")
+    return jsonify(case.detail())
+
+
+@bp.patch("/cases/<int:case_id>")
+@login_required
+def update_case(case_id: int):
+    case, failure = _owned(case_id)
+    if failure:
+        return failure
+    data = _body()
+    changed_truth = False
+    if "title" in data:
+        title = str(data.get("title") or "").strip()
+        if not 1 <= len(title) <= 80:
+            return error(400, "제목은 1~80자여야 합니다")
+        case.title = title
+    if "actual" in data:
+        actual = data.get("actual") if isinstance(data.get("actual"), dict) else {}
+        result = actual.get("result")
+        source = actual.get("source")
+        if result not in (*ACTUAL_RESULTS, None) or source not in (*ACTUAL_SOURCES, None):
+            return error(400, "실제 결과는 PASS·DENY·미정, 출처는 nmap·ping·device·other 중 하나여야 합니다")
+        note = str(actual.get("note") or "")[:1000]
+        if (result, source, note) != (case.actual_result, case.actual_source, case.actual_note or ""):
+            case.actual_result, case.actual_source, case.actual_note = result, source, note
+            changed_truth = True
+    if any(key in data for key in ("network", "flow", "claim")):
+        network = data.get("network", case.network)
+        flow = data.get("flow", case.flow)
+        if not isinstance(network, dict) or not isinstance(flow, dict):
+            return error(400, "network와 flow는 객체여야 합니다")
+        if problem := _limit_problem(network):
+            return error(422, problem)
+        claim = _clean_claim(data.get("claim", case.claim))
+        verdict, comparison = _judge(network, flow, claim)
+        case.network, case.flow, case.claim = network, flow, claim
+        case.verdict, case.result, case.comparison, case.engine_version = verdict, verdict["result"], comparison, ENGINE_VERSION
+        changed_truth = True
+    if changed_truth:
+        case.clear_confirmation()  # 확인한 뒤 내용이 바뀌면 다시 확인받아야 한다
+    case.updated_at = utcnow()
+    db.session.commit()
+    return jsonify(case.detail())
+
+
+@bp.delete("/cases/<int:case_id>")
+@login_required
+def delete_case(case_id: int):
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return error(404, "없는 사례입니다")
+    user = current_user()
+    if case.owner_id != user.id and not user.is_reviewer:
+        return error(403, "자기 사례만 지울 수 있습니다", reason="not_owner")
+    db.session.delete(case)
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
+@bp.post("/cases/<int:case_id>/confirm")
+@reviewer_required
+def confirm_case(case_id: int):
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return error(404, "없는 사례입니다")
+    if case.actual_result not in ACTUAL_RESULTS or not case.actual_source:
+        return error(400, "실제 결과와 출처가 적힌 사례만 확인할 수 있습니다")
+    case.confirmed_by, case.confirmed_at = current_user().id, utcnow()
+    db.session.commit()
+    return jsonify(case.detail())
+
+
+@bp.delete("/cases/<int:case_id>/confirm")
+@reviewer_required
+def unconfirm_case(case_id: int):
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return error(404, "없는 사례입니다")
+    case.clear_confirmation()
+    db.session.commit()
+    return jsonify(case.detail())
+
+
+@bp.get("/cases/<int:case_id>/export")
+@reviewer_required
+def export_case(case_id: int):
+    """확인된 사례를 cases/ 폴더 형식으로 내보낸다. 기준 사례 테스트에 그대로 넣을 수 있다."""
+    case = db.session.get(Case, case_id)
+    if case is None:
+        return error(404, "없는 사례입니다")
+    if case.confirmed_at is None:
+        return error(400, "확인된 사례만 내보낼 수 있습니다")
+    decisive = case.verdict.get("decisive") or {}
+    expect = {"result": case.actual_result}
+    if case.actual_result == case.result == "DENY" and decisive:
+        expect.update(device=decisive.get("device"), step=decisive.get("step"), rule_seq=decisive.get("rule_seq"))
+    return jsonify({
+        "id": f"field-{case.id:03d}",
+        "title": case.title,
+        "source": f"동기 사례(작성자 익명). 실제 결과 출처: {case.actual_source} — {case.actual_note or ''}".strip(),
+        "network": case.network,
+        "flow": case.flow,
+        "claim": case.claim,
+        "expect": expect,
+    })
+
+
+@bp.get("/dashboard")
+@reviewer_required
+def dashboard():
+    cases = Case.query.all()
+    confirmed_in_scope = [c for c in cases if c.confirmed_at and c.in_scope]
+    mismatches = [c for c in confirmed_in_scope if c.result != c.actual_result]
+    ai_confirmed = [c for c in cases if c.confirmed_at and (c.claim or {}).get("kind") == "ai"]
+    ai_wrong = [c for c in ai_confirmed if c.claim["expected"] != c.actual_result]
+    return jsonify({
+        "total": len(cases),
+        "confirmed": sum(1 for c in cases if c.confirmed_at),
+        "unsupported": sum(1 for c in cases if c.result == "UNSUPPORTED"),
+        "invalid": sum(1 for c in cases if c.result == "INVALID"),
+        "confirmed_in_scope": len(confirmed_in_scope),
+        "agree": len(confirmed_in_scope) - len(mismatches),
+        "ai_confirmed": len(ai_confirmed),
+        "ai_wrong": len(ai_wrong),
+        "mismatches": [c.summary() for c in mismatches],
+    })
