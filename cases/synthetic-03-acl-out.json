@@ -1,0 +1,25 @@
+{
+  "id": "synthetic-03",
+  "title": "ACL을 나가는 방향으로 붙임",
+  "source": "합성 사례(Workbench 초안, 정답은 사람이 적음)",
+  "network": {
+    "devices": [
+      {"id": "PC1", "kind": "host", "interfaces": [{"name": "eth0", "ip": "10.10.10.10/24"}], "gateway": "10.10.10.1"},
+      {"id": "R1", "kind": "router", "interfaces": [
+        {"name": "g0/0", "ip": "10.10.10.1/24"},
+        {"name": "g0/1", "ip": "10.20.20.1/24", "acl_out": "110"}
+      ]},
+      {"id": "SRV", "kind": "host", "interfaces": [{"name": "eth0", "ip": "10.20.20.5/24"}], "gateway": "10.20.20.1"}
+    ],
+    "acls": {
+      "110": [
+        "access-list 110 deny tcp host 10.10.10.10 host 10.20.20.5 eq 22",
+        "access-list 110 permit ip any any"
+      ]
+    }
+  },
+  "flow": {"src": "10.10.10.10", "dst": "10.20.20.5", "proto": "tcp", "dst_port": 22},
+  "hand_first": {"result": "DENY", "device": "R1", "step": "acl_in", "rule_seq": null,
+                 "why_wrong": "Claude 추정(본인 말로 바꿀 것): 패킷이 SRV 쪽으로 가니 in이라고 생각함. 방향은 라우터 기준(g0/1에서 나감=out). 1번 줄이 정확히 맞아 rule_seq는 1"},
+  "expect": {"result": "DENY", "device": "R1", "step": "acl_out", "rule_seq": 1}
+}
