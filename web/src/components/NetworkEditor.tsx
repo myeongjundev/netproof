@@ -102,10 +102,10 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
               <tbody>
                 {device.interfaces.map((iface, f) => (
                   <tr key={f}>
-                    <td>
+                    <td data-label="인터페이스">
                       <input aria-label={`${device.id} 인터페이스 이름`} value={iface.name} onChange={(e) => setIface(d, f, { name: e.target.value })} />
                     </td>
-                    <td>
+                    <td data-label="IP/접두사">
                       <input
                         aria-label={`${device.id} ${iface.name} 주소`}
                         value={iface.ip}
@@ -115,7 +115,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
                     </td>
                     {device.kind === "router" &&
                       (["acl_in", "acl_out"] as const).map((key) => (
-                        <td key={key}>
+                        <td key={key} data-label={key === "acl_in" ? "ACL 들어올 때" : "ACL 나갈 때"}>
                           <select
                             aria-label={`${device.id} ${iface.name} ${key === "acl_in" ? "들어올 때" : "나갈 때"} ACL`}
                             value={iface[key] ?? ""}
@@ -172,7 +172,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
                   <tbody>
                     {(device.routes ?? []).map((route, r) => (
                       <tr key={r}>
-                        <td>
+                        <td data-label="정적 경로 목적지">
                           <input
                             aria-label={`${device.id} 경로 목적지`}
                             value={route.prefix}
@@ -180,7 +180,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
                             onChange={(e) => setRoute(d, r, { prefix: e.target.value })}
                           />
                         </td>
-                        <td>
+                        <td data-label="다음 홉">
                           <input
                             aria-label={`${device.id} 경로 다음 홉`}
                             value={route.next_hop ?? ""}
