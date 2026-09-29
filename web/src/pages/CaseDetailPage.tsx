@@ -59,7 +59,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
         </p>
         <h2 className="detail-title">{item.title}</h2>
         <p className="meta">
-          {item.author} · {new Date(item.created_at).toLocaleString("ko-KR")} · 엔진 {item.engine_version}
+          {item.author} · {new Date(item.created_at).toLocaleString("ko-KR")} · 계산 엔진 {item.engine_version}
         </p>
         <div className="row-actions">
           <button type="button" className="ghost small" onClick={() => onOpenInJudge(fromCase({ ...item, id: String(item.id), source: "" }))}>

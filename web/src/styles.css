@@ -16,7 +16,7 @@
   --code-bg: #f0f2ef;
   --radius: 10px;
   color-scheme: light;
-  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-family: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -91,7 +91,7 @@ button:disabled { opacity: 0.55; cursor: default; }
 .ghost.danger { color: var(--deny); }
 
 .devices { display: grid; gap: 12px; }
-.device { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; display: grid; gap: 8px; }
+.device { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; display: grid; gap: 8px; }
 .device > .ghost.small { justify-self: start; }
 .device-head, .acl-head { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
 .device-head label, .acl-head label { flex: 1 1 130px; }
@@ -127,6 +127,8 @@ button:disabled { opacity: 0.55; cursor: default; }
 
 .judge { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-top: 16px; margin-top: -16px; }
 .judge .primary { width: 100%; }
+/* 카드는 한 겹만: 구성·JSON 칸은 바탕 위에 두고 장비 상자만 카드로. */
+.panel.flat { background: transparent; border: 0; padding: 0; }
 .json summary { cursor: pointer; font-weight: 600; }
 .json[open] summary { margin-bottom: 8px; }
 

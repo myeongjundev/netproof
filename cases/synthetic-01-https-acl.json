@@ -57,7 +57,7 @@
   },
   "claim": {
     "expected": "PASS",
-    "source": "plan.md 예시 속 AI 답",
+    "source": "AI 답 예시(합성)",
     "text": "PC1에서 10.20.20.5의 HTTPS 서비스에 접근할 수 있다."
   },
   "expect": {

@@ -39,7 +39,10 @@ export function App() {
     <section className="panel narrow">
       <h2>로그인이 필요합니다</h2>
       <p className="hint">
-        사례 게시판은 로그인한 동기끼리 봅니다. <a href="#/login">로그인</a>
+        {route.page === "dashboard" ? "대시보드는 검토자만 봅니다." : "사례 게시판은 로그인한 동기끼리 봅니다."} <a href="#/login">로그인</a>
+      </p>
+      <p className="hint">
+        판정기는 로그인 없이 쓸 수 있습니다. <a href="#/">판정기로</a>
       </p>
     </section>
   );

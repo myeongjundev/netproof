@@ -34,7 +34,7 @@ export function CasesPage() {
             <tr>
               <th scope="col">사례</th>
               <th scope="col">판정</th>
-              <th scope="col">받은 답</th>
+              <th scope="col">받은 답과 판정</th>
               <th scope="col">실제 결과</th>
             </tr>
           </thead>
@@ -50,7 +50,7 @@ export function CasesPage() {
                 <td data-label="판정">
                   <ResultBadge result={item.result} />
                 </td>
-                <td data-label="받은 답">
+                <td data-label="받은 답과 판정">
                   <ComparisonBadge comparison={item.comparison} />
                 </td>
                 <td data-label="실제 결과">

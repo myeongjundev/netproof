@@ -105,7 +105,7 @@ export function JudgePage({ user, draft, setDraft }: Props) {
       <div className="layout">
         <div className="inputs">
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })} />
-          <details className="panel json">
+          <details className="panel flat json">
             <summary>사례 JSON 저장·불러오기</summary>
             <p className="hint">사례 원장에 옮길 때 씁니다.</p>
             <label className="block">
