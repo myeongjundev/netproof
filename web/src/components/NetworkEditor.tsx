@@ -42,9 +42,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
 
   return (
     <section className="panel" aria-labelledby="network-title">
-      <h2 id="network-title">
-        <span className="step">1</span> 구성
-      </h2>
+      <h2 id="network-title">구성</h2>
       <p className="hint">장비의 주소와 경로, ACL을 적습니다. 같은 서브넷에 있는 인터페이스는 같은 링크로 연결됐다고 봅니다.</p>
 
       <div className="devices">

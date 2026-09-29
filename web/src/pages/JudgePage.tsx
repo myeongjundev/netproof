@@ -94,21 +94,17 @@ export function JudgePage({ user, draft, setDraft }: Props) {
         </div>
       </div>
 
+      <FlowForm
+        flow={draft.flow}
+        claim={draft.claim}
+        endpoints={endpoints(draft)}
+        onFlow={(flow) => update({ flow })}
+        onClaim={(claim) => update({ claim })}
+      />
+
       <div className="layout">
         <div className="inputs">
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })} />
-          <FlowForm
-            flow={draft.flow}
-            claim={draft.claim}
-            endpoints={endpoints(draft)}
-            onFlow={(flow) => update({ flow })}
-            onClaim={(claim) => update({ claim })}
-          />
-          <div className="judge">
-            <button type="button" className="primary" onClick={judge} disabled={loading}>
-              {loading ? "계산 중…" : "판정하기"}
-            </button>
-          </div>
           <details className="panel json">
             <summary>사례 JSON 저장·불러오기</summary>
             <p className="hint">사례 원장에 옮길 때 씁니다.</p>
@@ -126,6 +122,12 @@ export function JudgePage({ user, draft, setDraft }: Props) {
           </details>
         </div>
         <aside className="output">
+          {/* 넓은 화면에서는 결과 칸과 함께 따라오고, 휴대폰에서는 화면 아래에 붙는다(styles.css .judge). */}
+          <div className="judge">
+            <button type="button" className="primary" onClick={judge} disabled={loading}>
+              {loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}
+            </button>
+          </div>
           <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} />
           {verdict && !stale && (
             <section className="panel save" aria-labelledby="save-title">

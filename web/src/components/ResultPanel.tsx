@@ -16,11 +16,17 @@ const STEP_TEXT: Record<Hop["step"], string> = {
 };
 
 const COMPARISON_TEXT = {
-  AGREE: "받은 답과 일치",
-  DISAGREE: "받은 답과 다름",
-  NOT_COMPARABLE: "판정을 못 해 비교하지 않음",
-  NO_CLAIM: "",
+  AGREE: { mark: "=", line: "받은 답과 계산이 같습니다." },
+  DISAGREE: { mark: "≠", line: "받은 답과 계산이 다릅니다." },
+  NOT_COMPARABLE: { mark: "?", line: "계산이 판정을 못 해 비교하지 않았습니다." },
 } as const;
+
+const ANSWER_TEXT = { PASS: "된다", DENY: "안 된다" } as const;
+
+function claimLabel(claim: Claim): string {
+  const who = claim.kind === "ai" ? "AI 답" : claim.kind === "self" ? "내 예상" : "받은 답";
+  return claim.source ? `${who} · ${claim.source}` : who;
+}
 
 function Path({ title, trace, decisive }: { title: string; trace: Trace; decisive: Hop | null }) {
   return (
@@ -68,17 +74,29 @@ export function ResultPanel({ verdict, claim, stale, error, loading }: Props) {
         <>
           {stale && <p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p>}
           <div className={`verdict ${verdict.result.toLowerCase()}`}>
-            <p className="verdict-title">
-              {verdict.result} <span>{RESULT_TEXT[verdict.result].title}</span>
-            </p>
+            {verdict.comparison === "NO_CLAIM" || !claim.expected ? (
+              <p className="verdict-title">{RESULT_TEXT[verdict.result].title}</p>
+            ) : (
+              <>
+                <div className="versus">
+                  <p className="side claim-side">
+                    <span className="side-label">{claimLabel(claim)}</span>
+                    <strong>{ANSWER_TEXT[claim.expected]}</strong>
+                  </p>
+                  <span className="vs-mark" aria-hidden="true">
+                    {COMPARISON_TEXT[verdict.comparison].mark}
+                  </span>
+                  <p className="side">
+                    <span className="side-label">NetProof 계산</span>
+                    <strong>{RESULT_TEXT[verdict.result].title}</strong>
+                  </p>
+                </div>
+                <p className={`verdict-line ${verdict.comparison.toLowerCase()}`}>{COMPARISON_TEXT[verdict.comparison].line}</p>
+              </>
+            )}
             <p>{verdict.reason}</p>
             <p className="verdict-note">{RESULT_TEXT[verdict.result].note}</p>
           </div>
-          {verdict.comparison !== "NO_CLAIM" && (
-            <p className={`comparison ${verdict.comparison.toLowerCase()}`}>
-              {claim.source || "받은 답"}: {claim.expected} → <strong>{COMPARISON_TEXT[verdict.comparison]}</strong>
-            </p>
-          )}
           {verdict.problems.length > 0 && (
             <ul className="problems">
               {verdict.problems.map((problem) => (

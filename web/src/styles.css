@@ -69,8 +69,6 @@ a { color: var(--accent); }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
 .panel h2 { font-size: 17px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .panel h3 { font-size: 15px; margin: 18px 0 4px; }
-.step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; }
-.optional { font-size: 12px; font-weight: 400; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; }
 .hint { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
 .hint.below { margin: 10px 0 0; }
 .hint code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
@@ -110,22 +108,41 @@ button:disabled { opacity: 0.55; cursor: default; }
 .chip.on { border-color: var(--accent); background: var(--gray-bg); }
 .chip input { width: auto; min-height: 0; margin: 0; }
 
-.judge { display: flex; justify-content: flex-end; }
+/* 질문 줄: 확인할 통신 + 받은 답. 판정기 맨 위. */
+.question { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 18px; display: grid; gap: 12px; }
+.q-flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.q-flow label { flex: 1 1 130px; }
+.q-flow .q-ip { flex: 2 1 160px; }
+.q-flow .q-port { flex: 0 1 100px; }
+.q-arrow { padding-bottom: 6px; color: var(--muted); font-size: 18px; }
+.q-claim { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.q-label { font-size: 13px; color: var(--muted); }
+.q-claim .choice { margin: 0; }
+.q-source summary { cursor: pointer; font-size: 13px; color: var(--accent); }
+.q-source[open] { flex-basis: 100%; }
+.q-source[open] summary { margin-bottom: 8px; }
+.question .hint.below { margin: 0; }
+
+.judge .primary { width: 100%; }
 .json summary { cursor: pointer; font-weight: 600; }
 .json[open] summary { margin-bottom: 8px; }
 
 .result { display: grid; gap: 12px; }
 .verdict { border-radius: 8px; padding: 14px; display: grid; gap: 4px; }
-.verdict-title { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; }
-.verdict-title span { font-size: 16px; font-weight: 600; margin-left: 6px; }
+.verdict-title { font-size: 28px; font-weight: 700; line-height: 1.2; }
+/* 받은 답과 계산을 나란히: 결과의 제목. */
+.versus { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 16px; align-items: end; justify-content: start; }
+.side { display: grid; gap: 2px; }
+.side-label { font-size: 12px; opacity: 0.85; }
+.side strong { font-size: 26px; line-height: 1.2; }
+.claim-side { color: var(--ink); }
+.vs-mark { font-size: 30px; font-weight: 700; line-height: 1.2; }
+.verdict-line { font-weight: 700; font-size: 16px; margin-top: 4px; }
 .verdict-note { font-size: 13px; opacity: 0.85; }
 .verdict.pass { background: var(--pass-bg); color: var(--pass); }
 .verdict.deny { background: var(--deny-bg); color: var(--deny); }
 .verdict.unsupported { background: var(--warn-bg); color: var(--warn); }
 .verdict.invalid { background: var(--gray-bg); color: var(--ink); }
-.comparison { border-left: 3px solid var(--line); padding-left: 10px; }
-.comparison.disagree { border-color: var(--deny); }
-.comparison.agree { border-color: var(--pass); }
 .problems { margin: 0; padding-left: 20px; color: var(--ink); }
 .stale { background: var(--warn-bg); color: var(--warn); padding: 8px 10px; border-radius: 8px; font-size: 13px; }
 .error { background: var(--deny-bg); color: var(--deny); padding: 8px 10px; border-radius: 8px; }
@@ -148,10 +165,14 @@ button:disabled { opacity: 0.55; cursor: default; }
   .layout { grid-template-columns: 1fr; }
   .foot { padding: 0 16px 28px; }
   .output { position: static; }
-  .judge .primary { width: 100%; }
+  /* 휴대폰: 판정 단추를 화면 아래에 붙인다. 구성이 길어도 스크롤 없이 누른다. */
+  .judge { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+  .main:has(.judge) { padding-bottom: 88px; }
 }
 
 @media (max-width: 560px) {
+  .q-arrow { display: none; }
+  .versus { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; }
   .rows thead { display: none; }
   .rows tr { display: grid; grid-template-columns: 1fr 1fr 40px; gap: 4px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
   .rows td { padding: 0; }
