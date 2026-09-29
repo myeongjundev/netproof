@@ -54,6 +54,16 @@ export const api = {
   unconfirm: (id: number) => call<CaseDetail>("DELETE", `/api/cases/${id}/confirm`),
   exportCase: (id: number) => call<Record<string, unknown>>("GET", `/api/cases/${id}/export`),
   dashboard: () => call<Dashboard>("GET", "/api/dashboard"),
+  changePassword: (current_password: string, new_password: string) => call("POST", "/api/auth/password", { current_password, new_password }),
+  changeNickname: (nickname: string) => call<{ user: User }>("POST", "/api/auth/nickname", { nickname }),
+  logoutAll: async () => {
+    await call("POST", "/api/auth/logout-all");
+    csrfToken = null;
+  },
+  deleteAccount: async (current_password: string) => {
+    await call("POST", "/api/auth/delete-account", { current_password });
+    csrfToken = null;
+  },
 };
 
 export function message(error: unknown): string {

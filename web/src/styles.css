@@ -1,44 +1,26 @@
+/* 색은 light-dark(라이트, 다크) 한 줄로. 설정의 테마 선택은 <html data-theme>로 color-scheme만 바꾼다(theme.ts). */
 :root {
-  --bg: #f5f6f4;
-  --surface: #ffffff;
-  --ink: #1d2220;
-  --muted: #5b6460;
-  --line: #d9ddd9;
-  --accent: #1f5f5b;
-  --accent-ink: #ffffff;
-  --pass: #1e6b3a;
-  --pass-bg: #e6f3ea;
-  --deny: #a3282a;
-  --deny-bg: #fbeaea;
-  --warn: #8a5a00;
-  --warn-bg: #fdf3dc;
-  --gray-bg: #eef0ee;
-  --code-bg: #f0f2ef;
+  color-scheme: light dark;
+  --bg: light-dark(#f5f6f4, #141816);
+  --surface: light-dark(#ffffff, #1c211f);
+  --ink: light-dark(#1d2220, #e6ebe8);
+  --muted: light-dark(#5b6460, #a3ada8);
+  --line: light-dark(#d9ddd9, #333b37);
+  --accent: light-dark(#1f5f5b, #6fc2b9);
+  --accent-ink: light-dark(#ffffff, #0d1413);
+  --pass: light-dark(#1e6b3a, #7fd39a);
+  --pass-bg: light-dark(#e6f3ea, #173323);
+  --deny: light-dark(#a3282a, #f19a9b);
+  --deny-bg: light-dark(#fbeaea, #3a1c1d);
+  --warn: light-dark(#8a5a00, #f0c46b);
+  --warn-bg: light-dark(#fdf3dc, #3a2f14);
+  --gray-bg: light-dark(#eef0ee, #262c29);
+  --code-bg: light-dark(#f0f2ef, #242a27);
   --radius: 10px;
-  color-scheme: light;
   font-family: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141816;
-    --surface: #1c211f;
-    --ink: #e6ebe8;
-    --muted: #a3ada8;
-    --line: #333b37;
-    --accent: #6fc2b9;
-    --accent-ink: #0d1413;
-    --pass: #7fd39a;
-    --pass-bg: #173323;
-    --deny: #f19a9b;
-    --deny-bg: #3a1c1d;
-    --warn: #f0c46b;
-    --warn-bg: #3a2f14;
-    --gray-bg: #262c29;
-    --code-bg: #242a27;
-    color-scheme: dark;
-  }
-}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.55; font-size: 15px; word-break: keep-all; overflow-wrap: anywhere; }
@@ -267,3 +249,14 @@ p .meta { display: inline; }
   .json summary, .q-source summary { padding: 12px 0; }
   .rows td:last-child { width: 48px; }
 }
+
+/* 설정 */
+.settings { display: grid; gap: 16px; max-width: 760px; }
+.settings form { display: grid; gap: 10px; margin-top: 10px; max-width: 420px; }
+.settings form .ghost, .settings form .danger-button { justify-self: start; }
+.settings .panel > h2 + .hint { margin-bottom: 0; }
+.ok { background: var(--pass-bg); color: var(--pass); padding: 8px 10px; border-radius: 8px; }
+.danger-zone { border-color: var(--deny); }
+.danger-button { background: var(--deny); color: var(--surface); border: 0; font-weight: 600; }
+.check-row { display: flex; flex-direction: row; gap: 8px; align-items: center; color: var(--ink); font-size: 14px; }
+.check-row input { width: auto; min-height: 0; }

@@ -19,7 +19,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 from flask import Blueprint, current_app, g, jsonify, request
 
-from .models import ROLE_USER, Session, User, db, utcnow
+from .models import ROLE_USER, Case, Session, User, db, utcnow
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -184,3 +184,85 @@ def me():
     if session is None:
         return jsonify({"user": None, "csrf": None})
     return jsonify({"user": session.user.public(), "csrf": session.csrf_token})
+
+
+# ── 설정: 로그인한 사람이 자기 계정만 바꾼다 ──────────────────────────────
+
+
+def _check_current_password(user: User):
+    """비밀번호를 다시 묻는 설정 요청. 틀리면 로그인과 같은 횟수로 잠근다(세션을 훔친 사람의 추측 방지)."""
+    password = str((request.get_json(silent=True) or {}).get("current_password") or "")
+    now = utcnow()
+    if user.locked_until and user.locked_until > now:
+        return error(429, "비밀번호가 여러 번 틀려 잠시 잠겼습니다. 잠시 뒤에 다시 하세요")
+    try:
+        hasher.verify(user.password_hash, password)
+    except (VerificationError, InvalidHashError):
+        user.failed_logins += 1
+        if user.failed_logins >= MAX_FAILED:
+            user.locked_until = now + timedelta(minutes=LOCK_MINUTES)
+            user.failed_logins = 0
+        db.session.commit()
+        return error(400, "지금 비밀번호가 맞지 않습니다")
+    user.failed_logins = 0
+    return None
+
+
+@bp.post("/password")
+@login_required
+def change_password():
+    user = current_user()
+    failed = _check_current_password(user)
+    if failed:
+        return failed
+    new = str((request.get_json(silent=True) or {}).get("new_password") or "")
+    if not 8 <= len(new) <= 128:
+        return error(400, "새 비밀번호는 8~128자여야 합니다")
+    user.password_hash = hasher.hash(new)
+    # 다른 기기의 로그인은 끊고 지금 기기만 남긴다.
+    Session.query.filter(Session.user_id == user.id, Session.id != current_session().id).delete()
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
+@bp.post("/logout-all")
+@login_required
+def logout_all():
+    Session.query.filter_by(user_id=current_user().id).delete()
+    db.session.commit()
+    response = jsonify({"ok": True})
+    response.delete_cookie(COOKIE, path="/")
+    return response
+
+
+@bp.post("/nickname")
+@login_required
+def change_nickname():
+    user = current_user()
+    nickname = str((request.get_json(silent=True) or {}).get("nickname") or "").strip()
+    if not NICKNAME.match(nickname):
+        return error(400, "닉네임은 2~20자의 한글·영문·숫자·_·-만 됩니다. 실명은 쓰지 마세요")
+    taken = User.query.filter_by(nickname_key=nickname.lower()).first()
+    if taken is not None and taken.id != user.id:
+        return error(409, "이미 쓰는 닉네임입니다")
+    user.nickname, user.nickname_key = nickname, nickname.lower()
+    db.session.commit()
+    return jsonify({"user": user.public()})
+
+
+@bp.post("/delete-account")
+@login_required
+def delete_account():
+    user = current_user()
+    failed = _check_current_password(user)
+    if failed:
+        return failed
+    # SQLite는 외래 키 CASCADE를 기본으로 끄므로 직접 지운다(PostgreSQL에서도 같은 결과).
+    Case.query.filter_by(confirmed_by=user.id).update({"confirmed_by": None})  # 남의 사례 확인은 남긴다
+    Case.query.filter_by(owner_id=user.id).delete()
+    Session.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    response = jsonify({"ok": True})
+    response.delete_cookie(COOKIE, path="/")
+    return response

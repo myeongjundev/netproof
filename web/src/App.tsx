@@ -6,6 +6,7 @@ import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JudgePage } from "./pages/JudgePage";
 import { LoginPage } from "./pages/LoginPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { go, useRoute } from "./router";
 import type { Draft, User } from "./types";
 
@@ -29,10 +30,14 @@ export function App() {
     ).finally(() => setChecked(true));
   }, []);
 
-  const logout = async () => {
-    await api.logout().catch(() => undefined);
+  const signedOut = () => {
     setUser(null);
     go("/");
+  };
+
+  const logout = async () => {
+    await api.logout().catch(() => undefined);
+    signedOut();
   };
 
   const needLogin = (
@@ -61,6 +66,7 @@ export function App() {
     ) : (
       <LoginPage onLoggedIn={(next) => (setUser(next), go(back))} />
     );
+  else if (route.page === "settings") page = <SettingsPage user={user} onUser={setUser} onSignedOut={signedOut} />;
   else if (!user) page = needLogin;
   else if (route.page === "cases") page = <CasesPage />;
   else if (route.page === "case")
@@ -93,6 +99,7 @@ export function App() {
           {tab("판정기", "#/", route.page === "judge")}
           {tab("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}
           {user?.role === "reviewer" && tab("대시보드", "#/dashboard", route.page === "dashboard")}
+          {tab("설정", "#/settings", route.page === "settings")}
         </nav>
         <div className="who">
           {!checked ? null : user ? (
