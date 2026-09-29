@@ -28,10 +28,56 @@ function claimLabel(claim: Claim): string {
   return claim.source ? `${who} · ${claim.source}` : who;
 }
 
+const DROP_TEXT: Record<Hop["step"], string> = {
+  send: "보내지 못함",
+  acl_in: "들어올 때 ACL",
+  route: "경로 없음",
+  acl_out: "나갈 때 ACL",
+  deliver: "받지 못함",
+};
+
+export interface PathNode {
+  device: string;
+  ifs: string;
+  drop: Hop | null;
+}
+
+/** 같은 장비에서 이어진 단계(ACL 들어옴 → 경로 → ACL 나감)를 장비 하나로 묶는다. */
+export function pathNodes(hops: Hop[]): PathNode[] {
+  const groups: Hop[][] = [];
+  for (const hop of hops) {
+    const last = groups.at(-1);
+    if (last && last[0].device === hop.device) last.push(hop);
+    else groups.push([hop]);
+  }
+  return groups.map((group) => ({
+    device: group[0].device,
+    ifs: [group[0].in_if, [...group].reverse().find((hop) => hop.out_if)?.out_if].filter(Boolean).join(" → "),
+    drop: group.find((hop) => hop.result === "drop") ?? null,
+  }));
+}
+
+/** 경로 그림. 아래 목록과 같은 내용이라 화면 읽기 프로그램에는 목록만 읽힌다. */
+function Strip({ trace }: { trace: Trace }) {
+  return (
+    <ol className="strip" aria-hidden="true">
+      {pathNodes(trace.hops).map((node, i) => (
+        <li key={i} className={node.drop ? "node drop" : "node"}>
+          <span className="led" />
+          <strong>{node.device}</strong>
+          {node.ifs && <span className="ifs">{node.ifs}</span>}
+          {node.drop && <span className="drop-at">{DROP_TEXT[node.drop.step]}</span>}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function Path({ title, trace, decisive }: { title: string; trace: Trace; decisive: Hop | null }) {
   return (
     <div className="path">
       <h3>{title}</h3>
+      <Strip trace={trace} />
       <ol>
         {trace.hops.map((hop, i) => {
           const isDecisive = decisive !== null && i === trace.hops.length - 1 && hop.result === "drop";

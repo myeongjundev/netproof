@@ -122,38 +122,40 @@ export function JudgePage({ user, draft, setDraft }: Props) {
           </details>
         </div>
         <aside className="output">
-          {/* 넓은 화면에서는 결과 칸과 함께 따라오고, 휴대폰에서는 화면 아래에 붙는다(styles.css .judge). */}
+          {/* 넓은 화면에서는 구성 칸 끝까지 따라오고, 휴대폰에서는 화면 아래에 붙는다(styles.css .judge). */}
           <div className="judge">
             <button type="button" className="primary" onClick={judge} disabled={loading}>
               {loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}
             </button>
           </div>
-          <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} />
-          {verdict && !stale && (
-            <section className="panel save" aria-labelledby="save-title">
-              <h2 id="save-title">사례로 저장</h2>
-              {user ? (
-                <>
-                  <p className="hint">게시판에 올리면 실제 실습 결과를 적고 검토자의 확인을 받을 수 있습니다. 판정은 서버가 다시 계산해 저장합니다.</p>
-                  <div className="save-row">
-                    <label>
-                      <span className="sr-only">사례 제목</span>
-                      <input value={title} maxLength={80} placeholder="예: R2 복귀 경로 없음 · ping" onChange={(e) => setTitle(e.target.value)} />
-                    </label>
-                    <button type="button" className="ghost" onClick={save} disabled={!title.trim()}>
-                      저장
-                    </button>
-                  </div>
-                  {saveError && <p className="error">{saveError}</p>}
-                </>
-              ) : (
-                <p className="hint">
-                  로그인하면 이 판정을 사례 게시판에 올릴 수 있습니다. 지금 입력은 그대로 남습니다.{" "}
-                  <a href="#/login">로그인</a>
-                </p>
-              )}
-            </section>
-          )}
+          <div className="follow">
+            <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} />
+            {verdict && !stale && (
+              <section className="panel save" aria-labelledby="save-title">
+                <h2 id="save-title">사례로 저장</h2>
+                {user ? (
+                  <>
+                    <p className="hint">게시판에 올리면 실제 실습 결과를 적고 검토자의 확인을 받을 수 있습니다. 판정은 서버가 다시 계산해 저장합니다.</p>
+                    <div className="save-row">
+                      <label>
+                        <span className="sr-only">사례 제목</span>
+                        <input value={title} maxLength={80} placeholder="예: R2 복귀 경로 없음 · ping" onChange={(e) => setTitle(e.target.value)} />
+                      </label>
+                      <button type="button" className="ghost" onClick={save} disabled={!title.trim()}>
+                        저장
+                      </button>
+                    </div>
+                    {saveError && <p className="error">{saveError}</p>}
+                  </>
+                ) : (
+                  <p className="hint">
+                    로그인하면 이 판정을 사례 게시판에 올릴 수 있습니다. 지금 입력은 그대로 남습니다.{" "}
+                    <a href="#/login">로그인</a>
+                  </p>
+                )}
+              </section>
+            )}
+          </div>
         </aside>
       </div>
     </>
