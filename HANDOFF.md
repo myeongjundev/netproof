@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex** — PROMPTS.md 4번, PR #2 리뷰 1~3 수정(4는 선택)
-- 브랜치 / 마지막 커밋: `codex/url-share` / Claude 리뷰 기록 커밋
-- 진행 단계: 리뷰 완료(수정 필요) → 수정 대기
+- 다음 차례: **Claude** — PROMPTS.md 3번, PR #2 수정 결과 재리뷰
+- 브랜치 / 마지막 커밋: `codex/url-share` / 이 문서를 포함한 리뷰 수정 커밋
+- 진행 단계: 리뷰 1~3 수정·변이 테스트 완료 → Claude 재리뷰 대기
 - 한 줄 요약: P1 사례 URL 공유 — 판정기 입력을 링크 하나로 주고받기(서버 저장 없음)
 
 ## 작업 정의 (설계 담당) — P1 사례 URL 공유
@@ -69,8 +69,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - P1 사례 URL 공유: UTF-8·deflate-raw·base64url 인코딩, 버전·입력 모양 검사, 스트리밍 압축 해제 중 64KB 제한.
 - 링크 복사와 클립보드 실패 시 읽기 전용 링크 표시, aria-live 안내.
 - 공유 경로를 기존 load 경로로 불러온 뒤 주소를 `#/`로 교체. 자동 판정 없음, 이전 판정 응답이 늦게 도착해도 불러온 결과를 덮지 않음.
-- 새 테스트 25개: 처음 구성·예시 3개 왕복, 한글·특수문자, 오류, 10MB 압축 입력, 64KB 경계, 라우터.
-- 작업 정의의 파일 목록만 수정. `decisions/ai-work-log.md`는 이번 변경 범위에 없어 수정하지 않음. 구현 도구: Codex (GPT-6).
+- 최초 구현 테스트 25개: 처음 구성·예시 3개 왕복, 한글·특수문자, 오류, 10MB 압축 입력, 64KB 경계, 라우터.
+- 작업 정의의 파일 목록만 수정. `decisions/ai-work-log.md`는 이번 변경 범위에 없어 수정하지 않음. 구현 도구: Codex (GPT-6 Astra).
+
+- 리뷰 수정: 스트리밍 중단 회귀 테스트 1개 추가(웹 전체 34개), 변이 검출 확인, 빌드 로그 요약 및 모델 이름 정정. 선택 항목 4는 원본 오류 링크 보존을 위해 미반영.
 
 ## 변경된 주요 파일
 - `web/src/share.ts`, `web/src/share.test.ts`: 공유 데이터 변환·검증과 테스트.
@@ -79,26 +81,22 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - `HANDOFF.md`: 실제 실행 출력과 리뷰 인계.
 
 ## 테스트 결과
-- 2026-09-30 직접 실행. PowerShell에서는 엔진·서버 폴더를 작업 디렉터리로 지정해 아래 Python 명령을 실행함.
-- 최초 빌드에서 테스트의 Node 타입 참조와 unknown 타입 오류가 발생했고, 새 의존성 없이 수정 후 아래와 같이 재실행해 통과함.
-- 브라우저 확인은 실행하지 않았으며 완료 조건 4번은 Claude가 담당함.
+- 2026-09-30 리뷰 수정 후 직접 실행. 엔진·서버는 해당 폴더를 작업 디렉터리로 지정.
+- 빌드 출력은 리뷰 2번에 따라 요약만 남김. 새 테스트의 ArrayBuffer 타입 오류를 수정한 뒤 최종 빌드 통과.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
-
 ```text
 ................................................................         [100%]
-64 passed in 1.63s
+64 passed in 1.67s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
-
 ```text
 ..................................s......                                [100%]
-40 passed, 1 skipped in 9.65s
+40 passed, 1 skipped in 7.04s
 ```
 
 ### `npm --prefix web test`
-
 ```text
 > netproof-web@0.1.0 test
 > vitest run
@@ -108,119 +106,51 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 
  Test Files  4 passed (4)
-      Tests  33 passed (33)
-   Start at  15:41:37
-   Duration  540ms (transform 40%, import 30%, tests 21%, worker 10%)
+      Tests  34 passed (34)
+   Start at  15:55:38
+   Duration  566ms (transform 39%, tests 29%, import 23%, worker 9%)
 ```
 
 ### `npm --prefix web run build`
-
 ```text
-> netproof-web@0.1.0 build
 > tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
 ✓ 32 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:  0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-q5Jfsr80.css                            62.26 kB │ gzip: 18.84 kB
-dist/assets/index-DKPT1TE1.js                            266.85 kB │ gzip: 81.89 kB
+✓ built in 400ms
+```
 
-✓ built in 1.27s
+### 리뷰 1 — 중간 크기 검사 회귀 테스트
+명령: `npm --prefix web test -- src/share.test.ts -t '64KB를 넘긴 첫 조각'`
+- 실제 DecompressionStream 출력에서 읽은 바이트 수를 관찰. 64KB + 가장 큰 한 조각 이하, EOF 도달 전 중단, cancel 호출을 확인.
+- 정상 코드: `1 passed | 24 skipped (25)`.
+- 변이: `share.ts`의 `if (size > MAX_BYTES)` 검사를 while 안에서 제거하고 `json += decoder.decode();` 뒤로 이동. 같은 명령 직접 실행:
+```text
+AssertionError: expected 10485760 to be less than or equal to 81920
+Test Files  1 failed (1)
+Tests  1 failed | 24 skipped (25)
+Mutation test exit code: 1 (expected 1); original source restored
+```
+- finally에서 원본 복구 후 전체 34개 통과. `git diff --exit-code -- web/src/share.ts web/src/pages/JudgePage.tsx` → 출력 없음, exit 0.
+
+### 리뷰 2·3 — 문서 및 모델 표기
+- 빌드 글꼴 목록 제거. `Select-String -Path HANDOFF.md -Pattern '^dist/assets/Pretendard'` → 출력 없음.
+- 현재 대화의 로컬 turn_context 두 건에서 모델 ID `gpt-6-astra` 확인(이전 구현·이번 수정 모두). 정확한 이름: Codex (GPT-6 Astra).
+- PR 본문과 HANDOFF 표기를 정정하고 이번 커밋 끝에 정확한 모델 이름을 남김. 이미 푸시한 `8317a3e`의 부정확한 표기는 이 기록으로 정정하며, 공유 이력은 재작성하지 않음.
+
+### 리뷰 4 — 선택 항목 미반영
+- 실패한 링크는 원본을 복사·수정·재현할 수 있게 주소에 유지한다. 오류가 다시 표시되는 점은 수용한다. 성공 시에만 주소를 비우는 기존 설계를 유지.
+- 이번 화면 변경 없음. `npm --prefix web test -- src/share.test.ts -t '오류'` → 아래 실제 결과. 입력 보존·오류 한 줄·콘솔 오류 없음은 기존 Claude 브라우저 확인 결과이며 이번에 재실행한 것으로 주장하지 않음.
+```text
+> netproof-web@0.1.0 test
+> vitest run src/share.test.ts -t 오류
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed | 10 skipped (25)
+   Start at  15:56:37
+   Duration  324ms (transform 47%, import 31%, tests 16%, worker 6%)
 ```
 
 ## 리뷰 기록 (리뷰 담당)
@@ -228,13 +158,13 @@ dist/assets/index-DKPT1TE1.js                            266.85 kB │ gzip: 81.
 
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
-| 1 | `web/src/share.test.ts` (코드 `share.ts:71`은 맞음) | [보통] 크기 검사를 다 푼 뒤로 옮겨도 테스트가 모두 통과 — "풀면서 멈춤"이 고정되지 않음 | `share.ts:71` 검사를 `:74` 뒤로 옮기고 `npm --prefix web test` → 33 passed | 수정 요청 |
-| 2 | `HANDOFF.md:116~` | [낮음] 빌드 전체 출력(글꼴 92줄) | 파일 보기 | 수정 요청 |
-| 3 | `HANDOFF.md:73`, PR 본문, 커밋 | [낮음] 모델 이름이 `Codex (GPT-6)` — 실제 고른 모델 이름으로 | 파일 보기 | 수정 요청 |
-| 4 | `web/src/pages/JudgePage.tsx:57` | [선택] 잘못된 링크면 주소가 `#/s/…`로 남아 새로고침·화면 이동 뒤 같은 오류가 다시 뜸(설계에서 빠진 부분) | 잘못된 링크 열기 → `#/cases` → 뒤로 | Codex 판단 |
+| 1 | `web/src/share.test.ts` (코드 `share.ts:71`은 맞음) | [보통] 크기 검사를 다 푼 뒤로 옮겨도 테스트가 모두 통과 — "풀면서 멈춤"이 고정되지 않음 | `share.ts:71` 검사를 `:74` 뒤로 옮기고 `npm --prefix web test` → 33 passed | 수정 완료 — Claude 재확인 대기 |
+| 2 | `HANDOFF.md:116~` | [낮음] 빌드 전체 출력(글꼴 92줄) | 파일 보기 | 수정 완료 — Claude 재확인 대기 |
+| 3 | `HANDOFF.md:73`, PR 본문, 커밋 | [낮음] 모델 이름이 `Codex (GPT-6)` — 실제 고른 모델 이름으로 | 파일 보기 | 수정 완료 — Claude 재확인 대기 |
+| 4 | `web/src/pages/JudgePage.tsx:57` | [선택] 잘못된 링크면 주소가 `#/s/…`로 남아 새로고침·화면 이동 뒤 같은 오류가 다시 뜸(설계에서 빠진 부분) | 잘못된 링크 열기 → `#/cases` → 뒤로 | 미반영 — 원본 오류 링크 보존, 이유·검증은 위 테스트 결과 |
 
 ## 수작업 필요 항목
-- Claude: 완료 조건 4번의 새 탭 왕복·화면 이동 후 입력 유지·오류 링크·375px 단추 확인. 클립보드 권한 거부 시 직접 복사 경로도 확인.
+- 사용자: 실제 Chrome에서 클립보드 성공 경로 확인(Claude 브라우저는 권한 거부로 대체 경로만 확인).
 
 ## 남은 작업 (우선순위, 2026-09-30 확정)
 기준: ① 동기가 쓸 때 앱이 풍성해지는가 ② 테스트로 확인되는가 ③ 다른 답·결정에 막혀 있지 않은가 ④ 크기

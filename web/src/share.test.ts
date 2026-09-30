@@ -68,6 +68,45 @@ it("공백 10MB 압축 링크는 해제 중 64KB 제한으로 거절한다", asy
   await expect(decodeShare(await pack(" ".repeat(10 * 1024 * 1024)))).rejects.toThrow("64KB");
 });
 
+it("64KB를 넘긴 첫 조각에서 읽기를 멈추고 압축 해제를 취소한다", async () => {
+  const payload = await pack(" ".repeat(10 * 1024 * 1024));
+  const getReadable = Object.getOwnPropertyDescriptor(DecompressionStream.prototype, "readable")!.get!;
+  let bytesRead = 0;
+  let largestChunk = 0;
+  let reachedEnd = false;
+  let cancelled = false;
+  // 실제 압축 해제 결과를 관찰한다. highWaterMark 0으로 관찰용 스트림의 선행 읽기를 막는다.
+  const spy = vi.spyOn(DecompressionStream.prototype, "readable", "get").mockImplementation(function (this: DecompressionStream) {
+    const reader = (getReadable.call(this) as ReadableStream<Uint8Array<ArrayBuffer>>).getReader();
+    return new ReadableStream<Uint8Array<ArrayBuffer>>({
+      async pull(controller) {
+        const { done, value } = await reader.read();
+        if (done) {
+          reachedEnd = true;
+          controller.close();
+        } else {
+          bytesRead += value.byteLength;
+          largestChunk = Math.max(largestChunk, value.byteLength);
+          controller.enqueue(value);
+        }
+      },
+      cancel() {
+        cancelled = true;
+        return reader.cancel();
+      },
+    }, { highWaterMark: 0 });
+  });
+  try {
+    await expect(decodeShare(payload)).rejects.toThrow("64KB");
+    expect(bytesRead).toBeGreaterThan(64 * 1024);
+    expect(bytesRead).toBeLessThanOrEqual(64 * 1024 + largestChunk);
+    expect(reachedEnd).toBe(false);
+    expect(cancelled).toBe(true);
+  } finally {
+    spy.mockRestore();
+  }
+});
+
 it("UTF-8 바이트 기준으로 64KB 경계를 적용한다", async () => {
   const json = JSON.stringify(valid);
   const padding = 64 * 1024 - new TextEncoder().encode(json).length;
