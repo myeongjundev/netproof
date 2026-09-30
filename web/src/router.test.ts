@@ -1,5 +1,10 @@
 import { parseRoute } from "./router";
 
+it("공유 링크와 빈 공유 주소를 구분한다", () => {
+  expect(parseRoute("#/s/abc")).toEqual({ page: "judge", share: "abc" });
+  expect(parseRoute("#/s/")).toEqual({ page: "missing" });
+});
+
 it("해시 주소를 화면으로 바꾼다", () => {
   expect(parseRoute("")).toEqual({ page: "judge" });
   expect(parseRoute("#/")).toEqual({ page: "judge" });

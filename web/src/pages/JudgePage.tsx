@@ -1,19 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, message } from "../api";
 import { FlowForm } from "../components/FlowForm";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
 import { go } from "../router";
+import { decodeShare, encodeShare } from "../share";
 import type { CaseItem, Draft, User, Verdict } from "../types";
 
 interface Props {
   user: User | null;
   draft: Draft;
   setDraft: (update: (current: Draft) => Draft) => void;
+  share?: string;
 }
 
-export function JudgePage({ user, draft, setDraft }: Props) {
+export function JudgePage({ user, draft, setDraft, share }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [judged, setJudged] = useState<string | null>(null);
@@ -22,6 +24,10 @@ export function JudgePage({ user, draft, setDraft }: Props) {
   const [pasted, setPasted] = useState("");
   const [title, setTitle] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareNotice, setShareNotice] = useState("");
+  const [shareLink, setShareLink] = useState("");
+  const revision = useRef(0);
 
   useEffect(() => {
     api.examples().then(setExamples, () => setExamples([]));
@@ -31,25 +37,65 @@ export function JudgePage({ user, draft, setDraft }: Props) {
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
   const stale = judged !== null && judged !== snapshot;
 
-  const load = (next: Draft) => {
+  const load = useCallback((next: Draft) => {
+    revision.current += 1;
     setDraft(() => next);
     setVerdict(null);
     setJudged(null);
     setError(null);
+  }, [setDraft]);
+
+  useEffect(() => {
+    if (share === undefined) return;
+    let active = true;
+    decodeShare(share).then((item) => {
+      if (!active) return;
+      load(fromCase(item));
+      window.history.replaceState(null, "", "#/");
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }).catch((error) => {
+      if (active) setError(message(error));
+    });
+    return () => { active = false; };
+  }, [share, load]);
+
+  const copyLink = async () => {
+    setSharing(true);
+    setShareNotice("");
+    setShareLink("");
+    try {
+      const payload = await encodeShare(draft);
+      const url = new URL(window.location.href);
+      url.hash = `/s/${payload}`;
+      try {
+        await navigator.clipboard.writeText(url.href);
+        setShareNotice("링크를 복사했습니다");
+      } catch {
+        setShareLink(url.href);
+        setShareNotice("아래 링크를 직접 복사해 주세요");
+      }
+    } catch (error) {
+      setError(message(error));
+    } finally {
+      setSharing(false);
+    }
   };
 
   const judge = async () => {
+    const started = revision.current;
     setLoading(true);
     setError(null);
     try {
-      setVerdict(await api.verify(toNetwork(draft), draft.flow, draft.claim));
+      const result = await api.verify(toNetwork(draft), draft.flow, draft.claim);
+      if (started !== revision.current) return;
+      setVerdict(result);
       setJudged(snapshot);
       // 한 줄 배치(휴대폰)에서는 결과가 폼 아래에 있어 눌러도 안 보인다. 결과로 옮겨 준다.
       if (window.matchMedia("(max-width: 900px)").matches) {
         requestAnimationFrame(() => document.getElementById("result-title")?.scrollIntoView({ behavior: "smooth", block: "start" }));
       }
     } catch (e) {
-      setError(message(e));
+      if (started === revision.current) setError(message(e));
     } finally {
       setLoading(false);
     }
@@ -101,6 +147,17 @@ export function JudgePage({ user, draft, setDraft }: Props) {
         onFlow={(flow) => update({ flow })}
         onClaim={(claim) => update({ claim })}
       />
+
+      <div>
+        <button type="button" className="ghost" onClick={copyLink} disabled={sharing}>
+          {sharing ? "링크 만드는 중…" : "링크 복사"}
+        </button>
+        <p className="hint below">링크에 지금 입력(받은 답 메모 포함)이 그대로 들어 있습니다</p>
+        <p role="status" aria-live="polite">{shareNotice}</p>
+        {shareLink && <label className="block"><span>직접 복사할 링크</span>
+          <input readOnly value={shareLink} onFocus={(event) => event.currentTarget.select()} />
+        </label>}
+      </div>
 
       <div className="layout">
         <div className="inputs">
