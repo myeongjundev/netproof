@@ -7,7 +7,7 @@ from dataclasses import asdict
 
 from .acl import ICMP_TYPES, Packet
 from .errors import Invalid, Unsupported
-from .model import Network, load
+from .model import Interface, Network, load
 from .trace import Trace, trace
 
 RESULTS = ("PASS", "DENY", "UNSUPPORTED", "INVALID")
@@ -58,10 +58,15 @@ def _reverse(pkt: Packet) -> Packet:
     return Packet(pkt.dst, pkt.src, pkt.proto, sport=pkt.dport, dport=pkt.sport, ack=pkt.proto == "tcp")
 
 
-def _trace_dict(result: Trace | None) -> dict | None:
+def _trace_dict(result: Trace | None, target: Interface) -> dict | None:
     if result is None:
         return None
-    return {"delivered": result.delivered, "reason": result.reason, "hops": [asdict(h) for h in result.hops]}
+    return {
+        "delivered": result.delivered,
+        "reason": result.reason,
+        "hops": [asdict(h) for h in result.hops],
+        "target": {"device": target.device, "interface": target.name, "ip": str(target.ip.ip)},
+    }
 
 
 def verify(network_data: dict, flow: dict) -> dict:
@@ -69,9 +74,11 @@ def verify(network_data: dict, flow: dict) -> dict:
     try:
         network: Network = load(network_data)
         pkt, mode = _flow_packet(flow)
-        if network.owner(pkt.src) is None:
+        source = network.owner(pkt.src)
+        destination = network.owner(pkt.dst)
+        if source is None:
             raise Invalid([f"출발지 주소 {pkt.src}의 주인 장비가 모델에 없습니다"])
-        if network.owner(pkt.dst) is None:
+        if destination is None:
             raise Unsupported(f"목적지 주소 {pkt.dst}의 주인 장비가 모델에 없습니다(모델 밖 목적지)")
         forward = trace(network, pkt)
         backward = None
@@ -94,8 +101,8 @@ def verify(network_data: dict, flow: dict) -> dict:
         "result": result,
         "reason": reason,
         "problems": [],
-        "forward": _trace_dict(forward),
-        "return": _trace_dict(backward),
+        "forward": _trace_dict(forward, destination),
+        "return": _trace_dict(backward, source),
         "decisive": asdict(decisive) if decisive else None,
     }
 

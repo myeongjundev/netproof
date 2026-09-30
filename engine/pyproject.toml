@@ -1,6 +1,6 @@
 [project]
 name = "netproof-engine"
-version = "0.1.0"
+version = "0.1.1"
 description = "NetProof 결정적 판정 엔진: CIDR, 정적 라우팅, 확장 ACL"
 requires-python = ">=3.11"
 dependencies = []

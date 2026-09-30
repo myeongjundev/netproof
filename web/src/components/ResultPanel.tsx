@@ -59,6 +59,7 @@ export function pathNodes(hops: Hop[]): PathNode[] {
 
 /** 경로 그림. 아래 목록과 같은 내용이라 화면 읽기 프로그램에는 목록만 읽힌다. */
 function Strip({ trace }: { trace: Trace }) {
+  const target = unreachedTarget(trace);
   return (
     <ol className="strip" aria-hidden="true">
       {pathNodes(trace.hops).map((node, i) => (
@@ -69,11 +70,27 @@ function Strip({ trace }: { trace: Trace }) {
           {node.drop && <span className="drop-at">{DROP_TEXT[node.drop.step]}</span>}
         </li>
       ))}
+      {target && (
+        <li className="node unreached">
+          <span className="led" />
+          <strong>{target.device}</strong>
+          <span className="ifs">{target.interface} · {target.ip}</span>
+          <span>도달 못 함</span>
+        </li>
+      )}
     </ol>
   );
 }
 
+/** 엔진이 알려 준 목적지만 표시한다. 마지막 장비와 같으면 중복 칸을 만들지 않는다. */
+export function unreachedTarget(trace: Trace): Trace["target"] | null {
+  return trace.delivered === false && trace.target && trace.hops.at(-1)?.device !== trace.target.device
+    ? trace.target
+    : null;
+}
+
 function Path({ title, trace, decisive }: { title: string; trace: Trace; decisive: Hop | null }) {
+  const target = unreachedTarget(trace);
   return (
     <div className="path">
       <h3>{title}</h3>
@@ -97,6 +114,7 @@ function Path({ title, trace, decisive }: { title: string; trace: Trace; decisiv
             </li>
           );
         })}
+        {target && <li className="hint below">목적지 {target.device} {target.interface}({target.ip})에는 도달하지 못했습니다</li>}
       </ol>
     </div>
   );

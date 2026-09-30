@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `unreached-target`
-- 브랜치 / 마지막 커밋: `main` / P2 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **Claude** — PROMPTS.md 3번, 코드 리뷰 및 완료 조건 5번 브라우저 확인
+- 브랜치 / 마지막 커밋: `codex/unreached-target` / 이 문서를 포함한 P2 구현 커밋
+- 진행 단계: 구현·자동 테스트 완료 → Claude 리뷰 대기
 - 한 줄 요약: P2 경로 그림에 도달하지 못한 목적지 표시(이슈 #3)
 - 직전 과제: P1 사례 URL 공유 — PR #2 병합 `177f1f0`. 과정·리뷰 기록은 PR #2와 `decisions/ai-work-log.md`
 
@@ -58,21 +58,72 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 지금 엔진으로 세 사례를 돌려 봄 — 01: 정방향 R1에서 막힘, 목적지 SRV eth0 / 02: 정방향 SRV2 도착, 복귀 R2에서 막힘, 목적지 PC1 eth0 / 03: 정방향 R1에서 막힘, 목적지 SRV eth0. `Network.owner()`가 돌려주는 인터페이스에 `.device`·`.name`이 있음
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- 기존 Network.owner()의 인터페이스 정보로 forward.target·return.target 추가. 엔진 버전 0.1.1.
+- 도달하지 못한 목적지를 회색 빈 원·점선·"도달 못 함"으로 표시하고, 단계 목록에도 목적지 설명을 추가.
+- 도착·target 없는 옛 판정·마지막 장비가 목적지인 경우는 추가 칸 없음. null 복귀 경로는 기존처럼 표시하지 않음.
+- 엔진 테스트 8개, API 전달 테스트 1개, 화면 조건·정적 렌더링 테스트 8개 추가. 새 의존성 없음.
+- 구현 도구: Codex (GPT-6 Astra). 변경 범위에 없는 AI 작업 기록 파일은 수정하지 않음.
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/verify.py`: 판정 응답에 target 추가.
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 버전 0.1.1.
+- `engine/tests/test_verify.py`, `server/tests/test_verify_target.py`: 목적지 정보 및 API 응답 검증.
+- `web/src/types.ts`, `web/src/components/ResultPanel.tsx`, `web/src/components/pathNodes.test.ts`, `web/src/styles.css`: 선택 필드, 표시 조건·그림·접근성 문구·회귀 테스트.
+- `HANDOFF.md`: 실제 실행 결과 및 리뷰 인계.
 
 ## 테스트 결과
 - 기준선(2026-09-30, `main` `1095476`): 엔진 64 · 서버 40 + 1 건너뜀 · 화면 34 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 2026-09-30 직접 실행. PowerShell에서는 엔진·서버 폴더를 작업 디렉터리로 지정해 Python 명령을 실행.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [100%]
+72 passed in 1.70s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+..................................s.......                               [100%]
+41 passed, 1 skipped in 7.89s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  4 passed (4)
+      Tests  42 passed (42)
+   Start at  16:21:31
+   Duration  796ms (import 36%, transform 35%, tests 24%, worker 5%)
+```
+
+### `npm --prefix web run build`
+
+```text
+✓ built in 673ms
+```
+
+- 세 사례는 구현 전 응답을 저장한 뒤 구현 후 target만 제거하여 전체 사전 비교(assert)도 직접 실행. 판정·이유·문제·결정 단계·추적 모두 동일:
+```text
+3 case verdicts unchanged after removing target (result, reason, problems, decisive, traces)
+```
+- 기존 `test_cases.py`도 위 엔진 전체 테스트에 포함. 사례 기대값과 추적·판정 로직은 변경하지 않음.
+- `git diff --check` 통과. 브라우저 확인은 실행하지 않았으며 완료 조건 5번은 Claude 담당.
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
 
 ## 수작업 필요 항목
-- (없음)
+- Claude: 완료 조건 5번의 예시 01·03 정방향 SRV, 예시 02 복귀 PC1, 통과 시 칸 없음, 콘솔 오류·375px 페이지 가로 넘침 확인.
 
 ## 남은 작업 (우선순위, 2026-09-30 확정)
 기준: ① 동기가 쓸 때 앱이 풍성해지는가 ② 테스트로 확인되는가 ③ 다른 답·결정에 막혀 있지 않은가 ④ 크기
@@ -88,7 +139,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **P2 — 핵심 확장 (위 확인 뒤)**
 - [ ] Cisco IOS 설정 붙여넣기 — PR 3개: ① `interface`/`ip address` ② `ip route` ③ `access-list`/`ip access-group`
-- [ ] 경로 그림에 도달하지 못한 목적지 표시(이슈 #3, 설계 끝 — 구현 대기)
+- [ ] 경로 그림에 도달하지 못한 목적지 표시(이슈 #3, 구현 완료 — Claude 리뷰 대기)
 
 **P3 — 여유가 있으면**
 - [ ] 로그인 실패 → Graylog(GELF) — 배포(Vercel)에서는 닿지 않아 로컬 시연용
