@@ -25,6 +25,7 @@ SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판�
 | `web/` | React + TypeScript 화면: 판정기 · 로그인 · 사례 게시판 · 사례 상세 · 대시보드 |
 | `cases/` | 기준 사례 파일. 지금은 합성 사례 2개뿐(실제 장비 결과 없음). 검토자가 확인한 사례를 내보내 여기에 넣는다 |
 | `decisions/` | AI 작업 기록, 불일치 로그 |
+| `HANDOFF.md` 외 | Claude(설계·리뷰) ↔ Codex(구현) 협업의 현재 상태와 규칙. `CLAUDE.md`·`AGENTS.md`·`PROMPTS.md` |
 
 ## 권한
 
