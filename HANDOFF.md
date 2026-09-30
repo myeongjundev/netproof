@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `unreached-target`
-- 브랜치 / 마지막 커밋: `main` / P2 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **사용자** — PROMPTS.md 5번 최종 확인 후 PR #4 병합
+- 브랜치 / 마지막 커밋: `codex/unreached-target` / Claude 리뷰 기록 커밋
+- 진행 단계: Claude 리뷰 통과(수정 요청 없음) → 사용자 최종 확인 대기
 - 한 줄 요약: P2 경로 그림에 도달하지 못한 목적지 표시(이슈 #3)
 - 직전 과제: P1 사례 URL 공유 — PR #2 병합 `177f1f0`. 과정·리뷰 기록은 PR #2와 `decisions/ai-work-log.md`
 
@@ -58,21 +58,80 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 지금 엔진으로 세 사례를 돌려 봄 — 01: 정방향 R1에서 막힘, 목적지 SRV eth0 / 02: 정방향 SRV2 도착, 복귀 R2에서 막힘, 목적지 PC1 eth0 / 03: 정방향 R1에서 막힘, 목적지 SRV eth0. `Network.owner()`가 돌려주는 인터페이스에 `.device`·`.name`이 있음
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- 기존 Network.owner()의 인터페이스 정보로 forward.target·return.target 추가. 엔진 버전 0.1.1.
+- 도달하지 못한 목적지를 회색 빈 원·점선·"도달 못 함"으로 표시하고, 단계 목록에도 목적지 설명을 추가.
+- 도착·target 없는 옛 판정·마지막 장비가 목적지인 경우는 추가 칸 없음. null 복귀 경로는 기존처럼 표시하지 않음.
+- 엔진 테스트 8개, API 전달 테스트 1개, 화면 조건·정적 렌더링 테스트 8개 추가. 새 의존성 없음.
+- 구현 도구: Codex (GPT-6 Astra). 변경 범위에 없는 AI 작업 기록 파일은 수정하지 않음.
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/verify.py`: 판정 응답에 target 추가.
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 버전 0.1.1.
+- `engine/tests/test_verify.py`, `server/tests/test_verify_target.py`: 목적지 정보 및 API 응답 검증.
+- `web/src/types.ts`, `web/src/components/ResultPanel.tsx`, `web/src/components/pathNodes.test.ts`, `web/src/styles.css`: 선택 필드, 표시 조건·그림·접근성 문구·회귀 테스트.
+- `HANDOFF.md`: 실제 실행 결과 및 리뷰 인계.
 
 ## 테스트 결과
 - 기준선(2026-09-30, `main` `1095476`): 엔진 64 · 서버 40 + 1 건너뜀 · 화면 34 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 2026-09-30 직접 실행. PowerShell에서는 엔진·서버 폴더를 작업 디렉터리로 지정해 Python 명령을 실행.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [100%]
+72 passed in 1.70s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+..................................s.......                               [100%]
+41 passed, 1 skipped in 7.89s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  4 passed (4)
+      Tests  42 passed (42)
+   Start at  16:21:31
+   Duration  796ms (import 36%, transform 35%, tests 24%, worker 5%)
+```
+
+### `npm --prefix web run build`
+
+```text
+✓ built in 673ms
+```
+
+- 세 사례는 구현 전 응답을 저장한 뒤 구현 후 target만 제거하여 전체 사전 비교(assert)도 직접 실행. 판정·이유·문제·결정 단계·추적 모두 동일:
+```text
+3 case verdicts unchanged after removing target (result, reason, problems, decisive, traces)
+```
+- 기존 `test_cases.py`도 위 엔진 전체 테스트에 포함. 사례 기대값과 추적·판정 로직은 변경하지 않음.
+- `git diff --check` 통과. 브라우저 확인은 실행하지 않았으며 완료 조건 5번은 Claude 담당.
 
 ## 리뷰 기록 (리뷰 담당)
+- 직접 실행(`6561d9e`): 엔진 72 · 서버 41 + 1 건너뜀 · 화면 42 · 빌드 통과 — Codex 보고와 같음
+- **판정 불변 확인(Claude 별도 실행)**: `main` 엔진(0.1.0)과 이 브랜치 엔진(0.1.1)으로 흐름 112개(사례 3개 + 사례마다 모든 인터페이스 쌍 × TCP 443·ICMP + 모델 밖 목적지)를 돌려 `target`을 뺀 응답 전체 비교 → **차이 0**
+- 브라우저(완료 조건 5): 예시 01 → 가는 길 끝 `SRV eth0 · 10.20.20.5 도달 못 함` / 예시 02 → 가는 길 SRV2 도착(칸 없음), 돌아오는 길 끝 `PC1` / 예시 03 → `SRV` / 처음 구성(통과) → 칸 0 / 회색 점선·빈 원 확인 / 새 탭에서 네 입력 판정 후 콘솔 오류 0 / 375·1000·1280px 페이지 가로 넘침 없음
+- 브라우저로 확인 못 한 것: `target`이 없는 **옛 저장 사례** 상세 화면(로그인 필요). 화면 테스트의 `target` 없음 → 칸 없음·정적 렌더링 테스트로 대신함
+
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
+| 1 | `web/src/styles.css` `.output, .follow, .result, .path { min-width: 0; }` | [기록] 설계 범위 밖 전역 레이아웃 변경이고 이유가 적혀 있지 않았음. **측정해 보니 필요한 변경**: 이 줄을 빼면 13칸 경로에서 375px 페이지가 **991px로 가로 넘침**, 있으면 그림 안에서만 가로 스크롤(페이지 375px). 예시 길이(3~4칸)에서는 차이 없음 — 긴 경로에서 원래 있던 문제를 고친 것 | 브라우저에서 CSSOM `deleteRule`로 이 규칙만 빼고 그림에 칸 10개 추가 → `scrollWidth` 비교 | **수용** — 이유를 이 기록에 남김(코드 변경 불필요) |
+
+리뷰 중 Claude의 실수 하나: 처음에는 `<style>`을 넣어 이 규칙을 빼려 했는데, 사이트 CSP(`style-src 'self'`)가 막아 적용되지 않은 채로 "차이 없음"이라고 잘못 판단했다. 콘솔의 CSP 오류 5개(넣은 횟수와 같음)로 알아채고 CSSOM으로 다시 재서 결론을 뒤집었다.
 
 ## 수작업 필요 항목
-- (없음)
+- Claude: 완료 조건 5번의 예시 01·03 정방향 SRV, 예시 02 복귀 PC1, 통과 시 칸 없음, 콘솔 오류·375px 페이지 가로 넘침 확인.
 
 ## 남은 작업 (우선순위, 2026-09-30 확정)
 기준: ① 동기가 쓸 때 앱이 풍성해지는가 ② 테스트로 확인되는가 ③ 다른 답·결정에 막혀 있지 않은가 ④ 크기
@@ -88,7 +147,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **P2 — 핵심 확장 (위 확인 뒤)**
 - [ ] Cisco IOS 설정 붙여넣기 — PR 3개: ① `interface`/`ip address` ② `ip route` ③ `access-list`/`ip access-group`
-- [ ] 경로 그림에 도달하지 못한 목적지 표시(이슈 #3, 설계 끝 — 구현 대기)
+- [ ] 경로 그림에 도달하지 못한 목적지 표시(이슈 #3 · PR #4, 리뷰 통과 — **사용자 확인·병합 대기**)
 
 **P3 — 여유가 있으면**
 - [ ] 로그인 실패 → Graylog(GELF) — 배포(Vercel)에서는 닿지 않아 로컬 시연용

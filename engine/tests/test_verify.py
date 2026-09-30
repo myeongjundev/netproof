@@ -1,9 +1,56 @@
+import json
+from pathlib import Path
+
+import pytest
+
 from conftest import device, interface
 
 from netproof_engine import compare, verify
 
 HTTPS = {"src": "10.10.10.10", "dst": "10.20.20.5", "proto": "tcp", "dst_port": 443}
 HTTPS_FAR = {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "dst_port": 443}
+
+
+class TestTraceTarget:
+    @pytest.mark.parametrize("filename", ["synthetic-01-https-acl.json", "synthetic-03-acl-out.json"])
+    def test_blocked_forward_identifies_destination(self, filename):
+        case = json.loads((Path(__file__).resolve().parents[2] / "cases" / filename).read_text(encoding="utf-8"))
+        verdict = verify(case["network"], case["flow"])
+        assert verdict["forward"]["target"] == {"device": "SRV", "interface": "eth0", "ip": "10.20.20.5"}
+        assert verdict["forward"]["delivered"] is False
+        assert verdict["return"] is None
+
+    def test_blocked_return_identifies_source(self):
+        case = json.loads((Path(__file__).resolve().parents[2] / "cases" / "synthetic-02-missing-return-route.json").read_text(encoding="utf-8"))
+        verdict = verify(case["network"], case["flow"])
+        assert verdict["forward"]["target"] == {"device": "SRV2", "interface": "eth0", "ip": "10.30.30.5"}
+        assert verdict["forward"]["delivered"] is True
+        assert verdict["return"]["target"] == {"device": "PC1", "interface": "eth0", "ip": "10.10.10.10"}
+        assert verdict["return"]["delivered"] is False
+
+    @pytest.mark.parametrize("blocked", [False, True])
+    def test_router_interface_target(self, net1, blocked):
+        if blocked:
+            net1["acls"]["101"] = ["deny ip any any"]
+            interface(net1, "R1", "g0/0")["acl_in"] = "101"
+        verdict = verify(net1, {"src": "10.10.10.10", "dst": "10.20.20.1", "proto": "icmp"})
+        assert verdict["forward"]["target"] == {"device": "R1", "interface": "g0/1", "ip": "10.20.20.1"}
+        assert verdict["forward"]["delivered"] is not blocked
+        if blocked:
+            assert verdict["forward"]["hops"][-1]["device"] == "R1"
+            assert verdict["return"] is None
+
+    def test_one_way_has_no_return_target(self, net1):
+        verdict = verify(net1, dict(HTTPS, mode="one-way"))
+        assert verdict["forward"]["target"]["device"] == "SRV"
+        assert verdict["return"] is None
+
+    @pytest.mark.parametrize("dst, result", [("bad", "INVALID"), ("8.8.8.8", "UNSUPPORTED")])
+    def test_unjudged_flow_has_no_traces(self, net1, dst, result):
+        verdict = verify(net1, dict(HTTPS, dst=dst))
+        assert verdict["result"] == result
+        assert verdict["forward"] is None
+        assert verdict["return"] is None
 
 
 def step(verdict):

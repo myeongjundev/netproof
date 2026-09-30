@@ -141,6 +141,10 @@ button:disabled { opacity: 0.55; cursor: default; }
 .node + .node::before { content: ""; position: absolute; top: 5px; right: 50%; width: 100%; height: 2px; background: var(--pass); }
 .led { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--pass); box-shadow: 0 0 0 4px var(--pass-bg); margin-bottom: 4px; }
 .node.drop .led { background: var(--deny); box-shadow: 0 0 0 4px var(--deny-bg); }
+.node.unreached { color: var(--muted); }
+.node.unreached .led { background: var(--surface); border: 2px solid var(--muted); box-shadow: none; }
+.node + .node.unreached::before { height: 0; background: none; border-top: 2px dashed var(--muted); }
+.output, .follow, .result, .path { min-width: 0; }
 .node .ifs { color: var(--muted); font-size: 12px; font-family: "D2Coding", "Consolas", ui-monospace, monospace; }
 .node .drop-at { color: var(--deny); font-size: 12px; font-weight: 700; }
 .path ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }

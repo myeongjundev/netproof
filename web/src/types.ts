@@ -57,6 +57,7 @@ export interface Hop {
 }
 
 export interface Trace {
+  target?: { device: string; interface: string; ip: string };
   delivered: boolean;
   reason: string;
   hops: Hop[];
