@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex** — PROMPTS.md 4번, PR #6 리뷰 1·2 수정
-- 브랜치 / 마지막 커밋: `codex/acl-highlight` / Claude 리뷰 기록 커밋
-- 진행 단계: 리뷰 완료(수정 요청 2건) → 수정 대기
+- 다음 차례: **Claude** — PROMPTS.md 3번, PR #6 수정 결과 재리뷰
+- 브랜치 / 마지막 커밋: `codex/acl-highlight` / 이 문서를 포함한 리뷰 수정 커밋
+- 진행 단계: 리뷰 1·2 수정·테스트 완료 → Claude 재리뷰 대기
 - 한 줄 요약: 로드맵 2주차 전반 — ACL 규칙 줄 하이라이트(이슈 #5)
 - 직전 과제: 도달 못 한 목적지 표시 — PR #4 병합. 과정·리뷰 기록은 PR #4와 `decisions/ai-work-log.md`
 
@@ -78,6 +78,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 저장된 ACL이 없거나 엔진 줄 위치가 목록 범위 밖인 경우 근거 블록을 생략한다. 이유: 맞지 않는 규칙을 강조하지 않기 위해서. 옛 Hop·없는 ACL·잘못된 줄 위치 테스트로 확인.
 - 변경 파일은 작업 정의의 허용 범위 안이며 새 의존성은 없음.
 
+### PR #6 리뷰 수정 1·2
+- 1번은 (b) 선택: 화면이 remark의 형식만 식별한다. 이유: 작은 표시 오류를 고치기 위해 응답 필드를 더하지 않고, 기존 0.1.2 저장 판정에도 바로 올바른 설명을 표시할 수 있다. 허용·차단, 규칙 일치·평가 순서는 여전히 엔진만 결정한다.
+- parse_rule과 같은 순서로 선택적 access-list 이름과 숫자 순번을 제거하고 대소문자를 구분해 remark만 찾는다. 일반형·순번형·access-list형·공백·유니코드 십진 순번·비슷하지만 다른 문장 12개를 엔진과 웹 양쪽에서 테스트한다.
+- remark는 걸린 줄 앞뒤나 암묵적 deny 여부와 관계없이 "설명(검사 안 함)". 저장 목록의 빈 줄도 "빈 줄(검사 안 함)"으로 표시. 암묵적 deny 문구는 "일치하는 규칙 없음"으로 정정.
+- 2번은 번호 변환 대신 기준을 명시: "줄 번호는 판정에 보낸 ACL 목록 기준입니다. 판정기에서 보낼 때 입력의 빈 줄은 제외됩니다." 판정 시점의 근거 번호를 유지하며 기존 입력 선택 변환은 그대로 쓴다.
+- 리뷰 재현 입력 remark / 빈 줄 / deny / permit를 정적 렌더링하여 설명 상태·안내·2번 차단 표시를 확인하고, 입력 선택 범위가 실제 셋째 줄인 것도 테스트.
+- 이번 수정: 엔진 테스트 12개·웹 테스트 15개 추가. 엔진 실행 코드·응답 형식은 변경하지 않음. 실제 브라우저 재확인은 Claude 담당.
+
 ## 변경된 주요 파일
 - `engine/src/netproof_engine/acl.py`, `trace.py`: 규칙 위치·ACL 근거 메타데이터.
 - `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 버전.
@@ -87,23 +95,21 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - `HANDOFF.md`: 실행 결과와 리뷰 인계.
 
 ## 테스트 결과
-- 기준선(2026-09-30, `main` `7f3403f`): 엔진 72 · 서버 41 + 1 건너뜀 · 화면 42 · 빌드 통과
-- 2026-09-30 직접 실행. PowerShell에서는 엔진·서버 폴더를 작업 디렉터리로 지정해 Python 명령 실행.
-- 최초 빌드에서 map 콜백 안의 optional rule_line 타입 오류 발견. 검사 이후 지역 상수로 보관하도록 수정 후 웹 테스트·빌드 재실행 통과.
+- 2026-09-30 리뷰 수정 후 직접 실행. PowerShell은 엔진·서버 작업 디렉터리를 지정해 Python 명령 실행.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
 ```text
-........................................................................ [ 88%]
-.........                                                                [100%]
-81 passed in 1.38s
+........................................................................ [ 77%]
+.....................                                                    [100%]
+93 passed in 2.36s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
 
 ```text
 ...................................s.......                              [100%]
-42 passed, 1 skipped in 8.50s
+42 passed, 1 skipped in 7.63s
 ```
 
 ### `npm --prefix web test`
@@ -117,18 +123,41 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 
  Test Files  5 passed (5)
-      Tests  50 passed (50)
-   Start at  16:55:53
-   Duration  565ms (transform 41%, import 26%, tests 23%, worker 9%, environment 1%)
+      Tests  65 passed (65)
+   Start at  17:08:37
+   Duration  927ms (transform 37%, tests 29%, import 27%, worker 7%)
 ```
 
 ### `npm --prefix web run build`
 
 ```text
-✓ built in 465ms
+✓ built in 647ms
 ```
 
-- `git diff --check` 통과. 기존 사례 테스트 포함. 브라우저 확인과 main 대비 대량 흐름 비교는 설계대로 리뷰 담당에게 남김.
+### `cd engine && ../.venv/Scripts/python -m pytest -q tests/test_acl_evidence.py`
+
+```text
+.....................                                                    [100%]
+21 passed in 0.55s
+```
+
+### `npm --prefix web test -- src/components/aclEvidence.test.ts`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run src/components/aclEvidence.test.ts
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  17:08:34
+   Duration  443ms (transform 50%, import 29%, tests 15%, worker 6%)
+```
+
+- git diff --check 통과. 브라우저 재확인은 실행하지 않음.
 
 ## 리뷰 기록 (리뷰 담당)
 전문: PR #6 `[Claude]` 코멘트.
@@ -138,8 +167,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
-| 1 | `web/src/components/AclEvidence.tsx:31` | [보통] remark 줄을 "불일치"로 표시 — 엔진은 remark를 규칙으로 읽지 않음 | ACL `remark 설명` / 빈 줄 / `deny tcp any any eq 443` / `permit ip any any`, 443 판정 → `1번 줄 · 불일치 remark 설명` | 수정 요청 — (a) 엔진이 규칙 아닌 줄 위치 제공 또는 (b) 화면이 remark만 인식(엔진 조건과 테스트로 고정), 이유를 기록 |
-| 2 | `web/src/components/AclEvidence.tsx:72` | [낮음] 번호가 보낸 줄(빈 줄 제외) 기준이라 입력 칸 줄과 다를 수 있음 | 위 재현에서 "2번 줄" = 입력 칸 셋째 줄 | 수정 요청 — 판정기는 입력 칸 기준 번호 또는 기준을 글로 밝히기 |
+| 1 | `web/src/components/AclEvidence.tsx:31` | [보통] remark 줄을 "불일치"로 표시 — 엔진은 remark를 규칙으로 읽지 않음 | ACL `remark 설명` / 빈 줄 / `deny tcp any any eq 443` / `permit ip any any`, 443 판정 → `1번 줄 · 불일치 remark 설명` | 수정 완료 — (b), 양쪽 분류 테스트 12개 및 이유 기록. Claude 재확인 대기 |
+| 2 | `web/src/components/AclEvidence.tsx:72` | [낮음] 번호가 보낸 줄(빈 줄 제외) 기준이라 입력 칸 줄과 다를 수 있음 | 위 재현에서 "2번 줄" = 입력 칸 셋째 줄 | 수정 완료 — 보낸 목록·빈 줄 제외 기준 명시, 렌더링·선택 범위 테스트. Claude 재확인 대기 |
 
 ## 수작업 필요 항목
 - Claude: 완료 조건 5번의 색·글자, 암묵적 deny, 줄 선택·스크롤, stale 근거·단추, 콘솔 오류, 375px 가로 넘침 확인. 동일 ACL 이름의 마지막 입력 칸 이동도 확인.
@@ -155,7 +184,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] `plan.md` 목표 변경 기록(ADR-015)
 
 **2주차 전반 (~10-04)**
-- [ ] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6, 리뷰 수정 2건 대기) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
+- [ ] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6, 리뷰 수정 2건 완료 — 재리뷰 대기) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**

@@ -5,8 +5,27 @@ import pytest
 
 from conftest import interface
 from netproof_engine import verify
+from netproof_engine.acl import parse_rule
+from netproof_engine.errors import Unsupported
 
 FLOW = {"src": "10.10.10.10", "dst": "10.20.20.5", "proto": "tcp", "dst_port": 443}
+
+
+@pytest.mark.parametrize("text,is_remark", [
+    ("remark 설명", True), ("  remark\t설명  ", True), ("10 remark 설명", True),
+    ("access-list 101 remark 설명", True), ("access-list NAME 20 remark 설명", True),
+    ("١٠ remark 설명", True), ("remark", True),
+    ("REMARK 설명", False), ("remarkable 설명", False), ("deny ip any any", False),
+    ("10 20 remark 설명", False), ("access-list remark 설명", False),
+])
+def test_remark_classification_matches_display(text, is_remark):
+    # 웹 aclEvidence.test.ts와 같은 사례. 엔진이 None으로 건너뛰는 조건을 고정한다.
+    try:
+        rule = parse_rule(text, 1)
+    except Unsupported:
+        assert not is_remark
+    else:
+        assert (rule is None) == is_remark
 
 
 @pytest.mark.parametrize("port,line,result", [(443, 1, "drop"), (80, 2, "ok")])

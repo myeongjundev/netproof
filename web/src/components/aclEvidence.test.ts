@@ -2,12 +2,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { blankDraft, toNetwork } from "../draft";
 import type { Hop, Verdict } from "../types";
-import { AclEvidence, aclEvidence, aclSelection } from "./AclEvidence";
+import { AclEvidence, aclEvidence, aclSelection, isAclRemark } from "./AclEvidence";
 import { ResultPanel } from "./ResultPanel";
 
 const hop: Hop = { device: "R1", step: "acl_in", result: "drop", detail: "", in_if: "g0/0", out_if: null,
   rule: "deny tcp any any eq 443", rule_seq: 20, acl: "101", rule_line: 2 };
-const acls = { "101": ["remark 설명", "20 deny tcp any any eq 443", "30 permit ip any any"] };
+const acls = { "101": ["deny udp any any", "20 deny tcp any any eq 443", "30 permit ip any any"] };
 function verdict(h: Hop = hop): Verdict {
   return { result: "DENY", reason: "", problems: [], decisive: h, comparison: "NO_CLAIM",
     forward: { delivered: false, reason: "", hops: [h] }, return: null };
@@ -30,8 +30,43 @@ it("암묵적 deny는 모든 줄 불일치와 별도 끝줄을 표시한다", ()
   expect(block.implicitDeny).toBe(true);
   expect(block.lines.every((l) => l.state === "불일치")).toBe(true);
   const html = renderToStaticMarkup(createElement(AclEvidence, { verdict: result, acls, stale: false }));
-  expect(html).toContain('class="acl-hit-deny">암묵적 deny — 모든 줄이 맞지 않음');
+  expect(html).toContain('class="acl-hit-deny">암묵적 deny — 일치하는 규칙 없음');
   expect(aclEvidence(result, { "101": [] })[0].implicitDeny).toBe(true);
+});
+
+// 엔진 test_acl_evidence.py의 parse_rule 분류와 같은 입력·기대값으로 고정한다.
+it.each([
+  ["remark 설명", true], ["  remark\t설명  ", true], ["10 remark 설명", true],
+  ["access-list 101 remark 설명", true], ["access-list NAME 20 remark 설명", true],
+  ["١٠ remark 설명", true], ["remark", true],
+  ["REMARK 설명", false], ["remarkable 설명", false], ["deny ip any any", false],
+  ["10 20 remark 설명", false], ["access-list remark 설명", false],
+])("remark 분류: %s → %s", (text, expected) => {
+  expect(isAclRemark(text)).toBe(expected);
+});
+
+it.each([2, null])("걸린 줄 %s에서도 remark·빈 줄은 불일치나 도달 안 함으로 표시하지 않는다", (ruleLine) => {
+  const rows = ["remark 앞 설명", "deny ip any any", "", "access-list 101 20 remark 뒤 설명"];
+  const [block] = aclEvidence(verdict({ ...hop, rule_line: ruleLine }), { "101": rows });
+  expect(block.lines.map((line) => line.state)).toEqual([
+    "설명(검사 안 함)", ruleLine === null ? "불일치" : "걸림-차단", "빈 줄(검사 안 함)", "설명(검사 안 함)",
+  ]);
+});
+
+it("빈 줄이 있는 입력의 보낸 번호 기준을 밝히고 실제 입력 셋째 줄을 선택한다", () => {
+  const text = "remark 설명\n\ndeny tcp any any eq 443\npermit ip any any";
+  const draft = blankDraft();
+  draft.acls = [{ name: "101", text }];
+  const html = renderToStaticMarkup(createElement(AclEvidence, {
+    verdict: verdict(), acls: toNetwork(draft).acls, stale: false, onShow: () => {},
+  }));
+  expect(html).toContain("줄 번호는 판정에 보낸 ACL 목록 기준입니다.");
+  expect(html).toContain("입력의 빈 줄은 제외됩니다.");
+  expect(html).toContain("1번 줄 · 설명(검사 안 함)");
+  expect(html).toContain("2번 줄 · 걸림-차단");
+  const range = aclSelection(text, 2)!;
+  expect(range.start).toBe(text.indexOf("deny tcp"));
+  expect(text.slice(range.start, range.end)).toBe("deny tcp any any eq 443");
 });
 
 it("같은 ACL도 정방향과 복귀 순서대로 블록을 따로 만든다", () => {

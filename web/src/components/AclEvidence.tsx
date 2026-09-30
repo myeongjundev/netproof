@@ -1,6 +1,14 @@
 import type { Network, Verdict } from "../types";
 
-type LineState = "걸림-차단" | "걸림-허용" | "불일치" | "도달 안 함";
+type LineState = "걸림-차단" | "걸림-허용" | "불일치" | "도달 안 함" | "설명(검사 안 함)" | "빈 줄(검사 안 함)";
+
+/** parse_rule의 접두사 제거 순서만 따른다. 규칙 조건이나 허용·차단은 평가하지 않는다. */
+export function isAclRemark(text: string): boolean {
+  const tokens = text.trim().split(/\s+/);
+  let index = tokens[0] === "access-list" ? 2 : 0;
+  if (/^\p{Decimal_Number}+$/u.test(tokens[index] ?? "")) index += 1;
+  return tokens[index] === "remark";
+}
 export interface AclBlock {
   title: string;
   acl: string;
@@ -28,7 +36,8 @@ export function aclEvidence(verdict: Verdict, acls: Network["acls"]): AclBlock[]
         lines: lines.map((text, index) => ({
           number: index + 1,
           text,
-          state: ruleLine === null || index + 1 < ruleLine ? "불일치"
+          state: !text.trim() ? "빈 줄(검사 안 함)" : isAclRemark(text) ? "설명(검사 안 함)"
+            : ruleLine === null || index + 1 < ruleLine ? "불일치"
             : index + 1 > ruleLine ? "도달 안 함"
             : hop.result === "drop" ? "걸림-차단" : "걸림-허용",
         })),
@@ -55,6 +64,7 @@ export function aclSelection(text: string, sentLine: number | null): { start: nu
 
 const classes: Record<LineState, string> = {
   "걸림-차단": "acl-hit-deny", "걸림-허용": "acl-hit-permit", "불일치": "acl-miss", "도달 안 함": "acl-unvisited",
+  "설명(검사 안 함)": "acl-unvisited", "빈 줄(검사 안 함)": "acl-unvisited",
 };
 
 export function AclEvidence({ verdict, acls, stale, onShow }: {
@@ -65,13 +75,14 @@ export function AclEvidence({ verdict, acls, stale, onShow }: {
   if (!blocks.length) return null;
   return <section className="acl-evidence" aria-label="ACL 근거">
     <h3>ACL 근거</h3>
+    <p className="hint">줄 번호는 판정에 보낸 ACL 목록 기준입니다. 판정기에서 보낼 때 입력의 빈 줄은 제외됩니다.</p>
     {blocks.map((block, index) => <section className="acl-block" key={index} aria-label={block.title}>
       <h4>{block.title}</h4>
       <ol>
         {block.lines.map((line) => <li key={line.number} className={classes[line.state]}>
           <span>{line.number}번 줄 · {line.state}</span><code>{line.text || "(빈 줄)"}</code>
         </li>)}
-        {block.implicitDeny && <li className="acl-hit-deny">암묵적 deny — 모든 줄이 맞지 않음</li>}
+        {block.implicitDeny && <li className="acl-hit-deny">암묵적 deny — 일치하는 규칙 없음</li>}
       </ol>
       {onShow && <button type="button" className="ghost small" disabled={stale}
         onClick={() => onShow(block.acl, block.ruleLine)}>입력에서 보기</button>}
