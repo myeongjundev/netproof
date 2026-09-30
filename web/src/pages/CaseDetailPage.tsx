@@ -92,6 +92,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
           stale={false}
           error={null}
           loading={false}
+          network={item.network}
         />
 
         <section className="panel" aria-labelledby="actual-title">

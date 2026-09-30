@@ -1,4 +1,5 @@
-import type { Claim, Hop, Trace, Verdict } from "../types";
+import type { Claim, Hop, Network, Trace, Verdict } from "../types";
+import { AclEvidence } from "./AclEvidence";
 
 const RESULT_TEXT = {
   PASS: { title: "통과", note: "모델 안에서 계산한 결과, 이 통신은 됩니다." },
@@ -126,9 +127,11 @@ interface Props {
   stale: boolean;
   error: string | null;
   loading: boolean;
+  network?: Network | null;
+  onShowAcl?: (acl: string, line: number | null) => void;
 }
 
-export function ResultPanel({ verdict, claim, stale, error, loading }: Props) {
+export function ResultPanel({ verdict, claim, stale, error, loading, network, onShowAcl }: Props) {
   return (
     <section className="panel result" aria-labelledby="result-title" aria-live="polite" aria-busy={loading}>
       <h2 id="result-title">판정</h2>
@@ -170,6 +173,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading }: Props) {
           )}
           {verdict.forward && <Path title="가는 길" trace={verdict.forward} decisive={verdict.decisive} />}
           {verdict.return && <Path title="돌아오는 길" trace={verdict.return} decisive={verdict.decisive} />}
+          {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale} onShow={onShowAcl} />}
         </>
       )}
     </section>

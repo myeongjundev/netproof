@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `acl-highlight`
-- 브랜치 / 마지막 커밋: `main` / ACL 하이라이트 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **사용자** — PROMPTS.md 5번 최종 확인 후 PR #6 병합
+- 브랜치 / 마지막 커밋: `codex/acl-highlight` / Claude 재리뷰 기록 커밋
+- 진행 단계: 재리뷰 통과 → 사용자 최종 확인 대기
 - 한 줄 요약: 로드맵 2주차 전반 — ACL 규칙 줄 하이라이트(이슈 #5)
 - 직전 과제: 도달 못 한 목적지 표시 — PR #4 병합. 과정·리뷰 기록은 PR #4와 `decisions/ai-work-log.md`
 
@@ -65,21 +65,118 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 지금 엔진으로 확인 — 예시 01·03은 정방향 R1에서 1번 줄 차단(`rule_seq` 1), 예시 02는 ACL 없음 / 예시 01 포트 80 → PASS, 2번 줄 허용 / `["remark …", "", "deny … 443"]` → `rule_seq` 3(빈 줄·remark를 위치에 셈) / 암묵적 deny → `rule_seq` 없음. `Acl.evaluate`는 줄 순서대로 첫 일치(순번 숫자로 정렬하지 않음)
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- Rule에 보낸 목록의 줄 위치를 보관하고 ACL Hop에 acl·rule_line 추가. 다른 단계는 null. 엔진 버전 0.1.2.
+- ACL 근거 블록을 정방향→복귀 순서로 표시. 줄 번호·상태 글자·색, 암묵적 deny 끝줄, 옛 Hop 호환.
+- JudgePage가 API에 보낸 network를 복제해 결과와 함께 보관하고 ResultPanel에 전달. 사례 상세는 저장된 network 사용.
+- 판정기에서 입력 칸으로 이동·줄 선택, stale이면 단추 비활성화. 빈 줄 제외 전후 문자 범위 변환 테스트.
+- 엔진 9개·서버 1개·웹 8개 테스트 추가. ACL 평가·일치·라우팅 로직과 사례 기대값은 변경하지 않음.
+- 구현 도구: Codex (GPT-6 Astra).
+
+### 설계에 명시되지 않은 처리와 확인 방법
+- 암묵적 deny에는 선택할 특정 줄이 없으므로 "입력에서 보기"가 ACL 전체를 선택한다. 이유: 사용자가 ACL 끝에 허용 규칙을 추가할 위치를 확인할 수 있게 함. aclSelection의 null·빈 입력 테스트로 범위 확인, 실제 스크롤·선택은 완료 조건 5에서 확인.
+- ACL 이름이 중복되면 toNetwork가 마지막 항목을 보내므로 입력 이동도 findLastIndex로 마지막 칸을 선택한다. 확인: 동일 이름 ACL 두 개를 만든 뒤 마지막 칸의 규칙으로 판정하고 "입력에서 보기"를 누름(브라우저 리뷰 항목).
+- 저장된 ACL이 없거나 엔진 줄 위치가 목록 범위 밖인 경우 근거 블록을 생략한다. 이유: 맞지 않는 규칙을 강조하지 않기 위해서. 옛 Hop·없는 ACL·잘못된 줄 위치 테스트로 확인.
+- 변경 파일은 작업 정의의 허용 범위 안이며 새 의존성은 없음.
+
+### PR #6 리뷰 수정 1·2
+- 1번은 (b) 선택: 화면이 remark의 형식만 식별한다. 이유: 작은 표시 오류를 고치기 위해 응답 필드를 더하지 않고, 기존 0.1.2 저장 판정에도 바로 올바른 설명을 표시할 수 있다. 허용·차단, 규칙 일치·평가 순서는 여전히 엔진만 결정한다.
+- parse_rule과 같은 순서로 선택적 access-list 이름과 숫자 순번을 제거하고 대소문자를 구분해 remark만 찾는다. 일반형·순번형·access-list형·공백·유니코드 십진 순번·비슷하지만 다른 문장 12개를 엔진과 웹 양쪽에서 테스트한다.
+- remark는 걸린 줄 앞뒤나 암묵적 deny 여부와 관계없이 "설명(검사 안 함)". 저장 목록의 빈 줄도 "빈 줄(검사 안 함)"으로 표시. 암묵적 deny 문구는 "일치하는 규칙 없음"으로 정정.
+- 2번은 번호 변환 대신 기준을 명시: "줄 번호는 판정에 보낸 ACL 목록 기준입니다. 판정기에서 보낼 때 입력의 빈 줄은 제외됩니다." 판정 시점의 근거 번호를 유지하며 기존 입력 선택 변환은 그대로 쓴다.
+- 리뷰 재현 입력 remark / 빈 줄 / deny / permit를 정적 렌더링하여 설명 상태·안내·2번 차단 표시를 확인하고, 입력 선택 범위가 실제 셋째 줄인 것도 테스트.
+- 이번 수정: 엔진 테스트 12개·웹 테스트 15개 추가. 엔진 실행 코드·응답 형식은 변경하지 않음. 실제 브라우저 재확인은 Claude 담당.
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/acl.py`, `trace.py`: 규칙 위치·ACL 근거 메타데이터.
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 버전.
+- `engine/tests/test_acl_evidence.py`, `server/tests/test_acl_evidence.py`: 위치·순번·방향·API 응답 검증.
+- `web/src/components/AclEvidence.tsx`, `aclEvidence.test.ts`: 표시 변환·줄 선택 범위·화면 및 테스트.
+- `web/src/types.ts`, `components/ResultPanel.tsx`, `components/NetworkEditor.tsx`, `pages/JudgePage.tsx`, `pages/CaseDetailPage.tsx`, `styles.css`: 필드·입력 참조·스냅샷·근거 표시 연결.
+- `HANDOFF.md`: 실행 결과와 리뷰 인계.
 
 ## 테스트 결과
-- 기준선(2026-09-30, `main` `7f3403f`): 엔진 72 · 서버 41 + 1 건너뜀 · 화면 42 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 2026-09-30 리뷰 수정 후 직접 실행. PowerShell은 엔진·서버 작업 디렉터리를 지정해 Python 명령 실행.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 77%]
+.....................                                                    [100%]
+93 passed in 2.36s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+...................................s.......                              [100%]
+42 passed, 1 skipped in 7.63s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  5 passed (5)
+      Tests  65 passed (65)
+   Start at  17:08:37
+   Duration  927ms (transform 37%, tests 29%, import 27%, worker 7%)
+```
+
+### `npm --prefix web run build`
+
+```text
+✓ built in 647ms
+```
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q tests/test_acl_evidence.py`
+
+```text
+.....................                                                    [100%]
+21 passed in 0.55s
+```
+
+### `npm --prefix web test -- src/components/aclEvidence.test.ts`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run src/components/aclEvidence.test.ts
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  17:08:34
+   Duration  443ms (transform 50%, import 29%, tests 15%, worker 6%)
+```
+
+- git diff --check 통과. 브라우저 재확인은 실행하지 않음.
 
 ## 리뷰 기록 (리뷰 담당)
+전문: PR #6 `[Claude]` 코멘트.
+- 직접 실행(`bc64f1a`): 엔진 81 · 서버 42 + 1 건너뜀 · 화면 50 · 빌드 통과
+- 판정 불변: `main` 엔진과 흐름 312개(remark·빈 줄·순번 섞인 ACL 변형 포함), `acl`·`rule_line` 빼고 **차이 0**. 걸린 규칙 78개 모두 `rule_line`이 실제 규칙 줄을 가리킴(78/78)
+- 브라우저 완료 조건 5 통과(예시 01·포트 80·암묵적 deny·입력에서 보기·판정 뒤 수정·375px·콘솔 0). 설계에 없던 처리 3가지 수용
+
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
+| 1 | `web/src/components/AclEvidence.tsx:31` | [보통] remark 줄을 "불일치"로 표시 — 엔진은 remark를 규칙으로 읽지 않음 | ACL `remark 설명` / 빈 줄 / `deny tcp any any eq 443` / `permit ip any any`, 443 판정 → `1번 줄 · 불일치 remark 설명` | 수정 완료 — (b), 양쪽 분류 테스트 12개 및 이유 기록. Claude 재확인 대기 |
+| 2 | `web/src/components/AclEvidence.tsx:72` | [낮음] 번호가 보낸 줄(빈 줄 제외) 기준이라 입력 칸 줄과 다를 수 있음 | 위 재현에서 "2번 줄" = 입력 칸 셋째 줄 | 수정 완료 — 보낸 목록·빈 줄 제외 기준 명시, 렌더링·선택 범위 테스트. Claude 재확인 대기 |
+
+재리뷰(`667b9cc`, Claude 직접): 엔진 93 · 서버 42 + 1 건너뜀 · 화면 65 · 빌드 통과
+- 1번 **확인 완료** — (b) 선택 이유 타당(응답 필드를 늘리지 않고 0.1.2로 저장된 판정에도 바로 적용). 양쪽 고정 사례 12개에 더해, Claude가 무작위 ACL 줄 **4,739개**(remark 295개, 탭·NBSP·전각 공백·아랍 숫자·대소문자 섞음)를 엔진 `parse_rule`과 웹 `isAclRemark`에 넣어 **불일치 0** 확인(임시 테스트, 지움)
+- 2번 **확인 완료** — 번호 기준 안내 문구 표시, 재현 입력에서 `1번 줄 · 설명(검사 안 함)` / `2번 줄 · 걸림-차단` / `3번 줄 · 도달 안 함`, "입력에서 보기"가 입력 칸 셋째 줄 선택, 콘솔 오류 0(브라우저)
+- **리뷰 중 발견한 별도 버그 → 이슈 #7**: ACL 줄이 `²`(윗첨자 숫자)로 시작하면 `verify`가 `ValueError`로 멈춤 — `/api/verify` 500. `main`에도 있는 기존 버그라 이 PR과 분리. 무작위 줄 5,000개 중 261개에서 재현
 
 ## 수작업 필요 항목
-- (없음)
+- Claude: 완료 조건 5번의 색·글자, 암묵적 deny, 줄 선택·스크롤, stale 근거·단추, 콘솔 오류, 375px 가로 넘침 확인. 동일 ACL 이름의 마지막 입력 칸 이동도 확인.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -92,7 +189,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] `plan.md` 목표 변경 기록(ADR-015)
 
 **2주차 전반 (~10-04)**
-- [ ] ACL 규칙 줄 하이라이트(이슈 #5, 설계 끝 — 구현 대기) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
+- [ ] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6, 재리뷰 통과 — **사용자 확인·병합 대기**) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**

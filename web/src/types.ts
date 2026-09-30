@@ -54,6 +54,8 @@ export interface Hop {
   out_if: string | null;
   rule: string | null;
   rule_seq: number | null;
+  acl?: string | null;
+  rule_line?: number | null;
 }
 
 export interface Trace {

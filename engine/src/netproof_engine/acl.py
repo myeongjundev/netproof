@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .errors import Unsupported
 
@@ -58,6 +58,7 @@ class Rule:
     dst_port: PortMatch | None = None
     established: bool = False
     icmp_type: int | None = None
+    line: int | None = None
 
     def matches(self, pkt: Packet) -> bool:
         if self.proto != "ip" and self.proto != pkt.proto:
@@ -235,5 +236,5 @@ def parse_acl(name: str, lines: list[str]) -> Acl:
             parsed.append(UnreadLine(index, raw.strip(), str(error)))
             continue
         if rule is not None:
-            parsed.append(rule)
+            parsed.append(replace(rule, line=index))
     return Acl(name, tuple(parsed))

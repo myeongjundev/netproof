@@ -5,6 +5,7 @@ interface Props {
   acls: AclDraft[];
   onDevices: (devices: Device[]) => void;
   onAcls: (acls: AclDraft[]) => void;
+  aclInputRef?: (index: number, element: HTMLTextAreaElement | null) => void;
 }
 
 function nextName(prefix: string, taken: string[]): string {
@@ -20,7 +21,7 @@ function nextAclNumber(taken: string[]): string {
   return String(n);
 }
 
-export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
+export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }: Props) {
   const aclNames = acls.map((acl) => acl.name.trim()).filter(Boolean);
 
   const setDevice = (index: number, patch: Partial<Device>) =>
@@ -248,6 +249,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls }: Props) {
           <label className="block">
             <span className="sr-only">ACL {acl.name} 규칙</span>
             <textarea
+              ref={(element) => aclInputRef?.(a, element)}
               rows={Math.max(3, acl.text.split("\n").length + 1)}
               spellCheck={false}
               value={acl.text}
