@@ -7,6 +7,7 @@
   - `cd engine && ../.venv/Scripts/python -m pytest -q`
   - `cd server && ../.venv/Scripts/python -m pytest -q`
   - `npm --prefix web test` (화면을 바꿨다면 `npm --prefix web run build`도)
+- 완료 보고·PR 설명·커밋 메시지 끝에 **사용한 모델 이름**을 적는다(예: `Codex (GPT-6 Astra)`). `decisions/ai-work-log.md`의 도구 칸도 같은 이름으로 쓴다.
 - 최종 PASS/DENY는 `engine/`만 정한다(ADR-001). 판정 로직을 화면이나 서버에 복제하지 않는다.
 - 사례의 정답(`expect`)은 사람이 손으로 정한다. 기존 사례 파일의 기대값을 바꾸지 않는다.
 - 이 저장소는 공개다. `.env`·키·토큰은 커밋하지 않고 `--force` 푸시나 `main` 직접 푸시를 하지 않는다. 병합은 사용자가 결정한다.
