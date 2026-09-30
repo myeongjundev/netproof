@@ -53,7 +53,7 @@ export function App() {
   );
 
   let page;
-  if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} />;
+  if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} />;
   else if (!checked) page = <p className="hint">확인 중…</p>;
   else if (route.page === "login")
     page = user ? (

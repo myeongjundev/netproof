@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `url-share`
-- 브랜치 / 마지막 커밋: `main` / P1 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **사용자** — PROMPTS.md 5번 최종 확인(실제 Chrome에서 클립보드 성공 경로 포함) 후 PR #2 병합
+- 브랜치 / 마지막 커밋: `codex/url-share` / Claude 재리뷰 기록 커밋
+- 진행 단계: 재리뷰 통과 → 사용자 최종 확인 대기
 - 한 줄 요약: P1 사례 URL 공유 — 판정기 입력을 링크 하나로 주고받기(서버 저장 없음)
 
 ## 작업 정의 (설계 담당) — P1 사례 URL 공유
@@ -66,23 +66,107 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 저장소 밖 스크립트로 같은 방식(deflate-raw + base64url)을 돌려 봄 — 예시 01·02·03 링크 본문 509·470·336자, 공백 10MB → 13,608자. Node 24(이 PC)에 `CompressionStream`이 있어 vitest에서 그대로 테스트 가능
 
 ## 완료한 내용
-- 협업 파일 도입: `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`, `PROMPTS.md`, `.github/` PR·이슈 템플릿, `.gitignore`에 `.env` 추가
+- P1 사례 URL 공유: UTF-8·deflate-raw·base64url 인코딩, 버전·입력 모양 검사, 스트리밍 압축 해제 중 64KB 제한.
+- 링크 복사와 클립보드 실패 시 읽기 전용 링크 표시, aria-live 안내.
+- 공유 경로를 기존 load 경로로 불러온 뒤 주소를 `#/`로 교체. 자동 판정 없음, 이전 판정 응답이 늦게 도착해도 불러온 결과를 덮지 않음.
+- 최초 구현 테스트 25개: 처음 구성·예시 3개 왕복, 한글·특수문자, 오류, 10MB 압축 입력, 64KB 경계, 라우터.
+- 작업 정의의 파일 목록만 수정. `decisions/ai-work-log.md`는 이번 변경 범위에 없어 수정하지 않음. 구현 도구: Codex (GPT-6 Astra).
+
+- 리뷰 수정: 스트리밍 중단 회귀 테스트 1개 추가(웹 전체 34개), 변이 검출 확인, 빌드 로그 요약 및 모델 이름 정정. 선택 항목 4는 원본 오류 링크 보존을 위해 미반영.
 
 ## 변경된 주요 파일
-- 위와 같음 (코드 변경 없음)
+- `web/src/share.ts`, `web/src/share.test.ts`: 공유 데이터 변환·검증과 테스트.
+- `web/src/router.ts`, `web/src/router.test.ts`: 공유 경로 인식과 빈 경로 검사.
+- `web/src/pages/JudgePage.tsx`, `web/src/App.tsx`: 공유 링크 생성·불러오기 연결.
+- `HANDOFF.md`: 실제 실행 출력과 리뷰 인계.
 
 ## 테스트 결과
-- 기준선 (2026-09-30, 도입 직전 `a8b7bb0`에서 직접 실행)
-  - 엔진 `64 passed`
-  - 서버 `40 passed, 1 skipped` (건너뛴 1개는 PostgreSQL용)
-  - 화면 `8 passed`
+- 2026-09-30 리뷰 수정 후 직접 실행. 엔진·서버는 해당 폴더를 작업 디렉터리로 지정.
+- 빌드 출력은 리뷰 2번에 따라 요약만 남김. 새 테스트의 ArrayBuffer 타입 오류를 수정한 뒤 최종 빌드 통과.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+```text
+................................................................         [100%]
+64 passed in 1.67s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+```text
+..................................s......                                [100%]
+40 passed, 1 skipped in 7.04s
+```
+
+### `npm --prefix web test`
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  4 passed (4)
+      Tests  34 passed (34)
+   Start at  15:55:38
+   Duration  566ms (transform 39%, tests 29%, import 23%, worker 9%)
+```
+
+### `npm --prefix web run build`
+```text
+> tsc --noEmit && vite build
+✓ 32 modules transformed.
+✓ built in 400ms
+```
+
+### 리뷰 1 — 중간 크기 검사 회귀 테스트
+명령: `npm --prefix web test -- src/share.test.ts -t '64KB를 넘긴 첫 조각'`
+- 실제 DecompressionStream 출력에서 읽은 바이트 수를 관찰. 64KB + 가장 큰 한 조각 이하, EOF 도달 전 중단, cancel 호출을 확인.
+- 정상 코드: `1 passed | 24 skipped (25)`.
+- 변이: `share.ts`의 `if (size > MAX_BYTES)` 검사를 while 안에서 제거하고 `json += decoder.decode();` 뒤로 이동. 같은 명령 직접 실행:
+```text
+AssertionError: expected 10485760 to be less than or equal to 81920
+Test Files  1 failed (1)
+Tests  1 failed | 24 skipped (25)
+Mutation test exit code: 1 (expected 1); original source restored
+```
+- finally에서 원본 복구 후 전체 34개 통과. `git diff --exit-code -- web/src/share.ts web/src/pages/JudgePage.tsx` → 출력 없음, exit 0.
+
+### 리뷰 2·3 — 문서 및 모델 표기
+- 빌드 글꼴 목록 제거. `Select-String -Path HANDOFF.md -Pattern '^dist/assets/Pretendard'` → 출력 없음.
+- 현재 대화의 로컬 turn_context 두 건에서 모델 ID `gpt-6-astra` 확인(이전 구현·이번 수정 모두). 정확한 이름: Codex (GPT-6 Astra).
+- PR 본문과 HANDOFF 표기를 정정하고 이번 커밋 끝에 정확한 모델 이름을 남김. 이미 푸시한 `8317a3e`의 부정확한 표기는 이 기록으로 정정하며, 공유 이력은 재작성하지 않음.
+
+### 리뷰 4 — 선택 항목 미반영
+- 실패한 링크는 원본을 복사·수정·재현할 수 있게 주소에 유지한다. 오류가 다시 표시되는 점은 수용한다. 성공 시에만 주소를 비우는 기존 설계를 유지.
+- 이번 화면 변경 없음. `npm --prefix web test -- src/share.test.ts -t '오류'` → 아래 실제 결과. 입력 보존·오류 한 줄·콘솔 오류 없음은 기존 Claude 브라우저 확인 결과이며 이번에 재실행한 것으로 주장하지 않음.
+```text
+> netproof-web@0.1.0 test
+> vitest run src/share.test.ts -t 오류
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed | 10 skipped (25)
+   Start at  15:56:37
+   Duration  324ms (transform 47%, import 31%, tests 16%, worker 6%)
+```
 
 ## 리뷰 기록 (리뷰 담당)
+전문: PR #2 `[Claude]` 코멘트. 직접 실행: 엔진 64 · 서버 40+1 · 화면 33 · 빌드 통과. 브라우저 완료 조건 4 통과(클립보드 **성공** 경로만 미확인 — 사용자가 실제 Chrome에서).
+
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
+| 1 | `web/src/share.test.ts` (코드 `share.ts:71`은 맞음) | [보통] 크기 검사를 다 푼 뒤로 옮겨도 테스트가 모두 통과 — "풀면서 멈춤"이 고정되지 않음 | `share.ts:71` 검사를 `:74` 뒤로 옮기고 `npm --prefix web test` → 33 passed | **확인 완료** — Claude가 같은 변형을 직접 넣어 새 테스트 실패 확인(`expected 10485760 to be less than or equal to 81920`), 되돌린 뒤 34 passed |
+| 2 | `HANDOFF.md:116~` | [낮음] 빌드 전체 출력(글꼴 92줄) | 파일 보기 | **확인 완료** — `PretendardVariable` 0줄 |
+| 3 | `HANDOFF.md:73`, PR 본문, 커밋 | [낮음] 모델 이름이 `Codex (GPT-6)` — 실제 고른 모델 이름으로 | 파일 보기 | **확인 완료** — HANDOFF·PR 본문·`e7cf028` 모두 `Codex (GPT-6 Astra)`. Claude도 Codex 로컬 기록에서 `gpt-6-astra` 확인. `8317a3e`의 표기는 강제 푸시 없이 PR 코멘트로 정정 |
+| 4 | `web/src/pages/JudgePage.tsx:57` | [선택] 잘못된 링크면 주소가 `#/s/…`로 남아 새로고침·화면 이동 뒤 같은 오류가 다시 뜸(설계에서 빠진 부분) | 잘못된 링크 열기 → `#/cases` → 뒤로 | **미반영 수용** — 잘못된 원본 링크를 주소에 남겨 복사·재현할 수 있게 한다는 Codex 근거를 받아들임. 입력은 덮어쓰지 않음(1차 브라우저 확인) |
+
+재리뷰(`e7cf028`) 직접 실행: 엔진 64 · 서버 40+1 · 화면 **34** · 빌드 통과. 화면 코드는 1차 리뷰 뒤 바뀌지 않아(`share.ts`·`JudgePage.tsx` diff 없음) 브라우저 확인은 다시 하지 않음.
 
 ## 수작업 필요 항목
-- (없음)
+- 사용자: 실제 Chrome에서 클립보드 성공 경로 확인(Claude 브라우저는 권한 거부로 대체 경로만 확인).
 
 ## 남은 작업 (우선순위, 2026-09-30 확정)
 기준: ① 동기가 쓸 때 앱이 풍성해지는가 ② 테스트로 확인되는가 ③ 다른 답·결정에 막혀 있지 않은가 ④ 크기
@@ -93,8 +177,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [ ] 수업 ACL이 Cisco인지 pfSense인지 확인 — P2 IOS 붙여넣기의 전제
 
 **P1 — 시범 (방식 한 바퀴)**
-- [ ] 사례 URL 공유(이슈 #1, 설계 끝) — 저장 없이 링크로 구성·흐름 전달. 화면만, 왕복 테스트로 확인
-- [ ] 개입 횟수, "통과라 했는데 실제 실패" 횟수 기록
+- [ ] 사례 URL 공유(이슈 #1 · PR #2, 재리뷰 통과 — **사용자 확인·병합 대기**) — 저장 없이 링크로 구성·흐름 전달. 화면만, 왕복 테스트로 확인
+- [x] 개입·검증 기록 (P1 한 바퀴): 사람 개입 5번(지시문 붙여넣기 2 · 완료 알림 전달 2 · 수정 라운드 모델 선택 1). "통과라 했는데 실제 실패" **0번**(Codex 보고 테스트 수를 Claude가 두 번 모두 직접 재현). 리뷰가 잡은 실제 문제 1건(테스트가 64KB 스트리밍 제한을 고정하지 못함 — 변형으로 재현). 남은 수작업: 클립보드 성공 경로 확인
 
 **P2 — 핵심 확장 (위 확인 뒤)**
 - [ ] Cisco IOS 설정 붙여넣기 — PR 3개: ① `interface`/`ip address` ② `ip route` ③ `access-list`/`ip access-group`
