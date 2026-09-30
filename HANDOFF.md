@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `acl-highlight`
-- 브랜치 / 마지막 커밋: `main` / ACL 하이라이트 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **Claude** — PROMPTS.md 3번, 코드 리뷰 및 완료 조건 5번 브라우저 확인
+- 브랜치 / 마지막 커밋: `codex/acl-highlight` / 이 문서를 포함한 구현 커밋
+- 진행 단계: 구현·자동 테스트 완료 → Claude 리뷰 대기
 - 한 줄 요약: 로드맵 2주차 전반 — ACL 규칙 줄 하이라이트(이슈 #5)
 - 직전 과제: 도달 못 한 목적지 표시 — PR #4 병합. 과정·리뷰 기록은 PR #4와 `decisions/ai-work-log.md`
 
@@ -65,21 +65,77 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 지금 엔진으로 확인 — 예시 01·03은 정방향 R1에서 1번 줄 차단(`rule_seq` 1), 예시 02는 ACL 없음 / 예시 01 포트 80 → PASS, 2번 줄 허용 / `["remark …", "", "deny … 443"]` → `rule_seq` 3(빈 줄·remark를 위치에 셈) / 암묵적 deny → `rule_seq` 없음. `Acl.evaluate`는 줄 순서대로 첫 일치(순번 숫자로 정렬하지 않음)
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- Rule에 보낸 목록의 줄 위치를 보관하고 ACL Hop에 acl·rule_line 추가. 다른 단계는 null. 엔진 버전 0.1.2.
+- ACL 근거 블록을 정방향→복귀 순서로 표시. 줄 번호·상태 글자·색, 암묵적 deny 끝줄, 옛 Hop 호환.
+- JudgePage가 API에 보낸 network를 복제해 결과와 함께 보관하고 ResultPanel에 전달. 사례 상세는 저장된 network 사용.
+- 판정기에서 입력 칸으로 이동·줄 선택, stale이면 단추 비활성화. 빈 줄 제외 전후 문자 범위 변환 테스트.
+- 엔진 9개·서버 1개·웹 8개 테스트 추가. ACL 평가·일치·라우팅 로직과 사례 기대값은 변경하지 않음.
+- 구현 도구: Codex (GPT-6 Astra).
+
+### 설계에 명시되지 않은 처리와 확인 방법
+- 암묵적 deny에는 선택할 특정 줄이 없으므로 "입력에서 보기"가 ACL 전체를 선택한다. 이유: 사용자가 ACL 끝에 허용 규칙을 추가할 위치를 확인할 수 있게 함. aclSelection의 null·빈 입력 테스트로 범위 확인, 실제 스크롤·선택은 완료 조건 5에서 확인.
+- ACL 이름이 중복되면 toNetwork가 마지막 항목을 보내므로 입력 이동도 findLastIndex로 마지막 칸을 선택한다. 확인: 동일 이름 ACL 두 개를 만든 뒤 마지막 칸의 규칙으로 판정하고 "입력에서 보기"를 누름(브라우저 리뷰 항목).
+- 저장된 ACL이 없거나 엔진 줄 위치가 목록 범위 밖인 경우 근거 블록을 생략한다. 이유: 맞지 않는 규칙을 강조하지 않기 위해서. 옛 Hop·없는 ACL·잘못된 줄 위치 테스트로 확인.
+- 변경 파일은 작업 정의의 허용 범위 안이며 새 의존성은 없음.
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/acl.py`, `trace.py`: 규칙 위치·ACL 근거 메타데이터.
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 버전.
+- `engine/tests/test_acl_evidence.py`, `server/tests/test_acl_evidence.py`: 위치·순번·방향·API 응답 검증.
+- `web/src/components/AclEvidence.tsx`, `aclEvidence.test.ts`: 표시 변환·줄 선택 범위·화면 및 테스트.
+- `web/src/types.ts`, `components/ResultPanel.tsx`, `components/NetworkEditor.tsx`, `pages/JudgePage.tsx`, `pages/CaseDetailPage.tsx`, `styles.css`: 필드·입력 참조·스냅샷·근거 표시 연결.
+- `HANDOFF.md`: 실행 결과와 리뷰 인계.
 
 ## 테스트 결과
 - 기준선(2026-09-30, `main` `7f3403f`): 엔진 72 · 서버 41 + 1 건너뜀 · 화면 42 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 2026-09-30 직접 실행. PowerShell에서는 엔진·서버 폴더를 작업 디렉터리로 지정해 Python 명령 실행.
+- 최초 빌드에서 map 콜백 안의 optional rule_line 타입 오류 발견. 검사 이후 지역 상수로 보관하도록 수정 후 웹 테스트·빌드 재실행 통과.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 88%]
+.........                                                                [100%]
+81 passed in 1.38s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+...................................s.......                              [100%]
+42 passed, 1 skipped in 8.50s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/SKT aleph/netproof/web
+
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  16:55:53
+   Duration  565ms (transform 41%, import 26%, tests 23%, worker 9%, environment 1%)
+```
+
+### `npm --prefix web run build`
+
+```text
+✓ built in 465ms
+```
+
+- `git diff --check` 통과. 기존 사례 테스트 포함. 브라우저 확인과 main 대비 대량 흐름 비교는 설계대로 리뷰 담당에게 남김.
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
 
 ## 수작업 필요 항목
-- (없음)
+- Claude: 완료 조건 5번의 색·글자, 암묵적 deny, 줄 선택·스크롤, stale 근거·단추, 콘솔 오류, 375px 가로 넘침 확인. 동일 ACL 이름의 마지막 입력 칸 이동도 확인.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -92,7 +148,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] `plan.md` 목표 변경 기록(ADR-015)
 
 **2주차 전반 (~10-04)**
-- [ ] ACL 규칙 줄 하이라이트(이슈 #5, 설계 끝 — 구현 대기) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
+- [ ] ACL 규칙 줄 하이라이트(이슈 #5, 구현 완료 — Claude 리뷰 대기) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**

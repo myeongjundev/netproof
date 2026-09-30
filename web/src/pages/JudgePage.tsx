@@ -3,10 +3,11 @@ import { api, message } from "../api";
 import { FlowForm } from "../components/FlowForm";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
+import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
-import type { CaseItem, Draft, User, Verdict } from "../types";
+import type { CaseItem, Draft, Network, User, Verdict } from "../types";
 
 interface Props {
   user: User | null;
@@ -18,6 +19,8 @@ interface Props {
 export function JudgePage({ user, draft, setDraft, share }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
+  const [judgedNetwork, setJudgedNetwork] = useState<Network | null>(null);
+  const aclInputs = useRef(new Map<number, HTMLTextAreaElement>());
   const [judged, setJudged] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +44,7 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
     revision.current += 1;
     setDraft(() => next);
     setVerdict(null);
+    setJudgedNetwork(null);
     setJudged(null);
     setError(null);
   }, [setDraft]);
@@ -86,9 +90,11 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const result = await api.verify(toNetwork(draft), draft.flow, draft.claim);
+      const network = structuredClone(toNetwork(draft));
+      const result = await api.verify(network, draft.flow, draft.claim);
       if (started !== revision.current) return;
       setVerdict(result);
+      setJudgedNetwork(network);
       setJudged(snapshot);
       // 한 줄 배치(휴대폰)에서는 결과가 폼 아래에 있어 눌러도 안 보인다. 결과로 옮겨 준다.
       if (window.matchMedia("(max-width: 900px)").matches) {
@@ -99,6 +105,19 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const showAcl = (name: string, line: number | null) => {
+    if (stale) return;
+    // 이름이 중복되면 toNetwork와 같이 마지막 ACL을 사용한다.
+    const index = draft.acls.findLastIndex((acl) => acl.name.trim() === name);
+    const element = aclInputs.current.get(index);
+    if (!element) return;
+    const range = aclSelection(element.value, line);
+    if (!range) return;
+    element.focus({ preventScroll: true });
+    element.setSelectionRange(range.start, range.end);
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const save = async () => {
@@ -161,7 +180,8 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
 
       <div className="layout">
         <div className="inputs">
-          <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })} />
+          <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })}
+            aclInputRef={(index, element) => { if (element) aclInputs.current.set(index, element); else aclInputs.current.delete(index); }} />
           <details className="panel flat json">
             <summary>사례 JSON 저장·불러오기</summary>
             <p className="hint">사례 원장에 옮길 때 씁니다.</p>
@@ -186,7 +206,7 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
             </button>
           </div>
           <div className="follow">
-            <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} />
+            <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
             {verdict && !stale && (
               <section className="panel save" aria-labelledby="save-title">
                 <h2 id="save-title">사례로 저장</h2>

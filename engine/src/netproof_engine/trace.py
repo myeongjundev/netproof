@@ -21,6 +21,8 @@ class Hop:
     out_if: str | None = None
     rule: str | None = None
     rule_seq: int | None = None
+    acl: str | None = None
+    rule_line: int | None = None
 
 
 @dataclass
@@ -42,11 +44,11 @@ def _acl_step(network: Network, device: Device, iface: Interface, direction: str
     result = "ok" if action == "permit" else "drop"
     where = dict(in_if=iface.name) if direction == "in" else dict(out_if=iface.name)
     if rule is None:
-        return Hop(device.id, step, result, f"ACL {name}({iface.name} {direction}): 일치하는 규칙이 없어 암묵적 deny", **where)
+        return Hop(device.id, step, result, f"ACL {name}({iface.name} {direction}): 일치하는 규칙이 없어 암묵적 deny", acl=name, **where)
     verb = "허용" if action == "permit" else "차단"
     return Hop(
         device.id, step, result, f"ACL {name}({iface.name} {direction}) {rule.seq}번 규칙에서 {verb}",
-        rule=rule.raw, rule_seq=rule.seq, **where,
+        rule=rule.raw, rule_seq=rule.seq, acl=name, rule_line=rule.line, **where,
     )
 
 
