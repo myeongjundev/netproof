@@ -15,7 +15,7 @@
 - 기반: PR #11 `codex/int-digit-limit`, `36ad012740bd0d7b5cbea17d39403449b67b12c2`.
 - PR #10·#11은 2026-10-01 재확인 결과 OPEN, mergedAt=null. 병합하지 않았다.
 - PR #11의 이슈 #9 구현 SHA `52a91cb720ff91ffc80edf3685868884ee2db142`는 Claude 독립 리뷰 PASS. 이 후속 작업은 테스트만 추가한다.
-- 다음 차례: 변경 커밋을 고정해 Claude 독립 리뷰. PR은 #11 위에 쌓는 후속 PR(base=`codex/int-digit-limit`)으로 준비한다.
+- 다음 차례: 사용자 최종 확인·병합 결정. Claude 최종 리뷰 PASS, 검토 SHA `83bf48c661b75d3ab9c760e1714b550080da24eb`. PR은 #11 위에 쌓는 후속 PR(base=`codex/int-digit-limit`)이다.
 
 ## 작업 정의 — 계약 퍼징 상시화 (Claude 설계)
 - 목표: 유효한 합성 네트워크에서 숫자 변환 네 자리(순번·포트·ACL ICMP·flow ICMP)의 단일 문자열 토큰을 변형하고 `verify()`가 네 결과 중 하나를 반환하는지 검사한다.
@@ -42,6 +42,8 @@ PowerShell 기준. Python 3.12.10, Hypothesis 6.168.3. 새 worktree의 독립 .v
 
 기존 10/11자리·ASCII·유니코드·5,000자리 네 경로 회귀는 전체 엔진 테스트에 포함된다. 화면 변경이 없어 빌드/브라우저 검사는 이번 과제에서 요구하지 않는다.
 
+리뷰 반영 후 Codex 재실행(같은 명령): 엔진 `154 passed, 2 xfailed in 1.18s`, 새 파일 `4 passed, 2 xfailed in 0.64s`, 서버 `44 passed, 1 skipped in 11.99s`, 웹 `65 passed (65)`·`Duration 326ms`. 수정된 테스트를 과거 폴더에 다시 복사해 실행: 8c7ee35 `4 failed, 2 xfailed in 0.38s`(네 경로 ² ValueError), a716341 `4 failed, 2 xfailed in 0.36s`(네 경로 5,000자리 ValueError). `PYTHONIOENCODING=utf-8`로 재실행해 유니코드 출력도 확인했다.
+
 ### 과거 버전 실패 검증
 저장소 밖 `$env:TEMP/netproof-contract-history-20261001/<sha>`에 다음처럼 각 버전 엔진을 추출하고 새 테스트 파일만 복사했다.
 
@@ -67,8 +69,19 @@ $env:PYTHONPATH = "$PWD/src"
 - B 설계 전 필요한 첫 사례 자료: 허가된 대상/범위, 질문과 기대 제어, 실제 실행 명령·요청, 시각/시간대, 사용한 제품·설정, 각 제품의 익명화 로그/이벤트 ID 및 n8n 실행 기록(해당 시), 실제 결과 확인자. 비밀값·세션·원본 민감 로그는 제공/커밋하지 않는다.
 
 ## 독립 리뷰
-- 대상 SHA와 실제 실행 명령·출력은 리뷰 후 이 절에 기록한다.
-- PR #11 기반 diff가 허용 세 파일뿐이고 engine/src·cases 변경이 없는지 확인한다.
+- 리뷰어: Claude Code, **Claude Opus 5.5** (`claude-opus-5-5`). Codex가 보고서를 전달하며 Claude가 직접 테스트를 실행했다.
+- 최초 SHA `1caed898f3d13f3da7c94ce261aefdb1b4125407`: 경미 수정요청 1건. 새 테스트 52·54행의 `check="oneway"`는 무시되는 키라 실제로 session 모드였다. `mode="one-way"`로 수정했다. 엔진은 변경하지 않았다.
+- 최종 SHA `83bf48c661b75d3ab9c760e1714b550080da24eb`, base `36ad012740bd0d7b5cbea17d39403449b67b12c2`: **PASS**, 미해결 차단 finding 없음.
+- `git diff --check 36ad012 HEAD` → 출력 없음, exit 0. 허용 세 파일만 변경, engine/src·server·web·cases·docs 변경 0.
+- `cd engine && ../.venv/Scripts/python -m pytest -q` → `154 passed, 2 xfailed in 1.16s`.
+- `cd engine && ../.venv/Scripts/python -m pytest -q tests/test_verify_contract.py -rxX` → `4 passed, 2 xfailed in 0.68s`.
+- `cd server && ../.venv/Scripts/python -m pytest -q` → `44 passed, 1 skipped in 12.46s`.
+- `npm --prefix web test` → `Test Files 5 passed (5)`, `Tests 65 passed (65)`.
+- 과거 폴더의 새 테스트 파일을 검토 SHA와 `cmp` 비교: identical. 소스도 `git archive <sha> engine/src`와 `diff -r -x __pycache__` 비교: 차이 없음.
+- 과거 engine cwd, `PYTHONPATH=$PWD/src`, 현재 .venv python 절대 경로로 `-m pytest -q -p no:cacheprovider tests/test_verify_contract.py --tb=line -rxX`: 8c7ee35 `4 failed, 2 xfailed in 0.37s`(네 경로 ² ValueError), a716341 `4 failed, 2 xfailed in 0.36s`(네 경로 5,000자리 ValueError). 로드 경로/버전/4300 한도도 독립 확인.
+- `runpy`로 새 테스트 `_input`을 불러 probe: flow ICMP `0` one-way → PASS, mode 제거(session) → UNSUPPORTED. 수정 의도대로 실행됨.
+- 범위 밖 참고: ICMP 타입 `4294967295`의 one-way 흐름도 PASS다. 기존 엔진의 0..255 범위 검사 부재로, 이번 반환값 계약 테스트와 별개다. 판정 의미를 바꾸지 않고 후속 검토 항목으로 남긴다.
+- 이 리뷰 뒤에는 결과 기록만 문서에 추가했다. 최종 문서 커밋은 위 코드 리뷰 SHA에 포함되지 않으며 테스트 코드는 그대로다.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.

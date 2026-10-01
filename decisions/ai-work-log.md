@@ -4,6 +4,7 @@ AI가 무엇을 만들었고 사람이 무엇을 정했는지 나눠 적는다. 
 
 | 날짜 | 도구 | 한 일 | 사람이 확인·결정할 것 |
 |---|---|---|---|
+| 2026-10-01 | Codex (사용자 지정: Astra medium) 리뷰 반영 · Claude (Claude Code, Opus 5.5) 독립 리뷰 | 계약 퍼징 최종 검토 SHA `83bf48c661b75d3ab9c760e1714b550080da24eb` PASS. Claude가 무시되는 `check=oneway` 키를 지적하여 테스트를 `mode=one-way`로 수정. Claude 재실행: 엔진 154+2 xfail·서버 44+1 skip·웹 65, 과거 두 버전 네 경로 실패 확인. ICMP 타입 범위 검사 부재는 후속 의미론 검토로 기록 | PR #11 기반 후속 PR 병합 결정. 엔진 의미와 실제 트랙 B 결과를 혼동하지 않기 |
 | 2026-10-01 | Codex (사용자 지정: Astra medium; 실행 설정 독립 확인 불가) 구현·테스트 · Claude (Claude Code, Opus) 설계 | PR #11 기반 계약 퍼징 상시화: 네 숫자 경로별 Hypothesis 80예제와 ①·²·5,000자리 명시 예제. 현재 엔진 154 통과·2 xfail, 서버 44+1 skip, 웹 65. 과거 8c7ee35·a716341에서 각각 네 경로 실패 확인. ACL host AddressValueError·flow ICMP list TypeError는 strict xfail로 별도 기록, 엔진 수정 없음 | 독립 리뷰 후 PR #11과 후속 PR의 병합 순서 및 최종 병합. 트랙 B 실제 관측 증거는 별도 확보 |
 | 2026-10-01 | Codex (GPT-6) | 이슈 #7 Unicode 숫자 `ValueError`·500 수정 리뷰: `main...HEAD` 변경 범위, `isdigit()` 제거, 예외 경로, ASCII 동작을 확인하고 엔진 105·서버 43(+1 건너뜀)·웹 65 테스트와 빌드를 직접 실행해 PASS 판정 | 사용자 최종 확인·PR #8 병합 |
 | 2026-09-26 | Claude (Claude Code) | `plan.md` 초안(ADR 12개, 6주 일정) 작성 | Workbench에서 다시 쓰기, 범위·일정 확정 |
