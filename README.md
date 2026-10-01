@@ -3,6 +3,8 @@
 AI나 내가 예상한 "이 통신은 된다/안 된다"를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 주는 웹앱.
 SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판정 규칙은 [`docs/semantics.md`](docs/semantics.md).
 
+2026-10-01 범위 결정: 현재 앱은 **ACL·라우팅 학습 트랙 A**다. 현재 실습 도구(Cloudflare·Graylog·Wazuh·n8n·Kali Linux)를 다룰 **증거 트랙 B**는 별도 설계 중이며 아직 앱에 구현되지 않았다. 두 트랙의 근거와 경계는 [`docs/two-tracks.md`](docs/two-tracks.md)에 적었다.
+
 ![판정기: 예시 구성에서 HTTPS가 ACL 101 1번 규칙에 막힌 판정과 가는 길](docs/screens/judge.png)
 
 | 사례 게시판 | 사례 상세 · 검토자 확인 |
