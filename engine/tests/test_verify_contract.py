@@ -49,9 +49,9 @@ def _input(path, token):
         network["acls"]["101"] = [f"deny tcp any any eq {token}"]
     elif path == "acl_icmp":
         network["acls"]["101"] = [f"permit icmp any any {token}"]
-        flow.update(proto="icmp", icmp="echo", check="oneway")
+        flow.update(proto="icmp", icmp="echo", mode="one-way")
     elif path == "flow_icmp":
-        flow.update(proto="icmp", icmp=token, check="oneway")
+        flow.update(proto="icmp", icmp=token, mode="one-way")
     else:
         raise AssertionError(f"Unknown test path: {path}")
     return network, flow
