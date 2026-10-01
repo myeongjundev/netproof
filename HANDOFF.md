@@ -21,6 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치 / 마지막 커밋: `main` / 이슈 #9 설계 커밋
 - 진행 단계: 설계 완료 -> 구현 대기
 - 한 줄 요약: 이슈 #9 - 4300자리를 넘는 숫자에서 `int()`가 내는 `ValueError`·500 수정
+- 별도 검토: `docs/quality.md` 4부에 Codex 의견과 퍼징 실측을 추가했다(`codex/quality-opinion`). 이슈 #9 구현은 아직 대기 중이다.
 - 직전 과제: 이슈 #7 유니코드 숫자 `ValueError` - PR #8 병합(이슈 #7 닫음). 남은 자릿수 문제를 이슈 #9로 분리. 기록은 PR #8과 `decisions/ai-work-log.md`
 
 ## 작업 정의 (설계 담당) - 이슈 #9 긴 숫자 `int()` 한도
