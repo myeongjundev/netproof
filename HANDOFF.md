@@ -4,8 +4,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 과제별 이력은 `decisions/ai-work-log.md`, 사람과 AI의 판단이 갈린 순간은 `decisions/disagreement-log.md`(사용자가 채움)에 둡니다.
 
 ## 운영 방식
-- 흐름: Claude 설계 → Codex 구현 → Claude 리뷰 → Codex 수정 → 테스트 → 사용자 최종 확인·병합.
-- 역할: 설계·리뷰·문서는 Claude, 구현·테스트·버그 수정은 Codex, 병합과 최종 판단은 사용자.
+- 흐름: Claude Opus 설계 → Codex Sol 구현·테스트 → Codex Luna 리뷰 → Codex Sol 수정·재테스트 → 사용자 최종 확인·병합. 필요하면 Astra를 사용한다.
+- 역할: 설계는 Claude Opus, 구현·테스트·리뷰 반영은 Codex Sol, 리뷰는 Codex Luna, 병합과 최종 판단은 사용자.
 - 채널: 설계는 `main`의 이 문서, 구현 중 상태는 작업 브랜치의 이 문서(차례인 쪽만 수정), 리뷰 지적은 PR 코멘트.
 - 같은 GitHub 계정을 쓰므로 커밋 끝 Co-Author 줄과 코멘트 첫 줄 `[Claude]`/`[Codex]`로 구분합니다.
 - 단계별 지시문: [PROMPTS.md](PROMPTS.md).
@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex (GPT-6 Astra)** — PROMPTS.md 2번, `<작업명>` = `unicode-digit`
-- 브랜치 / 마지막 커밋: `main` / 이슈 #7 설계 커밋
-- 진행 단계: 설계 완료 → 구현 대기
+- 다음 차례: **Codex Luna 리뷰** — 이슈 #7 구현 PR에서 완료 조건과 회귀 테스트를 확인
+- 브랜치 / 마지막 커밋: `codex/unicode-digit` / 이슈 #7 구현 커밋
+- 진행 단계: 구현·테스트 완료 → 리뷰 대기
 - 한 줄 요약: 이슈 #7 — `isdigit()` 뒤 `int()`로 생기는 `ValueError`·500 수정
 - 직전 과제: ACL 규칙 줄 하이라이트 — PR #6 병합(이슈 #5 닫음). 과정·리뷰 기록은 PR #6과 `decisions/ai-work-log.md`
 
@@ -64,14 +64,47 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 지금 `main`(`8c7ee35`)에서 직접 확인 — `'²'.isdigit()` 참 / `int('²')` `ValueError` / `'²'.isdecimal()` 거짓. `isdigit()` 호출 위치는 `acl.py` 130·185·198·221·222행과 `verify.py` 38행뿐이고(`grep`), 그중 같은 토큰을 `int()`로 바꾸는 곳이 185행을 뺀 전부다. `parse_acl`은 `Unsupported`만 잡아 `UnreadLine`으로 바꾸므로(`acl.py:233`) `ValueError`는 `verify()`의 `except`(`verify.py:88`·`90`)도 지나쳐 API까지 올라간다 — 이것이 500의 경로다.
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- ACL 순번·포트·ICMP 옵션과 흐름 ICMP의 숫자 검사 6곳을 `isdecimal()`로 바꿔, `int()`가 받지 못하는 `²`·`①`이 기존 `Unsupported`·`Invalid` 분기로 가게 했다. 추가 포트 검사도 같은 기준으로 바꿨다.
+- 엔진 버전을 0.1.3으로 올렸다. 응답 형식과 ACL 평가 순서는 그대로다.
+- `²`·`①`의 네 입력 경로, ASCII 순번·포트·ICMP 동작, 엔진 소스의 `isdigit(` 재발 방지, API의 200/UNSUPPORTED 응답을 테스트로 확인했다.
+- 구현 도구: Codex (GPT-6).
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/acl.py`, `verify.py`: 숫자 검사 변경.
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 0.1.3 버전.
+- `engine/tests/test_unicode_digits.py`, `server/tests/test_unicode_digits.py`: 엔진·API 회귀 테스트.
+- `HANDOFF.md`: 진행 상태와 직접 실행한 검증 결과.
 
 ## 테스트 결과
 - 기준선(2026-10-01, `main` `8c7ee35`, 설계 담당이 직접 실행): 엔진 93 · 서버 42 + 1 건너뜀 · 화면 65 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 이번 작업 결과(2026-10-01, `codex/unicode-digit`에서 직접 실행):
+
+  `cd engine && ../.venv/Scripts/python -m pytest -q`
+  ```text
+  ........................................................................ [ 68%]
+  .................................                                        [100%]
+  105 passed in 2.49s
+  ```
+
+  `cd server && ../.venv/Scripts/python -m pytest -q`
+  ```text
+  ...................................s........                             [100%]
+  43 passed, 1 skipped in 12.74s
+  ```
+
+  `npm --prefix web test`
+  ```text
+  Test Files  5 passed (5)
+       Tests  65 passed (65)
+  ```
+
+  `npm --prefix web run build`
+  ```text
+  ✓ built in 2.76s
+  ```
+
+  `rg -n 'isdigit\(' engine/src/netproof_engine` → 일치 없음(종료 코드 1).
+  `git diff --check` → 공백 오류 없음(CRLF 변환 예고만 출력).
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
@@ -92,7 +125,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **2주차 전반 (~10-04)**
 - [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
-- [ ] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(설계 끝 — 구현 대기) — 버그. `verify()`의 "예외 없이 네 값 중 하나" 약속 복구
+- [ ] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(구현·테스트 완료 — 리뷰 대기) — 버그. `verify()`의 "예외 없이 네 값 중 하나" 약속 복구
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**
