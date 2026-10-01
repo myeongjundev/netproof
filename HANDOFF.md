@@ -17,111 +17,83 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Claude Opus 설계 보완** — 이슈 #7의 긴 숫자 입력 예외 처리 범위 결정
-- 브랜치 / 마지막 커밋: `codex/unicode-digit` / 이슈 #7 재검토 기록 커밋
-- 진행 단계: 구현·기존 리뷰 PASS 후 재검토에서 500 재현 → 병합 보류
-- 한 줄 요약: 이슈 #7 — `isdigit()` 뒤 `int()`로 생기는 `ValueError`·500 수정
-- 직전 과제: ACL 규칙 줄 하이라이트 — PR #6 병합(이슈 #5 닫음). 과정·리뷰 기록은 PR #6과 `decisions/ai-work-log.md`
+- 다음 차례: **Codex Sol 구현** — PROMPTS.md 2번, `<작업명>` = `int-digit-limit`
+- 브랜치 / 마지막 커밋: `main` / 이슈 #9 설계 커밋
+- 진행 단계: 설계 완료 -> 구현 대기
+- 한 줄 요약: 이슈 #9 - 4300자리를 넘는 숫자에서 `int()`가 내는 `ValueError`·500 수정
+- 직전 과제: 이슈 #7 유니코드 숫자 `ValueError` - PR #8 병합(이슈 #7 닫음). 남은 자릿수 문제를 이슈 #9로 분리. 기록은 PR #8과 `decisions/ai-work-log.md`
 
-## 작업 정의 (설계 담당) — 이슈 #7 유니코드 숫자 `ValueError`
-- **목표**: `verify()`는 어떤 입력에도 예외 대신 `PASS`·`DENY`·`UNSUPPORTED`·`INVALID` 중 하나를 돌려줘야 한다. 지금은 ACL 줄이나 흐름의 ICMP 종류에 `²`·`①` 같은 문자가 오면 `ValueError`가 그대로 올라와 `/api/verify`(로그인 없이 누구나 호출)가 500이 된다.
-- **원인 (설계 담당이 확인)**: 파이썬 `str.isdigit()`는 **참이지만 `int()`로는 못 바꾸는** 문자(윗첨자 `²`, 원문자 `①` 등)가 있다. `int()`가 받는 것은 `str.isdecimal()`이 참인 문자뿐이다. 엔진은 `isdigit()`를 "`int()`로 바꿀 수 있다"는 뜻으로 쓰고 있어, 그 사이의 문자에서 변환이 터진다.
+## 작업 정의 (설계 담당) - 이슈 #9 긴 숫자 `int()` 한도
+- **목표**: `verify()`는 어떤 입력에도 예외 대신 `PASS`·`DENY`·`UNSUPPORTED`·`INVALID` 중 하나를 돌려줘야 한다. 지금은 숫자의 **자릿수가 4300을 넘으면** `int()`가 `ValueError`를 내고 `/api/verify`(로그인 없이 누구나 호출)가 500이 된다.
+- **이슈 #7과의 관계**: #7은 `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)를 고쳤다(PR #8, 0.1.3). 이번 것은 문자는 올바른데 **자릿수**가 CPython의 변환 한도를 넘는 경우다. **`isdecimal()`은 `int()`가 성공한다는 보장이 아니다** - 설계 담당(Claude)이 #7 설계에서 그렇게 단정한 것이 틀렸다. Codex Luna가 PR #8 재검토에서 한 경로를 찾았고, 설계 담당이 확인하면서 나머지 세 경로도 같은 원인임을 확인했다.
   ```
-  '²'.isdigit() → True   int('²') → ValueError   '²'.isdecimal() → False
+  sys.get_int_max_str_digits() -> 4300   (CPython 3.11+ 기본값, DoS 완화 장치)
+  ('9' * 5000).isdecimal() -> True       int('9' * 5000) -> ValueError
   ```
-- **고칠 곳**: 검사와 변환이 짝인 네 군데 모두 `isdigit()` → `isdecimal()`. 하나라도 빠지면 그 경로에서 계속 500이 난다.
+- **고칠 곳**: `int()`로 바꾸는 네 경로 전부. 설계 담당이 `main` `a716341`에서 네 개 모두 직접 재현했다.
   | 파일:줄 | 무엇 | 고친 뒤 가는 길 |
   |---|---|---|
-  | `engine/src/netproof_engine/acl.py:130` | `_port()` 포트 숫자 | 이미 있는 `raise Unsupported("알 수 없는 포트 이름…")` |
-  | `engine/src/netproof_engine/acl.py:198` | `parse_rule()` 순번 | 순번으로 안 읽고 `동작`으로 읽어 `raise Unsupported("동작은 permit·deny만…")` |
-  | `engine/src/netproof_engine/acl.py:221`·`222` | `parse_rule()` ICMP 종류 옵션(같은 검사가 두 번) | 이미 있는 `raise Unsupported("지원하지 않는 옵션…")` |
-  | `engine/src/netproof_engine/verify.py:38` | 흐름의 `icmp` 값 | 이미 있는 `raise Invalid(["알 수 없는 ICMP 종류…"])` |
-  - `acl.py:185`(`following.isdigit()`)는 `int()` 변환이 없어 크래시는 없지만, `²`에서 "포트를 여러 개" 라는 엉뚱한 이유가 나온다. **같이 `isdecimal()`로 바꾼다** — 엔진에 `isdigit(` 호출이 하나도 남지 않게 해서 같은 실수가 다시 들어오는지 grep 한 줄로 볼 수 있게 한다.
-- **원칙**: 새 `try`/`except`나 새 `Unsupported`·`Invalid` 문구를 **만들지 않는다**. 네 곳 모두 "숫자가 아니다"일 때 가야 할 분기가 이미 있고, 잘못된 검사 때문에 거기까지 못 간 것뿐이다. 해석 못 하는 ACL 줄은 지금처럼 `UnreadLine` → 평가 때 `Unsupported` → `UNSUPPORTED` 판정으로 간다(`acl.py:96`, `verify.py:90`).
-- **엔진 버전** `0.1.2` → `0.1.3`(`__init__.py`, `pyproject.toml`). 응답 형식은 그대로다. 로드맵의 "엔진 버전별 재판정"에서 이 수정 전후를 가릴 수 있게 올린다.
-- **판정 의미**: `docs/semantics.md`는 고칠 것이 없다. "지원 범위 밖이면 추측하지 않고 `UNSUPPORTED`"(2·6절)가 이미 기준이고, 이번 수정은 **크래시를 그 기준으로 되돌리는** 것이다. ASCII 숫자만 쓰는 입력에서는 `isdigit()`와 `isdecimal()`이 똑같아 판정이 바뀔 수 없다.
-- **변경 범위(만질 파일)**: `engine/src/netproof_engine/acl.py`(위 네 줄의 검사만), `engine/src/netproof_engine/verify.py`(38행만), `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`, `engine/tests/test_unicode_digits.py`(새 파일), `server/tests/`(응답 테스트 1개), `HANDOFF.md`
-- **건드리지 않을 것**: ACL 평가 순서·일치 규칙(`Acl.evaluate`, `Rule.matches`), `UnreadLine`·`Unsupported`·`Invalid`의 구조와 문구, 라우팅·추적 로직, `rule_seq`·`rule_line`의 뜻, `server/netproof_api/` 코드, `cases/`, `docs/semantics.md`, 웹 전체(`isAclRemark` 포함 — 엔진 remark 판별이 안 바뀌므로 맞춰 고칠 것이 없다), 새 의존성
+  | `engine/src/netproof_engine/acl.py:130` | `_port()` 포트 | 이미 있는 `raise Unsupported("알 수 없는 포트 이름...")` |
+  | `engine/src/netproof_engine/acl.py:198` | `parse_rule()` 순번 | 순번으로 안 읽고 `동작`으로 읽어 `raise Unsupported("동작은 permit·deny만...")` |
+  | `engine/src/netproof_engine/acl.py:221`·`222` | `parse_rule()` ICMP 종류 옵션 | 이미 있는 `raise Unsupported("지원하지 않는 옵션...")` |
+  | `engine/src/netproof_engine/verify.py:38` | 흐름의 `icmp` 값 | 이미 있는 `raise Invalid(["알 수 없는 ICMP 종류..."])` |
+- **방법**: 검사와 변환을 **한 함수에 묶는다**. #7이 다시 터진 이유가 "검사와 변환이 떨어져 있어서 가드를 잊는다"였으므로, 따로 떨어진 `len()` 검사를 네 군데 흩뿌리지 않는다.
+  ```python
+  # acl.py
+  MAX_DIGITS = 10  # int()를 지키기 위한 한도. 뜻이 있는 상한(포트 65535)은 지금처럼 값 검사가 한다.
+
+  def decimal_int(token: str, limit: int = MAX_DIGITS) -> int | None:
+      """십진 숫자면 int, 아니거나 자릿수가 한도를 넘으면 None.
+
+      isdecimal()만으로는 모자라다 - int()는 4300자리가 넘는 문자열에 ValueError를 낸다.
+      """
+      return int(token) if token.isdecimal() and len(token) <= limit else None
+  ```
+  - 네 경로가 모두 이 함수를 쓴다. `verify.py`는 이미 `from .acl import ICMP_TYPES, Packet`을 하므로 같이 가져오면 된다(순환 import 없음).
+  - 새 `try`/`except`나 새 `Unsupported`·`Invalid` 문구를 **만들지 않는다**. `None`이 오면 네 곳 모두 가야 할 분기가 이미 있다.
+  - `acl.py:185`(`following.isdecimal()`)는 변환이 없어 그대로 둔다.
+- **왜 한도를 10으로 두나**: 지금 통과하는 입력을 **하나도 막지 않는 가장 작은 값**이다. IOS 순번 최댓값이 `4294967295`로 10자리, 포트는 5자리다. 자리별로 다른 한도(포트 5·ICMP 3)를 두면 `eq 0000000443`처럼 0을 채운 입력의 판정이 **바뀌므로** 그렇게 하지 않는다.
+  - 받아들이는 좁아짐: 11자리 이상(예: 0을 11개 붙인 포트)은 이제 `UNSUPPORTED`다. 실제 설정에 나올 수 없는 형태라 받아들인다. 구현할 때 이 이유를 주석으로 남긴다.
+- **하지 않을 것**: `sys.set_int_max_str_digits()`로 한도를 **올리지 않는다**. 그 한도는 긴 숫자 변환으로 CPU를 묶는 공격을 막는 장치이고, 우리가 공개 엔드포인트에서 그것을 끄는 것은 반대 방향이다.
+- **엔진 버전** `0.1.3` -> `0.1.4`(`__init__.py`, `pyproject.toml`). 응답 형식은 그대로다.
+- **판정 의미**: `docs/semantics.md`는 고칠 것이 없다. "지원 범위 밖이면 추측하지 않고 `UNSUPPORTED`"(2·6절)가 이미 기준이고, 이번 수정도 크래시를 그 기준으로 되돌리는 것이다.
+- **변경 범위(만질 파일)**: `engine/src/netproof_engine/acl.py`(헬퍼 + 네 호출 지점), `engine/src/netproof_engine/verify.py`(38행), `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`, `engine/tests/test_unicode_digits.py`(기존 파일에 추가하거나 새 파일), `server/tests/test_unicode_digits.py`(응답 테스트 1개 추가), `HANDOFF.md`
+- **건드리지 않을 것**: ACL 평가 순서·일치 규칙(`Acl.evaluate`, `Rule.matches`), `UnreadLine`·`Unsupported`·`Invalid`의 구조와 문구, 라우팅·추적 로직, `rule_seq`·`rule_line`의 뜻, `server/netproof_api/` 코드, `cases/`, `docs/semantics.md`, 웹 전체, 새 의존성
 - **예상 리스크** (리뷰 때 우선 확인)
-  - 네 곳 중 하나를 빠뜨림 → 그 경로만 여전히 500. 완료 조건 1의 네 테스트가 경로별로 하나씩 있는 이유다
-  - `isdecimal()`은 전각 숫자(`４４３`)·아랍-인디크 숫자를 통과시키고 `int()`도 이들을 받는다. 즉 **전에 크래시였던 일부 입력이 이제 정상 포트·순번으로 읽힌다**. 의도된 결과지만, 이것을 거부라고 기대하는 테스트가 생기지 않게 한다
-  - 기존 테스트는 모두 ASCII 입력이라 **통과해도 이 변경을 검증하지 못한다**. 유니코드 숫자 전용 새 테스트가 반드시 필요하다
-  - ASCII 경로 판정이 바뀜 → 리뷰에서 `main` 엔진과 흐름 대량 비교(Claude가 직접)
+  - 네 경로 중 하나를 빠뜨림 -> 그 경로만 여전히 500. 완료 조건 1의 테스트가 경로별로 있는 이유다
+  - `parse_rule`의 순번 자리는 `peek()`로 보고 `take()`로 집는 구조다. 헬퍼를 끼우면서 토큰을 집는 순서가 밀리면 규칙 전체가 어긋난다(`"10 deny ..."`가 `deny`를 순번으로 보는 식)
+  - 10자리 한도가 지금 통과하는 입력을 막는지 -> 엔진 전체 테스트로 확인
+  - 경계에서 어긋남(10자리는 되고 11자리는 안 됨)
 - **완료 조건 (실행 가능한 명령)**
-  1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 전부 통과(기준선 93 + 새 테스트). 새 테스트 최소 — 전부 **예외 없이 값이 돌아오는지**까지 본다:
-     - 이슈 재현 그대로: `cases/synthetic-01-https-acl.json`의 `acls["101"]`을 `["² deny ip any any"]`로 바꿔 `verify` → `result == "UNSUPPORTED"`, `reason`에 줄 번호와 원문
-     - 포트: ACL 줄 `"deny tcp any any eq ²"` → `UNSUPPORTED`
-     - ICMP 옵션: ACL 줄 `"permit icmp any any ①"` → `UNSUPPORTED`
-     - 흐름: `proto` `icmp`, `icmp` `"²"` → `INVALID`
-     - 위 네 가지를 `²`(U+00B2)와 `①`(U+2460) 양쪽으로
-     - ASCII 경로 불변: `"10 deny tcp any any eq 443"` → `rule_seq == 10` / `"permit tcp any any eq 8080"` → 포트 8080으로 동작 / `"permit icmp any any 8"` → `icmp_type == 8` / 흐름 `icmp` `"8"` → 예전과 같은 판정
-     - 재발 방지: 엔진 소스에 `isdigit(`가 없음(`engine/src/netproof_engine/**/*.py`를 읽어 확인하는 테스트 1개)
-  2. `cd server && ../.venv/Scripts/python -m pytest -q` → 기준선(42 + 1 건너뜀) + 1. 새 테스트: `/api/verify`에 `² deny ip any any`가 든 ACL을 보내 **상태 코드 200**과 `result == "UNSUPPORTED"`(500이 아님)
-  3. `npm --prefix web test` → 기준선 65 그대로(웹은 손대지 않음)
-  4. `npm --prefix web run build` → 통과
-  5. `git diff main...HEAD` → 위 "변경 범위" 밖의 파일이 없음
-  - 브라우저 확인은 필요 없다(화면 변경 없음). 리뷰에서 `main` 대비 판정 불변 대량 비교는 Claude가 한다
-- **설계 검증 근거**: 설계 담당이 지금 `main`(`8c7ee35`)에서 직접 확인 — `'²'.isdigit()` 참 / `int('²')` `ValueError` / `'²'.isdecimal()` 거짓. `isdigit()` 호출 위치는 `acl.py` 130·185·198·221·222행과 `verify.py` 38행뿐이고(`grep`), 그중 같은 토큰을 `int()`로 바꾸는 곳이 185행을 뺀 전부다. `parse_acl`은 `Unsupported`만 잡아 `UnreadLine`으로 바꾸므로(`acl.py:233`) `ValueError`는 `verify()`의 `except`(`verify.py:88`·`90`)도 지나쳐 API까지 올라간다 — 이것이 500의 경로다.
+  1. `cd engine && ../.venv/Scripts/python -m pytest -q` -> 전부 통과(기준선 105 + 새 테스트). 새 테스트 최소:
+     - 네 경로에 `"9" * 5000` -> 예외 없이 `UNSUPPORTED`(흐름 ICMP는 `INVALID`). 네 경로는 포트·순번·ICMP 옵션·흐름 ICMP
+     - 자릿수를 `1, 3, 5, 10, 11, 4300, 4301, 5000`으로 바꿔 네 경로에 넣고 **예외가 하나도 없음**(이번 버그의 재발 방지)
+     - 경계: 10자리는 지금처럼 읽히고(`eq 0000000443` -> 포트 443으로 동작, `"4294967295 deny ip any any"` -> `rule_seq == 4294967295`), 11자리는 `UNSUPPORTED`
+     - ASCII 불변: `"10 deny tcp any any eq 443"` -> `rule_seq == 10` / `"permit tcp any any eq 8080"` -> 포트 8080 / `"permit icmp any any 8"` -> `icmp_type == 8` / 흐름 `icmp` `"8"`
+     - #7 회귀 유지: `²`·`①` 테스트가 그대로 통과
+  2. `cd server && ../.venv/Scripts/python -m pytest -q` -> 기준선(43 + 1 건너뜀) + 1. 새 테스트: `/api/verify`에 `"9" * 5000`이 든 입력을 보내 **상태 코드 200**과 `result`가 `UNSUPPORTED`(500이 아님)
+  3. `npm --prefix web test` -> 기준선 65 그대로(웹은 손대지 않음)
+  4. `npm --prefix web run build` -> 통과
+  5. `git diff main...HEAD` -> 위 "변경 범위" 밖의 파일이 없음
+  - 브라우저 확인은 필요 없다(화면 변경 없음)
+- **설계 검증 근거**: 설계 담당이 `main` `a716341`에서 직접 실행 - 흐름 ICMP·순번·포트·ICMP 옵션 네 경로 모두 `'9' * 5000`에서 `ValueError: Exceeds the limit (4300 digits)`, 같은 입력을 `/api/verify`에 보내면 예외가 그대로 올라온다(운영에서 500). 정상 ASCII 입력은 `DENY`로 그대로. `sys.get_int_max_str_digits()`는 4300(Python 3.13.15). `isdecimal()` 호출 위치는 `acl.py` 130·185·198·221·222행과 `verify.py` 38행이고, 그중 185행만 변환이 없다.
 
 ## 완료한 내용
-- ACL 순번·포트·ICMP 옵션과 흐름 ICMP의 숫자 검사 6곳을 `isdecimal()`로 바꿔, `int()`가 받지 못하는 `²`·`①`이 기존 `Unsupported`·`Invalid` 분기로 가게 했다. 추가 포트 검사도 같은 기준으로 바꿨다.
-- 엔진 버전을 0.1.3으로 올렸다. 응답 형식과 ACL 평가 순서는 그대로다.
-- `²`·`①`의 네 입력 경로, ASCII 순번·포트·ICMP 동작, 엔진 소스의 `isdigit(` 재발 방지, API의 200/UNSUPPORTED 응답을 테스트로 확인했다.
-- 첫 리뷰에서 변경 범위, `²`·`①` 예외 경로와 ASCII 판정 보존을 확인해 PASS로 판정했다. 재검토에서 길이 5,000인 ASCII 숫자 문자열의 `int()` 변환 예외를 발견했다.
-- 구현·리뷰 도구: Codex (GPT-6).
+- (구현 담당이 채움)
 
 ## 변경된 주요 파일
-- `engine/src/netproof_engine/acl.py`, `verify.py`: 숫자 검사 변경.
-- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`: 0.1.3 버전.
-- `engine/tests/test_unicode_digits.py`, `server/tests/test_unicode_digits.py`: 엔진·API 회귀 테스트.
-- `HANDOFF.md`: 진행 상태와 직접 실행한 검증 결과.
+- (구현 담당이 채움)
 
 ## 테스트 결과
-- 기준선(2026-10-01, `main` `8c7ee35`, 설계 담당이 직접 실행): 엔진 93 · 서버 42 + 1 건너뜀 · 화면 65 · 빌드 통과
-- 이번 작업 결과(2026-10-01, `codex/unicode-digit`에서 직접 실행):
-
-  `cd engine && ../.venv/Scripts/python -m pytest -q`
-  ```text
-  ........................................................................ [ 68%]
-  .................................                                        [100%]
-  105 passed in 2.71s
-  ```
-
-  `cd server && ../.venv/Scripts/python -m pytest -q`
-  ```text
-  ...................................s........                             [100%]
-  43 passed, 1 skipped in 10.24s
-  ```
-
-  `npm --prefix web test`
-  ```text
-  Test Files  5 passed (5)
-       Tests  65 passed (65)
-  ```
-
-  `npm --prefix web run build`
-  ```text
-  ✓ built in 917ms
-  ```
-
-  `rg -n 'isdigit\(' engine/src/netproof_engine` → 일치 없음(종료 코드 1).
-  `git diff --check` → 공백 오류 없음(CRLF 변환 예고만 출력).
-
-- 첫 리뷰 확인(2026-10-01): 구현 커밋의 변경 파일은 작업 정의 범위와 일치하며, 리뷰 지적 사항 없음(PASS). 이후 리뷰 기록 커밋에서 `decisions/ai-work-log.md`를 추가해 현재 `git diff main...HEAD`에는 작업 정의 밖의 문서 파일 1개가 포함된다.
-- `rg -n "isdigit\\(" engine` → 일치 없음.
-- 재검토(2026-10-01): 전체 재실행 결과 엔진 `105 passed in 2.34s`, 서버 `43 passed, 1 skipped in 9.45s`, 웹 `65 passed`, 빌드 `✓ built in 787ms`. `git diff --check main...HEAD` 출력 없음.
-- 별도 재현: 합성 사례의 흐름을 `dict(case["flow"], proto="icmp", icmp="9" * 5000)`으로 바꿔 `verify`를 호출하면 `engine/src/netproof_engine/verify.py:38`에서 `ValueError: Exceeds the limit (4300 digits) for integer string conversion` 발생. 같은 입력을 `/api/verify`에 보내면 HTTP `500`(요청 크기 64KB 이내).
-- 이 긴 숫자 입력은 현재 설계가 허용한 `isdigit()` → `isdecimal()` 치환만으로 해결되지 않는다. 새 길이 검사나 예외 처리 정책이 필요하므로 Claude Opus의 작업 정의 보완을 기다린다. 재검토 중 코드 변경 없음.
+- 기준선(2026-10-01, `main` `a716341`, 설계 담당이 직접 실행): 엔진 105 · 서버 43 + 1 건너뜀 · 화면 65 · 빌드 통과
+- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
-| 1 | - | 발견 사항 없음. 변경 범위·예외 경로·회귀 테스트를 확인함 | 완료 조건의 엔진·서버·웹 테스트와 빌드를 직접 실행 | PASS |
-| 2 | `engine/src/netproof_engine/verify.py:38` | `icmp="9" * 5000`은 `isdecimal()`이 참이지만 `int()`가 `ValueError`를 내서 `/api/verify` 500. 기존 목표인 예외 없는 판정 미충족 | 합성 사례의 flow에 긴 ICMP 숫자를 넣어 `verify` 호출; 동일 본문을 API 테스트 클라이언트에 POST → 500 | 설계 보완 대기 |
-| 3 | `decisions/ai-work-log.md:7` | 첫 리뷰 PASS 뒤 리뷰 기록 커밋이 작업 정의의 파일 범위 밖 문서를 추가함. 구현 코드는 영향 없음 | `git diff --name-only main...HEAD` | 범위 확인 필요 |
 
 ## 수작업 필요 항목
-- (없음 — 화면 변경이 없어 브라우저 확인이 필요하지 않다)
+- (없음 - 화면 변경이 없어 브라우저 확인이 필요하지 않다)
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -135,7 +107,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **2주차 전반 (~10-04)**
 - [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
-- [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(구현·테스트·리뷰 완료) — 버그. `verify()`의 "예외 없이 네 값 중 하나" 약속 복구
+- [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음) — 버그. `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)
+- [ ] 이슈 #9 긴 숫자 `int()` 한도(설계 끝 — 구현 대기) — 버그. 같은 약속("예외 없이 네 값 중 하나")의 남은 부분: 문자는 맞지만 **자릿수**가 4300을 넘는 경우
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**
