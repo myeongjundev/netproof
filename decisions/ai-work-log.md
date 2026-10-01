@@ -4,6 +4,7 @@ AI가 무엇을 만들었고 사람이 무엇을 정했는지 나눠 적는다. 
 
 | 날짜 | 도구 | 한 일 | 사람이 확인·결정할 것 |
 |---|---|---|---|
+| 2026-10-01 | Codex (GPT-6) | 이슈 #7 Unicode 숫자 `ValueError`·500 수정 리뷰: `main...HEAD` 변경 범위, `isdigit()` 제거, 예외 경로, ASCII 동작을 확인하고 엔진 105·서버 43(+1 건너뜀)·웹 65 테스트와 빌드를 직접 실행해 PASS 판정 | 사용자 최종 확인·PR #8 병합 |
 | 2026-09-26 | Claude (Claude Code) | `plan.md` 초안(ADR 12개, 6주 일정) 작성 | Workbench에서 다시 쓰기, 범위·일정 확정 |
 | 2026-09-26 | Claude (Claude Code) | `docs/semantics.md` 판정 의미론 v0 작성 | 무상태 ACL·왕복 판정·같은 서브넷=같은 링크 가정에 동의하는지 |
 | 2026-09-26 | Claude (Claude Code) | `engine/` 판정 엔진 v0(Python) 구현: 확장 ACL 부분집합 해석, 최장 접두사 경로, 정방향·복귀 추적, PASS/DENY/UNSUPPORTED/INVALID | 동기들이 실제로 쓴 ACL 문법과 맞는지 |

@@ -35,7 +35,7 @@ def _flow_packet(flow: dict) -> tuple[Packet, str]:
 
     if proto == "icmp":
         icmp = flow.get("icmp", "echo")
-        icmp_type = ICMP_TYPES.get(icmp) if not str(icmp).isdigit() else int(icmp)
+        icmp_type = ICMP_TYPES.get(icmp) if not str(icmp).isdecimal() else int(icmp)
         if icmp_type is None:
             raise Invalid([f"알 수 없는 ICMP 종류: '{icmp}'(echo, echo-reply 또는 숫자)"])
         if mode == "session" and icmp_type != 8:

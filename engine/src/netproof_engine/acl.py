@@ -127,7 +127,7 @@ def _is_address(token: str) -> bool:
 def _port(token: str) -> int:
     if token in PORT_NAMES:
         return PORT_NAMES[token]
-    if token.isdigit() and 0 <= int(token) <= 65535:
+    if token.isdecimal() and 0 <= int(token) <= 65535:
         return int(token)
     raise Unsupported(f"알 수 없는 포트 이름: '{token}'. 숫자로 적어 주세요")
 
@@ -182,7 +182,7 @@ def _port_match(tokens: _Tokens, proto: str) -> PortMatch | None:
         return PortMatch(op, lo, hi)
     match = PortMatch(op, _port(tokens.take("포트")))
     following = tokens.peek()
-    if following is not None and (following.isdigit() or following in PORT_NAMES):
+    if following is not None and (following.isdecimal() or following in PORT_NAMES):
         raise Unsupported("eq 뒤에 포트를 여러 개 적는 형식은 지원하지 않습니다")
     return match
 
@@ -195,7 +195,7 @@ def parse_rule(line: str, seq: int) -> Rule | None:
         tokens.take("access-list")
         tokens.take("ACL 이름")
         first = tokens.peek()
-    if first is not None and first.isdigit():
+    if first is not None and first.isdecimal():
         seq = int(tokens.take("순번"))
         first = tokens.peek()
     if first == "remark":
@@ -218,8 +218,8 @@ def parse_rule(line: str, seq: int) -> Rule | None:
             continue
         if option == "established" and proto == "tcp":
             established = True
-        elif proto == "icmp" and icmp_type is None and (option in ICMP_TYPES or option.isdigit()):
-            icmp_type = ICMP_TYPES.get(option, int(option) if option.isdigit() else None)
+        elif proto == "icmp" and icmp_type is None and (option in ICMP_TYPES or option.isdecimal()):
+            icmp_type = ICMP_TYPES.get(option, int(option) if option.isdecimal() else None)
         else:
             raise Unsupported(f"지원하지 않는 옵션: '{option}'")
     return Rule(seq, action, proto, src, dst, line.strip(), src_port, dst_port, established, icmp_type)
