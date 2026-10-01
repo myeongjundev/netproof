@@ -1,4 +1,4 @@
-"""Bounded contract fuzzing for four numeric conversion sites.
+"""Deterministic generated regression tests (80 examples per numeric path).
 
 Generate one non-whitespace string token in an otherwise valid network/flow.
 This is not an arbitrary-input guarantee: addresses, routing, interfaces,
@@ -17,6 +17,12 @@ from netproof_engine import verify
 
 
 RESULTS = {"PASS", "DENY", "UNSUPPORTED", "INVALID"}
+PATH_RESULTS = {
+    "sequence": {"DENY", "UNSUPPORTED"},
+    "port": {"PASS", "DENY", "UNSUPPORTED"},
+    "acl_icmp": {"PASS", "DENY", "UNSUPPORTED"},
+    "flow_icmp": {"PASS", "INVALID"},
+}
 PATHS = ("sequence", "port", "acl_icmp", "flow_icmp")
 TOKENS = st.one_of(
     st.integers(min_value=0, max_value=4294967295).map(str),
@@ -27,6 +33,7 @@ TOKENS = st.one_of(
 )
 
 
+# Like test_unicode_digits.verdict_for_long_digit_path; separate for historical engines; new coverage is the random-text generator.
 def _input(path, token):
     # Fresh objects per example; independent of mutable case fixtures and helpers
     # introduced by the fixes, so this test can run against historical engines.
@@ -46,7 +53,7 @@ def _input(path, token):
     if path == "sequence":
         network["acls"]["101"] = [f"{token} deny ip any any"]
     elif path == "port":
-        network["acls"]["101"] = [f"deny tcp any any eq {token}"]
+        network["acls"]["101"] = [f"deny tcp any any eq {token}", "permit ip any any"]
     elif path == "acl_icmp":
         network["acls"]["101"] = [f"permit icmp any any {token}"]
         flow.update(proto="icmp", icmp="echo", mode="one-way")
@@ -66,14 +73,22 @@ def _input(path, token):
 def test_numeric_token_contract(path, token):
     # ACL tokenization uses str.split(); these alphabets cannot add whitespace.
     assert token.split() == [token]
-    assert verify(*_input(path, token))["result"] in RESULTS
+    result = verify(*_input(path, token))["result"]
+    assert result in PATH_RESULTS[path], (path, token, result)
+
+
+@pytest.mark.parametrize("token, expected", [
+    ("443", "DENY"), ("0000000443", "DENY"), ("80", "PASS"), ("www", "PASS"),
+])
+def test_port_token_verdict(token, expected):
+    assert verify(*_input("port", token))["result"] == expected
 
 
 @pytest.mark.xfail(strict=True, raises=ipaddress.AddressValueError,
                    reason="Separate known bug: malformed ACL host address")
 def test_known_malformed_host_contract():
     network, flow = _input("port", "443")
-    network["acls"]["101"] = ["deny tcp host neq icmp -1 remark nan"]
+    network["acls"]["101"] = ["deny tcp host x any"]
     assert verify(network, flow)["result"] in RESULTS
 
 
