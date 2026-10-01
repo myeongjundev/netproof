@@ -29,7 +29,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 기반: PR #11 `codex/int-digit-limit`, `36ad012740bd0d7b5cbea17d39403449b67b12c2`.
 - PR #10·#11은 2026-10-01 재확인 결과 OPEN, mergedAt=null. 병합하지 않았다.
 - PR #11의 이슈 #9 구현 SHA `52a91cb720ff91ffc80edf3685868884ee2db142`는 Claude 독립 리뷰 PASS. 이 후속 작업은 테스트만 추가한다.
-- 다음 차례: **Claude 재리뷰**. PR #12의 [재리뷰 코멘트](https://github.com/myeongjundev/netproof/pull/12#issuecomment-5932377922) 7건을 반영했다. 이전 PASS는 83bf48c만의 결과이며 이번 변경에는 적용하지 않는다. PR base는 `codex/int-digit-limit`.
+- 다음 차례: **사용자 최종 확인·병합 결정** — PROMPTS.md 5번. Claude 재리뷰 PASS, 검토 SHA `051c5899a9c4668bc9101ab64c600c8981607cc8`. PR base는 `codex/int-digit-limit`이며 #11 병합 전 main에 바로 병합하지 않는다.
 
 ## 작업 정의 — 고정 시드 생성 회귀 테스트(경로별 80개, Claude 재리뷰 반영)
 - 목표: 유효한 합성 네트워크에서 숫자 변환 네 자리(순번·포트·ACL ICMP·flow ICMP)의 단일 문자열 토큰을 변형하고 `verify()`가 경로별 허용 결과를 반환하는지 검사한다.
@@ -108,17 +108,27 @@ $env:PYTHONPATH = "$PWD/src"
 - 당시 77ab1fe는 문서만 추가한 커밋이었다. 이후 Claude 재리뷰 7건으로 이번 테스트·문서 수정이 발생했으므로 위 PASS는 이번 변경을 승인하지 않는다.
 
 ## 리뷰 기록
-대상: [Claude 재리뷰 5932377922](https://github.com/myeongjundev/netproof/pull/12#issuecomment-5932377922), 검토 당시 SHA `77ab1fecf2dba4feff5c19f1b6122d3a9c9e6195`. 아래 상태는 Codex 반영 결과이며 Claude 재승인 전이다.
+대상: [Claude 재리뷰 5932377922](https://github.com/myeongjundev/netproof/pull/12#issuecomment-5932377922), 검토 당시 SHA `77ab1fecf2dba4feff5c19f1b6122d3a9c9e6195`. 아래 상태는 Codex 반영 결과이며, Claude가 `051c589`에서 재확인했다(아래 "Claude 재리뷰").
 
 | # | 파일 / 문제 | 처리 및 재현 근거 | 상태 |
 |---|---|---|---|
-| 1 | HANDOFF 상시 규칙 삭제 | base의 운영 채널·구분·PROMPTS·사람 업무·검증 원칙·시작 점검·줄바꿈 경고 복원, 이번 작업 메모 분리 | 고침, Claude 확인 대기 |
-| 2 | test_verify_contract.py port 판별력 | permit 추가, 4개 명시 예제 통과; permit 제거 시 80/www만 AssertionError | 고침, 변형 검증 완료 |
+| 1 | HANDOFF 상시 규칙 삭제 | base의 운영 채널·구분·PROMPTS·사람 업무·검증 원칙·시작 점검·줄바꿈 경고 복원, 이번 작업 메모 분리 | 고침, Claude 확인 |
+| 2 | test_verify_contract.py port 판별력 | permit 추가, 4개 명시 예제 통과; permit 제거 시 80/www만 AssertionError | 고침, Claude 변형 검증 확인 |
 | 3 | 경로 무관 RESULTS | PATH_RESULTS 적용, 현재 집합 밖 결과 없음; 과거 네 경로는 ValueError | 고침 |
 | 4 | _input 중복 설명 | 함수 위 한 줄로 기존 helper와 같은 구성·분리 이유·텍스트 생성 커버리지 명시 | 고침 |
 | 5 | xfail 입력 복잡 | deny tcp host x any로 축소; 직접 호출 AddressValueError, strict/raises 유지 | 고침 |
 | 6 | Hypothesis 하한 | 6.85.0 도입을 공식 기록·태그 시그니처로 확인, 별도 후속 기록; 의존성 변경 없음 | 기록 완료 |
 | 7 | 상시 퍼징 표현 | 고정 시드 생성 회귀 테스트(경로별 80개)로 문서·작업 기록·PR 설명 정정, 설정 유지 | 고침 |
+### Claude 재리뷰 (2026-10-02, Claude Opus 5.5) — 검토 SHA `051c5899a9c4668bc9101ab64c600c8981607cc8`: **PASS**
+- 엔진 로드 경로: worktree `engine/src/netproof_engine/__init__.py`, 0.1.4.
+- `cd engine && PYTHONPATH=$PWD/src ../.venv/Scripts/python -m pytest -q -p no:cacheprovider tests/test_verify_contract.py -rxX` → `8 passed, 2 xfailed in 1.13s`
+- `cd engine && ... -m pytest -q -p no:cacheprovider` → `158 passed, 2 xfailed in 1.21s`
+- `cd server && ../.venv/Scripts/python -m pytest -q -p no:cacheprovider` → `44 passed, 1 skipped in 7.10s`
+- `npm --prefix web test` → `Test Files 5 passed (5)`, `Tests 65 passed (65)`
+- `git diff --check origin/codex/int-digit-limit...origin/codex/contract-fuzz` → exit 0, 변경 파일 세 개뿐.
+- 과거 엔진(`git archive <sha> engine` + 새 테스트 파일): 8c7ee35 `4 failed, 4 passed, 2 xfailed`(네 경로 `²` ValueError 8건), a716341 `4 failed, 4 passed, 2 xfailed`(네 경로 4300자리 한도 ValueError 8건).
+- 엔진 사본 변형: flow ICMP 미지 값을 INVALID 대신 UNSUPPORTED로 → `1 failed`(경로별 허용 결과가 잡음). `_port`가 `number + 1` 반환 → `2 failed`(443·0000000443 단언이 잡음).
+- 비차단 참고: 결과 절 제목 날짜(10-01)와 work-log(10-02) 불일치. work-log의 10-01 기존 줄 문구가 바뀐 것은 Claude 지시문 탓이며, 앞으로 이력 줄은 고치지 않고 새 줄만 추가한다. 테스트 36행 주석은 한 줄이 길다.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.

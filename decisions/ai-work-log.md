@@ -4,6 +4,7 @@ AI가 무엇을 만들었고 사람이 무엇을 정했는지 나눠 적는다. 
 
 | 날짜 | 도구 | 한 일 | 사람이 확인·결정할 것 |
 |---|---|---|---|
+| 2026-10-02 | Claude (Claude Code, Opus 5.5) | PR #12 재리뷰: `051c589` PASS. 직접 실행 엔진 158+2 xfail·서버 44+1 skip·웹 65, 과거 두 엔진 네 경로 ValueError 검출, 엔진 사본 변형 2종(flow ICMP 결과·포트 값)을 새 단언이 잡는 것 확인 | PR #11 병합 후 #12 병합 순서·최종 병합 |
 | 2026-10-02 | Codex (사용자 지정: Astra medium; 실행 설정 독립 확인 불가) | PR #12 Claude 재리뷰 7건 반영: 상시 운영 규칙 복원, port permit·4개 명시 예제 및 제거 변형 검증, 경로별 허용 결과, 중복 설명, 짧은 host xfail, Hypothesis 6.85.0 하한 후속 기록, 고정 시드 생성 회귀 테스트(경로별 80개)로 표현 정정. 엔진 158+2 xfail·서버 44+1 skip·웹 65. 과거 두 엔진 네 경로 ValueError 유지. 엔진·의존성 수정 없음 | 다음 차례 Claude 재리뷰. 사용자 병합 결정 |
 | 2026-10-01 | Codex (사용자 지정: Astra medium) 리뷰 반영 · Claude (Claude Code, Opus 5.5) 독립 리뷰 | 고정 시드 생성 회귀 테스트(경로별 80개) 당시 검토 SHA `83bf48c661b75d3ab9c760e1714b550080da24eb` PASS. Claude가 무시되는 `check=oneway` 키를 지적하여 테스트를 `mode=one-way`로 수정. Claude 재실행: 엔진 154+2 xfail·서버 44+1 skip·웹 65, 과거 두 버전 네 경로 실패 확인. ICMP 타입 범위 검사 부재는 후속 의미론 검토로 기록 | PR #11 기반 후속 PR 병합 결정. 엔진 의미와 실제 트랙 B 결과를 혼동하지 않기 |
 | 2026-10-01 | Codex (사용자 지정: Astra medium; 실행 설정 독립 확인 불가) 구현·테스트 · Claude (Claude Code, Opus) 설계 | PR #11 기반 고정 시드 생성 회귀 테스트(경로별 80개): 네 숫자 경로별 Hypothesis 80예제와 ①·²·5,000자리 명시 예제. 현재 엔진 154 통과·2 xfail, 서버 44+1 skip, 웹 65. 과거 8c7ee35·a716341에서 각각 네 경로 실패 확인. ACL host AddressValueError·flow ICMP list TypeError는 strict xfail로 별도 기록, 엔진 수정 없음 | 독립 리뷰 후 PR #11과 후속 PR의 병합 순서 및 최종 병합. 트랙 B 실제 관측 증거는 별도 확보 |
