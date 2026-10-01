@@ -17,10 +17,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Codex Sol 구현** — PROMPTS.md 2번, `<작업명>` = `int-digit-limit`
-- 브랜치 / 마지막 커밋: `main` / 이슈 #9 설계 커밋
-- 진행 단계: 설계 완료 -> 구현 대기
-- 한 줄 요약: 이슈 #9 - 4300자리를 넘는 숫자에서 `int()`가 내는 `ValueError`·500 수정
+- 다음 차례: **Claude 독립 리뷰** — PROMPTS.md 3번, 이슈 #9 구현 커밋의 SHA를 고정해 검토
+- 브랜치 / 마지막 커밋: `codex/int-digit-limit` / 이슈 #9 구현(커밋 후 SHA를 리뷰 기록에 명시)
+- 진행 단계: 구현·테스트 완료 -> Claude 리뷰 대기
+- 한 줄 요약: 이슈 #9 - 네 숫자 변환 경로를 10자리 제한 헬퍼로 통합해 5,000자리 입력의 예외·500 수정
 - 직전 과제: 이슈 #7 유니코드 숫자 `ValueError` - PR #8 병합(이슈 #7 닫음). 남은 자릿수 문제를 이슈 #9로 분리. 기록은 PR #8과 `decisions/ai-work-log.md`
 
 ## 작업 정의 (설계 담당) - 이슈 #9 긴 숫자 `int()` 한도
@@ -79,14 +79,24 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **설계 검증 근거**: 설계 담당이 `main` `a716341`에서 직접 실행 - 흐름 ICMP·순번·포트·ICMP 옵션 네 경로 모두 `'9' * 5000`에서 `ValueError: Exceeds the limit (4300 digits)`, 같은 입력을 `/api/verify`에 보내면 예외가 그대로 올라온다(운영에서 500). 정상 ASCII 입력은 `DENY`로 그대로. `sys.get_int_max_str_digits()`는 4300(Python 3.13.15). `isdecimal()` 호출 위치는 `acl.py` 130·185·198·221·222행과 `verify.py` 38행이고, 그중 185행만 변환이 없다.
 
 ## 완료한 내용
-- (구현 담당이 채움)
+- `decimal_int()`가 십진 여부와 10자리 한도를 함께 검사한 뒤에만 변환하도록 하고 포트·순번·ACL ICMP 옵션·흐름 ICMP 네 경로에서 사용했다.
+- 5,000자리와 1·3·5·10·11·4300·4301·5000자리 입력을 네 경로에 고정한 회귀 테스트를 추가했다.
+- 10자리는 기존처럼 값으로 읽고 11자리는 기존 오류 분기(`UNSUPPORTED`, 흐름 ICMP는 `INVALID`)로 가는 경계 테스트를 추가했다.
+- 엔진 버전을 `0.1.4`로 올렸다. 별도 ACL `host` 주소 `AddressValueError` 문제는 이 작업에서 수정하지 않았다.
 
 ## 변경된 주요 파일
-- (구현 담당이 채움)
+- `engine/src/netproof_engine/acl.py`, `verify.py` — 제한된 십진 변환 헬퍼와 네 호출 경로
+- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml` — 0.1.4
+- `engine/tests/test_unicode_digits.py` — 네 경로·길이·10/11자리·기존 유니코드/ASCII 회귀
+- `server/tests/test_unicode_digits.py` — 공개 `/api/verify`의 5,000자리 포트가 200 `UNSUPPORTED`인지 확인
 
 ## 테스트 결과
 - 기준선(2026-10-01, `main` `a716341`, 설계 담당이 직접 실행): 엔진 105 · 서버 43 + 1 건너뜀 · 화면 65 · 빌드 통과
-- 이번 작업 결과: (명령과 요약 출력. 빌드는 마지막 요약 줄만)
+- 이번 작업 결과(2026-10-01, Codex (GPT-6.1 Sol) 직접 실행):
+  - `cd engine; ../.venv/Scripts/python.exe -m pytest -q` -> `150 passed in 1.39s`
+  - `cd server; ../.venv/Scripts/python.exe -m pytest -q` -> `44 passed, 1 skipped in 7.36s`
+  - `npm --prefix web test` -> `Test Files 5 passed (5)`, `Tests 65 passed (65)`
+  - `npm --prefix web run build` -> `33 modules transformed`, `built in 2.26s`
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |

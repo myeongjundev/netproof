@@ -77,3 +77,62 @@ def test_ascii_icmp_rule_and_flow_still_work():
 def test_engine_source_does_not_use_digit_predicate_before_int():
     source = Path(__file__).resolve().parents[1] / "src/netproof_engine"
     assert all("isdigit(" not in path.read_text(encoding="utf-8") for path in source.rglob("*.py"))
+
+
+def verdict_for_long_digit_path(path, digits):
+    data = case()
+    flow = data["flow"]
+    if path == "port":
+        data["network"]["acls"]["101"] = [f"deny tcp any any eq {digits}"]
+    elif path == "sequence":
+        data["network"]["acls"]["101"] = [f"{digits} deny ip any any"]
+    elif path == "acl_icmp":
+        data["network"]["acls"]["101"] = [f"permit icmp any any {digits}"]
+        flow = dict(flow, proto="icmp", icmp="echo", mode="one-way")
+    else:
+        flow = dict(flow, proto="icmp", icmp=digits, mode="one-way")
+    return verify(data["network"], flow)
+
+
+@pytest.mark.parametrize("path", ["port", "sequence", "acl_icmp", "flow_icmp"])
+def test_5000_digit_values_follow_existing_error_paths(path):
+    verdict = verdict_for_long_digit_path(path, "9" * 5000)
+
+    assert verdict["result"] == ("INVALID" if path == "flow_icmp" else "UNSUPPORTED")
+
+
+@pytest.mark.parametrize("length", [1, 3, 5, 10, 11, 4300, 4301, 5000])
+@pytest.mark.parametrize("path", ["port", "sequence", "acl_icmp", "flow_icmp"])
+def test_digit_lengths_never_escape_as_exceptions(path, length):
+    verdict = verdict_for_long_digit_path(path, "9" * length)
+
+    assert verdict["result"] in ("PASS", "DENY", "UNSUPPORTED", "INVALID")
+
+
+@pytest.mark.parametrize("path,value", [
+    ("port", "0000000443"),
+    ("sequence", "4294967295"),
+    ("acl_icmp", "0000000008"),
+    ("flow_icmp", "0000000008"),
+])
+def test_ten_digit_boundary_keeps_existing_numeric_behavior(path, value):
+    verdict = verdict_for_long_digit_path(path, value)
+
+    assert verdict["result"] in ("PASS", "DENY")
+
+
+def test_ten_digit_port_and_sequence_keep_their_values():
+    assert parse_rule("permit tcp any any eq 0000000443", 1).dst_port == PortMatch("eq", 443)
+    assert parse_rule("4294967295 deny ip any any", 1).seq == 4294967295
+
+
+@pytest.mark.parametrize("path,value", [
+    ("port", "00000000443"),
+    ("sequence", "04294967295"),
+    ("acl_icmp", "00000000008"),
+    ("flow_icmp", "00000000008"),
+])
+def test_eleven_digit_boundary_uses_existing_error_paths(path, value):
+    verdict = verdict_for_long_digit_path(path, value)
+
+    assert verdict["result"] == ("INVALID" if path == "flow_icmp" else "UNSUPPORTED")
