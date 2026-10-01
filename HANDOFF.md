@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **Claude 독립 리뷰** — PROMPTS.md 3번, 이슈 #9 구현 커밋의 SHA를 고정해 검토
-- 브랜치 / 마지막 커밋: `codex/int-digit-limit` / 이슈 #9 구현(커밋 후 SHA를 리뷰 기록에 명시)
-- 진행 단계: 구현·테스트 완료 -> Claude 리뷰 대기
+- 다음 차례: **사용자 최종 확인·병합 결정** — PROMPTS.md 5번
+- 브랜치 / 마지막 커밋: `codex/int-digit-limit` / `52a91cb720ff91ffc80edf3685868884ee2db142`(Claude 검토 대상 구현 커밋)
+- 진행 단계: 구현·테스트 완료 -> Claude 독립 리뷰 PASS -> 사용자 최종 확인 대기
 - 한 줄 요약: 이슈 #9 - 네 숫자 변환 경로를 10자리 제한 헬퍼로 통합해 5,000자리 입력의 예외·500 수정
 - 직전 과제: 이슈 #7 유니코드 숫자 `ValueError` - PR #8 병합(이슈 #7 닫음). 남은 자릿수 문제를 이슈 #9로 분리. 기록은 PR #8과 `decisions/ai-work-log.md`
 
@@ -97,10 +97,20 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - `cd server; ../.venv/Scripts/python.exe -m pytest -q` -> `44 passed, 1 skipped in 7.36s`
   - `npm --prefix web test` -> `Test Files 5 passed (5)`, `Tests 65 passed (65)`
   - `npm --prefix web run build` -> `33 modules transformed`, `built in 2.26s`
+- 독립 리뷰 결과(2026-10-01, Claude Opus 5.5, 검토 SHA `52a91cb720ff91ffc80edf3685868884ee2db142`):
+  - `git diff --check origin/main...HEAD` -> 출력 없음, exit 0; 변경 7개 파일은 작업 정의 범위 안이고 비밀값 없음
+  - `cd engine; ../.venv/Scripts/python.exe -m pytest -q` -> `150 passed in 1.62s`
+  - `cd server; ../.venv/Scripts/python.exe -m pytest -q` -> `44 passed, 1 skipped in 13.42s`
+  - `npm --prefix web test` -> `Test Files 5 passed (5)`, `Tests 65 passed (65)`
+  - `npm --prefix web run build` -> `built in 791ms`
+  - main 엔진에서 새 테스트 실행 -> `16 failed, 41 passed`(5,000자리 네 경로·4301/5000자리·11자리 경계가 수정 전 버그를 검출)
+  - main↔PR 차분 비교 342개 ACL 줄 + 흐름 ICMP 33개 -> 10자리 이하 의미 차이 0, 11자리 이상 예상된 좁아짐 19, 예상 밖 예외 0
+  - `/api/verify` 네 경로 5,000자리 -> 포트·순번·ACL ICMP `200 UNSUPPORTED`, 흐름 ICMP `200 INVALID`
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
+| 1 | `engine/tests/test_unicode_digits.py:112` | 비차단: 10자리 ICMP 경계는 PASS/DENY만 확인하고 파싱값 8을 직접 단언하지 않음. 직접 실행 결과 값은 8이고 차분 비교에서 회귀 없음 | `cd engine; ../.venv/Scripts/python.exe -c "from netproof_engine.acl import parse_rule; print(parse_rule('permit icmp any any 0000000008',1).icmp_type)"` -> `8` | 참고 — Claude PASS, 수정 불필요 |
 
 ## 수작업 필요 항목
 - (없음 - 화면 변경이 없어 브라우저 확인이 필요하지 않다)
