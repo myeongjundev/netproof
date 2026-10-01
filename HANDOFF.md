@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 다음 차례: **사용자 최종 확인·병합** — 이슈 #7 리뷰 PASS
-- 브랜치 / 마지막 커밋: `codex/unicode-digit` / 이슈 #7 구현·리뷰 기록 커밋
-- 진행 단계: 구현·테스트·리뷰 완료 → 사용자 최종 확인·병합 대기
+- 다음 차례: **Claude Opus 설계 보완** — 이슈 #7의 긴 숫자 입력 예외 처리 범위 결정
+- 브랜치 / 마지막 커밋: `codex/unicode-digit` / 이슈 #7 재검토 기록 커밋
+- 진행 단계: 구현·기존 리뷰 PASS 후 재검토에서 500 재현 → 병합 보류
 - 한 줄 요약: 이슈 #7 — `isdigit()` 뒤 `int()`로 생기는 `ValueError`·500 수정
 - 직전 과제: ACL 규칙 줄 하이라이트 — PR #6 병합(이슈 #5 닫음). 과정·리뷰 기록은 PR #6과 `decisions/ai-work-log.md`
 
@@ -67,7 +67,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - ACL 순번·포트·ICMP 옵션과 흐름 ICMP의 숫자 검사 6곳을 `isdecimal()`로 바꿔, `int()`가 받지 못하는 `²`·`①`이 기존 `Unsupported`·`Invalid` 분기로 가게 했다. 추가 포트 검사도 같은 기준으로 바꿨다.
 - 엔진 버전을 0.1.3으로 올렸다. 응답 형식과 ACL 평가 순서는 그대로다.
 - `²`·`①`의 네 입력 경로, ASCII 순번·포트·ICMP 동작, 엔진 소스의 `isdigit(` 재발 방지, API의 200/UNSUPPORTED 응답을 테스트로 확인했다.
-- 리뷰에서 변경 범위, 예외 경로, ASCII 판정 보존을 확인했고 지적 사항이 없어 PASS로 판정했다.
+- 첫 리뷰에서 변경 범위, `²`·`①` 예외 경로와 ASCII 판정 보존을 확인해 PASS로 판정했다. 재검토에서 길이 5,000인 ASCII 숫자 문자열의 `int()` 변환 예외를 발견했다.
 - 구현·리뷰 도구: Codex (GPT-6).
 
 ## 변경된 주요 파일
@@ -107,13 +107,18 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   `rg -n 'isdigit\(' engine/src/netproof_engine` → 일치 없음(종료 코드 1).
   `git diff --check` → 공백 오류 없음(CRLF 변환 예고만 출력).
 
-- 이번 리뷰 확인(2026-10-01): `git diff main...HEAD`의 변경 파일은 작업 정의 범위와 일치하며, 리뷰 지적 사항 없음(PASS).
+- 첫 리뷰 확인(2026-10-01): 구현 커밋의 변경 파일은 작업 정의 범위와 일치하며, 리뷰 지적 사항 없음(PASS). 이후 리뷰 기록 커밋에서 `decisions/ai-work-log.md`를 추가해 현재 `git diff main...HEAD`에는 작업 정의 밖의 문서 파일 1개가 포함된다.
 - `rg -n "isdigit\\(" engine` → 일치 없음.
+- 재검토(2026-10-01): 전체 재실행 결과 엔진 `105 passed in 2.34s`, 서버 `43 passed, 1 skipped in 9.45s`, 웹 `65 passed`, 빌드 `✓ built in 787ms`. `git diff --check main...HEAD` 출력 없음.
+- 별도 재현: 합성 사례의 흐름을 `dict(case["flow"], proto="icmp", icmp="9" * 5000)`으로 바꿔 `verify`를 호출하면 `engine/src/netproof_engine/verify.py:38`에서 `ValueError: Exceeds the limit (4300 digits) for integer string conversion` 발생. 같은 입력을 `/api/verify`에 보내면 HTTP `500`(요청 크기 64KB 이내).
+- 이 긴 숫자 입력은 현재 설계가 허용한 `isdigit()` → `isdecimal()` 치환만으로 해결되지 않는다. 새 길이 검사나 예외 처리 정책이 필요하므로 Claude Opus의 작업 정의 보완을 기다린다. 재검토 중 코드 변경 없음.
 
 ## 리뷰 기록 (리뷰 담당)
 | # | 파일:줄 | 문제 | 재현 방법 | 상태 |
 |---|---|---|---|---|
 | 1 | - | 발견 사항 없음. 변경 범위·예외 경로·회귀 테스트를 확인함 | 완료 조건의 엔진·서버·웹 테스트와 빌드를 직접 실행 | PASS |
+| 2 | `engine/src/netproof_engine/verify.py:38` | `icmp="9" * 5000`은 `isdecimal()`이 참이지만 `int()`가 `ValueError`를 내서 `/api/verify` 500. 기존 목표인 예외 없는 판정 미충족 | 합성 사례의 flow에 긴 ICMP 숫자를 넣어 `verify` 호출; 동일 본문을 API 테스트 클라이언트에 POST → 500 | 설계 보완 대기 |
+| 3 | `decisions/ai-work-log.md:7` | 첫 리뷰 PASS 뒤 리뷰 기록 커밋이 작업 정의의 파일 범위 밖 문서를 추가함. 구현 코드는 영향 없음 | `git diff --name-only main...HEAD` | 범위 확인 필요 |
 
 ## 수작업 필요 항목
 - (없음 — 화면 변경이 없어 브라우저 확인이 필요하지 않다)
