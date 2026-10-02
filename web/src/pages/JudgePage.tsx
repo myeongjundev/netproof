@@ -4,7 +4,8 @@ import { FlowForm } from "../components/FlowForm";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { aclSelection } from "../components/AclEvidence";
-import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
+import { blankDraft, caseJson, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "../draft";
+import { practiceTasks, type PracticeTask } from "../practice";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import type { CaseItem, Draft, Network, User, Verdict } from "../types";
@@ -14,9 +15,10 @@ interface Props {
   draft: Draft;
   setDraft: (update: (current: Draft) => Draft) => void;
   share?: string;
+  titleHint?: string;
 }
 
-export function JudgePage({ user, draft, setDraft, share }: Props) {
+export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [judgedNetwork, setJudgedNetwork] = useState<Network | null>(null);
@@ -26,6 +28,7 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
   const [loading, setLoading] = useState(false);
   const [pasted, setPasted] = useState("");
   const [title, setTitle] = useState("");
+  const [task, setTask] = useState<PracticeTask | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
@@ -33,8 +36,16 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
   const revision = useRef(0);
 
   useEffect(() => {
-    api.examples().then(setExamples, () => setExamples([]));
+    let active = true;
+    api.examples().then((items) => { if (active) setExamples(items); }, () => { if (active) setExamples([]); });
+    return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (titleHint) setTitle(titleHint);
+  }, [titleHint]);
+
+  const tasks = useMemo(() => practiceTasks(examples), [examples]);
 
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
@@ -47,6 +58,9 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
     setJudgedNetwork(null);
     setJudged(null);
     setError(null);
+    setTask(null);
+    setTitle("");
+    setSaveError(null);
   }, [setDraft]);
 
   useEffect(() => {
@@ -157,7 +171,35 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
             처음 구성
           </button>
         </div>
+        {tasks.length > 0 && (
+          <details className="practice-list">
+            <summary>실습 과제</summary>
+            <p className="hint">합성 구성으로 경로와 ACL을 직접 살펴보세요.</p>
+            <div className="examples">
+              {tasks.map(({ task: nextTask, example }) => (
+                <button key={nextTask.case_id} type="button" className="ghost small" onClick={() => {
+                  load({ ...fromCase(example), claim: { ...EMPTY_CLAIM } });
+                  setTask(nextTask);
+                  setTitle(nextTask.title);
+                }}>{nextTask.title} · 시작</button>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
+
+      {task && (
+        <section className="panel practice-guide" aria-labelledby="practice-title">
+          <div className="panel-head">
+            <h2 id="practice-title">{task.title}</h2>
+            <button type="button" className="ghost small" onClick={() => setTask(null)}>그만하기</button>
+          </div>
+          <p>{task.question}</p>
+          <h3>확인할 점</h3>
+          <ul>{task.checkpoints.map((point) => <li key={point}>{point}</li>)}</ul>
+          <p className="hint">정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.</p>
+        </section>
+      )}
 
       <FlowForm
         flow={draft.flow}

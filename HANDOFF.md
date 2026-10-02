@@ -17,82 +17,91 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: 정책 검증 + 도달성 매트릭스 (로드맵 2주차 ★대표)
-- 사용자 승인(2026-10-02): 이번 과제는 CLAUDE.md/AGENTS.md 역할대로 Claude가 설계, Codex가 구현·테스트한다.
-- 기반: 최신 origin/main(PR #13 병합 완료). 사례 목록 검색·필터·페이지는 끝났다.
-- 브랜치: codex/policy-matrix (origin/main 기반 새 브랜치). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: Claude 설계 → Codex 구현·검증 → Claude 독립 리뷰 PASS → 비차단 N1/N2 보완·재검증 → Claude 재확인 PASS 완료
-- 다음 차례: 사용자 최종 확인·병합 결정(PR #14). 자동 병합하지 않는다.
+- 작업: 사례 복제 · 실습 과제 템플릿 (로드맵 2주차, 순환 고리 ①)
+- 사용자 승인(2026-10-02): 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
+- 기반: 최신 origin/main `c0ab37e`(**PR #14 정책 검증 + 도달성 매트릭스 병합 완료**). 판정기·정책 검증·사례 게시판·검색·대시보드는 모두 동작한다.
+- 브랜치: `codex/case-templates` (origin/main c0ab37e 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
+- 단계: **구현·검증·Claude 독립 리뷰 PASS 완료 → 사용자 최종 확인·병합 결정 대기(PR #15).**
+- 보류: Cisco 설정 붙여넣기는 **수업 ACL이 Cisco인지 확인(사람 트랙)** 이 끝날 때까지 착수하지 않는다.
 
 ## 작업 정의
-- 목표: 판정기에 입력한 network로 모든 host 인터페이스 IP 순서쌍 × 주요 서비스(TCP/UDP 포트, ICMP)를 기존 `verify`로 반복 판정하고, 사용자가 적은 PASS/DENY 의도와 비교해 "막혀야 하는데 열림"(노출)을 최우선으로 보여 준다.
-- 엔진: 새 모듈 `matrix.py`, 공개 API는 `policy_matrix(network_data: dict, spec: dict) -> dict` 하나. `__init__.py`의 `__all__`에 추가한다. `verify`·`trace`·`acl`·`model`은 고치지 않고 호출만 한다. 판정·정책 비교·집계는 엔진 안에서만 한다(ADR-001). 어떤 입력에도 예외 대신 결과 사전을 돌려준다.
-- spec: `{"services":[{"proto":"tcp|udp|icmp","dst_port":1~65535,"icmp":"echo|echo-reply|숫자","label":"HTTPS"}], "mode":"session|one-way", "intents":[{"src","dst","service":"tcp/443","expect":"PASS|DENY","note"}]}`. mode는 매트릭스 전체에 하나. 서비스 키는 `tcp/443`·`udp/53`·`icmp/echo`로 정규화하고, 중복 서비스·중복 의도는 하나로 합친다. 의도는 (src, dst, service) 정확 일치만 쓰고 와일드카드는 넣지 않는다.
-- 끝점: `kind=host` 장비의 인터페이스 IP만. (device id, interface name) 순 정렬. **자기 자신 쌍(같은 IP)과 같은 장비 쌍은 제외**한다 — 실행으로 각각 INVALID와 허위 DENY를 확인했다(`trace.py:88` `_neighbor`가 같은 장비 인터페이스를 건너뛰어 "다음 홉 없음"이 된다). ACL은 방향성이 있으므로 두 방향을 각각 계산한다.
-- 셀 상태: `policy` = NO_POLICY(의도 없음) · AGREE(의도와 같음) · EXPOSED(의도 DENY인데 PASS) · BLOCKED(의도 PASS인데 DENY) · UNDECIDED(result가 UNSUPPORTED/INVALID라 비교 불가). 심각도 순서는 EXPOSED > BLOCKED > UNDECIDED > AGREE > NO_POLICY. 기존 `comparison`(AGREE/DISAGREE/NOT_COMPARABLE/NO_CLAIM)과 **다른 이름**을 쓰고 대응 관계를 `docs/semantics.md`에 적는다.
-- JSON 계약: `{status:"OK"|"INVALID", problems:[], mode, engine_version, endpoints:[{ip,device,interface}], services:[{key,proto,dst_port,icmp,label}], cells:[{src,dst,service,result,policy,expect,reason,decisive}], totals:{checks,PASS,DENY,UNSUPPORTED,INVALID,NO_POLICY,AGREE,EXPOSED,BLOCKED,UNDECIDED}, exposures:[심각도 순 셀]}`. network가 성립하지 않으면 `status:"INVALID"`와 `load`의 problems만 돌려주고 셀을 만들지 않는다. 셀에는 hop 전체를 넣지 않고 `decisive` 한 개만 넣는다.
-- 상한: 끝점 24개, 서비스 8개, 의도 500개, 검사 건수(쌍×서비스) 2,000개. 초과하면 계산하지 않고 `status:"INVALID"`와 초과 수치를 문구로 돌려준다. 기존 LIMITS(장비 40·인터페이스 16)는 그대로 둔다.
-- 서버: `POST /api/policy-matrix`. 기존 `_limit_problem`으로 network 크기 422, spec 상한 초과 422, 그 밖에는 엔진 결과를 그대로 jsonify한다. `/api/verify`처럼 로그인 없이 쓴다. 서버는 입력 한도와 API만 담당하고 판정·비교·집계를 복제하지 않는다.
-- UI: 새 라우트 `#/matrix`와 탭 "정책 검증". 판정기와 같은 draft의 `toNetwork(draft)`를 쓰고 판정기에 "정책 검증으로" 버튼을 둔다. 서비스 편집·mode 선택, 서비스별 src×dst 격자(행 출발지·열 목적지), 노출 셀 최우선 강조와 "노출 N건" 요약을 맨 위에 둔다. 셀을 누르면 의도를 PASS/DENY/없음으로 지정하고, **상세 증거는 기존 `POST /api/verify`를 그 흐름 하나로 호출해 기존 ResultPanel·AclEvidence로 보여 준다**(새 증거 계약 없음). spec은 이 화면의 localStorage 키에만 저장하고 사례·공유 JSON에는 넣지 않는다. UI는 입력·표시만 한다.
-- 순수 함수는 `web/src/policyMatrix.ts`에 두고(격자 피벗, 심각도 정렬, 셀↔의도 변환) DOM 없이 테스트한다.
-- 허용 파일: `engine/src/netproof_engine/{matrix.py(신규),__init__.py}`, `engine/tests/test_policy_matrix.py`(신규), `server/netproof_api/cases.py`, `server/tests/test_policy_matrix.py`(신규), `web/src/{policyMatrix.ts,policyMatrix.test.ts}`(신규), `web/src/pages/PolicyMatrixPage.tsx`(신규), `web/src/{App.tsx,router.ts,router.test.ts,api.ts,types.ts,styles.css}`, `web/src/pages/JudgePage.tsx`(링크 버튼만), `docs/{policy-matrix.md(신규),semantics.md}`, `HANDOFF.md`, `decisions/ai-work-log.md`.
-- 제외: `verify`·`trace`·`acl`·`model` 판정 로직 수정, 기존 malformed 입력 예외 버그 수정, cases 기대값, 새 의존성, DB 스키마·모델, 인증·권한, 실제 패킷·장비 접근, 대시보드·오탐/미탐, 배포·병합.
-- 위험: `verify`가 호출마다 `load`로 network를 다시 파싱하므로 상한에서 느릴 수 있다(측정 필수). 같은 장비 쌍 허위 DENY와 자기 자신 INVALID를 빼먹으면 노출·차단 판정이 거짓이 된다. ECMP·재귀 next hop은 `Unsupported`를 던져 UNDECIDED가 된다. session 모드의 비 echo ICMP는 UNSUPPORTED이며 버그가 아니다. 상한의 셀 수는 응답 크기·격자 렌더링·모바일 레이아웃에 부담이 된다. `policy`와 기존 `comparison`을 혼동할 수 있다. `load`의 기존 예외 버그는 그대로 상속된다(이번 범위 밖).
-- 완료 조건: `cd engine && ../.venv/Scripts/python -m pytest -q`, `cd server && ../.venv/Scripts/python -m pytest -q`, `npm --prefix web test`, `npm --prefix web run build`를 직접 실행하고 출력을 붙인다. 엔진 테스트: 방향별 두 셀 생성, 같은 장비 쌍·자기 자신 제외, 서비스·의도 중복 합치기, 네 상한 초과 거절, EXPOSED 최우선 정렬, ECMP로 UNDECIDED, session ICMP non-echo로 UNDECIDED, 의도 없음 NO_POLICY, INVALID network는 status INVALID + problems, totals 합이 checks와 같음, 같은 network/spec은 같은 결과(결정성). 서버 테스트: spec 상한 초과 422, 큰 network 422, 정상 200 계약. 웹 테스트: 격자 피벗·심각도 정렬·셀↔의도 변환, `#/matrix` 라우트. 상한 근처(끝점 16·서비스 8·검사 1,920)에서 `policy_matrix` 1회 실행 시간을 측정해 여기 적고, 2초를 넘으면 상한을 낮추자고 요청한다. 브라우저로 노출 강조·셀 상세와 375폭 가로 넘침 없음을 확인한다.
+- 목표: 이미 있는 예시·사례를 **"다시 풀 수 있는 편집 초안"** 으로 열어 주는 길을 만든다. 앱은 과제의 네트워크·질문·확인할 점만 주고, 판정은 사람이 "판정하기"로 다시 받고 기대값은 사람이 손으로 적는다. **정답·기대값·채점을 앱이 만들지 않는다.**
+- 범위를 이렇게 좁힌 이유: 과제 재료(`cases/*.json` 3개)와 적재 경로(`fromCase`·`load`), 저장 경로(`api.createCase` + 서버 재계산)가 이미 있다. 새 엔드포인트·DB 컬럼·자동 채점 없이 **신규 파일 2개 + 화면 3개 소폭 수정**으로 끝낸다.
+
+### 1) 교육 템플릿 형식 (`web/src/practice.ts`, 신규·순수 함수)
+- `interface PracticeTask { case_id: string; title: string; question: string; checkpoints: string[] }`
+  - `case_id`는 `/api/examples`가 돌려주는 id(`synthetic-01`·`02`·`03`). 템플릿에는 **network·flow·acls를 복사하지 않는다**(원본 한 곳만 고치면 되게).
+  - `question`은 한 줄 질문("PC1에서 SRV의 HTTPS에 접속되나?"), `checkpoints`는 2~4개의 "확인할 점"(예: "ACL이 붙은 방향", "돌아오는 경로").
+  - **`question`·`checkpoints`에 판정과 규칙 번호를 쓰지 않는다.** 금칙어 `PASS`·`DENY`·`rule_seq`를 테스트로 막는다.
+- `export const PRACTICE: PracticeTask[]` — 합성 교육용 3개. 문구는 `docs/workbench-tasks.md`의 질문 스타일을 따르되 **답은 옮기지 않는다**.
+- `export function practiceTasks(examples: CaseItem[]): { task: PracticeTask; example: CaseItem }[]` — id로 join. 예시에 없는 `case_id`는 **조용히 버린다**(하드코딩 fallback network 금지). `PRACTICE` 순서를 유지한다.
+- `export function cloneTitle(title: string): string` — `복제 · {원제목}`, 80자(서버 제목 한도)로 잘라낸다.
+
+### 2) 실습 과제 UI (`web/src/pages/JudgePage.tsx`)
+- 과제 재료는 **이미 불러오는 `api.examples()` 결과를 그대로 재사용**한다(JudgePage.tsx:35-37). 새 API 호출·새 라우트·새 탭을 만들지 않는다.
+- `page-head` 예시 버튼 줄 아래에 `<details>` "실습 과제" 하나. `practiceTasks(examples)`가 비면 `details`를 그리지 않는다.
+- 과제 시작 = `load(fromCase(example))` → **claim(받은 답) 비움** → 지역 상태 `task` 설정 → 저장 제목 기본값 `task.title`.
+- 과제 안내 패널(제목·질문·확인할 점 + 고정 문구): **"정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요."** 와 "그만하기" 버튼(`task`만 비우고 입력은 남긴다).
+- `task`는 JudgePage **지역 상태**다. `Draft`·공유 링크·사례 JSON·localStorage에 넣지 않는다(계약 변경 없음). 화면을 옮기면 안내만 사라지고 입력은 남는다 — 의도한 동작이다.
+- 다른 예시·"처음 구성"·공유 링크·사례 열기로 바뀌면 `load()`가 `task`도 비운다(`load` 안에 한 줄).
+
+### 3) 사례 복제 (`web/src/pages/CaseDetailPage.tsx`)
+- `row-actions`의 "판정기에서 열기" 옆에 **"복제해 다시 풀기"** 버튼 하나. 기존 버튼의 동작은 바꾸지 않는다.
+- 복제 초안 = `fromCase({ ...item, id: String(item.id), source: "" })`에서 `claim`을 `EMPTY_CLAIM`(draft.ts의 기존 export)으로 바꾼 것. **`fromCase`·`draft.ts`는 고치지 않고 호출부에서 비운다.**
+- **받은 답 보존 여부**: 복제는 `claim`(받은 답·내 예상·출처 메모)을 **비운다**. 다시 푸는 것이 목적이고, 남의 답이 남아 있으면 비교가 아니라 베끼기가 된다. 원래 답까지 그대로 보려면 **기존 "판정기에서 열기"** 를 쓴다. 옵션 UI 없이 버튼 두 개로 가른다.
+- **복사하지 않는 것**: 원 사례 id·작성자(`author`·`owner_id`)·`actual`·`confirmed`/`confirmed_by`/`confirmed_at`·`verdict`·`comparison`·`engine_version`·`created_at`. `fromCase`가 `network`·`flow`·`claim`만 읽으므로 현재도 새지 않는다 — **회귀 테스트로 고정**한다.
+- `cases/*.json`의 `expect`·`hand_first`(정답·손계산)는 `/api/examples`가 6개 키만 돌려주므로(cases.py:89) 애초에 화면에 오지 않는다. 이 사실도 테스트로 고정한다.
+
+### 4) 저장 기본값 · 실제 검증 상태 초기화
+- 저장은 **기존 `api.createCase(title, toNetwork(draft), flow, claim)` 만** 쓴다. 새 엔드포인트·새 요청 필드·원본 사례 링크 컬럼을 만들지 않는다.
+- 서버가 `verdict`를 다시 계산해 저장하고(cases.py:169-177) `actual`·`confirmed`는 빈 상태로, 작성자는 요청자로 시작한다 → **실제 검증 상태 초기화는 기존 동작으로 보장**된다. 화면이 보낸 판정·확인 값은 서버가 무시한다.
+- **재판정 강제**: `load()`가 `verdict`·`judgedNetwork`·`judged`를 지우므로 저장 패널이 사라지고, 사람이 "판정하기"를 눌러야 저장이 열린다. 기대값·실제 결과를 자동 생성하지 않는다.
+- 저장 제목은 **기본값**일 뿐 사람이 고칠 수 있다. 전달은 `App`의 `onOpenInJudge(draft, saveTitle?)` 두 번째 인자 → `titleHint` prop → JudgePage가 **값이 바뀔 때만** `setTitle`(매 렌더 적용은 사람이 고친 제목을 덮어쓴다). 빈 문자열은 무시한다.
+
+### 5) 네트워크/flow 가져오기 계약 · 기존 공유 호환 · 오래된 응답 가드
+- 가져오기는 `fromCase(item) → Draft`, 내보내기는 `toNetwork(draft)` 한 쌍만 쓴다. 과제·복제 전용 변환을 새로 만들지 않는다. ACL은 `fromCase`가 이미 `{이름: [줄]}` → textarea 문자열로 바꾼다.
+- `share.ts`(버전 접두사 `1.`), `encodeShare` payload(`{network, flow, claim}`), `caseJson`, `fromCase` 시그니처를 **바꾸지 않는다**. 과제 안내·제목 힌트는 공유 링크에 넣지 않는다. 기존 공유 링크·기존 사례 JSON은 그대로 열린다 — `share.test.ts`·`draft.test.ts` 기존 테스트가 회귀를 막는다.
+- 오래된 응답: 과제 적재·복제는 **반드시 `load()`를 거친다**(`revision.current`가 올라가 진행 중인 `judge` 응답을 무시, JudgePage.tsx:43-50·88-108). `setDraft`를 직접 부르지 않는다.
+- `api.examples()` useEffect에 **언마운트 가드**(`let active = true` + cleanup)를 넣는다(현재 없음). 과제 목록이 이 응답에 의존하므로 늦은 응답이 떠난 화면의 목록을 되살리지 않게 한다. 이것은 순수 helper 테스트가 아니라 리뷰·브라우저로 확인하는 범위다(PR #13 F5와 같은 구분).
+- 허용 파일: `web/src/{practice.ts,practice.test.ts}`(신규), `web/src/pages/{JudgePage.tsx,CaseDetailPage.tsx}`, `web/src/App.tsx`, `web/src/draft.test.ts`, `web/src/styles.css`, `server/tests/test_cases.py`, `docs/practice.md`(신규), `HANDOFF.md`, `decisions/ai-work-log.md`.
+- 제외: `engine/` 전부(판정 변경 없음), `web/src/{draft.ts,share.ts,api.ts,types.ts,router.ts}` 수정(새 라우트·탭 없음), `server/netproof_api/` 수정(새 엔드포인트·필드·DB 스키마·원본 링크 컬럼 없음), 자동 정답·자동 채점·점수·정답 공개, `cases/*.json` 수정(`expect`·`hand_first` 포함), 새 의존성, 실제 장비·패킷, Cisco 설정 붙여넣기(수업 장비 확인 전 보류), 정책 검증 화면 수정, 배포·병합.
+- 위험:
+  - 안내 문구에 답을 쓰면 과제의 의미가 사라진다 → 금칙어 테스트로 막는다.
+  - `fromCase`는 `CaseDetail`의 남는 키를 "무시"할 뿐 지우지 않는다. `CaseDetail`에 키가 늘면 초안으로 샐 수 있다 → 회귀 테스트로 고정.
+  - 복제 저장은 제목만 닮은 **별개 사례**다. 원본의 확인 상태·통계를 물려받는다고 오해하면 ⑤ 통계가 왜곡된다 → 안내 문구에 명시.
+  - 예시 API가 비면(`cases/` 누락·배포 설정) 과제 목록이 빈다. 하드코딩 fallback을 넣지 않는다 — 과제가 안 보이는 쪽이 낫다.
+  - 과제 안내를 `Draft`에 넣으면 공유·사례 JSON 계약이 바뀐다. 넣지 않는다.
+- 완료 조건: 아래 네 명령을 **직접 실행**하고 출력을 붙인다.
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` (변경 없음 확인용 회귀)
+  - `cd server && ../.venv/Scripts/python -m pytest -q`
+  - `npm --prefix web test`
+  - `npm --prefix web run build`
+  - 웹 테스트: `practiceTasks`가 ① 없는 `case_id`를 버림 ② `PRACTICE` 순서 유지 ③ 빈 예시 배열에 빈 결과. `question`·`checkpoints` 금칙어(`PASS`·`DENY`·`rule_seq`) 없음. `cloneTitle` 접두사·80자 절단. 복제 초안에 `actual`·`confirmed`·`confirmed_by`·`author`·`owner_id`·`verdict`·`engine_version`·`expect`·`hand_first` 키 없음, `claim`이 비어 있음. 기존 "판정기에서 열기" 경로는 `claim` 유지.
+  - 서버 테스트: 복제 payload를 `POST /api/cases`로 보내면 201, `actual.result`가 `null`, `confirmed`가 false, 작성자가 요청자, **화면이 보낸 `verdict`/`actual`/`confirmed` 값은 무시되고 서버 재계산값이 저장**된다.
+  - 브라우저(**375×812 기준**): 과제 시작 → 안내·질문·확인할 점 보임 → "판정하기"를 눌러야 저장 패널 열림 → 저장 제목 기본값 확인. 사례 상세에서 "복제해 다시 풀기" → 받은 답이 비어 있고 판정이 다시 필요함 확인. 본문 가로 넘침 없음(body scrollWidth ≤ viewport), console error 0. 임시 DB·합성 구성만 쓰고 사례 기대값은 건드리지 않는다.
+  - `docs/practice.md`: 과제를 추가하는 방법(예시 사례 id에 과제 메타만 붙인다)과 "정답을 쓰지 않는다" 규칙 한 문단.
 
 ## 완료 내용 / 테스트 결과
-- 구현: 엔진 policy_matrix·공개 API, POST /api/policy-matrix, 판정기 draft 연동 정책 검증 탭·서비스 편집·의도 지정·서비스별 표·셀 상세 기존 증거 UI·localStorage 입력 저장.
-- Claude 추가 합의: exposures는 EXPOSED/BLOCKED/UNDECIDED의 우선 확인 목록, 실제 노출 수는 totals.EXPOSED만. 중복 기대값 충돌은 전체 INVALID. ICMP 8/0은 echo/echo-reply 키로 정규화. UNDECIDED는 의도 유무 무관. limit_exceeded boolean을 응답에 추가해 서버가 상한 계산을 복제하지 않고 422를 결정한다(나머지 INVALID는 200).
-- 형식 규칙: 서비스 label 80자·의도 note 200자, TCP/UDP JSON 정수 포트(bool 제외), ICMP 0~255/최대 3자리 ASCII. 대상 밖 의도는 자동으로 버리지 않고 INVALID 안내. 원본 서비스/의도 목록에도 상한 적용.
-- 2026-10-02 직접 실행:
-  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `190 passed, 2 xfailed in 2.68s`
-  - `cd server && ../.venv/Scripts/python -m pytest -q` → `74 passed, 1 skipped in 14.21s`
-  - `npm --prefix web test` → `Test Files 7 passed (7)`, `Tests 79 passed (79)`, `Duration 692ms`
-  - `npm --prefix web run build` → `✓ built in 373ms`
-- 독립 리뷰 중 Codex 자체 확인으로 422 상한 오류의 엔진 problems가 화면에서 일반 오류로 가려지던 부분을 보완했다. API errorDetail이 detail 또는 problems를 전달하고 회귀 테스트 1개를 추가했다.
-- 성능 실측: 합성 호스트 16·라우터 1(서브넷 2개/in permit ACL)·TCP 서비스 8·1,920건 → status OK, 0.8265초(perf_counter 1회). 모든 구성의 2초 보장은 아니다. 긴 ACL/많은 라우터에서의 속도 한계는 docs/policy-matrix.md에 명시.
-- 브라우저: 기본 구성 10건 PASS/의도 없음 → HTTPS DENY 의도 → 재계산 노출 1건·9건 의도 없음. 기존 예시 01 구성 연동 → HTTPS DENY/의도 일치 → 셀 상세 ACL 101 1번 차단·목적지 미도달 확인. console error 0. 375×812에서 첫 표 넘침 발견·수정 후 본문 scrollWidth 360/viewport 375, 표 내부 scrollWidth 436. 임시 DB·합성 구성만 사용했고 사례 기대값은 수정하지 않았다.
-- 입력 변경/언마운트·다른 셀 선택의 늦은 응답을 화면 guard로 무시. 성공/오류 guard는 순수 helper 테스트이며 전체 DOM 마운트 테스트는 아니다. 화면 흐름은 위 브라우저로 확인.
-- 설계 단계에서 Claude가 직접 실행해 확인한 사실(구현의 전제):
-  - 같은 장비의 다른 인터페이스 쌍(PC1 eth0 10.10.10.10 → PC1 eth1 10.30.30.10) → `DENY "다음 홉 없음"`. 실제 차단이 아니라 모델 한계이므로 매트릭스에서 제외한다.
-  - 자기 자신 쌍(같은 IP) → `INVALID "출발지와 목적지가 같습니다"`. 제외한다.
-  - 정상 교차 장비 쌍(10.10.10.10 → 10.20.20.5, tcp/443, session) → `PASS`.
-- 참고한 기존 코드: `engine/src/netproof_engine/verify.py`(RESULTS·mode·`_reverse`·UNSUPPORTED/INVALID 경로), `trace.py`(Hop·decisive·`_neighbor`·ECMP Unsupported), `model.py`(`kind=host/router`, `all_interfaces`, `owner`), `server/netproof_api/cases.py`(`LIMITS`·`_limit_problem`·`/api/verify`), `web/src/draft.ts`(`toNetwork`·`endpoints`), `web/src/components/ResultPanel.tsx`·`AclEvidence.tsx`(증거 UI 재사용 대상), `web/src/router.ts`.
+- 기존 예시 API와 fromCase/load를 재사용한 실습 3개, 질문·확인 항목·그만하기, 받은 답을 비운 복제 버튼과 제목 기본값 구현. 다른 입력 적재 시 과제·제목·저장 오류 초기화. 사례 화면 id별 key와 요청 cleanup으로 늦은 원본 응답 차단.
+- 신규 회귀: 과제 연결·금칙어·유니코드 80자 제목, 복제 메타 누출·원본 불변, 공개 예시 정답 미포함, 다른 사용자 복제의 서버 재계산·작성자·실제 결과·확인 초기화.
+- 실제 실행: engine pytest **190 passed, 2 xfailed in 3.44s**; server pytest **76 passed, 1 skipped in 12.23s**; web test **8 files, 85 passed, 747ms**; web build **tsc 성공, 37 modules, built in 453ms**. 최초 서버 회귀는 잘못 쓴 테스트 닉네임(한자)으로 실패했고 허용된 한글 닉네임으로 고친 뒤 전체 재실행 통과.
+- 임시 DB 브라우저: 375×812에서 과제 안내·재판정 전 저장 없음·기본 제목·직접 편집한 제목 유지·그만하기 입력 유지 확인. 원본 #26에서 복제 #27 새 저장, 받은 답 비움·실제 결과 빈 상태 확인. 기존 열기는 받은 답 유지. body 360 ≤ 375, 오류 로그 0. 데스크톱 body 1265 ≤ 1280. 화면은 실습 안내로 열어 두었다.
+- 공유·JSON 계약 기존 테스트 통과. 전체 DOM 자동 테스트·인위적 네트워크 지연 주입은 미검증.
 
-## 현재 과제 리뷰 기록 (PR #14)
-- [Claude 독립 리뷰 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944402657). 검토 SHA 6404ef3ebe620b929926c76752d85c3bd9c2aa3b, base 7828622, 모델 Claude Opus 5.
-- Claude 직접 실행: 엔진 185 passed/2 xfailed in 2.01s, 서버 74 passed/1 skipped in 12.20s(9f81a98, 엔진/서버 변경 없음), 최신 웹 79 passed(517ms), 빌드 230ms(6404ef3). 임시 합성 probe로 집계 불변식·노출·미판정·의도 충돌·중복·ICMP 별칭 확인.
-- 비차단 N1(a) 반영: 대상 밖 의도 오류에 src → dst · service 명시, 재현 테스트 추가. N1(b) 자동 정리는 합의한 "자동 폐기 안 함"을 유지한다. 의도 목록의 삭제 UI로 사람이 정리하고 다시 계산한다. 자동 삭제하면 사용자 의도가 사라져 NO_POLICY/노출 0으로 오해할 수 있다.
-- 비차단 N2 반영: 의도 src/dst 문자열 가드, 정수·bool·null 거절 회귀 테스트 4개. 기존 verify·model은 수정하지 않았다.
-- 보완 후 Codex 전체 실행은 위 최신 결과.
-- [Claude 보완 확인 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944446594). 검토 SHA 566e6fea1585a889823de090cfb281ac2cccb3f2, 범위 6404ef3..566e6fe. 직접 실행 `engine pytest -q tests/test_policy_matrix.py` → `32 passed in 0.94s`, 대상 밖 의도·정수 IP 거절·정상 노출 probe 재현. N1(a)/N2 해결, N1(b) 사용자 의도 수동 정리 유지에 동의. 남은 지적 없음. 모델 Claude Opus 5.
-- 브라우저 보완 실측: HTTPS 포트 443→8443 변경 후 오류가 `의도 10.10.10.10 → 10.20.20.5 · tcp/443`를 식별, 443으로 복구 후 다시 노출 1건. 로컬 API/별도 preview를 최신 엔진으로 재시작했다.
-- 미검증: 긴 ACL·다수 라우터 최악 성능, 전체 DOM 마운트 자동 테스트. Claude는 Codex 브라우저 실측을 직접 재현하지 않았음을 명시했다. 이후 기록 커밋은 실행 코드 변경 없음.
+## 현재 과제 리뷰 기록
+- PR #15: https://github.com/myeongjundev/netproof/pull/15
+- Claude (Claude Opus 5) 독립 리뷰 **PASS**, 차단 지적 0건. 검토 SHA `9e7bdc9658b0d8bb5ec7f389362a1afcb71baf55`, base `c0ab37e`. 코멘트: https://github.com/myeongjundev/netproof/pull/15#issuecomment-5944805502
+- Claude 직접 실행: engine **190 passed, 2 xfailed in 2.27s**; server **76 passed, 1 skipped in 14.98s**; web **8 files / 85 passed, 573ms**; build **359ms**. 별도 node probe로 복제 키·원본 문자열 누출 없음·기존 받은 답 유지·과제 순서·금칙어·코드포인트 80자 확인. 별도 pytest probe **3 passed in 0.79s**로 서버 재계산·작성자·실제/확인 초기화·원본 불변·제목 80/81 경계 확인.
+- 비차단 후속 3건: (1) 기존 예시 버튼 제목이 풀이 원인을 드러낸다. 예시/과제 구분 문구와 배치를 후속 설계에서 검토하며 기존 cases 정답/제목을 이번에 바꾸지 않는다. (2) 제목 입력 maxLength는 UTF-16 80, cloneTitle/서버는 코드포인트 80이다. 기본값 저장은 가능하나 이모지가 많은 제목을 편집할 때 단위 차이가 남는다. 후속 제목 입력 개선 대상. (3) 이번 설계는 구현 전에 Orca 대화와 HANDOFF 파일로 확정했으나 같은 구현 커밋에 포함됐다. 다음 과제는 설계 확정 기록을 먼저 커밋한다.
+- Claude 브라우저 확장이 연결되지 않아 독립 브라우저 확인은 못 했고, UI 동작은 Codex의 임시 DB 수동 실행과 코드 추적에 근거한다. DOM 전체 자동 테스트·인위적 응답 지연 주입은 미검증.
+- Codex: 차단 지적 없음 확인, 위 한계를 후속 기록하고 코드 추가 변경 없음. 다음 차례는 사용자 최종 확인·병합 결정. 병합 후 다음 로드맵 과제를 Claude가 설계한다.
 
-## 이전 과제 리뷰 기록 (PR #13 병합 완료)
-- 정책 검증 + 도달성 매트릭스: 설계만 끝났고 구현 전이라 리뷰 없음. Codex 구현 후 Claude 독립 리뷰 차례다.
-
-### 지난 과제 — 사례 목록 검색·필터·페이지 (PR #13 병합 완료)
-- [Claude 독립 리뷰](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943803710), 검토 SHA b990e661d2d93355ae248c53cfe67f6c694ceb13. 모델 Claude Opus 5. 차단 결함 없음, 비차단 6건 보완 요청. 아래는 Codex 반영 상태이며 Claude가 a807b6a에서 F1~F6 해결을 확인했다.
-| 항목 | 반영 | 검증 |
-|---|---|---|
-| F1 SQLite 비ASCII 검색 설명 | ASCII 보장·DB별 Unicode 한계 문서/작업 정의 명시 | SQLite ÄÖ/äö와 ASCII 회귀 테스트 |
-| F2 검색창 지우기·필터 변경 시 q 불일치 | 빈 입력 즉시 q 해제, 필터 변경 시 현재 검색어 적용, 적용 검색어 표시 | 브라우저 네이티브 ×로 1→13개(ping 유지), 초기화 25개; 제출 없이 HTTPS 25 입력+ping 선택 1개 |
-| F3 숫자 인자 오류 문구 | 형식/7자리 초과와 범위 오류 분리 | 앞의 0 포함 8자리·5000자리 거절 문구 테스트 |
-| F4 검색 중복 조인 | contains_eager로 명시 조인 재사용 | 실제 결과 SELECT별 users 조인 1개 단언 |
-| F5 오래된 응답 자동 검증 | CasesPage effect cleanup을 loadCasePage helper로 분리 | 늦은 성공/오류 두 테스트; active 가드 제거 시 2 failed, 복원 후 4 passed(364ms) |
-| F6 로딩 중 페이지 버튼 사라짐 | data 유지+loading, 이전 결과 문구/표 aria-busy/흐림, nav 유지·disabled | 브라우저 2/2 페이지 이동 확인 |
-- 기존 mine=true 무시→400은 의도한 입력 검증 강화다. 기존 클라이언트의 mine=1/무인자 호환은 유지.
-- F5는 실제 effect에서 쓰는 helper의 응답 순서 테스트이며 CasesPage DOM 마운트 전체를 자동 검증하는 테스트는 아니다. 화면 흐름은 브라우저로 확인했다.
-- Claude 직접 실행: 엔진 158+2 xfail(1.60s), 서버 68+1 skip(13.55s), 웹 67(557ms), 빌드 363ms. 보완 후 Codex 실행은 위 최신 결과.
-- PostgreSQL 실연결·EXPLAIN은 미실행.
-
-### Claude 재리뷰 PASS (2026-10-02)
-- [재리뷰 코멘트](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943941359). 검토 SHA a807b6a8c28a77529e9c97c96f0748032048c94e. 모델 Claude Opus 5. 검토 범위 b990e66..a807b6a, F1~F6.
-- 직접 실행: 서버 검색 테스트 26 passed in 5.01s, 서버 전체 70 passed/1 skipped in 11.59s, 웹 검색 테스트 4 passed(200ms). contains_eager SQL도 단일 users 조인 확인.
-- 미해결 차단 결함 없음. F5 helper 레이스 테스트와 DOM 전체 마운트 테스트를 구분한 범위에 동의했다.
-- 비차단 후속 1건: web/src/pages/CasesPage.tsx 빈 검색창에서 공백만 입력하면 매 타자마다 조건이 같아도 새 filters 객체로 재조회된다. 이미 q가 빈 값이면 건너뛰는 개선은 후속으로 남긴다. 결과 정확도에는 영향 없으며 이번 PASS를 막지 않는다.
-- 사용자가 PR #13을 병합했다(origin/main 반영 완료). 남은 비차단 후속 1건(빈 검색창 공백 재조회)은 다음에 CasesPage를 만질 때 함께 처리한다.
+## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #14 정책 검증 + 도달성 매트릭스 (병합 완료, c0ab37e)**: 엔진 `policy_matrix`, `POST /api/policy-matrix`, `#/matrix` 화면. Claude 독립 리뷰 PASS(6404ef3) → 비차단 N1(a)/N2 보완 → 보완 확인 PASS(566e6fe) → 사용자 병합.
+  - 유지되는 합의: 상한 초과는 잘라 계산하지 않고 거절한다. 같은 장비 쌍·자기 자신 쌍은 매트릭스에서 제외할 입력이며 엔진 버그 수정 대상이 아니다. 대상 밖 의도는 자동 폐기하지 않고 사람이 지운다. `policy`(NO_POLICY/AGREE/EXPOSED/BLOCKED/UNDECIDED)와 기존 `comparison`은 다른 축이다(`docs/semantics.md`).
+  - 미검증으로 남긴 것: 긴 ACL·다수 라우터의 최악 성능, 전체 DOM 마운트 자동 테스트.
+- **PR #13 사례 목록 검색·필터·페이지 (병합 완료)**: F1~F6 보완 후 재리뷰 PASS. 비ASCII 검색은 DB 의존이고, `mine=1`·무인자 호환은 유지된다. 남은 비차단 1건은 아래 주의사항 참고.
+- **그 전**: PR #2 사례 URL 공유, PR #4 도달 못 한 목적지, PR #6 ACL 줄 하이라이트, PR #8·#11 유니코드/긴 숫자 `int()` 버그 — 모두 병합 완료.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -105,15 +114,15 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] `plan.md` 목표 변경 기록(ADR-015)
 
 **2주차 전반 (~10-04)**
-- [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
-- [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음) — 버그. `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)
-- [x] 이슈 #9 긴 숫자 `int()` 한도(PR #11 병합 완료) — 버그. 같은 약속("예외 없이 네 값 중 하나")의 남은 부분: 문자는 맞지만 **자릿수**가 4300을 넘는 경우
-- [x] 사례 목록 검색·필터·페이지(PR #13 병합 완료) — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
+- [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합)
+- [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음)
+- [x] 이슈 #9 긴 숫자 `int()` 한도(PR #11 병합)
+- [x] 사례 목록 검색·필터·페이지(PR #13 병합)
 
 **2주차 (10-05~10-11)**
-- [ ] 정책 검증 + 도달성 매트릭스 ★대표 — ③ "이 통신은 막혀야/열려야 한다" 의도 입력 → 모든 호스트 쌍 × 주요 포트 히트맵, "막혀야 하는데 열림"(노출) 최우선 강조. 기존 `verify` 반복 호출로 판정 의미 유지. **설계 완료(위 작업 정의), 구현 진행 중 — 브랜치 codex/policy-matrix**
-- [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① (수업 ACL이 Cisco인지 확인 필요)
-- [ ] 사례 복제·실습 과제 템플릿 — ①
+- [x] 정책 검증 + 도달성 매트릭스 ★대표 — ③ (PR #14 병합 완료)
+- [ ] 사례 복제·실습 과제 템플릿 — ① **PR #15 구현·검증·Claude 리뷰 PASS, 사용자 병합 결정 대기 — 브랜치 codex/case-templates**
+- [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① **보류: 수업 ACL이 Cisco인지 확인(사람 트랙) 뒤 착수**
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **양성 정의는 사용자가 정한다**
@@ -131,31 +140,31 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [ ] 연습 문제 모드(판정 숨기고 예측 → 채점, 개인 오탐·미탐) — ⑤
 - [ ] 구성도 그림 + 경로 재생 — ②
 - [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
-- [ ] 로그인 실패 → Graylog(GELF, 로컬 시연용) — 운영 (설계 중이던 것)
+- [ ] 로그인 실패 → Graylog(GELF, 로컬 시연용) — 운영
 - [ ] Batfish 차등 테스트 — ④
 
 **6주차 (11-02~11-08)**: 버그 수정만, 2차 테스트, 발표·제출
 
 **사람 트랙 (동시에, LLM에 넘기지 않음)**
 - [ ] 동기 3명 인터뷰 · [ ] 실제 결과가 있는 사례 모으기(오탐·미탐 대시보드의 재료) · [ ] 사례 04 손계산
-- [ ] 수업 ACL이 Cisco인지 pfSense인지 확인 · [ ] 오탐·미탐 양성 정의 · [ ] 표어 결정
+- [ ] **수업 ACL이 Cisco인지 pfSense인지 확인(Cisco 과제의 선행 조건)** · [ ] 오탐·미탐 양성 정의 · [ ] 표어 결정
 - [ ] 배포(Vercel·Supabase 가입, 비밀값) · [ ] README 화면 다시 캡처(기능이 늘어난 뒤)
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
-
 ## 다음 LLM이 확인할 내용
-- git pull, git status, git log -3 후 본 작업 정의와 PR diff, 테스트 출력 확인.
-- Codex: 구현 전에 `engine/src/netproof_engine/{verify,trace,model}.py`와 `web/src/{draft.ts,components/ResultPanel.tsx}`를 읽어 매트릭스가 호출만 하고 판정을 복제하지 않는지 확인한다.
-- 구현 완료 후 Claude 독립 리뷰, 사용자 병합 결정.
+- `git pull`, `git status`, `git log -3` 후 본 작업 정의와 PR diff, 테스트 출력 확인.
+- Codex: 구현 전에 `web/src/draft.ts`(`fromCase`·`toNetwork`·`EMPTY_CLAIM`), `web/src/pages/JudgePage.tsx`(`load`·`revision`·`api.examples`·저장 패널), `web/src/pages/CaseDetailPage.tsx`(`onOpenInJudge`), `server/netproof_api/cases.py`(`/api/examples`가 돌려주는 6개 키, `create_case`의 서버 재계산)를 읽어 **새 변환·새 엔드포인트를 만들지 않고 호출만 하는지** 확인한다.
+- PR #15의 검토 SHA와 최신 diff를 확인하고 사용자 최종 확인·병합 결정. 아직 병합하지 않았다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
+- **앱은 기대값·정답·채점을 만들지 않는다.** 과제는 네트워크·질문·확인할 점까지만 주고, 판정은 사람이 "판정하기"로 다시 받고 기대값은 사람이 적는다(AGENTS.md).
+- 복제는 **network/flow 편집 초안**이다. 원 사례의 `actual`·`confirmed`·작성자·`expect`를 가져오지 않고, 저장하면 서버가 판정을 다시 계산한 **별개 사례**가 된다.
+- 공유 링크 형식(`1.` + `{network, flow, claim}`)과 사례 JSON 형식은 이번 과제에서 바꾸지 않는다. 과제 안내는 `Draft`에 넣지 않는다.
 - 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
-- 매트릭스는 `verify`를 호출만 한다. 셀 하나라도 판정·비교를 서버나 화면에서 다시 계산하면 ADR-001 위반이다.
-- 같은 장비 쌍 허위 DENY와 자기 자신 INVALID는 엔진 버그 수정 대상이 아니라 **매트릭스에서 제외할 입력**이다. `verify`·`trace`를 고치지 않는다.
-- 상한 초과는 잘라서 계산하지 말고 거절한다. 일부만 계산한 매트릭스는 "노출 없음"을 거짓으로 보이게 한다.
-- CasesPage 후속 1건(빈 검색창 공백 재조회)은 이번 과제 범위가 아니다.
+- CasesPage 후속 1건(빈 검색창에 공백만 입력하면 매 타자마다 재조회)은 다음에 CasesPage를 만질 때 함께 처리한다. 이번 과제 범위가 아니다.
+- 매트릭스는 `verify`를 호출만 한다. 판정·비교를 서버나 화면에서 다시 계산하면 ADR-001 위반이다(PR #14 이후 유지되는 규칙).
 
 설계: Claude (Claude Opus 5)
 

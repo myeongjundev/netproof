@@ -1,4 +1,4 @@
-import { blankDraft, endpoints, fromCase, toNetwork } from "./draft";
+import { blankDraft, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "./draft";
 import type { CaseItem } from "./types";
 
 describe("toNetwork", () => {
@@ -20,6 +20,29 @@ describe("toNetwork", () => {
 });
 
 describe("fromCase", () => {
+  it("복제 초안에는 원본의 정답·판정·작성자·실제 결과·확인 상태를 가져오지 않는다", () => {
+    const original = {
+      id: "42", source: "test", title: "원본", owner_id: 7, author: "작성자",
+      actual: { result: "PASS", source: "ping", note: "확인 기록" },
+      confirmed: true, confirmed_by: "검토자", confirmed_at: "2026-10-02",
+      verdict: { result: "PASS" }, comparison: "AGREE", engine_version: "old",
+      created_at: "2026-10-01", expect: { result: "PASS" }, hand_first: "사람 기록",
+      network: toNetwork(blankDraft()), flow: blankDraft().flow,
+      claim: { expected: "PASS" as const, source: "받은 답", text: "메모" },
+    };
+    const before = structuredClone(original);
+    const opened = fromCase(original);
+    expect(opened.claim).toEqual(original.claim);
+    const cloned = { ...fromCase(original), claim: { ...EMPTY_CLAIM } };
+    expect(Object.keys(cloned).sort()).toEqual(["acls", "claim", "devices", "flow"]);
+    expect(cloned.claim).toEqual({ expected: null, source: "", text: "" });
+    expect(toNetwork(cloned)).toEqual(original.network);
+    expect(cloned.flow).toEqual(original.flow);
+    cloned.devices[0].interfaces[0].ip = "192.0.2.1/24";
+    cloned.flow.dst = "192.0.2.2";
+    expect(original).toEqual(before);
+  });
+
   it("사례를 불러와도 원본을 바꾸지 않는다", () => {
     const item: CaseItem = {
       id: "t",

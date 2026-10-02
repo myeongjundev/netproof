@@ -2,17 +2,17 @@ import { useEffect, useState } from "react";
 import { api, message } from "../api";
 import { ActualBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
-import { fromCase } from "../draft";
+import { EMPTY_CLAIM, fromCase } from "../draft";
+import { cloneTitle } from "../practice";
 import { go } from "../router";
-import type { ActualSource, CaseDetail, Claim, Draft, User } from "../types";
+import type { ActualSource, CaseDetail, Draft, User } from "../types";
 
 const SOURCES: Record<ActualSource, string> = { nmap: "Nmap 스캔", ping: "ping·접속 결과", device: "장비 재현", other: "기타" };
-const EMPTY_CLAIM: Claim = { expected: null, source: "", text: "" };
 
 interface Props {
   id: number;
   user: User;
-  onOpenInJudge: (draft: Draft) => void;
+  onOpenInJudge: (draft: Draft, saveTitle?: string) => void;
 }
 
 export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
@@ -23,13 +23,16 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
   const [exported, setExported] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     api.getCase(id).then(
       (loaded) => {
+        if (!active) return;
         setItem(loaded);
         setActual(loaded.actual);
       },
-      (e) => setError(message(e)),
+      (e) => { if (active) setError(message(e)); },
     );
+    return () => { active = false; };
   }, [id]);
 
   if (error) return <p className="error">{error}</p>;
@@ -65,6 +68,12 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
           <button type="button" className="ghost small" onClick={() => onOpenInJudge(fromCase({ ...item, id: String(item.id), source: "" }))}>
             판정기에서 열기
           </button>
+          <button type="button" className="ghost small" onClick={() => {
+            const next = fromCase({ ...item, id: String(item.id), source: "" });
+            onOpenInJudge({ ...next, claim: { ...EMPTY_CLAIM } }, cloneTitle(item.title));
+          }}>
+            복제해 다시 풀기
+          </button>
           {(isOwner || isReviewer) && (
             <button
               type="button"
@@ -83,6 +92,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
             </button>
           )}
         </div>
+        <p className="hint below">복제는 받은 답을 비운 새 초안입니다. 다시 판정해 저장하면 실제 결과·확인 상태를 물려받지 않는 별개 사례가 됩니다.</p>
       </section>
 
       <div className="layout detail-grid">
