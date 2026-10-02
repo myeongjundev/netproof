@@ -16,104 +16,119 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 리뷰 지적에는 파일:줄과 재현 명령을 붙입니다. 의견이 갈리면 가릴 수 있는 테스트부터 만듭니다.
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
+## 이번 작업 운영 메모
+- 이번 작업: Claude Opus 설계 → Codex 구현·테스트 → Claude 독립 리뷰 → 사용자 병합 결정.
+- 구현 모델은 사용자 지정 **Astra medium**. 실행 중인 세부 모델 설정은 이 세션에서 독립 확인하지 못했으므로 지정값과 확인된 사실을 구분한다.
+- `codex/` 별도 브랜치·Git worktree만 사용. main 수정·푸시·병합, 강제 푸시 금지.
+- 현재 worktree는 Git CLI로 생성했다. Orca 관리 작업 트리 등록 여부는 확인하지 않았다.
+- 모델 간 동의가 아니라 검토 SHA, 실행 명령·출력, diff가 근거다.
+- 사례 정답·실제 장비 결과·최종 병합은 사람이 결정한다. 비밀값을 공개 저장소에 넣지 않는다.
+
 ## 현재 작업 상태
-- 다음 차례: **사용자 최종 확인·병합 결정** — PROMPTS.md 5번
-- 브랜치 / 마지막 커밋: `codex/int-digit-limit` / `52a91cb720ff91ffc80edf3685868884ee2db142`(Claude 검토 대상 구현 커밋)
-- 진행 단계: 구현·테스트 완료 -> Claude 독립 리뷰 PASS -> 사용자 최종 확인 대기
-- 한 줄 요약: 이슈 #9 - 네 숫자 변환 경로를 10자리 제한 헬퍼로 통합해 5,000자리 입력의 예외·500 수정
-- 직전 과제: 이슈 #7 유니코드 숫자 `ValueError` - PR #8 병합(이슈 #7 닫음). 남은 자릿수 문제를 이슈 #9로 분리. 기록은 PR #8과 `decisions/ai-work-log.md`
+- 브랜치: `codex/contract-fuzz`
+- 기반: PR #11 `codex/int-digit-limit`, `36ad012740bd0d7b5cbea17d39403449b67b12c2`.
+- PR #10·#11은 2026-10-01 재확인 결과 OPEN, mergedAt=null. 병합하지 않았다.
+- PR #11의 이슈 #9 구현 SHA `52a91cb720ff91ffc80edf3685868884ee2db142`는 Claude 독립 리뷰 PASS. 이 후속 작업은 테스트만 추가한다.
+- 다음 차례: **사용자 최종 확인·병합 결정** — PROMPTS.md 5번. Claude 재리뷰 PASS, 검토 SHA `051c5899a9c4668bc9101ab64c600c8981607cc8`. PR base는 `codex/int-digit-limit`이며 #11 병합 전 main에 바로 병합하지 않는다.
 
-## 작업 정의 (설계 담당) - 이슈 #9 긴 숫자 `int()` 한도
-- **목표**: `verify()`는 어떤 입력에도 예외 대신 `PASS`·`DENY`·`UNSUPPORTED`·`INVALID` 중 하나를 돌려줘야 한다. 지금은 숫자의 **자릿수가 4300을 넘으면** `int()`가 `ValueError`를 내고 `/api/verify`(로그인 없이 누구나 호출)가 500이 된다.
-- **이슈 #7과의 관계**: #7은 `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)를 고쳤다(PR #8, 0.1.3). 이번 것은 문자는 올바른데 **자릿수**가 CPython의 변환 한도를 넘는 경우다. **`isdecimal()`은 `int()`가 성공한다는 보장이 아니다** - 설계 담당(Claude)이 #7 설계에서 그렇게 단정한 것이 틀렸다. Codex Luna가 PR #8 재검토에서 한 경로를 찾았고, 설계 담당이 확인하면서 나머지 세 경로도 같은 원인임을 확인했다.
-  ```
-  sys.get_int_max_str_digits() -> 4300   (CPython 3.11+ 기본값, DoS 완화 장치)
-  ('9' * 5000).isdecimal() -> True       int('9' * 5000) -> ValueError
-  ```
-- **고칠 곳**: `int()`로 바꾸는 네 경로 전부. 설계 담당이 `main` `a716341`에서 네 개 모두 직접 재현했다.
-  | 파일:줄 | 무엇 | 고친 뒤 가는 길 |
-  |---|---|---|
-  | `engine/src/netproof_engine/acl.py:130` | `_port()` 포트 | 이미 있는 `raise Unsupported("알 수 없는 포트 이름...")` |
-  | `engine/src/netproof_engine/acl.py:198` | `parse_rule()` 순번 | 순번으로 안 읽고 `동작`으로 읽어 `raise Unsupported("동작은 permit·deny만...")` |
-  | `engine/src/netproof_engine/acl.py:221`·`222` | `parse_rule()` ICMP 종류 옵션 | 이미 있는 `raise Unsupported("지원하지 않는 옵션...")` |
-  | `engine/src/netproof_engine/verify.py:38` | 흐름의 `icmp` 값 | 이미 있는 `raise Invalid(["알 수 없는 ICMP 종류..."])` |
-- **방법**: 검사와 변환을 **한 함수에 묶는다**. #7이 다시 터진 이유가 "검사와 변환이 떨어져 있어서 가드를 잊는다"였으므로, 따로 떨어진 `len()` 검사를 네 군데 흩뿌리지 않는다.
-  ```python
-  # acl.py
-  MAX_DIGITS = 10  # int()를 지키기 위한 한도. 뜻이 있는 상한(포트 65535)은 지금처럼 값 검사가 한다.
+## 작업 정의 — 고정 시드 생성 회귀 테스트(경로별 80개, Claude 재리뷰 반영)
+- 목표: 유효한 합성 네트워크에서 숫자 변환 네 자리(순번·포트·ACL ICMP·flow ICMP)의 단일 문자열 토큰을 변형하고 `verify()`가 경로별 허용 결과를 반환하는지 검사한다.
+- 허용 파일: `engine/tests/test_verify_contract.py`, `HANDOFF.md`, `decisions/ai-work-log.md`.
+- 엔진·서버·웹·의존성·cases 기대값·판정 의미는 변경하지 않는다. CI 구현도 이번 범위 밖이다.
+- 새 테스트는 `verify`만 import하며 과거 엔진에도 그대로 실행한다. 네트워크/flow 사전은 매 예제 새로 만든다.
+- 각 경로마다 명시 예제 `①`, `²`, `"9" * 5000`을 실행한다. pytest 경로 매개변수화로 12개를 고정한다.
+- 생성기: 0..4294967295 십진 문자열, 이름/0 채운 토큰, Z·C 범주를 제외한 유니코드 문자열(1..12자), Nd·No 문자열(1..12자), 10·11·4300·4301·5000자리 숫자.
+- `max_examples=80` **각 경로별**, `derandomize=True`, `deadline=None` 유지. 동일 테스트·Hypothesis 버전/환경에서는 같은 80개 샘플을 반복하는 고정 시드 생성 회귀 테스트이며, 실행마다 새 입력을 탐색하는 상시 퍼징이 아니다. 테스트나 Hypothesis 버전이 바뀌면 샘플도 달라질 수 있다.
+- 경로별 허용 집합: sequence `{DENY, UNSUPPORTED}`, port·acl_icmp `{PASS, DENY, UNSUPPORTED}`, flow_icmp `{PASS, INVALID}`. 집합 밖 결과가 나오면 집합을 넓히지 않고 입력·결과를 PR에 보고한다.
+- port ACL 뒤에 `permit ip any any`를 둔다. 별도 명시 예제 `443`·`0000000443` → DENY, `80`·`www` → PASS를 직접 단언하며 엔진의 숫자 해석을 테스트에서 재구현하지 않는다.
+- 기존 `test_unicode_digits.py`와 같은 네 경로를 과거 엔진 실행을 위해 분리했다. 기존 극단값 외 새 생성 커버리지는 무작위 텍스트 생성기(결정적 샘플)다.
+- `str.split()` 한 토큰임을 단언한다. 주소·라우팅·인터페이스·공백 포함 문법·비문자열 타입을 생성하지 않는다. **임의 입력 전체에 대한 계약 증명이 아니다.**
+- `try/except`, `assume`, `filter`로 예외를 숨기지 않는다.
+- 두 기존 별도 버그는 정확한 예외 타입의 `xfail(strict=True, raises=...)`로 고정한다. 고쳐지면 XPASS가 실패하므로 표시를 제거해야 한다.
+- 새로운 원인 발견 시 엔진을 임의 수정하거나 생성 범위를 좁히지 말고 입력·트레이스백을 기록하고 범위를 협의한다.
 
-  def decimal_int(token: str, limit: int = MAX_DIGITS) -> int | None:
-      """십진 숫자면 int, 아니거나 자릿수가 한도를 넘으면 None.
+## 완료 조건과 직접 실행 결과 — 재리뷰 7건 반영 (2026-10-01, Codex)
+PowerShell 기준. Python 3.12.10, Hypothesis 6.168.3. 기존 .venv와 의존성 설정은 바꾸지 않았다.
+시작 전 `git pull --ff-only` → Already up to date, status clean, log -3 확인 후 기준선도 직접 실행했다: 엔진 154+2 xfail(1.31s), 서버 44+1 skip(7.51s), 웹 65(333ms).
 
-      isdecimal()만으로는 모자라다 - int()는 4300자리가 넘는 문자열에 ValueError를 낸다.
-      """
-      return int(token) if token.isdecimal() and len(token) <= limit else None
-  ```
-  - 네 경로가 모두 이 함수를 쓴다. `verify.py`는 이미 `from .acl import ICMP_TYPES, Packet`을 하므로 같이 가져오면 된다(순환 import 없음).
-  - 새 `try`/`except`나 새 `Unsupported`·`Invalid` 문구를 **만들지 않는다**. `None`이 오면 네 곳 모두 가야 할 분기가 이미 있다.
-  - `acl.py:185`(`following.isdecimal()`)는 변환이 없어 그대로 둔다.
-- **왜 한도를 10으로 두나**: 지금 통과하는 입력을 **하나도 막지 않는 가장 작은 값**이다. IOS 순번 최댓값이 `4294967295`로 10자리, 포트는 5자리다. 자리별로 다른 한도(포트 5·ICMP 3)를 두면 `eq 0000000443`처럼 0을 채운 입력의 판정이 **바뀌므로** 그렇게 하지 않는다.
-  - 받아들이는 좁아짐: 11자리 이상(예: 0을 11개 붙인 포트)은 이제 `UNSUPPORTED`다. 실제 설정에 나올 수 없는 형태라 받아들인다. 구현할 때 이 이유를 주석으로 남긴다.
-- **하지 않을 것**: `sys.set_int_max_str_digits()`로 한도를 **올리지 않는다**. 그 한도는 긴 숫자 변환으로 CPU를 묶는 공격을 막는 장치이고, 우리가 공개 엔드포인트에서 그것을 끄는 것은 반대 방향이다.
-- **엔진 버전** `0.1.3` -> `0.1.4`(`__init__.py`, `pyproject.toml`). 응답 형식은 그대로다.
-- **판정 의미**: `docs/semantics.md`는 고칠 것이 없다. "지원 범위 밖이면 추측하지 않고 `UNSUPPORTED`"(2·6절)가 이미 기준이고, 이번 수정도 크래시를 그 기준으로 되돌리는 것이다.
-- **변경 범위(만질 파일)**: `engine/src/netproof_engine/acl.py`(헬퍼 + 네 호출 지점), `engine/src/netproof_engine/verify.py`(38행), `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`, `engine/tests/test_unicode_digits.py`(기존 파일에 추가하거나 새 파일), `server/tests/test_unicode_digits.py`(응답 테스트 1개 추가), `HANDOFF.md`
-- **건드리지 않을 것**: ACL 평가 순서·일치 규칙(`Acl.evaluate`, `Rule.matches`), `UnreadLine`·`Unsupported`·`Invalid`의 구조와 문구, 라우팅·추적 로직, `rule_seq`·`rule_line`의 뜻, `server/netproof_api/` 코드, `cases/`, `docs/semantics.md`, 웹 전체, 새 의존성
-- **예상 리스크** (리뷰 때 우선 확인)
-  - 네 경로 중 하나를 빠뜨림 -> 그 경로만 여전히 500. 완료 조건 1의 테스트가 경로별로 있는 이유다
-  - `parse_rule`의 순번 자리는 `peek()`로 보고 `take()`로 집는 구조다. 헬퍼를 끼우면서 토큰을 집는 순서가 밀리면 규칙 전체가 어긋난다(`"10 deny ..."`가 `deny`를 순번으로 보는 식)
-  - 10자리 한도가 지금 통과하는 입력을 막는지 -> 엔진 전체 테스트로 확인
-  - 경계에서 어긋남(10자리는 되고 11자리는 안 됨)
-- **완료 조건 (실행 가능한 명령)**
-  1. `cd engine && ../.venv/Scripts/python -m pytest -q` -> 전부 통과(기준선 105 + 새 테스트). 새 테스트 최소:
-     - 네 경로에 `"9" * 5000` -> 예외 없이 `UNSUPPORTED`(흐름 ICMP는 `INVALID`). 네 경로는 포트·순번·ICMP 옵션·흐름 ICMP
-     - 자릿수를 `1, 3, 5, 10, 11, 4300, 4301, 5000`으로 바꿔 네 경로에 넣고 **예외가 하나도 없음**(이번 버그의 재발 방지)
-     - 경계: 10자리는 지금처럼 읽히고(`eq 0000000443` -> 포트 443으로 동작, `"4294967295 deny ip any any"` -> `rule_seq == 4294967295`), 11자리는 `UNSUPPORTED`
-     - ASCII 불변: `"10 deny tcp any any eq 443"` -> `rule_seq == 10` / `"permit tcp any any eq 8080"` -> 포트 8080 / `"permit icmp any any 8"` -> `icmp_type == 8` / 흐름 `icmp` `"8"`
-     - #7 회귀 유지: `²`·`①` 테스트가 그대로 통과
-  2. `cd server && ../.venv/Scripts/python -m pytest -q` -> 기준선(43 + 1 건너뜀) + 1. 새 테스트: `/api/verify`에 `"9" * 5000`이 든 입력을 보내 **상태 코드 200**과 `result`가 `UNSUPPORTED`(500이 아님)
-  3. `npm --prefix web test` -> 기준선 65 그대로(웹은 손대지 않음)
-  4. `npm --prefix web run build` -> 통과
-  5. `git diff main...HEAD` -> 위 "변경 범위" 밖의 파일이 없음
-  - 브라우저 확인은 필요 없다(화면 변경 없음)
-- **설계 검증 근거**: 설계 담당이 `main` `a716341`에서 직접 실행 - 흐름 ICMP·순번·포트·ICMP 옵션 네 경로 모두 `'9' * 5000`에서 `ValueError: Exceeds the limit (4300 digits)`, 같은 입력을 `/api/verify`에 보내면 예외가 그대로 올라온다(운영에서 500). 정상 ASCII 입력은 `DENY`로 그대로. `sys.get_int_max_str_digits()`는 4300(Python 3.13.15). `isdecimal()` 호출 위치는 `acl.py` 130·185·198·221·222행과 `verify.py` 38행이고, 그중 185행만 변환이 없다.
+| 명령 | 실제 출력 |
+|---|---|
+| `cd engine; ../.venv/Scripts/python -m pytest -q tests/test_verify_contract.py -rxX` | `8 passed, 2 xfailed in 0.68s` (permit 원복 후) |
+| `cd engine; ../.venv/Scripts/python -m pytest -q` | `158 passed, 2 xfailed in 1.15s` |
+| `cd server; ../.venv/Scripts/python -m pytest -q` | `44 passed, 1 skipped in 7.29s` |
+| `npm --prefix web test` | `Test Files 5 passed (5)`, `Tests 65 passed (65)`, `Duration 315ms` |
 
-## 완료한 내용
-- `decimal_int()`가 십진 여부와 10자리 한도를 함께 검사한 뒤에만 변환하도록 하고 포트·순번·ACL ICMP 옵션·흐름 ICMP 네 경로에서 사용했다.
-- 5,000자리와 1·3·5·10·11·4300·4301·5000자리 입력을 네 경로에 고정한 회귀 테스트를 추가했다.
-- 10자리는 기존처럼 값으로 읽고 11자리는 기존 오류 분기(`UNSUPPORTED`, 흐름 ICMP는 `INVALID`)로 가는 경계 테스트를 추가했다.
-- 엔진 버전을 `0.1.4`로 올렸다. 별도 ACL `host` 주소 `AddressValueError` 문제는 이 작업에서 수정하지 않았다.
+현재 엔진에서 경로별 허용 집합 밖 결과는 없었다. 기존 10/11자리·ASCII·유니코드·5,000자리 회귀도 엔진 전체에 포함된다.
 
-## 변경된 주요 파일
-- `engine/src/netproof_engine/acl.py`, `verify.py` — 제한된 십진 변환 헬퍼와 네 호출 경로
-- `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml` — 0.1.4
-- `engine/tests/test_unicode_digits.py` — 네 경로·길이·10/11자리·기존 유니코드/ASCII 회귀
-- `server/tests/test_unicode_digits.py` — 공개 `/api/verify`의 5,000자리 포트가 200 `UNSUPPORTED`인지 확인
+### port 판별력과 xfail 원인 직접 확인
+- `cd engine; ../.venv/Scripts/python -m pytest -q tests/test_verify_contract.py -k port_token_verdict -v` → `4 passed, 6 deselected in 0.33s`.
+- port ACL에서 뒤의 permit만 잠시 제거하고 `... -k port_token_verdict --tb=short` → `2 failed, 2 passed, 6 deselected in 0.39s`, exit 1. 실패 이름은 `[80-PASS]`·`[www-PASS]`, 둘 다 `AssertionError: assert 'DENY' == 'PASS'`. 숫자 판독을 다시 구현하지 않고 암묵적 deny 결함을 잡는다.
+- 확인 후 permit을 복원했다. 새 파일 전체 재실행은 위와 같이 통과.
+- 루트에서 `.venv/Scripts/python -c "import runpy; m=runpy.run_path('engine/tests/test_verify_contract.py'); m['test_known_malformed_host_contract']()"` → exit 1, `ipaddress.AddressValueError: Expected 4 octets in 'x'`. pytest xfail을 거치지 않은 실제 예외다. `strict=True`와 정확한 `raises`는 유지했다.
 
-## 테스트 결과
-- 기준선(2026-10-01, `main` `a716341`, 설계 담당이 직접 실행): 엔진 105 · 서버 43 + 1 건너뜀 · 화면 65 · 빌드 통과
-- 이번 작업 결과(2026-10-01, Codex (GPT-6.1 Sol) 직접 실행):
-  - `cd engine; ../.venv/Scripts/python.exe -m pytest -q` -> `150 passed in 1.39s`
-  - `cd server; ../.venv/Scripts/python.exe -m pytest -q` -> `44 passed, 1 skipped in 7.36s`
-  - `npm --prefix web test` -> `Test Files 5 passed (5)`, `Tests 65 passed (65)`
-  - `npm --prefix web run build` -> `33 modules transformed`, `built in 2.26s`
-- 독립 리뷰 결과(2026-10-01, Claude Opus 5.5, 검토 SHA `52a91cb720ff91ffc80edf3685868884ee2db142`):
-  - `git diff --check origin/main...HEAD` -> 출력 없음, exit 0; 변경 7개 파일은 작업 정의 범위 안이고 비밀값 없음
-  - `cd engine; ../.venv/Scripts/python.exe -m pytest -q` -> `150 passed in 1.62s`
-  - `cd server; ../.venv/Scripts/python.exe -m pytest -q` -> `44 passed, 1 skipped in 13.42s`
-  - `npm --prefix web test` -> `Test Files 5 passed (5)`, `Tests 65 passed (65)`
-  - `npm --prefix web run build` -> `built in 791ms`
-  - main 엔진에서 새 테스트 실행 -> `16 failed, 41 passed`(5,000자리 네 경로·4301/5000자리·11자리 경계가 수정 전 버그를 검출)
-  - main↔PR 차분 비교 342개 ACL 줄 + 흐름 ICMP 33개 -> 10자리 이하 의미 차이 0, 11자리 이상 예상된 좁아짐 19, 예상 밖 예외 0
-  - `/api/verify` 네 경로 5,000자리 -> 포트·순번·ACL ICMP `200 UNSUPPORTED`, 흐름 ICMP `200 INVALID`
+### 과거 버전 실패 검증
+저장소 밖 `$env:TEMP/netproof-contract-history-20261001/<sha>`에 다음처럼 각 버전 엔진을 추출하고 새 테스트 파일만 복사했다.
 
-## 리뷰 기록 (리뷰 담당)
-| # | 파일:줄 | 문제 | 재현 방법 | 상태 |
-|---|---|---|---|---|
-| 1 | `engine/tests/test_unicode_digits.py:112` | 비차단: 10자리 ICMP 경계는 PASS/DENY만 확인하고 파싱값 8을 직접 단언하지 않음. 직접 실행 결과 값은 8이고 차분 비교에서 회귀 없음 | `cd engine; ../.venv/Scripts/python.exe -c "from netproof_engine.acl import parse_rule; print(parse_rule('permit icmp any any 0000000008',1).icmp_type)"` -> `8` | 참고 — Claude PASS, 수정 불필요 |
+```powershell
+git archive --format=zip --output=<archive.zip> <sha> engine
+Expand-Archive -LiteralPath <archive.zip> -DestinationPath <historical-root>
+Copy-Item engine/tests/test_verify_contract.py <historical-root>/engine/tests/
+# 추출된 engine 폴더에서, python은 현재 worktree .venv의 절대 경로:
+$env:PYTHONPATH = "$PWD/src"
+& <python> -c "import sys, netproof_engine as e; print(e.__file__, e.__version__, sys.get_int_max_str_digits())"
+& <python> -m pytest -q tests/test_verify_contract.py --tb=line -rN
+```
 
-## 수작업 필요 항목
-- (없음 - 화면 변경이 없어 브라우저 확인이 필요하지 않다)
+- `8c7ee3502d70da14f38c913ba4f4659b64ba7fea`: 추출 디렉터리의 `__init__.py`, 버전 `0.1.2`, 변환 한도 `4300` 확인. `4 failed, 4 passed, 2 xfailed in 0.43s`, 네 경로의 `ValueError: invalid literal for int()`. 터미널 유니코드 깨짐을 피하려고 `runpy.run_path('tests/test_verify_contract.py')`로 `_input`을 읽고 `verify(*_input(path, token))`을 별도 실행했다. `ascii(token)` 출력 `\u2460`·`\xb2` 각각 네 경로 모두 ValueError(8건). 같은 명시 입력은 a716341에서 ACL 세 경로 UNSUPPORTED, flow ICMP INVALID(8건)였다.
+- `a716341922097cfa55a85b53772691823c1d6892`: 추출 디렉터리의 `__init__.py`, 버전 `0.1.3`, 한도 `4300` 확인. `4 failed, 4 passed, 2 xfailed in 0.38s`, 네 경로 모두 `ValueError: Exceeds the limit (4300 digits) ... value has 5000 digits`.
+- 두 과거 버전 모두 pytest exit 1, 새 port 예제 4개는 통과했다. 네 경로 실패 원인은 새 단언이 아니라 변환 지점의 ValueError다.
+- 실패는 의도한 과거 버그 검출이다. 현재 엔진 결과와 혼동하지 않는다. 변환 한도는 변경하지 않았다.
+- 현재 버전에서 `_input` 정상 도달성도 별도로 실행: sequence `10` → DENY, port `443` → DENY, ACL ICMP `8` → PASS, flow ICMP `8` → PASS. 네트워크 자체가 INVALID여서 숫자 파싱을 건너뛰는 테스트가 아님을 확인했다.
+
+## 별도 버그 / 범위 경계
+- Hypothesis 하한 후속: `characters(categories=..., exclude_categories=...)`는 **6.85.0 (2023-09-16)**부터다. [공식 변경 기록](https://hypothesis.readthedocs.io/en/latest/changelog.html#v6-85-0)과 공식 Git 태그 6.84.3/6.85.0의 `hypothesis-python/src/hypothesis/strategies/_internal/core.py` 함수 시그니처를 직접 비교했다. 6.84.3에는 옛 whitelist/blacklist 이름만, 6.85.0에는 새 인자가 있다. 현재 `hypothesis>=6` 선언은 이 사용 하한을 보장하지 않는다. 후속 의존성 과제에서 최소 버전/호환 인자를 결정해야 하며 이번에는 pyproject나 설치 버전을 바꾸지 않았다.
+- ACL `deny tcp host x any` → `ipaddress.AddressValueError`. 이슈 #9와 별도. 이번에는 strict xfail로 재현만 기록한다.
+- flow `icmp=["8"]` → `TypeError`. 숫자 문자열 계약 밖의 기존 별도 버그. strict xfail로 기록하며 수정하지 않는다.
+- 트랙 B(Cloudflare·Graylog·Wazuh·n8n·Kali)는 미구현. A의 PASS/DENY는 실제 차단·탐지 증거가 아니다.
+- B 설계 전 필요한 첫 사례 자료: 허가된 대상/범위, 질문과 기대 제어, 실제 실행 명령·요청, 시각/시간대, 사용한 제품·설정, 각 제품의 익명화 로그/이벤트 ID 및 n8n 실행 기록(해당 시), 실제 결과 확인자. 비밀값·세션·원본 민감 로그는 제공/커밋하지 않는다.
+
+## 이전 독립 리뷰 (83bf48c에 한정, 이번 수정은 재리뷰 대기)
+- 리뷰어: Claude Code, **Claude Opus 5.5** (`claude-opus-5-5`). Codex가 보고서를 전달하며 Claude가 직접 테스트를 실행했다.
+- 최초 SHA `1caed898f3d13f3da7c94ce261aefdb1b4125407`: 경미 수정요청 1건. 새 테스트 52·54행의 `check="oneway"`는 무시되는 키라 실제로 session 모드였다. `mode="one-way"`로 수정했다. 엔진은 변경하지 않았다.
+- 최종 SHA `83bf48c661b75d3ab9c760e1714b550080da24eb`, base `36ad012740bd0d7b5cbea17d39403449b67b12c2`: **PASS**, 미해결 차단 finding 없음.
+- `git diff --check 36ad012 HEAD` → 출력 없음, exit 0. 허용 세 파일만 변경, engine/src·server·web·cases·docs 변경 0.
+- `cd engine && ../.venv/Scripts/python -m pytest -q` → `154 passed, 2 xfailed in 1.16s`.
+- `cd engine && ../.venv/Scripts/python -m pytest -q tests/test_verify_contract.py -rxX` → `4 passed, 2 xfailed in 0.68s`.
+- `cd server && ../.venv/Scripts/python -m pytest -q` → `44 passed, 1 skipped in 12.46s`.
+- `npm --prefix web test` → `Test Files 5 passed (5)`, `Tests 65 passed (65)`.
+- 과거 폴더의 새 테스트 파일을 검토 SHA와 `cmp` 비교: identical. 소스도 `git archive <sha> engine/src`와 `diff -r -x __pycache__` 비교: 차이 없음.
+- 과거 engine cwd, `PYTHONPATH=$PWD/src`, 현재 .venv python 절대 경로로 `-m pytest -q -p no:cacheprovider tests/test_verify_contract.py --tb=line -rxX`: 8c7ee35 `4 failed, 2 xfailed in 0.37s`(네 경로 ² ValueError), a716341 `4 failed, 2 xfailed in 0.36s`(네 경로 5,000자리 ValueError). 로드 경로/버전/4300 한도도 독립 확인.
+- `runpy`로 새 테스트 `_input`을 불러 probe: flow ICMP `0` one-way → PASS, mode 제거(session) → UNSUPPORTED. 수정 의도대로 실행됨.
+- 범위 밖 참고: ICMP 타입 `4294967295`의 one-way 흐름도 PASS다. 기존 엔진의 0..255 범위 검사 부재로, 이번 반환값 계약 테스트와 별개다. 판정 의미를 바꾸지 않고 후속 검토 항목으로 남긴다.
+- 당시 77ab1fe는 문서만 추가한 커밋이었다. 이후 Claude 재리뷰 7건으로 이번 테스트·문서 수정이 발생했으므로 위 PASS는 이번 변경을 승인하지 않는다.
+
+## 리뷰 기록
+대상: [Claude 재리뷰 5932377922](https://github.com/myeongjundev/netproof/pull/12#issuecomment-5932377922), 검토 당시 SHA `77ab1fecf2dba4feff5c19f1b6122d3a9c9e6195`. 아래 상태는 Codex 반영 결과이며, Claude가 `051c589`에서 재확인했다(아래 "Claude 재리뷰").
+
+| # | 파일 / 문제 | 처리 및 재현 근거 | 상태 |
+|---|---|---|---|
+| 1 | HANDOFF 상시 규칙 삭제 | base의 운영 채널·구분·PROMPTS·사람 업무·검증 원칙·시작 점검·줄바꿈 경고 복원, 이번 작업 메모 분리 | 고침, Claude 확인 |
+| 2 | test_verify_contract.py port 판별력 | permit 추가, 4개 명시 예제 통과; permit 제거 시 80/www만 AssertionError | 고침, Claude 변형 검증 확인 |
+| 3 | 경로 무관 RESULTS | PATH_RESULTS 적용, 현재 집합 밖 결과 없음; 과거 네 경로는 ValueError | 고침 |
+| 4 | _input 중복 설명 | 함수 위 한 줄로 기존 helper와 같은 구성·분리 이유·텍스트 생성 커버리지 명시 | 고침 |
+| 5 | xfail 입력 복잡 | deny tcp host x any로 축소; 직접 호출 AddressValueError, strict/raises 유지 | 고침 |
+| 6 | Hypothesis 하한 | 6.85.0 도입을 공식 기록·태그 시그니처로 확인, 별도 후속 기록; 의존성 변경 없음 | 기록 완료 |
+| 7 | 상시 퍼징 표현 | 고정 시드 생성 회귀 테스트(경로별 80개)로 문서·작업 기록·PR 설명 정정, 설정 유지 | 고침 |
+### Claude 재리뷰 (2026-10-02, Claude Opus 5.5) — 검토 SHA `051c5899a9c4668bc9101ab64c600c8981607cc8`: **PASS**
+- 엔진 로드 경로: worktree `engine/src/netproof_engine/__init__.py`, 0.1.4.
+- `cd engine && PYTHONPATH=$PWD/src ../.venv/Scripts/python -m pytest -q -p no:cacheprovider tests/test_verify_contract.py -rxX` → `8 passed, 2 xfailed in 1.13s`
+- `cd engine && ... -m pytest -q -p no:cacheprovider` → `158 passed, 2 xfailed in 1.21s`
+- `cd server && ../.venv/Scripts/python -m pytest -q -p no:cacheprovider` → `44 passed, 1 skipped in 7.10s`
+- `npm --prefix web test` → `Test Files 5 passed (5)`, `Tests 65 passed (65)`
+- `git diff --check origin/codex/int-digit-limit...origin/codex/contract-fuzz` → exit 0, 변경 파일 세 개뿐.
+- 과거 엔진(`git archive <sha> engine` + 새 테스트 파일): 8c7ee35 `4 failed, 4 passed, 2 xfailed`(네 경로 `²` ValueError 8건), a716341 `4 failed, 4 passed, 2 xfailed`(네 경로 4300자리 한도 ValueError 8건).
+- 엔진 사본 변형: flow ICMP 미지 값을 INVALID 대신 UNSUPPORTED로 → `1 failed`(경로별 허용 결과가 잡음). `_port`가 `number + 1` 반환 → `2 failed`(443·0000000443 단언이 잡음).
+- 비차단 참고: 결과 절 제목 날짜(10-01)와 work-log(10-02) 불일치. work-log의 10-01 기존 줄 문구가 바뀐 것은 Claude 지시문 탓이며, 앞으로 이력 줄은 고치지 않고 새 줄만 추가한다. 테스트 36행 주석은 한 줄이 길다.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -128,7 +143,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **2주차 전반 (~10-04)**
 - [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
 - [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음) — 버그. `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)
-- [ ] 이슈 #9 긴 숫자 `int()` 한도(설계 끝 — 구현 대기) — 버그. 같은 약속("예외 없이 네 값 중 하나")의 남은 부분: 문자는 맞지만 **자릿수**가 4300을 넘는 경우
+- [ ] 이슈 #9 긴 숫자 `int()` 한도(PR #11 구현·Claude 리뷰 완료, 병합 대기) — 버그. 같은 약속("예외 없이 네 값 중 하나")의 남은 부분: 문자는 맞지만 **자릿수**가 4300을 넘는 경우
 - [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**
@@ -164,8 +179,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
+
 ## 다음 LLM이 확인할 내용
 - 시작 전 `git pull`, `git status`, `git log -3`, 위 테스트 3개를 직접 실행해 이 문서와 일치하는지 확인
+- fetch/status, PR #10·#11 및 후속 PR의 병합 여부, 본 문서와 테스트 결과 확인.
+- #11 병합 전 후속 PR을 main에 바로 병합하지 않는다. #11 병합 방식(merge/squash)에 따라 base와 비교 diff를 재확인한다.
+- 병합과 추가 기능 착수는 사용자 결정이다.
 
 ## 주의사항 / 미해결 이슈
 - 줄바꿈이 섞여 있음(CRLF 49, LF 17, 혼합 1). 관계없는 파일의 줄바꿈만 바뀐 diff를 만들지 않는다.
+
+Codex (사용자 지정: Astra medium)
