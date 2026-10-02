@@ -34,6 +34,7 @@
 서비스 1개 이상, mode 기본 session, intents 기본 빈 목록. 서비스 label 80자, 의도 note 200자 이하.
 키는 `tcp/443`, `udp/53`, `icmp/echo` 등이다. 동일 서비스는 첫 항목을 유지한다.
 의도는 (src, dst, service) 정확 일치다. 중복 기대값은 합치고 충돌은 전체 INVALID로 거절한다.
+src·dst는 IPv4 주소 문자열만 받는다(정수 주소 변환 없음). 대상 밖 의도 오류에 해당 src → dst · service를 표시한다.
 존재하지 않는 끝점·서비스, 제외된 내부 쌍, 와일드카드 의도는 거절한다.
 
 응답은 `{status, problems, mode, engine_version, limit_exceeded, endpoints, services, cells, totals, exposures}`다.

@@ -21,8 +21,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): 이번 과제는 CLAUDE.md/AGENTS.md 역할대로 Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main(PR #13 병합 완료). 사례 목록 검색·필터·페이지는 끝났다.
 - 브랜치: codex/policy-matrix (origin/main 기반 새 브랜치). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: Claude 설계 → Codex 구현·테스트·브라우저 확인 완료 → Claude 독립 리뷰 준비
-- 다음 차례: Claude 독립 리뷰. 병합은 사용자 최종 확인 후 결정한다.
+- 단계: Claude 설계 → Codex 구현·검증 → Claude 독립 리뷰 PASS → 비차단 N1/N2 보완·재검증 완료
+- 다음 차례: 보완분 Claude 재확인 후 사용자 최종 확인·병합 결정. 자동 병합하지 않는다.
 
 ## 작업 정의
 - 목표: 판정기에 입력한 network로 모든 host 인터페이스 IP 순서쌍 × 주요 서비스(TCP/UDP 포트, ICMP)를 기존 `verify`로 반복 판정하고, 사용자가 적은 PASS/DENY 의도와 비교해 "막혀야 하는데 열림"(노출)을 최우선으로 보여 준다.
@@ -45,8 +45,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - Claude 추가 합의: exposures는 EXPOSED/BLOCKED/UNDECIDED의 우선 확인 목록, 실제 노출 수는 totals.EXPOSED만. 중복 기대값 충돌은 전체 INVALID. ICMP 8/0은 echo/echo-reply 키로 정규화. UNDECIDED는 의도 유무 무관. limit_exceeded boolean을 응답에 추가해 서버가 상한 계산을 복제하지 않고 422를 결정한다(나머지 INVALID는 200).
 - 형식 규칙: 서비스 label 80자·의도 note 200자, TCP/UDP JSON 정수 포트(bool 제외), ICMP 0~255/최대 3자리 ASCII. 대상 밖 의도는 자동으로 버리지 않고 INVALID 안내. 원본 서비스/의도 목록에도 상한 적용.
 - 2026-10-02 직접 실행:
-  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `185 passed, 2 xfailed in 2.61s`
-  - `cd server && ../.venv/Scripts/python -m pytest -q` → `74 passed, 1 skipped in 12.33s`
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `190 passed, 2 xfailed in 2.68s`
+  - `cd server && ../.venv/Scripts/python -m pytest -q` → `74 passed, 1 skipped in 14.21s`
   - `npm --prefix web test` → `Test Files 7 passed (7)`, `Tests 79 passed (79)`, `Duration 692ms`
   - `npm --prefix web run build` → `✓ built in 373ms`
 - 독립 리뷰 중 Codex 자체 확인으로 422 상한 오류의 엔진 problems가 화면에서 일반 오류로 가려지던 부분을 보완했다. API errorDetail이 detail 또는 problems를 전달하고 회귀 테스트 1개를 추가했다.
@@ -59,7 +59,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 정상 교차 장비 쌍(10.10.10.10 → 10.20.20.5, tcp/443, session) → `PASS`.
 - 참고한 기존 코드: `engine/src/netproof_engine/verify.py`(RESULTS·mode·`_reverse`·UNSUPPORTED/INVALID 경로), `trace.py`(Hop·decisive·`_neighbor`·ECMP Unsupported), `model.py`(`kind=host/router`, `all_interfaces`, `owner`), `server/netproof_api/cases.py`(`LIMITS`·`_limit_problem`·`/api/verify`), `web/src/draft.ts`(`toNetwork`·`endpoints`), `web/src/components/ResultPanel.tsx`·`AclEvidence.tsx`(증거 UI 재사용 대상), `web/src/router.ts`.
 
-## 리뷰 기록
+## 현재 과제 리뷰 기록 (PR #14)
+- [Claude 독립 리뷰 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944402657). 검토 SHA 6404ef3ebe620b929926c76752d85c3bd9c2aa3b, base 7828622, 모델 Claude Opus 5.
+- Claude 직접 실행: 엔진 185 passed/2 xfailed in 2.01s, 서버 74 passed/1 skipped in 12.20s(9f81a98, 엔진/서버 변경 없음), 최신 웹 79 passed(517ms), 빌드 230ms(6404ef3). 임시 합성 probe로 집계 불변식·노출·미판정·의도 충돌·중복·ICMP 별칭 확인.
+- 비차단 N1(a) 반영: 대상 밖 의도 오류에 src → dst · service 명시, 재현 테스트 추가. N1(b) 자동 정리는 합의한 "자동 폐기 안 함"을 유지한다. 의도 목록의 삭제 UI로 사람이 정리하고 다시 계산한다. 자동 삭제하면 사용자 의도가 사라져 NO_POLICY/노출 0으로 오해할 수 있다.
+- 비차단 N2 반영: 의도 src/dst 문자열 가드, 정수·bool·null 거절 회귀 테스트 4개. 기존 verify·model은 수정하지 않았다.
+- 보완 후 Codex 전체 실행은 위 최신 결과. 보완분 Claude 재확인 대기.
+
+## 이전 과제 리뷰 기록 (PR #13 병합 완료)
 - 정책 검증 + 도달성 매트릭스: 설계만 끝났고 구현 전이라 리뷰 없음. Codex 구현 후 Claude 독립 리뷰 차례다.
 
 ### 지난 과제 — 사례 목록 검색·필터·페이지 (PR #13 병합 완료)

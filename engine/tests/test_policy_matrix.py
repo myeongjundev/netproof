@@ -130,6 +130,19 @@ def test_invalid_network_problems_and_determinism(net1):
     assert matrix["cells"] == []
 
 
+@pytest.mark.parametrize("field,value", [("src", 168430090), ("dst", 169090565), ("src", True), ("dst", None)])
+def test_intent_ip_requires_string(net1, field, value):
+    matrix = policy_matrix(net1, spec(intents=[intent(**{field: value})]))
+    assert matrix["status"] == "INVALID"
+    assert "주소 문자열" in matrix["problems"][0]
+
+
+def test_stale_intent_message_identifies_communication(net1):
+    matrix = policy_matrix(net1, spec(services=[{"proto": "tcp", "dst_port": 8443}], intents=[intent()]))
+    assert matrix["status"] == "INVALID"
+    assert "10.10.10.10 → 10.20.20.5 · tcp/443" in matrix["problems"][0]
+
+
 def test_ecmp_unjudged(net2):
     routes = device(net2, "R1")["routes"]
     routes.append({"prefix": "10.30.30.0/24", "out_if": "s0/0"})

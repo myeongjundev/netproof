@@ -44,6 +44,8 @@ def _service(raw):
 def _intent_key(raw):
     if not isinstance(raw, dict):
         raise ValueError("의도는 객체여야 합니다")
+    if not all(isinstance(raw.get(key), str) for key in ("src", "dst")):
+        raise ValueError("의도의 src·dst는 IPv4 주소 문자열이어야 합니다")
     src, dst = (str(ipaddress.IPv4Address(raw.get(key))) for key in ("src", "dst"))
     key = raw.get("service")
     if not isinstance(key, str) or "/" not in key:
@@ -108,7 +110,7 @@ def policy_matrix(network_data: dict, spec: dict) -> dict:
         for raw in spec.get("intents", []):
             key = _intent_key(raw)
             if key[:2] not in allowed or key[2] not in services:
-                return reject("의도의 끝점·서비스가 검사 대상에 없습니다(같은 장비 내부 쌍 제외)")
+                return reject(f"의도 {key[0]} → {key[1]} · {key[2]}: 끝점·서비스가 검사 대상에 없습니다(같은 장비 내부 쌍 제외)")
             expect = raw.get("expect")
             if expect not in ("PASS", "DENY"):
                 return reject("의도 expect는 PASS·DENY만 됩니다")
