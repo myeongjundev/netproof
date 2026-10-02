@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, message } from "../api";
 import { ActualBadge, ComparisonBadge, ResultBadge } from "../components/Badges";
-import { emptyCaseFilters } from "../caseSearch";
+import { emptyCaseFilters, loadCasePage } from "../caseSearch";
 import type { CaseFilters, CasePage } from "../types";
 
 export function CasesPage() {
@@ -9,23 +9,23 @@ export function CasesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<CasePage | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
 
   function changeFilters(patch: Partial<CaseFilters>) {
-    setFilters((current) => ({ ...current, ...patch }));
+    setFilters((current) => ({ ...current, q: search.trim(), ...patch }));
     setPage(1);
   }
 
   useEffect(() => {
-    let active = true;
-    setData(null);
+    setLoading(true);
     setError(null);
-    api.searchCases(filters, page).then(
-      (result) => { if (active) setData(result); },
-      (e) => { if (active) setError(message(e)); },
+    return loadCasePage(
+      () => api.searchCases(filters, page),
+      (result) => { setData(result); setLoading(false); },
+      (e) => { setError(message(e)); setLoading(false); },
     );
-    return () => { active = false; };
   }, [filters, page, retry]);
 
   return (
@@ -43,7 +43,10 @@ export function CasesPage() {
       <form className="case-search" role="search" onSubmit={(e) => { e.preventDefault(); changeFilters({ q: search.trim() }); }}>
         <label htmlFor="case-query">사례 검색
           <input id="case-query" type="search" value={search} maxLength={100}
-            placeholder="제목 · 작성자 · 출발지/목적지 IP" onChange={(e) => setSearch(e.target.value)} />
+            placeholder="제목 · 작성자 · 출발지/목적지 IP" onChange={(e) => {
+              setSearch(e.target.value);
+              if (!e.target.value.trim()) changeFilters({ q: "" });
+            }} />
         </label>
         <button type="submit">검색</button>
         <button type="button" className="secondary" onClick={() => {
@@ -69,12 +72,14 @@ export function CasesPage() {
       </div>
       {error && <div role="alert"><p className="error">{error}</p><button type="button" onClick={() => setRetry((n) => n + 1)}>다시 시도</button></div>}
       <div aria-live="polite">
-        {data === null && !error && <p className="hint">불러오는 중…</p>}
+        {loading && <p className="hint">불러오는 중…</p>}
+        {filters.q && <p className="hint">적용한 검색어: {filters.q}</p>}
+        {data && (loading || error) && <p className="hint">아래는 이전 조회 결과입니다.</p>}
         {data && <p className="hint">검색 결과 {data.total}개 · 페이지당 {data.per_page}개</p>}
         {data?.items.length === 0 && <p className="hint">조건에 맞는 사례가 없습니다. 검색 조건을 바꾸거나 판정기에서 사례를 저장해 보세요.</p>}
       </div>
       {data && data.items.length > 0 && (
-        <table className="board">
+        <table className={`board${loading ? " loading" : ""}`} aria-busy={loading}>
           <thead>
             <tr>
               <th scope="col">사례</th>
@@ -107,9 +112,9 @@ export function CasesPage() {
         </table>
       )}
       {data && <nav className="case-pagination" aria-label="사례 페이지">
-        <button type="button" className="secondary" disabled={data.page <= 1} onClick={() => setPage(data.page - 1)}>이전</button>
+        <button type="button" className="secondary" disabled={loading || !!error || data.page <= 1} onClick={() => setPage(data.page - 1)}>이전</button>
         <span aria-live="polite">{data.page} / {data.pages} 페이지</span>
-        <button type="button" className="secondary" disabled={data.page >= data.pages} onClick={() => setPage(data.page + 1)}>다음</button>
+        <button type="button" className="secondary" disabled={loading || !!error || data.page >= data.pages} onClick={() => setPage(data.page + 1)}>다음</button>
       </nav>}
     </section>
   );

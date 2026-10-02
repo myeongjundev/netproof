@@ -211,6 +211,7 @@ p .meta { display: inline; }
 .badge.accent { background: var(--accent); color: var(--accent-ink); }
 
 .board { width: 100%; border-collapse: collapse; }
+.board.loading { opacity: 0.55; }
 .case-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin: 16px 0 12px; }
 .case-search label { flex: 1 1 240px; min-width: 0; }
 .case-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }

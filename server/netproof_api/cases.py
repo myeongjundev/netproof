@@ -7,7 +7,7 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy import or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
 from netproof_engine import compare, verify
@@ -98,7 +98,9 @@ def list_cases():
     numbers = {}
     for key, default, maximum in (("page", "1", 1000000), ("per_page", "20", 100)):
         raw = request.args.get(key, default)
-        if not raw.isascii() or not raw.isdecimal() or len(raw) > 7 or not 1 <= int(raw) <= maximum:
+        if not raw.isascii() or not raw.isdecimal() or len(raw) > 7:
+            return error(400, f"{key}는 7자리 이하 ASCII 숫자여야 합니다")
+        if not 1 <= int(raw) <= maximum:
             return error(400, f"{key}는 1~{maximum} 사이 정수여야 합니다")
         numbers[key] = int(raw)
     allowed = {
@@ -131,7 +133,8 @@ def list_cases():
             Case.flow["dst"].as_string().ilike(pattern, escape="/"),
         ))
     total = query.count() if paged else None
-    query = query.options(joinedload(Case.owner)).order_by(Case.created_at.desc(), Case.id.desc())
+    query = query.options(contains_eager(Case.owner) if search else joinedload(Case.owner))
+    query = query.order_by(Case.created_at.desc(), Case.id.desc())
     if not paged:
         return jsonify([case.summary() for case in query.limit(200)])
     page, per_page = numbers["page"], numbers["per_page"]

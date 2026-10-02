@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { caseSearchParams, emptyCaseFilters } from "./caseSearch";
+import { caseSearchParams, emptyCaseFilters, loadCasePage } from "./caseSearch";
 import { api } from "./api";
+import type { CasePage } from "./types";
 
 describe("사례 검색 요청", () => {
   it("검색어 특수문자를 보존하고 필터와 페이지를 함께 전송한다", () => {
@@ -19,5 +20,40 @@ describe("사례 검색 요청", () => {
       expect(await api.searchCases(emptyCaseFilters, 1)).toEqual(response);
       expect(fetchMock.mock.calls[0][0]).toBe("/api/cases?page=1&per_page=20");
     } finally { vi.unstubAllGlobals(); }
+  });
+  it("새 응답 뒤에 도착하는 오래된 성공 응답을 버린다", async () => {
+    let resolveOld!: (data: CasePage) => void;
+    let resolveNew!: (data: CasePage) => void;
+    const oldRequest = new Promise<CasePage>((resolve) => { resolveOld = resolve; });
+    const newRequest = new Promise<CasePage>((resolve) => { resolveNew = resolve; });
+    const onData = vi.fn();
+    const onError = vi.fn();
+    const cleanupOld = loadCasePage(() => oldRequest, onData, onError);
+    cleanupOld(); // CasesPage 조건 변경 시 React effect cleanup
+    loadCasePage(() => newRequest, onData, onError);
+    const latest = { items: [], total: 7, page: 1, per_page: 20, pages: 1 };
+    resolveNew(latest);
+    await newRequest;
+    resolveOld({ ...latest, total: 99 });
+    await oldRequest;
+    expect(onData.mock.calls).toEqual([[latest]]);
+    expect(onError).not.toHaveBeenCalled();
+  });
+  it("cleanup 뒤의 오류를 버리고 현재 요청의 오류만 표시한다", async () => {
+    let rejectOld!: (error: Error) => void;
+    const oldRequest = new Promise<CasePage>((_, reject) => { rejectOld = reject; });
+    const onData = vi.fn();
+    const onError = vi.fn();
+    const cleanupOld = loadCasePage(() => oldRequest, onData, onError);
+    cleanupOld();
+    rejectOld(new Error("old error"));
+    await oldRequest.catch(() => {});
+    expect(onError).not.toHaveBeenCalled();
+    const currentError = new Error("retry me");
+    const current = Promise.reject<CasePage>(currentError);
+    loadCasePage(() => current, onData, onError);
+    await current.catch(() => {});
+    expect(onError.mock.calls).toEqual([[currentError]]);
+    expect(onData).not.toHaveBeenCalled();
   });
 });

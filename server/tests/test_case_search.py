@@ -102,6 +102,10 @@ def test_more_than_200_cases_and_bounded_queries(app, api):
         # count + 페이지 조회. 로그인 사용자 조회 외 작성자 N+1 SELECT는 없다.
         assert sum("FROM cases" in sql for sql in statements) == 4
         assert sum("FROM users" in sql for sql in statements) <= 2
+        # 결과 조회당 users 조인 하나만 사용한다(count/auth 쿼리는 제외).
+        list_queries = [sql for sql in statements if "FROM cases" in sql and "LIMIT" in sql]
+        assert len(list_queries) == 2
+        assert all(sql.count("JOIN users") == 1 for sql in list_queries)
 
 
 def test_existing_table_index_upgrade_is_idempotent(app):
@@ -131,3 +135,22 @@ def test_postgresql_json_search_compiles_without_sqlite_functions():
     sql = str(stmt.compile(dialect=postgresql.dialect()))
     assert "->>" in sql and "ILIKE" in sql
     assert "JSON_EXTRACT" not in sql
+
+
+def test_sqlite_search_guarantees_ascii_case_insensitivity_only(app, api):
+    with app.app_context():
+        if db.engine.dialect.name != "sqlite":
+            pytest.skip("SQLite Unicode lower 제한을 고정하는 테스트")
+    api.register("Tester")
+    case_id = api.save_case("Unicode ÄÖ UPPER").get_json()["id"]
+    for text, expected in (("upper", [case_id]), ("ÄÖ", [case_id]), ("äö", [])):
+        assert ids(api.get("/api/cases", query_string={"page": 1, "q": text})) == expected
+
+
+def test_number_format_errors_explain_digit_limit(api):
+    api.register("Tester")
+    for query in ("page=00000001", "per_page=00000100", "page=" + "9" * 5000):
+        response = api.get("/api/cases?" + query)
+        assert response.status_code == 400
+        assert "7자리 이하 ASCII 숫자" in response.get_json()["detail"]
+    assert "1~100" in api.get("/api/cases?per_page=101").get_json()["detail"]

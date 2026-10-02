@@ -21,17 +21,17 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): 이번 과제는 Codex가 설계까지 담당한다. 독립 리뷰는 Claude에게 요청한다.
 - 기반: main e0d420c, PR #11·#12 병합 완료.
 - 브랜치: codex/case-search
-- 단계: 구현·테스트 완료 → Claude 독립 리뷰 대기
-- 다음 차례: Claude 리뷰. 사용자 병합 결정 전까지 병합하지 않는다.
+- 단계: Claude 독립 리뷰 완료 → 6건 보완·검증 완료 → 재리뷰 대기
+- 다음 차례: Claude 보완분 재리뷰. 사용자 병합 결정 전까지 병합하지 않는다.
 
 ## 작업 정의
 - 목표: 200개 제한 목록에서 제목·작성자·flow src/dst IP 검색, 판정·받은 답과 판정 비교·확인·실제 결과 출처 필터, 서버 페이지 이동을 제공한다.
-- 검색: q(최대 100자), 대소문자 무시 부분 문자열. %, _, /는 문자 그대로 처리한다. 네트워크 내부의 모든 주소 검색은 제외한다.
+- 검색: q(최대 100자), ASCII 영문 대소문자 무시 부분 문자열. SQLite 비ASCII 대소문자 변환은 보장하지 않으며 PostgreSQL locale/collation에 따라 결과가 다를 수 있다. %, _, /는 문자 그대로 처리한다. 네트워크 내부의 모든 주소 검색은 제외한다.
 - 필터: mine=0/1, result=PASS/DENY/UNSUPPORTED/INVALID, comparison=AGREE/DISAGREE/NOT_COMPARABLE/NO_CLAIM, confirmed=0/1, source=nmap/ping/device/other/none. 필터는 AND, 검색 대상 필드는 OR. 빈 값은 전체.
-- API: page 또는 per_page가 있으면 {items,total,page,per_page,pages}. 기본 20개, 최대 100개, page 최대 1,000,000. 정수/필터/검색 길이 오류는 400. page 초과는 마지막 페이지로 보정, 빈 목록은 page=pages=1. 페이지 인자가 없는 기존 요청은 배열(최대 200개)을 유지한다.
+- API: page 또는 per_page가 있으면 {items,total,page,per_page,pages}. 기본 20개, 최대 100개, page 최대 1,000,000. page/per_page 문자열은 7자리 이하 ASCII 숫자(앞의 0 포함). 형식/자리수와 값 범위 오류는 다른 문구로 400. 필터/검색 길이 오류는 400. page 초과는 마지막 페이지로 보정, 빈 목록은 page=pages=1. 페이지 인자가 없는 기존 요청은 배열(최대 200개)을 유지한다.
 - 정렬: created_at DESC, id DESC. 필터링·count·offset/limit을 DB에서 처리하고 owner를 한 번에 가져온다.
 - 인덱스: created_at/id, owner_id/created_at/id, result/created_at/id. 기존 SQLite는 앱 시작 시, 배포 DB는 기존 flask init-db 명령 재실행으로 checkfirst 적용한다. 데이터/컬럼 변경 없음.
-- UI: 검색 제출, 네 필터, 내 사례, 초기화, 전체 건수·페이지 수·이전/다음. 조건 변경 시 첫 페이지. 요청 순서가 바뀌어도 이전 응답 무시. 로딩·오류·빈 결과·재시도 제공, 작은 화면에서도 줄바꿈.
+- UI: 검색 제출, 네 필터, 내 사례, 초기화, 전체 건수·페이지 수·이전/다음. 조건 변경 시 첫 페이지. 검색창을 비우면 q도 즉시 해제, 드롭다운 변경 시 현재 입력 검색어 적용. 로딩 중 이전 결과 표시와 비활성 페이지 버튼 유지. 요청 순서가 바뀌어도 이전 응답 무시. 로딩·오류·빈 결과·재시도 제공, 작은 화면에서도 줄바꿈.
 - 변경 파일: server/netproof_api/{cases,models,__init__}.py, server/tests/test_case_search.py, web/src/{api,types,caseSearch,caseSearch.test}.ts, web/src/pages/CasesPage.tsx, web/src/styles.css, docs/case-search.md, HANDOFF.md, decisions/ai-work-log.md.
 - 제외: 엔진/판정 로직, cases 기대값, 인증·권한, 대시보드, 새 의존성, 배포·병합.
 - 리스크: SQLite/PostgreSQL JSON 표현 차이, LIKE 와일드카드, 정렬 동률/페이지 경계, 기존 DB 인덱스 미적용, 이전 요청 덮어쓰기. 부분 검색/복합 필터는 데이터 규모에 따라 스캔할 수 있다. offset 페이지는 동시 추가/삭제 시 중복/누락 가능(스냅샷 계약 없음).
@@ -40,17 +40,29 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 완료 내용 / 테스트 결과
 - 검색·필터·페이지 UI, 기존 배열 API 호환, owner 일괄 로드, 기존 DB 인덱스 적용 구현 완료.
 - 2026-10-02 직접 실행 결과:
-  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `158 passed, 2 xfailed in 2.92s`
-  - `cd server && ../.venv/Scripts/python -m pytest -q` → `68 passed, 1 skipped in 12.84s`
-  - `npm --prefix web test` → `Test Files 6 passed (6)`, `Tests 67 passed (67)`, `Duration 1.64s`
-  - `npm --prefix web run build` → `✓ built in 719ms`
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `158 passed, 2 xfailed in 3.03s`
+  - `cd server && ../.venv/Scripts/python -m pytest -q` → `70 passed, 1 skipped in 13.10s`
+  - `npm --prefix web test` → `Test Files 6 passed (6)`, `Tests 69 passed (69)`, `Duration 1.03s`
+  - `npm --prefix web run build` → `✓ built in 912ms`
   - `git diff --check` → 오류 없음(exit 0).
 - 브라우저: 임시 SQLite/합성 사례 25개, 별도 4821 서버에서 2/2 페이지(5개) → ping 필터 13개/첫 페이지 → 빈 검색 0개 → 초기화 25개 → HTTPS 25 검색 1개 확인. 375×812에서 content width 360, viewport 375로 가로 넘침 없음. 콘솔 error 0.
 - PostgreSQL: JSON 검색 SQL 컴파일 테스트 통과. 실제 PostgreSQL 연결은 환경 미제공으로 미검증. 서버 테스트의 기존 PostgreSQL 전용 1건은 skip.
 - 실제 장비 증거가 아닌 합성 데이터다. 기존 사용자 DB에 QA 사례를 넣지 않았다.
 
 ## 리뷰 기록
-- 독립 리뷰 대기.
+- [Claude 독립 리뷰](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943803710), 검토 SHA b990e661d2d93355ae248c53cfe67f6c694ceb13. 모델 Claude Opus 5. 차단 결함 없음, 비차단 6건 보완 요청. 아래는 Codex 반영 상태이며 보완 SHA는 재리뷰 대기.
+| 항목 | 반영 | 검증 |
+|---|---|---|
+| F1 SQLite 비ASCII 검색 설명 | ASCII 보장·DB별 Unicode 한계 문서/작업 정의 명시 | SQLite ÄÖ/äö와 ASCII 회귀 테스트 |
+| F2 검색창 지우기·필터 변경 시 q 불일치 | 빈 입력 즉시 q 해제, 필터 변경 시 현재 검색어 적용, 적용 검색어 표시 | 브라우저 네이티브 ×로 1→13개(ping 유지), 초기화 25개; 제출 없이 HTTPS 25 입력+ping 선택 1개 |
+| F3 숫자 인자 오류 문구 | 형식/7자리 초과와 범위 오류 분리 | 앞의 0 포함 8자리·5000자리 거절 문구 테스트 |
+| F4 검색 중복 조인 | contains_eager로 명시 조인 재사용 | 실제 결과 SELECT별 users 조인 1개 단언 |
+| F5 오래된 응답 자동 검증 | CasesPage effect cleanup을 loadCasePage helper로 분리 | 늦은 성공/오류 두 테스트; active 가드 제거 시 2 failed, 복원 후 4 passed(364ms) |
+| F6 로딩 중 페이지 버튼 사라짐 | data 유지+loading, 이전 결과 문구/표 aria-busy/흐림, nav 유지·disabled | 브라우저 2/2 페이지 이동 확인 |
+- 기존 mine=true 무시→400은 의도한 입력 검증 강화다. 기존 클라이언트의 mine=1/무인자 호환은 유지.
+- F5는 실제 effect에서 쓰는 helper의 응답 순서 테스트이며 CasesPage DOM 마운트 전체를 자동 검증하는 테스트는 아니다. 화면 흐름은 브라우저로 확인했다.
+- Claude 직접 실행: 엔진 158+2 xfail(1.60s), 서버 68+1 skip(13.55s), 웹 67(557ms), 빌드 363ms. 보완 후 Codex 실행은 위 최신 결과.
+- PostgreSQL 실연결·EXPLAIN은 미실행.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
