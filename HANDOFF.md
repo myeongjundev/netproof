@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): PR #16을 `309238d`로 main 병합 완료 → 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main `309238d`(**PR #16 실제 결과 붙여넣기 병합 완료**). 판정기·정책 검증·매트릭스·사례 게시판·검색·대시보드·실습 과제·복제·관측 파서는 모두 동작한다.
 - 브랜치: `codex/confusion-dashboard` (origin/main `309238d` 기반, 코드 변경 없는 깨끗한 상태). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 선행 커밋 7af59c3 → Codex 구현·검증 완료 → Claude 독립 리뷰 대기.**
+- 단계: **설계 선행 커밋 7af59c3 → 구현·검증·Claude 독립 리뷰 PASS(e0d26b3) 완료 → 사용자 최종 확인·PR #17 병합 결정 대기.** 최종 기록은 문서만 갱신한다.
 - **사용자 확정(2026-10-02): 양성(positive)은 통신 차단, 즉 `DENY`다.** 이 정의가 TP·FP·FN·TN 전부의 방향을 정한다. 바꾸려면 사용자에게 먼저 묻는다.
 - 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지 보류.
 - 이 과제는 **읽기 전용**이다. 사례를 만들거나 고치거나 확인 상태를 바꾸지 않고, 판정도 다시 계산하지 않는다.
@@ -144,9 +144,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 추가 검증: 각 축 분모·제외 항등식, 미지원이 답 축을 막지 않음, 종류 없는 답 제외, 12칸과 목록 건수 일치, 새 필터 none·AND·배열 회귀, 3건/30건에서 SQL 수 동일(5이하), 불일치20건·정렬·전체30건. 최초 서버 테스트1건 실패는 합성 예시 claim.kind가 없는 것을 AI라고 가정한 테스트 fixture 오류였다. 테스트 준비값에 종류를 명시하고 전체 서버 재실행 통과; 기존 사례 파일은 수정하지 않았다.
 - 임시 DB에 합성 통계 사례8개와 임시 검토자만 추가해 브라우저 QA. 375×812 body360≤375, 표3개·고정 문구, AI오탐1건 클릭→목록1건·필터 표시, 뒤로가기·초기화(35건 전체) 확인. QA사례28을 잠시 미확인으로 두어 0건 셀 링크0 확인 후 복구. 일반 계정 대시보드 탭 없음 확인. 기존 사례27·운영 DB 변경 없음.
 - 데스크톱 body1265≤1280, 콘솔 오류0, 기본 뷰포트 복구·대시보드 화면 유지. 전체 DOM 자동 테스트·인위적 지연 주입·PostgreSQL 실연결·실장비·배포는 미검증. 필터 주소는 단방향이며 새 JSON 조건 인덱스는 없다. 판정·쓰기·엔진·expect 불변.
+- 추가 수동 QA: 같은 CasesPage에서 주소의 AI오탐 조건→엔진오탐 조건 변경 시 1건→2건으로 갱신. 로딩 중 이전 결과 안내 확인, 대시보드로 복귀.
 
 ## 현재 과제 리뷰 기록
-- (구현 후 PR을 열고 채운다.)
+- PR #17: https://github.com/myeongjundev/netproof/pull/17 . 검토 코드 SHA **e0d26b3**, Claude (Claude Opus 5) 독립 리뷰 **PASS, 차단0·비차단3**.
+- 리뷰 원문: https://github.com/myeongjundev/netproof/pull/17#issuecomment-5946024286 . Claude가 직접 실행·검토 후 저장소 밖 `comment.md`를 완성했으나, 게시 단계에서 외부 API 재시도가 반복되어 Codex가 작성자/게시자를 명시하고 원문을 그대로 전달했다. Claude 작성 판단이며 Codex 자체 리뷰로 대체하지 않았다.
+- Claude 직접 engine **263 passed, 2 xfailed in 2.57s**, server **85 passed, 1 skipped in 14.10s**, web **105 passed, 803ms**, build **333ms**. 저장소 테스트와 별도의 독립 probe67개 전부 OK: 방향·분모·제외 우선순위·12칸 목록일치·기존키·권한·배열/페이지·JSON 미지 값·읽기 전후 DB불변. SQL SELECT는 10건/40건 모두4개(세션/사용자/집계/목록). PG 방언 컴파일만 확인, 실연결은 미검증.
+- 비차단 후속3건: CasesPage 진입 시 초기화 effect의 새 필터 객체로 조회2번 발생(첫 응답 cleanup으로 버림, DOM 실행 재현은 미검증); 빈 질의 `#/cases?`가 query 빈문자열 키를 남김(동작상 빈 필터); 임의 DB kind값은 집계에서 예측 없음인데 claim_kind=none은 NULL만 필터(현 쓰기 경로에서는 kind 정규화, 12칸 링크에는 영향 없음).
+- 내부 useRoute·전체 불일치 두 링크·정규화 그룹270이하는 설계 의도 내 선택으로 Claude가 수용. 엔진/expect/쓰기 경로/허용 밖 변경 없음. Claude 독립 브라우저 확인·인위적 지연 주입·PG 실연결·실장비는 미검증. 추가 코드 변경 없이 기록만 커밋한다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #16 실제 결과 붙여넣기 (병합 완료, `309238d`)**: 엔진 `observe` 순수 파서(ping·Nmap 출력 → 실제 결과 **입력 후보**), 상태 없는 `POST /api/observe`(로그인 필요, DB 접근 없음), 작성자 전용 상세 UI, `web/src/observe.ts` 적용 헬퍼. Claude 독립 리뷰 PASS(`33f957d`) → Codex 보완 14건 → Claude 보완 재리뷰 PASS 유지(`28eff26`, 차단 0건) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 80 passed·1 skipped, web 90 passed, build 성공.
@@ -180,7 +185,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
-- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **DENY 양성. 구현·검증 완료 → Claude 리뷰 대기 — 브랜치 codex/confusion-dashboard**
+- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **DENY 양성. PR17 구현·검증·Claude PASS 완료 → 사용자 병합 결정 대기 — 브랜치 codex/confusion-dashboard**
 - [ ] ACL 점검(가려진 규칙·중복·과도한 permit) — ③ `docs/semantics.md` 함께
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
@@ -207,7 +212,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git status`, `git log -3`으로 설계 단독 커밋을 확인하고 **위 작업 정의 그대로** 구현한다. 양성은 사용자 확정 `DENY`이고, 네 칸의 방향·분모·제외 규칙은 설계 변경 없이 바꾸지 않는다.
+- `git pull`, `git status`, `git log -3` 후 사용자 PR17 병합 결정을 확인한다. 구현·독립 리뷰는 완료되어 새 구현은 필요 없다. 병합 뒤 다음 독립 과제는 **ACL 점검(가려진 규칙·중복·과도한 permit)의 Claude 설계**이며 Cisco 붙여넣기는 사람 확인까지 보류한다. 양성은 사용자 확정 DENY로 유지한다.
 - Codex: 구현 전에 `server/netproof_api/cases.py`(`dashboard()`의 `Case.query.all()`·`list_cases`의 `allowed` 검증 표와 JSON 경로 조건), `server/netproof_api/models.py`(`Case.in_scope`·`summary()`·기존 인덱스 — **읽기만 한다**), `web/src/caseSearch.ts`(`caseSearchParams`), `web/src/router.ts`(`parseRoute`), `web/src/pages/{DashboardPage.tsx,CasesPage.tsx}`, `web/src/types.ts`(`Dashboard`·`CaseFilters`)를 읽고 **새 DB 열·새 엔드포인트·판정 재계산을 만들지 않는지** 확인한다.
 - 네 칸의 정의, 양성 정의, 제외 규칙, 세 축의 예측값 출처를 줄이거나 늘리고 싶으면 **먼저 요청한다.** 이것을 바꾸는 것은 통계의 뜻이 바뀌는 변경이다.
 - 집계 결과와 칸 링크가 가리키는 목록이 어긋나면 **구현 쪽 버그다.** 수를 맞추려고 분모나 필터 뜻을 바꾸지 않는다.
