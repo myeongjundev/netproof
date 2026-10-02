@@ -44,7 +44,8 @@ def observe(text: str, flow: dict) -> dict:
     nmap = [line for line in lines if line.startswith("Nmap scan report for ")]
     ping_headers = [line for line in lines if re.match(r"(?:PING |Pinging |Ping (?!statistics))", line)]
     ping_stats = [line for line in lines if "ping statistics" in line.lower() or re.search(r"(?:의|에 대한) (?:Ping )?통계", line)]
-    if nmap and (ping_headers or ping_stats):
+    port_lines = [line for line in lines if re.match(r"\S+/\S+\s", line)]
+    if (nmap and (ping_headers or ping_stats or re.search(r"%\s*(?:packet loss|loss|손실)", text))) or (ping_headers and port_lines):
         return reject("ping과 Nmap 출력을 섞지 마세요")
     evidence = []
     if nmap:
@@ -53,7 +54,7 @@ def observe(text: str, flow: dict) -> dict:
         header = re.fullmatch(r"Nmap scan report for (?:[^()\n]+ \()?([0-9.]+)\)?", nmap[0])
         if not header or _ip(header[1]) != dst:
             return reject("Nmap 대상 IPv4를 읽을 수 없습니다")
-        ports = [line for line in lines if re.match(r"\S+/(?:tcp|udp)\s", line)]
+        ports = port_lines
         if len(ports) != 1:
             return reject("Nmap 단일 포트 결과 한 줄이 필요합니다")
         port = re.fullmatch(r"([0-9]+)/([a-z]+)\s+(open|closed|filtered|open\|filtered)(?:\s+.*)?", ports[0])
