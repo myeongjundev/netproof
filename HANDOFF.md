@@ -21,8 +21,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): 이번 과제는 CLAUDE.md/AGENTS.md 역할대로 Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main(PR #13 병합 완료). 사례 목록 검색·필터·페이지는 끝났다.
 - 브랜치: codex/policy-matrix (origin/main 기반 새 브랜치). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: Claude 설계 → Codex 구현·검증 → Claude 독립 리뷰 PASS → 비차단 N1/N2 보완·재검증 완료
-- 다음 차례: 보완분 Claude 재확인 후 사용자 최종 확인·병합 결정. 자동 병합하지 않는다.
+- 단계: Claude 설계 → Codex 구현·검증 → Claude 독립 리뷰 PASS → 비차단 N1/N2 보완·재검증 → Claude 재확인 PASS 완료
+- 다음 차례: 사용자 최종 확인·병합 결정(PR #14). 자동 병합하지 않는다.
 
 ## 작업 정의
 - 목표: 판정기에 입력한 network로 모든 host 인터페이스 IP 순서쌍 × 주요 서비스(TCP/UDP 포트, ICMP)를 기존 `verify`로 반복 판정하고, 사용자가 적은 PASS/DENY 의도와 비교해 "막혀야 하는데 열림"(노출)을 최우선으로 보여 준다.
@@ -64,7 +64,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - Claude 직접 실행: 엔진 185 passed/2 xfailed in 2.01s, 서버 74 passed/1 skipped in 12.20s(9f81a98, 엔진/서버 변경 없음), 최신 웹 79 passed(517ms), 빌드 230ms(6404ef3). 임시 합성 probe로 집계 불변식·노출·미판정·의도 충돌·중복·ICMP 별칭 확인.
 - 비차단 N1(a) 반영: 대상 밖 의도 오류에 src → dst · service 명시, 재현 테스트 추가. N1(b) 자동 정리는 합의한 "자동 폐기 안 함"을 유지한다. 의도 목록의 삭제 UI로 사람이 정리하고 다시 계산한다. 자동 삭제하면 사용자 의도가 사라져 NO_POLICY/노출 0으로 오해할 수 있다.
 - 비차단 N2 반영: 의도 src/dst 문자열 가드, 정수·bool·null 거절 회귀 테스트 4개. 기존 verify·model은 수정하지 않았다.
-- 보완 후 Codex 전체 실행은 위 최신 결과. 보완분 Claude 재확인 대기.
+- 보완 후 Codex 전체 실행은 위 최신 결과.
+- [Claude 보완 확인 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944446594). 검토 SHA 566e6fea1585a889823de090cfb281ac2cccb3f2, 범위 6404ef3..566e6fe. 직접 실행 `engine pytest -q tests/test_policy_matrix.py` → `32 passed in 0.94s`, 대상 밖 의도·정수 IP 거절·정상 노출 probe 재현. N1(a)/N2 해결, N1(b) 사용자 의도 수동 정리 유지에 동의. 남은 지적 없음. 모델 Claude Opus 5.
+- 브라우저 보완 실측: HTTPS 포트 443→8443 변경 후 오류가 `의도 10.10.10.10 → 10.20.20.5 · tcp/443`를 식별, 443으로 복구 후 다시 노출 1건. 로컬 API/별도 preview를 최신 엔진으로 재시작했다.
+- 미검증: 긴 ACL·다수 라우터 최악 성능, 전체 DOM 마운트 자동 테스트. Claude는 Codex 브라우저 실측을 직접 재현하지 않았음을 명시했다. 이후 기록 커밋은 실행 코드 변경 없음.
 
 ## 이전 과제 리뷰 기록 (PR #13 병합 완료)
 - 정책 검증 + 도달성 매트릭스: 설계만 끝났고 구현 전이라 리뷰 없음. Codex 구현 후 Claude 독립 리뷰 차례다.
