@@ -153,6 +153,9 @@ export interface CaseFilters {
   comparison: Comparison | "";
   confirmed: "" | "0" | "1";
   source: ActualSource | "none" | "";
+  actual: "PASS" | "DENY" | "none" | "";
+  claim_kind: "ai" | "self" | "none" | "";
+  claim_expected: "PASS" | "DENY" | "";
 }
 
 export interface CasePage {
@@ -186,4 +189,16 @@ export interface Dashboard {
   ai_confirmed: number;
   ai_wrong: number;
   mismatches: CaseSummary[];
+  mismatches_total: number;
+  confusion: { positive: "DENY"; axes: ConfusionAxis[] };
+}
+
+export interface ConfusionAxis {
+  axis: "ai" | "self" | "engine";
+  tp: number;
+  fp: number;
+  fn: number;
+  tn: number;
+  total: number;
+  excluded: { not_confirmed: number; no_actual: number; no_prediction: number };
 }

@@ -264,6 +264,17 @@ p .meta { display: inline; }
 .metric-value { font-size: 26px; font-weight: 700; margin: 2px 0; }
 .metric-note { font-size: 12px; color: var(--muted); }
 .miss { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.confusion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; }
+.confusion-axis { min-width: 0; }
+.confusion-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+.confusion-table caption { text-align: left; color: var(--muted); padding: 4px 0 8px; }
+.confusion-table th, .confusion-table td { border: 1px solid var(--line); text-align: center; padding: 8px 4px; overflow-wrap: anywhere; }
+.confusion-table td strong, .confusion-table td span { display: block; }
+.confusion-table td strong { font-size: 20px; }
+.confusion-table td a { display: block; min-height: 44px; text-decoration: none; }
+.confusion-table td a:hover { text-decoration: underline; }
+.confusion-table .fp, .confusion-table .fn { background: var(--warn-bg); }
+.mismatch-link { margin-left: 8px; }
 .save-row { display: flex; gap: 8px; }
 .save-row label { flex: 1; }
 .practice-list { margin-top: 12px; }

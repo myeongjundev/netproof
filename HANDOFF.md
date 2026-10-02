@@ -17,142 +17,150 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: 실제 결과 붙여넣기 — ping·Nmap 출력에서 **실제 결과 입력 후보** 만들기 (로드맵 3주차, 순환 고리 ④)
-- 사용자 승인(2026-10-02): PR #15 병합 완료 후 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
-- 기반: 최신 origin/main `7b15fde`(**PR #15 사례 복제·실습 과제 템플릿 병합 완료**). 판정기·정책 검증·매트릭스·사례 게시판·검색·대시보드·실습 과제·복제는 모두 동작한다.
-- 브랜치: `codex/actual-output` (origin/main 7b15fde 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **구현·검증·Claude 보완 재리뷰 PASS 완료 → 사용자 최종 확인·PR #16 병합 결정 대기.** 설계 선행 커밋 `04bccc5`, 최종 코드 검토 SHA `28eff26`. 병합 전 기록 커밋은 문서만 갱신한다.
-- 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지, **오탐·미탐 대시보드**는 다음 과제로 설계한다. 사용자 결정(2026-10-02): **통신 차단(DENY)을 양성**으로 한다. 이번 과제 범위에는 포함하지 않는다.
-- 이 과제에서 **실제 장비 접속·명령 실행·패킷 전송·배포는 하지 않는다.** 사람이 다른 곳에서 얻어 **붙여넣은 텍스트만** 다룬다.
+- 집에서 이어가기(2026-10-02): [HOME_HANDOFF.md](HOME_HANDOFF.md)에 완료 기능·PR #17 상태·새 PC 실행 명령·다음 순서·이번 인계 직전 검사 출력을 정리했다. 사용자 요청으로 문서만 커밋·푸시하며 병합 결정 대기는 유지한다.
+- 작업: **오탐·미탐 대시보드** — AI 답·사람 예상·NetProof 판정을 각각 **확인된 실제 결과**와 2×2로 비교하고, 칸을 누르면 그 사례 목록으로 간다 (로드맵 3주차, 순환 고리 ⑤)
+- 사용자 승인(2026-10-02): PR #16을 `309238d`로 main 병합 완료 → 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
+- 기반: 최신 origin/main `309238d`(**PR #16 실제 결과 붙여넣기 병합 완료**). 판정기·정책 검증·매트릭스·사례 게시판·검색·대시보드·실습 과제·복제·관측 파서는 모두 동작한다.
+- 브랜치: `codex/confusion-dashboard` (origin/main `309238d` 기반, 코드 변경 없는 깨끗한 상태). 설계는 main이 아니라 이 브랜치에 기록한다.
+- 단계: **설계 선행 커밋 7af59c3 → 구현·검증·Claude 독립 리뷰 PASS(e0d26b3) 완료 → 사용자 최종 확인·PR #17 병합 결정 대기.** 최종 기록은 문서만 갱신한다.
+- **사용자 확정(2026-10-02): 양성(positive)은 통신 차단, 즉 `DENY`다.** 이 정의가 TP·FP·FN·TN 전부의 방향을 정한다. 바꾸려면 사용자에게 먼저 묻는다.
+- 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지 보류.
+- 이 과제는 **읽기 전용**이다. 사례를 만들거나 고치거나 확인 상태를 바꾸지 않고, 판정도 다시 계산하지 않는다.
 
 ## 작업 정의
-- 목표: 사례 상세의 **실제 결과** 칸을 채울 때, 사람이 손으로 옮겨 적던 ping·Nmap 출력을 붙여넣으면 **입력 후보**(실제로/확인 방법/메모 초안)를 보여 준다. 사람이 후보를 보고 **직접 적용·저장**한다.
-- **관측(실제 결과)과 판정(`verify`)은 다른 축이다.** 이 과제는 모델 판정을 만들거나 바꾸지 않는다. 붙여넣은 출력은 "실제로 무엇이 관측됐나"일 뿐이고, PASS/DENY 판정은 그대로 `engine/`의 `verify`가 정한다(ADR-001).
-- 범위를 이렇게 좁힌 이유: 실제 결과 저장(`PATCH /api/cases/<id>`)·확인 해제(`clear_confirmation`)·검토자 확인·메모 1000자 한도가 이미 전부 있다(cases.py:189-228, CaseDetailPage.tsx:121-153). 새로 필요한 것은 **텍스트 → 후보 변환 하나**뿐이다. 새 DB 컬럼·마이그레이션·자동 저장·자동 확인은 만들지 않는다.
+- 목표: 검토자 대시보드에 **혼동 행렬 세 개**(AI 답 / 사람 예상 / NetProof 판정)를 세고, 각 칸(TP·FP·FN·TN)을 누르면 **그 칸에 세어진 사례만** 걸러진 사례 게시판으로 이동한다.
+- **이것은 판정이 아니라 집계다.** 이미 저장된 `result`(엔진이 계산한 판정)·`claim.expected`(받은 답)·`actual_result`(작성자가 적고 검토자가 확인한 실제 결과)를 **읽어서 교차표를 세는 것뿐이다.** 판정 로직을 서버·화면에 복제하지 않고(ADR-001), 엔진은 **한 줄도 고치지 않는다**(`__version__`도 그대로).
+- **세 축은 서로 다른 예측자다.** 한 사례가 세 축에 동시에 들어갈 수 있고, 축마다 분모가 다르다.
 
-### 1) 엔진: 관측 파서·매핑 (`engine/src/netproof_engine/observe.py`, 신규)
-- 최종 결과 매핑을 **엔진에 둔다**(ADR-001 유지). 화면·서버는 호출만 한다. `verify`·`compare`·`matrix`는 **고치지 않는다**.
-- 공개 함수 하나: `observe(text: str, flow: dict) -> dict`. 순수 함수다 — **시계·네트워크·파일·난수를 쓰지 않는다**(메모에 날짜를 지어 넣지 않는다. 날짜는 사람이 적는다).
-- 반환 계약(키를 줄이거나 늘리지 않는다):
-
-| 키 | 값 |
-|---|---|
-| `status` | `"OK"` / `"REJECTED"` — REJECTED는 후보를 만들지 않았다는 뜻 |
-| `problems` | 거절·미정 이유 문자열 목록(한국어, 각 200자 이하) |
-| `tool` | `"ping"` / `"nmap"` / `null` |
-| `observed` | `"reply"` / `"no_reply"` / `"partial"` / `"open"` / `"closed"` / `"filtered"` / `"unknown"` |
-| `result` | `"PASS"` / `null` — 입력 후보. `null`은 "아직 모름" |
-| `source` | `"ping"` / `"nmap"` / `null` — 기존 `ActualSource` 값만 쓴다 |
-| `note` | 메모 초안, 1000자 이하 |
-| `target` | 출력에서 읽은 목적지 IPv4 또는 `null` |
-| `evidence` | 근거로 쓴 줄, 최대 2줄·각 120자 |
-
-- **매핑 표**(이 표가 유일한 기준이다. 표에 없으면 `result: null`):
-
-| 관측 | `observed` | `result` 후보 | 근거 |
+| 축 | `axis` | 예측값 | 비어 있을 때 |
 |---|---|---|---|
-| ping 손실 0% (받음 ≥ 1) | `reply` | `PASS` | 정방향·복귀 왕복이 실제로 됐다 |
-| ping 손실 100% / 전부 시간 초과 | `no_reply` | **`null`** | 무응답은 막힘의 증거가 아니다 |
-| ping 부분 손실(0 < 손실 < 100) | `partial` | **`null`** | 간헐·속도 제한·ARP와 구분되지 않는다 |
-| nmap `open` (tcp·udp) | `open` | `PASS` | 응답이 돌아왔다 |
-| nmap `closed` | `closed` | **`null`** | 경로는 닿았지만 서비스 상태는 모델 밖이다 |
-| nmap `filtered` · `open\|filtered` | `filtered` | **`null`** | 응답 없음이다. ACL deny로 단정하지 않는다 |
-| 그 밖 / 못 알아봄 | `unknown` | `null` | — |
+| AI 답 | `ai` | `claim.kind == "ai"`인 사례의 `claim.expected` | AI 답이 없는 사례는 이 축의 분모에서 빠진다 |
+| 사람 예상 | `self` | `claim.kind == "self"`인 사례의 `claim.expected` | 사람 예상이 없는 사례는 이 축의 분모에서 빠진다 |
+| NetProof 판정 | `engine` | 저장된 `result` | `UNSUPPORTED`·`INVALID`는 이 축의 분모에서 빠진다 |
 
-- **무응답·filtered를 자동 DENY로 만들지 않는다.** 장비 꺼짐·ARP 실패·속도 제한·라우팅 누락·호스트 방화벽(모델 밖)과 구분되지 않는다. 사람이 DENY를 고르는 길은 **기존 select** 그대로 열려 있고, 메모 초안은 그대로 채워 준다(손으로 옮겨 적는 수고만 없앤다). **DENY 후보는 이번 범위에서 만들지 않는다** — 명시적 금지 메시지(administratively prohibited 등) 인식은 후속 과제로 남긴다.
-- **흐름 일치를 엄격히 본다.** 하나라도 어긋나면 `status: "REJECTED"`, `result: null`이고 `problems`에 무엇이 어긋났는지 적는다.
-  - 목적지: 출력에서 읽은 IPv4가 `flow.dst`와 **같아야** 한다. 텍스트 안의 IPv4 집합이 `{flow.dst}`를 벗어나면(경로 중간 장비 응답, 다른 대상) 거절한다.
-  - 프로토콜: ping은 `flow.proto == "icmp"`이고 `flow.icmp`가 `echo`(기본)일 때만. nmap 포트 줄의 `tcp`/`udp`가 `flow.proto`와 같고 포트가 `flow.dst_port`와 같을 때만.
-  - **출발지는 확인할 수 없다.** ping·nmap 출력에 출발지가 없다. `flow.src`가 맞는지 사람이 확인하게 안내만 하고, 맞다고 가정하지 않는다.
-- **보수적으로 거절하는 입력**(모두 `REJECTED`, 후보 없음):
-  - 대상이 둘 이상(여러 `Nmap scan report for`, 여러 ping 통계 블록)
-  - 포트 줄이 둘 이상(단일 포트만 지원한다. 자동으로 하나 고르지 않는다)
-  - ping과 nmap이 섞인 붙여넣기
-  - 통계·포트 줄이 없는 잘린 출력, 목적지 IPv4를 못 읽은 출력(이름만 나오고 괄호 IP가 없는 경우 포함)
-  - `flow`가 객체가 아니거나 `dst`가 IPv4가 아닌 경우
-- **지원 형식**(최소 유용 범위. 넓히는 것은 후속):
-  - Windows `ping`: `Pinging 10.0.0.5 …` / 통계 줄의 손실 백분율. **한국어 Windows 포함**(`…의 통계`, `손실: 0 (0% 손실)`). 낱줄(`Reply from` / `…의 응답`)은 근거로만 쓰고 판단은 통계 줄로 한다.
-  - Linux `ping`: `PING 10.0.0.5 (10.0.0.5)`, `--- 10.0.0.5 ping statistics ---`, `4 packets transmitted, 4 received, 0% packet loss`.
-  - 손실 백분율은 **언어에 의존하지 않게** 백분율 숫자 + 손실 키워드(`loss`·`손실`)로 읽는다. 통계 줄이 없으면 거절한다.
-  - `nmap`: `Nmap scan report for <이름> (10.0.0.5)` 또는 `… for 10.0.0.5`, 포트 줄 `443/tcp open https` · `53/udp open|filtered` · `closed` · `filtered`.
-- **제외 형식**: Cisco `show`·`ping` 출력(보류 과제), traceroute, curl·telnet·nc, 패킷 캡처, 로그 파일, nmap XML·grepable(`-oX`/`-oG`), 호스트 이름만 있는 출력. 모두 `tool: null` + 거절이고, **추측하지 않는다.**
-- **숫자 파싱**: 백분율·포트·개수는 **ASCII 십진수만** 받는다(`value.isascii() and value.isdecimal()`, 길이 상한 확인 후 `int()`). 유니코드 숫자로 `int()`를 부르지 않는다 — 이슈 #7·#9와 같은 부류의 버그를 다시 만들지 않는다.
-- **입력 상한**: `text`는 4000자·80줄까지, 그 위는 거절한다(`problems`). `evidence`는 2줄·각 120자, `note`는 1000자에서 자른다(서버 메모 한도와 같다).
-- `engine/src/netproof_engine/__init__.py`에 `observe`를 export한다(`__all__` 포함). **`__version__`은 올리지 않는다** — 판정 계산이 바뀌지 않았고, 사례에 적히는 `engine_version`은 판정 재현용이다.
+### 1) TP·FP·FN·TN의 뜻 (양성 = `DENY`)
+- **분모에 들어가는 사례**: `confirmed_at`이 있고(검토자 확인), `actual_result`가 `PASS`/`DENY`이고, **그 축의 예측값이 `PASS`/`DENY`인** 사례. 셋 중 하나라도 아니면 그 축에서 **제외**한다.
 
-### 2) 서버: 상태 없는 파싱 엔드포인트 (`server/netproof_api/cases.py`)
-- `POST /api/observe` 하나만 추가한다. `@login_required`. 본문 `{text, flow}` → `jsonify(observe(text, flow))`.
-- **DB를 읽지도 쓰지도 않는다.** 사례 id를 받지 않고, 저장·확인·확인 해제를 건드리지 않는다. 판정·비교를 다시 계산하지 않는다.
-- 잘못된 본문(`text`가 문자열 아님, 상한 초과)은 엔진의 `problems`로 200에 담아 돌려준다. 400은 본문이 객체가 아닐 때만.
-- **원문 로그를 남기지 않는다.** 붙여넣은 텍스트를 `current_app.logger`·파일·DB·예외 메시지에 넣지 않는다(사례 메모에 사람이 확인해 남기는 요약만 저장된다).
-- `/api/cases` 저장·`PATCH`·`confirm`·`unconfirm`·`export`·대시보드는 **한 줄도 고치지 않는다**. 실제 결과가 바뀌면 확인이 풀리는 기존 동작(`changed_truth` → `clear_confirmation`)을 그대로 쓴다.
+| 칸 | 예측 | 실제 | 한국어 이름 | 뜻 |
+|---|---|---|---|---|
+| `tp` | `DENY` | `DENY` | 맞게 잡은 차단 | 막힌다고 했고 실제로 막혔다 |
+| `fp` | `DENY` | `PASS` | **오탐** | 막힌다고 했는데 실제로는 통했다 |
+| `fn` | `PASS` | `DENY` | **미탐** | 통한다고 했는데 실제로는 막혔다 |
+| `tn` | `PASS` | `PASS` | 맞게 본 통과 | 통한다고 했고 실제로 통했다 |
 
-### 3) 화면: 붙여넣기 → 후보 → 사람이 적용 (`web/src/pages/CaseDetailPage.tsx`)
-- 위치: **실제 결과 패널 안, 작성자(`isOwner`)에게만** 보이는 `<details>` "출력 붙여넣기". 비작성자 화면(`dl.facts`)과 검토자 블록은 그대로 둔다.
-- 흐름: textarea에 붙여넣기 → **"후보 만들기"** 버튼(사람이 누른다) → `api.observe(text, item.flow)` → 결과 카드(관측·후보·근거 줄·문제 목록) → **"입력칸에 적용"** 버튼 → 지역 `actual` 상태만 바뀐다 → 기존 **"실제 결과 저장"** 버튼으로 사람이 저장한다.
-- **자동으로 하지 않는 것**: 입력 중 자동 호출(디바운스 포함), 자동 적용, 자동 저장, 자동 확인/확인 해제, 판정 재실행. 버튼은 사람이 누른다.
-- 적용 규칙(`web/src/observe.ts`의 순수 함수로 빼서 테스트한다):
-  - `result`: 후보가 `null`이면 **기존 선택을 지우지 않는다**. 후보가 있으면 덮어쓴다.
-  - `source`: 후보가 있으면 설정한다(`ping`·`nmap`은 기존 `ActualSource` 값이다).
-  - `note`: 비어 있으면 초안을 넣고, 내용이 있으면 **줄바꿈 뒤에 덧붙인다**(사람이 쓴 메모를 지우지 않는다). 합친 뒤 1000자에서 자른다.
-- `status: "REJECTED"`면 적용 버튼을 보이지 않고 `problems`만 보여 준다. "미정"일 때는 적용은 되지만(메모·출처) 결과는 비어 있다는 것을 문구로 밝힌다.
-- 고정 안내 문구(네 가지를 반드시 쓴다):
-  - **"관측은 판정이 아닙니다. 붙여넣은 출력은 실제로 본 것이고, PASS/DENY 판정은 계산 엔진이 정합니다."**
-  - **"응답이 없는 것(시간 초과·filtered)은 막혔다는 증거가 아닙니다. 막혔다고 볼지는 사람이 정합니다."**
-  - **"출발지는 출력에 없습니다. 이 출력을 어느 장비에서 실행했는지 직접 확인하세요."**
-  - **"장비 이름·내부 주소가 담긴 원문은 필요한 줄만 붙여넣으세요. 원문은 저장되지 않습니다."**
-- 붙여넣은 원문은 **지역 상태**다. `Draft`·공유 링크·사례 JSON·localStorage·DB에 넣지 않는다. 화면을 떠나면 사라진다 — 의도한 동작이다.
-- **출력 위조는 파서가 막을 수 없다.** 후보는 제안일 뿐이고, 사람이 적용·저장하고 검토자가 확인하며 근거 줄이 메모에 남는 것이 통제 장치다. 문구에 "확인했다고 적는 책임은 사람에게 있다"는 뜻이 드러나게 한다.
-- `web/src/api.ts`에 `observe: (text, flow) => call<Observation>("POST", "/api/observe", { text, flow })` 한 줄, `web/src/types.ts`에 `Observation` 타입만 추가한다. 기존 타입·엔드포인트는 바꾸지 않는다.
-- 새 라우트·새 탭·새 페이지를 만들지 않는다. JudgePage·실습 과제·복제 버튼은 건드리지 않는다.
+- **FP와 FN을 뒤집는 것이 이 과제의 1번 버그다.** 양성이 `DENY`이므로 "예측 `DENY` + 실제 `PASS` = 오탐(FP)"이다. 테스트로 방향을 못 박는다.
+- 제외 사유는 **한 사례당 하나만** 세고 순서는 `not_confirmed` → `no_actual` → `no_prediction`이다. 따라서 축마다 다음 항등식이 성립한다(테스트로 확인한다).
+  `tp + fp + fn + tn + not_confirmed + no_actual + no_prediction == 전체 사례 수`
+  - `not_confirmed` — 검토자가 확인하지 않았다. **미확인은 통계에 섞지 않는다.**
+  - `no_actual` — 확인은 됐지만 실제 결과가 `PASS`/`DENY`가 아니다(**미정**). 지금 서버는 실제 결과 없는 사례를 확인할 수 없어 보통 0이지만, 방어적으로 세고 화면에 드러낸다.
+  - `no_prediction` — 그 축의 예측값이 양·음 둘 중 하나가 아니다. `engine` 축은 `UNSUPPORTED`(**미지원**)·`INVALID`, `ai`·`self` 축은 그 종류의 답이 없는 경우다.
+- 분모(`total` = `tp+fp+fn+tn`)를 **축마다 응답에 함께 담는다.** 화면은 "3 / 7"처럼 분모를 반드시 함께 보여 준다. 분모가 0이면 비율은 `—`다(기존 `ratio()` 헬퍼 그대로).
+- **`comparison`과 다른 축이다.** `comparison`(AGREE/DISAGREE/…)은 *받은 답 vs 엔진 판정*이고, 이 대시보드는 *예측 vs 확인된 실제 결과*다. 섞어 쓰지 않고 `comparison`에서 TP/FP를 유도하지 않는다.
+- 정밀도·재현율은 **이번 범위에서 만들지 않는다.** 사례 수가 한 자릿수인 동안 비율은 오해를 만든다. 칸 개수 + 분모 + 기존 방식의 정확도(일치/분모)까지만 보여 준다.
+
+### 2) 서버: 기존 `/api/dashboard` 확장 (`server/netproof_api/cases.py`)
+- **새 엔드포인트를 만들지 않는다.** 기존 `GET /api/dashboard`(`@reviewer_required`) 응답에 키를 **더한다**. 기존 키(`total`·`confirmed`·`unsupported`·`invalid`·`confirmed_in_scope`·`agree`·`ai_confirmed`·`ai_wrong`·`mismatches`)는 **이름과 뜻을 모두 그대로** 둔다.
+
+| 키 | 뜻 |
+|---|---|
+| `confusion.positive` | 항상 `"DENY"` — 양성 정의를 화면이 추측하지 않게 서버가 적어 준다 |
+| `confusion.axes` | 길이 3 배열, 순서 고정 `["ai", "self", "engine"]` |
+| `axes[].axis` | `"ai"` / `"self"` / `"engine"` |
+| `axes[].tp`·`fp`·`fn`·`tn` | 위 표의 네 칸 |
+| `axes[].total` | `tp+fp+fn+tn` (그 축의 분모) |
+| `axes[].excluded` | `{not_confirmed, no_actual, no_prediction}` — 세 키를 항상 담는다(0이어도) |
+| `mismatches_total` | 엔진이 실제와 다른 사례의 **전체 개수**(`mismatches` 배열은 최근 20건으로 자른다) |
+
+- **DB 전체 materialize를 없앤다.** 지금 `dashboard()`는 `Case.query.all()`로 모든 사례의 `network`·`flow`·`verdict` JSON을 파이썬으로 끌어온다(`server/netproof_api/cases.py:305`). 사례가 늘면 그대로 메모리·시간 문제가 되고, `mismatches`의 `summary()`가 `owner.nickname`을 건드려 N+1 질의까지 난다. 다음으로 바꾼다.
+  - **집계 질의 1개**: `GROUP BY claim의 kind, claim의 expected, result, actual_result, (confirmed_at IS NULL)` + `func.count()`. 행 수는 최대 3×3×4×3×2 = 216으로 **사례 수와 무관하게 유한**하다. 기존 키 9개와 세 축 전부를 이 결과에서 파이썬 산술로 만든다.
+  - **목록 질의 1개**: `mismatches`용. `result != actual_result`·확인됨·범위 안 조건으로 걸러 `joinedload(Case.owner)`와 `ORDER BY created_at DESC, id DESC`(기존 목록과 같은 정렬)로 **20건만** 가져온다. 전체 개수는 집계 결과에서 이미 알므로 추가 질의가 없다.
+  - JSON 경로 추출은 **기존 코드와 같은 방식**(`Case.claim["kind"].as_string()`)을 쓴다. `list_cases`의 `Case.flow["src"].as_string()`(`server/netproof_api/cases.py:142-144`)이 이미 같은 방식이다. PostgreSQL에서 JSON `GROUP BY`가 다르게 동작하면 **같은 한 번의 질의 안에서** `func.sum(case(...))` 조건부 합으로 바꿔도 된다. 질의 수(2개)와 항등식 테스트만 지키면 방식은 Codex가 고른다.
+  - `mismatches` 배열을 20건으로 자르는 것은 **의도한 동작 변경**이다(지금은 상한이 없다). 화면이 `mismatches_total`로 "전체 N건 중 최근 20건"을 밝히고, 전체 보기는 아래 목록 필터 링크로 보낸다.
+- **새 필터 세 개를 `/api/cases`에 더한다.** 칸 링크가 가리킬 주소가 필요하다. 기존 `allowed` 검증 표(`server/netproof_api/cases.py:118-123`)에 같은 모양으로 넣는다.
+
+| 질의 변수 | 허용값 | 조건 |
+|---|---|---|
+| `actual` | `PASS` · `DENY` · `none` | `actual_result` 열. `none`은 `IS NULL` |
+| `claim_kind` | `ai` · `self` · `none` | `claim`의 `kind`. `none`은 `IS NULL` |
+| `claim_expected` | `PASS` · `DENY` | `claim`의 `expected` |
+
+  - 허용값 밖은 기존과 똑같이 **400**이다. 세 필터는 기존 필터와 **AND**로 합쳐진다.
+  - 기존 동작은 전부 그대로다: `mine`·`q`·`result`·`comparison`·`confirmed`·`source`, 배열 응답(`page`/`per_page`가 없으면 `limit(200)` 배열), 페이지 응답(`items`·`total`·`page`·`per_page`·`pages`), 정렬, 마지막 페이지 보정, 검색 이스케이프, 검색어 100자 상한.
+  - **칸과 목록은 같은 조건을 써야 한다.** 칸 하나 = `confirmed=1` + `actual=<실제>` + (`engine` 축이면 `result=<예측>`, `ai`·`self` 축이면 `claim_kind=<축>&claim_expected=<예측>`). 집계와 목록이 어긋나면 사용자가 수를 믿을 수 없다 → 아래 교차 확인 테스트로 못 박는다.
+- **쓰기는 없다.** 이 과제에서 `POST`·`PATCH`·`DELETE`·`confirm`·`unconfirm`·`export`·`observe`·`verify`·`policy-matrix`는 한 줄도 고치지 않는다. 새 DB 열·인덱스·마이그레이션을 만들지 않는다(`models.py`는 손대지 않는다).
+
+### 3) 화면: 2×2 세 개 + 칸 → 목록 (`web/src/pages/DashboardPage.tsx`, `CasesPage.tsx`)
+- 대시보드에 **섹션 하나**를 더한다: "오탐·미탐"(기존 요약 카드와 "엔진이 실제와 다른 사례" 사이). 새 라우트·새 탭·새 페이지를 만들지 않는다.
+- 섹션 머리에 고정 문구 네 개를 반드시 쓴다.
+  - **"여기서 양성은 통신 차단(DENY)입니다. 막힌다고 본 것이 맞았는지를 셉니다."**
+  - **"오탐은 막힌다고 했는데 실제로 통한 경우, 미탐은 통한다고 했는데 실제로 막힌 경우입니다."**
+  - **"검토자가 확인한 실제 결과만 셉니다. 미확인·미정·지원 범위 밖 사례는 분모에서 빠집니다."**
+  - **"이 표는 판정을 다시 하지 않습니다. 이미 저장된 답·판정·실제 결과를 세기만 합니다."**
+- 축마다 2×2 `<table>` 하나. 행은 예측(`DENY`/`PASS`), 열은 실제(`DENY`/`PASS`)이고 `<th scope>`로 머리글을 준다. 칸 안에 **개수와 칸 이름**을 쓴다(오탐·미탐은 이름을 꼭 보이게 한다). 표 아래 한 줄로 분모와 제외 내역(`미확인 n · 미정 n · 예측 없음 n`)을 밝힌다.
+- 칸 링크: 개수가 **1 이상일 때만** `<a href="#/cases?…">`로 만든다. 0건은 링크하지 않는다(빈 목록으로 보내지 않는다). `aria-label`에 "AI 답 차단 · 실제 통과 · 오탐 3건, 사례 목록으로"처럼 뜻을 적는다.
+- 주소는 **기존 직렬화 함수를 재사용한다**: `caseSearchParams`로 만든다. 새 질의 문자열 형식을 따로 만들지 않는다.
+- 새 순수 모듈 `web/src/confusion.ts`:
+  - `confusionCellFilters(axis, predicted, actual): CaseFilters` — 칸 → 필터. **여기 한 곳만** 축·예측·실제를 필터로 바꾼다.
+  - 칸 이름·설명 상수(`오탐`·`미탐`·`맞게 잡은 차단`·`맞게 본 통과`)와 축 이름(`AI 답`·`사람 예상`·`NetProof 판정`).
+  - 비율은 기존 `DashboardPage`의 `ratio()`를 그대로 쓴다. 새 포맷 함수를 만들지 않는다.
+- `web/src/caseSearch.ts`:
+  - `emptyCaseFilters`·`CaseFilters`에 `actual`·`claim_kind`·`claim_expected` 세 문자열 칸을 더한다. **질의 변수 이름과 같은 이름**을 써서 `caseSearchParams`의 기존 반복문에 키만 추가하면 되게 한다.
+  - `parseCaseFilters(query: string): CaseFilters` 추가 — 주소의 질의 문자열을 필터로 되돌린다. **허용값 밖·모르는 키는 버린다**(서버에서 400이 날 값을 보내지 않는다). `mine=1`만 `true`, `q`는 100자에서 자른다. `caseSearchParams`와 왕복이 맞아야 한다.
+- `web/src/router.ts`: `/cases`에만 질의 문자열을 허용한다 — `{ page: "cases"; query?: string }`. **질의가 없으면 `query` 키를 넣지 않는다**(기존 `parseRoute("#/cases")` → `{page:"cases"}` 테스트가 그대로 통과해야 한다). `/`·`/s/…`·`/matrix`·`/dashboard`·`/settings`·`/cases/<id>`의 해석은 **바꾸지 않는다**.
+- `CasesPage`: `route.query`가 있으면 그 값으로 필터와 검색창 초기값을 잡고, `route.query`가 바뀌면 다시 잡는다(1페이지로). 적용된 필터는 기존 "적용한 검색어" 자리 옆에 한 줄로 **보여 준다**(주소에만 있고 화면에 안 보이는 필터를 만들지 않는다). 기존 "초기화" 버튼이 세 필터도 지운다.
+  - **단방향이다.** 화면에서 필터를 바꿀 때 주소를 다시 쓰지 않는다(공유·뒤로 가기는 대시보드에서 온 주소에만 적용된다). 양방향 동기화는 범위 밖 — 한계에 적는다.
+  - 세 필터를 기존 `case-filters` 묶음에 `<select>`로 더한다(실제 결과 · 받은 답 종류 · 받은 답). 묶음은 375px에서 이미 줄바꿈된다.
+  - 이번에 CasesPage를 만지므로 **남아 있던 후속 1건을 함께 고친다**: 빈 검색창에 공백만 입력하면 매 타자마다 재조회되는 문제(`CasesPage.tsx:52-54`). 다듬은 값이 현재 `filters.q`와 **다를 때만** 다시 조회한다.
+- 대시보드 "엔진이 실제와 다른 사례" 블록: 목록 모양·링크는 그대로 두고, `mismatches_total > mismatches.length`일 때 "전체 N건" 안내와 전체 보기 링크를 붙인다.
+- `web/src/types.ts`: `Dashboard`에 `confusion`·`mismatches_total`, `CaseFilters`에 세 칸, `ConfusionAxis` 타입만 더한다. 기존 타입은 바꾸지 않는다. `api.ts`는 `dashboard()`·`searchCases()`를 그대로 쓰므로 **고칠 것이 없다**(고치게 되면 이유를 적는다).
 
 ### 4) 범위 밖 · 허용 파일
-- 허용 파일: `engine/src/netproof_engine/{observe.py,__init__.py}`, `engine/tests/test_observe.py`(신규), `server/netproof_api/cases.py`, `server/tests/test_observe.py`(신규), `web/src/{observe.ts,observe.test.ts}`(신규), `web/src/{api.ts,types.ts}`, `web/src/pages/CaseDetailPage.tsx`, `web/src/styles.css`, `docs/actual-paste.md`(신규), `docs/semantics.md`, `HANDOFF.md`, `decisions/ai-work-log.md`.
-- 제외: `verify`·`compare`·`policy_matrix` 수정, 판정·비교의 서버·화면 재계산, 기존 `expect`·`cases/*.json` 수정, 새 DB 컬럼·마이그레이션, 자동 저장·자동 확인·자동 판정, 원문 로그 저장, 오탐·미탐 대시보드(사용자 양성 DENY 확정, 다음 과제), Cisco 설정 붙여넣기(수업 장비 확인 전 보류), traceroute·curl·캡처·XML 지원, DENY 후보 생성, `draft.ts`·`share.ts`·`router.ts` 계약 변경, 새 의존성, 실제 장비 접속·명령 실행·패킷 전송, 배포·병합.
+- 허용 파일: `server/netproof_api/cases.py`, `server/tests/test_dashboard.py`(신규), `server/tests/test_case_search.py`, `server/tests/test_cases.py`, `web/src/{confusion.ts,confusion.test.ts}`(신규), `web/src/{caseSearch.ts,caseSearch.test.ts,router.ts,router.test.ts,types.ts}`, `web/src/pages/{DashboardPage.tsx,CasesPage.tsx}`, `web/src/styles.css`, `docs/semantics.md`, `HANDOFF.md`, `decisions/ai-work-log.md`.
+- 제외: **엔진 전부**(`verify`·`compare`·`policy_matrix`·`observe`·`__version__`), `server/netproof_api/{models.py,auth.py,__init__.py}`, 새 DB 열·인덱스·마이그레이션, 새 엔드포인트, 새 라우트·새 탭, `CaseDetailPage`·`JudgePage`·`PolicyMatrixPage`·`SettingsPage`, `draft.ts`·`share.ts`·`practice.ts`·`observe.ts`, 기존 `expect`·`cases/*.json`, 새 의존성, 앱 안 LLM 호출, 배포·병합, 실제 장비 접속.
+- **하지 않는 것**(사용자 확정): 판정 복제·재계산, 기대값(`expect`) 자동 생성·수정, 실제 결과·확인 상태 자동 변경, 붙여넣은 원문 저장(이번 과제는 쓰기 자체가 없다), 정밀도·재현율·시계열 추세, 사용자별 순위, 미확인 사례를 분모에 넣기.
 - 위험:
-  - **무응답을 DENY로 단정**하면 실습망의 장비 꺼짐·ARP 문제를 ACL deny로 기록하게 되고, ④ 실제 결과와 ⑤ 통계가 동시에 오염된다 → 매핑 표에서 `null`로 고정하고 테스트로 막는다.
-  - **대상·포트가 다른 출력을 적용**하면 다른 흐름의 결과가 이 사례에 붙는다 → 엄격 일치 + 거절 테스트.
-  - 부분 손실을 PASS로 올리면 "간헐적으로 된다"가 "된다"로 기록된다 → `partial`은 `null`.
-  - 원문에 수업·사내 장비 정보가 들어갈 수 있다 → 원문은 저장·기록하지 않고, 메모에는 근거 2줄만 넣는다.
-  - 한국어 Windows 출력이 거절만 되면 수업 환경에서 쓸 수 없다 → 손실 백분율을 언어 비의존으로 읽고 한국어 출력 테스트를 넣는다.
-  - 파서를 넓히다 보면 판정 흉내를 내게 된다 → 표에 없는 관측은 전부 `null`·`unknown`이다.
+  - **FP·FN 뒤집힘** → 양성이 `DENY`라는 방향을 테스트 2건으로 못 박는다(예측 `DENY`+실제 `PASS`는 `fp`, 예측 `PASS`+실제 `DENY`는 `fn`).
+  - **분모 부풀리기** — 미확인·미정·미지원을 분모에 넣으면 "AI가 90% 맞췄다"가 나온다 → 항등식 테스트 + 화면에 제외 내역 표시.
+  - **칸 수와 목록이 다름** — 집계와 목록이 조건을 따로 쓰면 사용자가 수를 믿을 수 없다 → 칸마다 목록을 실제로 불러 개수가 같은지 보는 교차 확인 테스트.
+  - **DB 전체 materialize가 남음** — 집계로 바꾸지 않으면 사례가 늘수록 대시보드가 느려지고 `mismatches` 응답이 무한정 커진다 → 질의 수가 사례 수와 무관한지 보는 테스트 + 20건 상한.
+  - **JSON 경로 집계의 DB 의존** — SQLite와 PostgreSQL의 JSON 처리가 다를 수 있다(이슈 #13 비ASCII 검색과 같은 부류) → SQLite에서 테스트하고 **PostgreSQL 실연결은 미검증으로 기록**한다.
+  - **새 필터에 맞는 인덱스가 없다** — `actual_result`·JSON `claim` 조건은 기존 인덱스를 쓸 수 없다. 수업 규모(사례 수백 건)에서는 괜찮고 새 열을 만들지 않는다는 결정이 우선이다 → 한계에 적는다.
+  - **적은 표본의 비율** → 정밀도·재현율을 만들지 않고 개수와 분모를 함께 보인다.
+  - **검토자만 보는 수, 로그인한 모두가 보는 목록** — 대시보드는 검토자 전용(`@reviewer_required`)이고 칸 링크가 가는 사례 게시판은 로그인한 사용자 전체가 본다. 이는 **기존 권한 구조 그대로**이고 새로 넓히는 것이 없다. 일반 사용자에게 대시보드 탭·주소를 열어 주지 않는다(`web/src/App.tsx:78-80`·`106` 그대로).
 - 완료 조건: 아래 네 명령을 **직접 실행**하고 출력을 붙인다.
-  - `cd engine && ../.venv/Scripts/python -m pytest -q`
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` (엔진은 고치지 않지만 회귀 확인)
   - `cd server && ../.venv/Scripts/python -m pytest -q`
   - `npm --prefix web test`
   - `npm --prefix web run build`
-  - 엔진 테스트(`test_observe.py`): 매핑 표 한 줄마다 한 건 — Windows 영어·**한국어** ping 0% → `PASS`, 100%·전부 시간 초과 → `null`+`no_reply`, 부분 손실 → `null`, Linux ping 0%·100%, nmap tcp `open` → `PASS`, `closed`·`filtered` → `null`, udp `open` → `PASS`, `open|filtered` → `null`. 거절: 목적지 불일치, 프로토콜 불일치(icmp 흐름에 nmap tcp), 포트 불일치, 대상 2개, 포트 줄 2개, ping+nmap 혼합, 잘린 출력, 경로 중간 장비 IP가 섞인 출력, 빈 문자열, 4000자·80줄 초과, `flow`가 `None`·문자열·`dst` 없음. 어떤 입력에도 **예외가 나지 않는다**(유니코드 숫자 백분율·포트, 제어문자, 매우 긴 한 줄 포함). `note` ≤ 1000, `evidence` ≤ 2줄·각 ≤ 120자, 반환 키 집합 고정.
-  - 서버 테스트(`test_observe.py`): 로그인 없이 401, 정상 본문 200에 계약 키, 상한 초과는 200 + `problems`, 본문이 객체가 아니면 400, **호출 후 사례 수·사례 내용·확인 상태가 그대로**(DB를 건드리지 않는다), 기존 `PATCH`로 후보를 저장하면 `actual`이 바뀌고 확인된 사례의 확인이 풀린다(기존 동작 회귀).
-  - 웹 테스트(`observe.test.ts`): 적용 함수 — 후보 `null`이 기존 결과를 지우지 않음, 빈 메모엔 넣고 기존 메모엔 덧붙임, 1000자 절단(코드포인트 기준), `REJECTED`는 아무것도 바꾸지 않음.
-  - 브라우저(**375×812 기준**): 사례 상세 → "출력 붙여넣기" 열기 → 붙여넣고 "후보 만들기" → 후보·근거·안내 문구 보임 → "입력칸에 적용" → 기존 "실제 결과 저장"을 **눌러야** 저장됨 확인. 대상이 다른 출력은 거절 메시지만 보이고 입력칸이 안 바뀜 확인. **본문 가로 넘침 없음**(body scrollWidth ≤ 375 — 긴 근거 줄과 붙여넣기 textarea가 가로 스크롤을 만들지 않게 `pre-wrap`·`overflow-wrap`으로 감싸거나 해당 요소 안에서만 스크롤), console error 0, 데스크톱 1280에서도 확인. 임시 DB·합성 출력 텍스트만 쓰고 실제 장비에 접속하지 않는다.
-  - `docs/semantics.md`에 **9절 "관측(실제 결과)과 판정의 구분"** 추가: 관측은 `verify` 판정이 아니다 / 무응답·filtered는 DENY가 아니다 / `closed`는 경로 도달 증거지만 서비스 상태는 모델 밖이다(3·4절 범위) / ping은 `icmp echo` 흐름만, nmap은 단일 tcp·udp 포트만 / 출발지는 출력으로 확인할 수 없다 / 매핑 표 그대로. **1~8절의 PASS/DENY 정의는 바꾸지 않는다.**
-  - `docs/actual-paste.md`(신규): 지원 형식·거절 사유·"원문을 저장하지 않는다"·형식을 넓히는 방법 한 문단.
+  - 서버 테스트(`test_dashboard.py`): **양성 방향 2건**(예측 `DENY`+실제 `PASS` → `fp`, 예측 `PASS`+실제 `DENY` → `fn`) / 축마다 **항등식** `tp+fp+fn+tn+not_confirmed+no_actual+no_prediction == 전체 사례 수` / 제외 사유 우선순위(미확인이면 `not_confirmed`에만 센다) / `UNSUPPORTED`·`INVALID`는 `engine` 축 `no_prediction`이고 `ai` 축 계산에는 영향 없음 / `ai`와 `self` 축이 섞이지 않음(`kind` 없는 답은 두 축 모두에서 `no_prediction`) / 빈 DB는 모든 칸 0·`positive == "DENY"`·축 3개 / **기존 키 호환**: `agree == engine.tp + engine.tn`, `ai_confirmed == ai.total`, `ai_wrong == ai.fp + ai.fn`, `total`·`confirmed`·`confirmed_in_scope`·`unsupported`·`invalid`는 기존 테스트(`server/tests/test_cases.py:121`) 값 그대로 / `mismatches` 20건 상한과 `mismatches_total` / 비검토자 403·로그인 없이 401 / **질의 수가 사례 수와 무관**(사례 3건과 30건에서 `/api/dashboard`의 SQL 문장 수가 같고 작은 상한 이하 — SQLAlchemy 이벤트로 센다).
+  - 서버 테스트(목록 필터, `test_case_search.py`): 새 필터 세 개가 각각 걸러짐 / 허용값 밖은 400 / `none`이 `IS NULL`과 맞음 / 기존 필터·검색·`mine`·배열 응답·페이지 응답·정렬·마지막 페이지 보정 **회귀** / **교차 확인**: 혼동 행렬의 칸마다 그 칸의 필터로 `/api/cases`를 불러 `total`이 칸 개수와 같다(세 축 × 네 칸 전부).
+  - 웹 테스트: `confusion.test.ts` — 12개 칸(3축×4칸)이 각각 기대하는 질의 문자열을 만들고, `engine` 축은 `result`를, `ai`·`self` 축은 `claim_kind`+`claim_expected`를 쓰고, 모든 칸에 `confirmed=1`이 붙는다. `caseSearch.test.ts` — `parseCaseFilters` ↔ `caseSearchParams` 왕복, 허용값 밖·모르는 키·빈 질의 문자열 버리기, `q` 100자 절단, 기존 `caseSearchParams` 테스트 회귀. `router.test.ts` — `#/cases?actual=PASS`가 `{page:"cases", query:"actual=PASS"}`이고 `#/cases`는 **`{page:"cases"}` 그대로**, `#/cases/12`·`#/s/abc`·나머지 라우트 회귀.
+  - 브라우저(**375×812 기준**): 검토자로 로그인 → 대시보드에 2×2 세 개와 고정 문구 네 개 보임 → 오탐 칸(개수 ≥ 1) 클릭 → 사례 게시판이 그 조건으로 걸러지고 **표시된 결과 수가 칸 개수와 같음** → 적용된 필터가 화면에 보임 → 뒤로 가기로 대시보드 복귀 → "초기화"가 세 필터도 지움 → 0건 칸은 클릭되지 않음. **본문 가로 넘침 없음**(body scrollWidth ≤ 375 — 2×2 표가 가로 스크롤을 만들면 표 자체를 `overflow-x: auto`로 감싼다), console error 0, 데스크톱 1280에서도 확인. 일반 사용자로는 대시보드 탭이 보이지 않는 것까지 확인. 임시 DB와 손으로 만든 사례만 쓴다.
+  - `docs/semantics.md`에 **10절 "오탐·미탐(혼동 행렬)"** 추가: 양성은 `DENY`(사용자 결정) / 네 칸 정의표 / 분모와 세 가지 제외 사유 / 세 축의 예측값 출처 / `comparison`과 다른 축이라는 점 / 이것은 집계이고 판정을 만들지 않는다. **1~9절은 바꾸지 않는다.** 새 문서는 만들지 않는다(계약은 이 문서의 작업 정의에 둔다).
 
 ## 완료 내용 / 테스트 결과
-- 선행 설계 커밋 `04bccc5` 이후 observe 순수 엔진 파서·로그인 필요 상태 없는 API·작성자 상세 UI·후보 적용 helper 구현. verify/compare/matrix/기존 저장·확인 API·expect는 변경하지 않았다.
-- 정상·부분손실·무응답·closed/filtered 매핑, 대상·포트·프로토콜·혼합·불완전·숫자/제어문자·상한 거절, 임의 문자열/flow 예외 없음 Hypothesis 검증. Windows 오류 응답+0% 통계도 성공 거절. 한국어 `에 대한 Ping 통계`와 `의 통계` 지원.
-- Codex 실제 실행: engine **263 passed, 2 xfailed in 2.79s**; server **80 passed, 1 skipped in 12.98s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
-- 임시 DB 사례 #27, 합성 Nmap 텍스트 수동 QA: 후보 만들기/적용 후 새로고침하면 미저장 상태, 명시적 저장 후 PASS 유지. 원문 추가 표시자는 메모에 안 들어감, 사람이 쓴 메모 보존. 다른 목적지는 적용 버튼 없음·기존 결과 유지. filtered 미정 적용은 기존 DENY 선택 유지·자동 저장 없음.
-- 375×812: 긴 서비스 근거 300자에서도 body 360 ≤ 375, console error 0. 데스크톱 body 1265 ≤ 1280. 작성자 후보 패널을 브라우저에 열어 두었다.
-- 원문은 지역 상태·상태 없는 요청에만 사용, 근거 2줄만 확인 후 메모에 저장. 전체 DOM 자동 테스트·인위적 응답 지연 주입·실제 장비·PostgreSQL 실연결은 미검증. 사용자 양성 DENY는 다음 대시보드용으로 기록.
+- 기존 dashboard API에 DENY 양성·세 축·네 칸·상호 배타 제외 집계 추가. SQL GROUP BY는 필요한 작은 열만 선택하며, 알 수 없는 저장 값은 미정으로 정규화한다(정상 데이터 216그룹 이하, 알 수 없는 result까지 270 이하). 불일치 최근20건·전체건수, owner joinedload. 기존 배열·페이지 응답 유지.
+- 목록 실제 결과/답 종류/답 필터, 주소 허용값 검증·코드포인트100자, 2×2 링크 helper 구현. CasesPage 내부 useRoute로 query를 읽어 App.tsx 수정 없이 주소 변경 반영. 초기화 및 빈 검색창 공백 재조회 수정. 전체 불일치는 오탐·미탐 두 목록 링크로 나눠 연결한다.
+- 실제 실행: `cd engine && ../.venv/Scripts/python -m pytest -q` → **263 passed, 2 xfailed in 7.57s**; `cd server && ../.venv/Scripts/python -m pytest -q` → **85 passed, 1 skipped in 14.71s**; `npm --prefix web test` → **10 files, 105 passed, 866ms**; `npm --prefix web run build` → **tsc 성공, 39 modules, built in 676ms**.
+- 추가 검증: 각 축 분모·제외 항등식, 미지원이 답 축을 막지 않음, 종류 없는 답 제외, 12칸과 목록 건수 일치, 새 필터 none·AND·배열 회귀, 3건/30건에서 SQL 수 동일(5이하), 불일치20건·정렬·전체30건. 최초 서버 테스트1건 실패는 합성 예시 claim.kind가 없는 것을 AI라고 가정한 테스트 fixture 오류였다. 테스트 준비값에 종류를 명시하고 전체 서버 재실행 통과; 기존 사례 파일은 수정하지 않았다.
+- 임시 DB에 합성 통계 사례8개와 임시 검토자만 추가해 브라우저 QA. 375×812 body360≤375, 표3개·고정 문구, AI오탐1건 클릭→목록1건·필터 표시, 뒤로가기·초기화(35건 전체) 확인. QA사례28을 잠시 미확인으로 두어 0건 셀 링크0 확인 후 복구. 일반 계정 대시보드 탭 없음 확인. 기존 사례27·운영 DB 변경 없음.
+- 데스크톱 body1265≤1280, 콘솔 오류0, 기본 뷰포트 복구·대시보드 화면 유지. 전체 DOM 자동 테스트·인위적 지연 주입·PostgreSQL 실연결·실장비·배포는 미검증. 필터 주소는 단방향이며 새 JSON 조건 인덱스는 없다. 판정·쓰기·엔진·expect 불변.
+- 추가 수동 QA: 같은 CasesPage에서 주소의 AI오탐 조건→엔진오탐 조건 변경 시 1건→2건으로 갱신. 로딩 중 이전 결과 안내 확인, 대시보드로 복귀.
 
 ## 현재 과제 리뷰 기록
-- PR #16: https://github.com/myeongjundev/netproof/pull/16
-- Claude (Claude Opus 5) 독립 리뷰 PASS(33f957d), 차단 0건·비차단 6건. 코멘트 https://github.com/myeongjundev/netproof/pull/16#issuecomment-5945453535
-- Claude 직접 engine249+2 xfail(3.00s)/server80+1 skip(13.34s)/web90(602ms)/build332ms. 실제 localhost 영어 ping 출력 1회·한국어 OS 자원 문자열·Linux/Nmap 전체 출력과 별도 24,000건 변이(예외0, 경계0.42ms 이하) 검증. 실습망·실장비 접속은 하지 않았다.
-- Codex 보완: N1 보이지 않는 구분·제어 문자 전부 거절(회귀6), N3 주소 누락/머리글 누락 오류 문구, N4 target은 검증된 출력 머리글에서 읽음, N5 식별 가능한 ping timeout 혼합 거절(회귀2), N6 최신 실행 수 기록. 추가로 같은 대상 Windows 오류 응답·정상 echo 형식 검사(회귀5), 미인식 머리글 target null(회귀1). 총14개 추가.
-- N2 넓은 포트 토큰 인식은 보수적으로 지원 밖·잘못된 포트도 세어 다중 출력을 거절하는 동작으로 유지. 실제 지원 형식은 재현 통과. N5 임의의 무관한 줄을 모두 검증하거나 출력 위조를 증명하는 기능은 범위 밖이며, 사람 확인 절차를 유지.
-- Claude 보완 재리뷰 **PASS 유지(28eff26)**, 차단 0건. 코멘트 https://github.com/myeongjundev/netproof/pull/16#issuecomment-5945554079 . 직접 engine **263 passed, 2 xfailed in 2.25s**, server **80 passed, 1 skipped in 13.15s**, web **90 passed, 666ms**, build **445ms**. 보완 전후 비교에서 숨은 구분 문자·timeout 혼합·Windows 오류 응답 우회 거절 확인, 정상 EN/KO/Linux/Nmap 회귀 통과. 합성 변이 30,000건 예외·반환 상한 위반 없음. 이번 재현에는 장비·네트워크 명령을 실행하지 않았다.
-- Codex도 재시작한 미리보기 서버에서 NEL 구분 문자 포함 출력 거절·적용 버튼 없음 확인. 정상 Nmap 후보 화면으로 복구했고 기존 저장 값은 바꾸지 않았다.
-- 남은 비차단 후속 3건: Nmap에 ping 응답 낱줄만 섞인 경우 인식하지 않음(형식 확장 시 회귀 추가), NBSP·전각 공백도 보수적으로 거절(콘솔 원문 다시 붙여넣기 안내), 머리글 뒤 거절에서는 읽은 target이 남음(화면은 OK에서만 표시). 임의 줄·위조 증명은 범위 밖. 현 설계 매핑·저장 경로에는 변경 없음.
-- 리뷰 전 추가 확인: 지원 밖 포트와 불완전 혼합 출력을 거절하는 회귀 3건을 추가했다.
+- PR #17: https://github.com/myeongjundev/netproof/pull/17 . 검토 코드 SHA **e0d26b3**, Claude (Claude Opus 5) 독립 리뷰 **PASS, 차단0·비차단3**.
+- 리뷰 원문: https://github.com/myeongjundev/netproof/pull/17#issuecomment-5946024286 . Claude가 직접 실행·검토 후 저장소 밖 `comment.md`를 완성했으나, 게시 단계에서 외부 API 재시도가 반복되어 Codex가 작성자/게시자를 명시하고 원문을 그대로 전달했다. Claude 작성 판단이며 Codex 자체 리뷰로 대체하지 않았다.
+- Claude 직접 engine **263 passed, 2 xfailed in 2.57s**, server **85 passed, 1 skipped in 14.10s**, web **105 passed, 803ms**, build **333ms**. 저장소 테스트와 별도의 독립 probe67개 전부 OK: 방향·분모·제외 우선순위·12칸 목록일치·기존키·권한·배열/페이지·JSON 미지 값·읽기 전후 DB불변. SQL SELECT는 10건/40건 모두4개(세션/사용자/집계/목록). PG 방언 컴파일만 확인, 실연결은 미검증.
+- 비차단 후속3건: CasesPage 진입 시 초기화 effect의 새 필터 객체로 조회2번 발생(첫 응답 cleanup으로 버림, DOM 실행 재현은 미검증); 빈 질의 `#/cases?`가 query 빈문자열 키를 남김(동작상 빈 필터); 임의 DB kind값은 집계에서 예측 없음인데 claim_kind=none은 NULL만 필터(현 쓰기 경로에서는 kind 정규화, 12칸 링크에는 영향 없음).
+- 내부 useRoute·전체 불일치 두 링크·정규화 그룹270이하는 설계 의도 내 선택으로 Claude가 수용. 엔진/expect/쓰기 경로/허용 밖 변경 없음. Claude 독립 브라우저 확인·인위적 지연 주입·PG 실연결·실장비는 미검증. 추가 코드 변경 없이 기록만 커밋한다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
-- **PR #15 사례 복제·실습 과제 템플릿 (병합 완료, 7b15fde)**: `web/src/practice.ts`로 예시 사례에 질문·확인할 점만 붙인 실습 과제 3개, 받은 답을 비운 "복제해 다시 풀기", 저장 제목 기본값. 새 엔드포인트·새 라우트 없이 기존 `fromCase`·`load`·`api.createCase`만 재사용. Claude 독립 리뷰 PASS(9e7bdc9) → 사용자 병합.
-  - 유지되는 합의: 앱은 기대값·정답·채점을 만들지 않는다. 복제는 `actual`·`confirmed`·작성자·`expect`를 물려받지 않는 별개 사례이고 저장 시 서버가 판정을 다시 계산한다. 과제 안내는 `Draft`·공유 링크에 넣지 않는다.
-  - 남은 비차단 후속: 예시 버튼 제목이 풀이 원인을 드러내는 문제(문구·배치 후속 설계), 제목 입력 `maxLength`는 UTF-16 80인데 `cloneTitle`·서버는 코드포인트 80(후속 제목 입력 개선). 전체 DOM 자동 테스트는 미검증.
-- **PR #14 정책 검증 + 도달성 매트릭스 (병합 완료, c0ab37e)**: 엔진 `policy_matrix`, `POST /api/policy-matrix`, `#/matrix` 화면. 상한 초과는 잘라 계산하지 않고 거절한다. `policy`와 `comparison`은 다른 축이다(`docs/semantics.md` 8절).
-- **PR #13 사례 목록 검색·필터·페이지 (병합 완료)**: 비ASCII 검색은 DB 의존, `mine=1`·무인자 호환 유지.
+- **PR #16 실제 결과 붙여넣기 (병합 완료, `309238d`)**: 엔진 `observe` 순수 파서(ping·Nmap 출력 → 실제 결과 **입력 후보**), 상태 없는 `POST /api/observe`(로그인 필요, DB 접근 없음), 작성자 전용 상세 UI, `web/src/observe.ts` 적용 헬퍼. Claude 독립 리뷰 PASS(`33f957d`) → Codex 보완 14건 → Claude 보완 재리뷰 PASS 유지(`28eff26`, 차단 0건) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 80 passed·1 skipped, web 90 passed, build 성공.
+  - 유지되는 합의: **관측 ≠ 판정.** 붙여넣은 출력은 "실제로 본 것"이고 PASS/DENY는 `engine/`의 `verify`가 정한다. **무응답·filtered는 DENY의 증거가 아니라서 DENY 후보를 만들지 않는다.** 붙여넣은 **원문은 저장하지 않고**(사람이 확인한 메모 1000자만), 적용·저장은 사람이 버튼을 눌러서 한다.
+  - 남은 비차단 후속 3건: Nmap에 ping 응답 낱줄만 섞인 경우 미인식, NBSP·전각 공백도 보수적으로 거절, 머리글 뒤 거절에서 읽은 `target`이 남음(화면은 `OK`에서만 표시). 명시적 금지 메시지(administratively prohibited) 인식과 출력 위조 증명은 범위 밖.
+- **PR #15 사례 복제·실습 과제 템플릿 (병합 완료, `7b15fde`)**: `web/src/practice.ts` 실습 과제 3개, 받은 답을 비운 "복제해 다시 풀기". 앱은 기대값·정답·채점을 만들지 않는다. 후속: 예시 버튼 제목이 풀이 원인을 드러내는 문제, 제목 길이 UTF-16/코드포인트 차이.
+- **PR #14 정책 검증 + 도달성 매트릭스 (병합 완료, `c0ab37e`)**: 엔진 `policy_matrix`, `POST /api/policy-matrix`, `#/matrix` 화면. 상한 초과는 잘라 계산하지 않고 거절한다. `policy`와 `comparison`은 다른 축이다(`docs/semantics.md` 8절).
+- **PR #13 사례 목록 검색·필터·페이지 (병합 완료)**: 비ASCII 검색은 DB 의존, `mine=1`·무인자 배열 응답 호환 유지. 후속 1건(빈 검색창 공백 재조회)은 **이번 과제에서 함께 고친다**.
 - **그 전**: PR #2 사례 URL 공유, PR #4 도달 못 한 목적지, PR #6 ACL 줄 하이라이트, PR #8·#11 유니코드/긴 숫자 `int()` 버그 — 모두 병합 완료.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
@@ -177,8 +185,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① **보류: 수업 ACL이 Cisco인지 확인(사람 트랙) 뒤 착수**
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
-- [ ] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ **PR #16 구현·검증·Claude 재리뷰 PASS 완료, 사용자 병합 결정 대기 — 브랜치 codex/actual-output**
-- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **사용자 확정: 통신 차단(DENY)이 양성, 다음 Claude 설계 대상**
+- [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
+- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **DENY 양성. PR17 구현·검증·Claude PASS 완료 → 사용자 병합 결정 대기 — 브랜치 codex/confusion-dashboard**
 - [ ] ACL 점검(가려진 규칙·중복·과도한 permit) — ③ `docs/semantics.md` 함께
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
@@ -205,21 +213,27 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git status`, `git log -3` 후 PR #16의 사용자 병합 결정을 확인한다. 코드·테스트·재리뷰는 완료되어 새 구현은 필요 없다. 병합 후 다음 과제는 **오탐·미탐 대시보드 Claude 설계**이며 양성은 사용자 확정 **DENY**다. 새 작업 정의를 확정·선행 커밋한 뒤 Codex가 구현한다.
-- Codex: 구현 전에 `server/netproof_api/cases.py`(`update_case`의 `actual` 검증·`clear_confirmation`, `confirm_case`), `server/netproof_api/models.py`(`ACTUAL_RESULTS`·`ACTUAL_SOURCES`), `web/src/pages/CaseDetailPage.tsx:121-153`(실제 결과 입력칸·저장 버튼·`actualChanged`), `web/src/types.ts`(`CaseDetail.actual`·`ActualSource`), `engine/src/netproof_engine/matrix.py`(엔진에 새 공개 함수를 더하는 방식·`isascii()`/`isdecimal()` 숫자 처리)를 읽고 **새 DB 컬럼·새 저장 경로·판정 재계산을 만들지 않는지** 확인한다.
-- 매핑 표와 거절 목록을 줄이거나 늘리고 싶으면 먼저 요청한다. 표를 바꾸는 것은 판정 의미에 닿는 변경이다.
+- `git pull`, `git status`, `git log -3` 후 사용자 PR17 병합 결정을 확인한다. 구현·독립 리뷰는 완료되어 새 구현은 필요 없다. 병합 뒤 다음 독립 과제는 **ACL 점검(가려진 규칙·중복·과도한 permit)의 Claude 설계**이며 Cisco 붙여넣기는 사람 확인까지 보류한다. 양성은 사용자 확정 DENY로 유지한다.
+- Codex: 구현 전에 `server/netproof_api/cases.py`(`dashboard()`의 `Case.query.all()`·`list_cases`의 `allowed` 검증 표와 JSON 경로 조건), `server/netproof_api/models.py`(`Case.in_scope`·`summary()`·기존 인덱스 — **읽기만 한다**), `web/src/caseSearch.ts`(`caseSearchParams`), `web/src/router.ts`(`parseRoute`), `web/src/pages/{DashboardPage.tsx,CasesPage.tsx}`, `web/src/types.ts`(`Dashboard`·`CaseFilters`)를 읽고 **새 DB 열·새 엔드포인트·판정 재계산을 만들지 않는지** 확인한다.
+- 네 칸의 정의, 양성 정의, 제외 규칙, 세 축의 예측값 출처를 줄이거나 늘리고 싶으면 **먼저 요청한다.** 이것을 바꾸는 것은 통계의 뜻이 바뀌는 변경이다.
+- 집계 결과와 칸 링크가 가리키는 목록이 어긋나면 **구현 쪽 버그다.** 수를 맞추려고 분모나 필터 뜻을 바꾸지 않는다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
-- **관측 ≠ 판정.** 붙여넣은 출력은 실제 결과(④)이고 PASS/DENY 판정은 `engine/`의 `verify`가 정한다(ADR-001). 화면·서버는 어느 쪽도 다시 계산하지 않는다.
-- **무응답·filtered는 DENY가 아니다.** 자동 DENY 후보를 만들지 않는다. 사람이 기존 select로 고른다.
-- 붙여넣은 **원문은 저장하지 않는다.** 저장되는 것은 사람이 확인한 메모(1000자)뿐이다.
+- **집계 ≠ 판정.** 대시보드는 저장된 `result`·`claim.expected`·`actual_result`를 세기만 한다. PASS/DENY는 `engine/`의 `verify`가 정하고(ADR-001), 화면·서버는 어느 쪽도 다시 계산하지 않는다.
+- **양성은 통신 차단(`DENY`)이다**(사용자 확정). 오탐 = 막힌다고 했는데 실제로 통함, 미탐 = 통한다고 했는데 실제로 막힘.
+- **미확인·미정·미지원은 분모에서 뺀다.** 제외한 수를 숨기지 않고 화면에 함께 적는다.
+- **관측 ≠ 판정.** 붙여넣은 출력은 실제 결과(④)이고, 무응답·filtered는 DENY의 증거가 아니다. 자동 DENY 후보를 만들지 않는다.
+- 붙여넣은 **원문은 저장하지 않는다.** 이번 과제는 쓰기가 아예 없다.
 - 실제 결과가 바뀌면 확인이 풀리는 것은 **기존 서버 동작**이다. 화면에서 확인·확인 해제를 자동으로 부르지 않는다.
 - 앱은 기대값·정답·채점을 만들지 않는다(AGENTS.md). 기존 `expect`·`cases/*.json`을 바꾸지 않는다.
-- 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 되돌아온다. ASCII 십진수 확인 후 길이 상한을 보고 변환한다.
+- 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 되돌아온다. ASCII 십진수를 확인하고 길이 상한을 본 뒤 변환한다(`page`·`per_page` 기존 검증 그대로).
+- 새 목록 필터(`actual`·`claim_kind`·`claim_expected`)는 기존 인덱스를 쓸 수 없다. 수업 규모에서는 괜찮지만 사례가 크게 늘면 인덱스나 열을 다시 논의한다.
+- 사례 게시판의 필터 ↔ 주소 동기화는 **단방향**이다(주소 → 화면). 화면에서 필터를 바꾼 결과를 공유하려면 양방향 동기화가 필요하고, 그것은 후속 과제다.
+- PostgreSQL 실연결에서의 JSON 집계·필터는 미검증이다(SQLite 기준으로 테스트한다). 이슈 #13의 비ASCII 검색과 같은 부류의 한계다.
 - 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
-- CasesPage 후속 1건(빈 검색창에 공백만 입력하면 매 타자마다 재조회)은 다음에 CasesPage를 만질 때 함께 처리한다. 이번 과제 범위가 아니다.
 - PR #15 후속: 예시 버튼 제목이 풀이 원인을 드러내는 문제, 제목 입력 UTF-16/코드포인트 단위 차이. 이번 범위가 아니다.
+- PR #16 후속 3건(Nmap에 ping 낱줄 혼합, NBSP·전각 공백 거절, 거절 시 `target` 잔존)은 이번 범위가 아니다.
 
 설계: Claude (Claude Opus 5)
 

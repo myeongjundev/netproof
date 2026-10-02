@@ -1,9 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
-import { caseSearchParams, emptyCaseFilters, loadCasePage } from "./caseSearch";
+import { caseSearchParams, emptyCaseFilters, loadCasePage, parseCaseFilters } from "./caseSearch";
 import { api } from "./api";
 import type { CasePage } from "./types";
 
 describe("사례 검색 요청", () => {
+  it("주소 필터를 왕복하고 허용 밖 값은 버린다", () => {
+    const filters = { ...emptyCaseFilters, q: "A&B + %_", mine: true, result: "DENY" as const,
+      comparison: "DISAGREE" as const, confirmed: "1" as const, source: "nmap" as const,
+      actual: "PASS" as const, claim_kind: "ai" as const, claim_expected: "DENY" as const };
+    expect(parseCaseFilters(caseSearchParams(filters, 3))).toEqual(filters);
+    expect(parseCaseFilters("actual=wat&claim_kind=human&claim_expected=none&mine=0&result=unknown&other=1")).toEqual(emptyCaseFilters);
+    expect(parseCaseFilters("")).toEqual(emptyCaseFilters);
+    expect(parseCaseFilters("actual=none&claim_kind=none")).toEqual({ ...emptyCaseFilters, actual: "none", claim_kind: "none" });
+  });
+  it("주소 검색어는 코드포인트 100자로 제한한다", () => {
+    expect(parseCaseFilters(new URLSearchParams({ q: "😀".repeat(101) }).toString()).q).toBe("😀".repeat(100));
+  });
   it("검색어 특수문자를 보존하고 필터와 페이지를 함께 전송한다", () => {
     const params = new URLSearchParams(caseSearchParams({
       ...emptyCaseFilters, q: "  A&B + 10.0_%/  ", mine: true, result: "DENY",

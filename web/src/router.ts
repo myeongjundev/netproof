@@ -4,7 +4,7 @@ export type Route =
   | { page: "judge"; share?: string }
   | { page: "matrix" }
   | { page: "login" }
-  | { page: "cases" }
+  | { page: "cases"; query?: string }
   | { page: "case"; id: number }
   | { page: "dashboard" }
   | { page: "settings" }
@@ -18,6 +18,7 @@ export function parseRoute(hash: string): Route {
   if (path.startsWith("/s/") && path.length > 3) return { page: "judge", share: path.slice(3) };
   if (path === "/login") return { page: "login" };
   if (path === "/cases") return { page: "cases" };
+  if (path.startsWith("/cases?")) return { page: "cases", query: path.slice(7) };
   if (path === "/dashboard") return { page: "dashboard" };
   if (path === "/settings") return { page: "settings" };
   const match = path.match(/^\/cases\/(\d+)$/);
