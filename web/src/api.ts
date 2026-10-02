@@ -14,6 +14,17 @@ export class ApiError extends Error {
 // 로그인한 세션에 묶인 CSRF 토큰. 상태를 바꾸는 요청마다 붙인다(서버 auth.py 참고).
 let csrfToken: string | null = null;
 
+/** Matrix limit errors use engine problems instead of the server's detail field. */
+export function errorDetail(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  if ("detail" in data) return String(data.detail);
+  if ("problems" in data && Array.isArray(data.problems)) {
+    const problems = data.problems.filter((value): value is string => typeof value === "string");
+    if (problems.length) return problems.join(" · ");
+  }
+  return null;
+}
+
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { "X-NetProof": "1" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -26,7 +37,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
     data = null;
   }
   if (!response.ok) {
-    const detail = data && typeof data === "object" && "detail" in data ? String((data as { detail: unknown }).detail) : null;
+    const detail = errorDetail(data);
     throw new ApiError(response.status, detail ?? `요청 실패(${response.status})`);
   }
   if (data && typeof data === "object" && "csrf" in data) csrfToken = (data as { csrf: string | null }).csrf;

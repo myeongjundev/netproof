@@ -1,5 +1,6 @@
 import { defaultMatrixSpec, flowForCell, guardedRequest, matrixGrid, readMatrixSpec, serviceKey, setCellIntent, sortPolicyCells } from "./policyMatrix";
 import type { MatrixCell, PolicyState } from "./types";
+import { errorDetail } from "./api";
 
 const cell = (policy: PolicyState = "NO_POLICY", patch: Partial<MatrixCell> = {}): MatrixCell => ({
   src: "10.0.0.1", dst: "10.0.0.2", service: "tcp/443", result: "PASS", expect: null, policy,
@@ -69,4 +70,12 @@ it("현재 요청 성공과 오류는 전달한다", async () => {
   await guardedRequest(() => Promise.resolve("current"), () => true, success, failure);
   await guardedRequest(() => Promise.reject(Error("current error")), () => true, success, failure);
   expect(success).toHaveBeenCalledWith("current"); expect(failure).toHaveBeenCalledTimes(1);
+});
+
+it("422 상한 오류는 구체적인 엔진 problems를 화면에 전달한다", () => {
+  expect(errorDetail({ status: "INVALID", limit_exceeded: true, problems: ["검사 2176건: 최대 2000건입니다"] }))
+    .toBe("검사 2176건: 최대 2000건입니다");
+  expect(errorDetail({ detail: "장비는 40개까지입니다" })).toBe("장비는 40개까지입니다");
+  expect(errorDetail({ problems: [] })).toBeNull();
+  expect(errorDetail(null)).toBeNull();
 });

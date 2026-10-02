@@ -47,8 +47,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 2026-10-02 직접 실행:
   - `cd engine && ../.venv/Scripts/python -m pytest -q` → `185 passed, 2 xfailed in 2.61s`
   - `cd server && ../.venv/Scripts/python -m pytest -q` → `74 passed, 1 skipped in 12.33s`
-  - `npm --prefix web test` → `Test Files 7 passed (7)`, `Tests 78 passed (78)`, `Duration 1.13s`
-  - `npm --prefix web run build` → `✓ built in 251ms`
+  - `npm --prefix web test` → `Test Files 7 passed (7)`, `Tests 79 passed (79)`, `Duration 692ms`
+  - `npm --prefix web run build` → `✓ built in 373ms`
+- 독립 리뷰 중 Codex 자체 확인으로 422 상한 오류의 엔진 problems가 화면에서 일반 오류로 가려지던 부분을 보완했다. API errorDetail이 detail 또는 problems를 전달하고 회귀 테스트 1개를 추가했다.
 - 성능 실측: 합성 호스트 16·라우터 1(서브넷 2개/in permit ACL)·TCP 서비스 8·1,920건 → status OK, 0.8265초(perf_counter 1회). 모든 구성의 2초 보장은 아니다. 긴 ACL/많은 라우터에서의 속도 한계는 docs/policy-matrix.md에 명시.
 - 브라우저: 기본 구성 10건 PASS/의도 없음 → HTTPS DENY 의도 → 재계산 노출 1건·9건 의도 없음. 기존 예시 01 구성 연동 → HTTPS DENY/의도 일치 → 셀 상세 ACL 101 1번 차단·목적지 미도달 확인. console error 0. 375×812에서 첫 표 넘침 발견·수정 후 본문 scrollWidth 360/viewport 375, 표 내부 scrollWidth 436. 임시 DB·합성 구성만 사용했고 사례 기대값은 수정하지 않았다.
 - 입력 변경/언마운트·다른 셀 선택의 늦은 응답을 화면 guard로 무시. 성공/오류 guard는 순수 helper 테스트이며 전체 DOM 마운트 테스트는 아니다. 화면 흐름은 위 브라우저로 확인.
