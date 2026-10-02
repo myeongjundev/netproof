@@ -49,8 +49,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - `row-actions`의 "판정기에서 열기" 옆에 **"복제해 다시 풀기"** 버튼 하나. 기존 버튼의 동작은 바꾸지 않는다.
 - 복제 초안 = `fromCase({ ...item, id: String(item.id), source: "" })`에서 `claim`을 `EMPTY_CLAIM`(draft.ts의 기존 export)으로 바꾼 것. **`fromCase`·`draft.ts`는 고치지 않고 호출부에서 비운다.**
 - **받은 답 보존 여부**: 복제는 `claim`(받은 답·내 예상·출처 메모)을 **비운다**. 다시 푸는 것이 목적이고, 남의 답이 남아 있으면 비교가 아니라 베끼기가 된다. 원래 답까지 그대로 보려면 **기존 "판정기에서 열기"** 를 쓴다. 옵션 UI 없이 버튼 두 개로 가른다.
-- **복사하지 않는 것**: 원 사례 id·작성자(`author`·`owner_id`)·`actual`·`confirmed`/`confirmed_by`/`confirmed_at`·`verdict`·`comparison`·`engine_version`·`created_at`. `fromCase`가 
-etwork`·`flow`·`claim`만 읽으므로 현재도 새지 않는다 — **회귀 테스트로 고정**한다.
+- **복사하지 않는 것**: 원 사례 id·작성자(`author`·`owner_id`)·`actual`·`confirmed`/`confirmed_by`/`confirmed_at`·`verdict`·`comparison`·`engine_version`·`created_at`. `fromCase`가 `network`·`flow`·`claim`만 읽으므로 현재도 새지 않는다 — **회귀 테스트로 고정**한다.
 - `cases/*.json`의 `expect`·`hand_first`(정답·손계산)는 `/api/examples`가 6개 키만 돌려주므로(cases.py:89) 애초에 화면에 오지 않는다. 이 사실도 테스트로 고정한다.
 
 ### 4) 저장 기본값 · 실제 검증 상태 초기화
@@ -75,13 +74,10 @@ etwork`·`flow`·`claim`만 읽으므로 현재도 새지 않는다 — **회귀
 - 완료 조건: 아래 네 명령을 **직접 실행**하고 출력을 붙인다.
   - `cd engine && ../.venv/Scripts/python -m pytest -q` (변경 없음 확인용 회귀)
   - `cd server && ../.venv/Scripts/python -m pytest -q`
-  - 
-pm --prefix web test`
-  - 
-pm --prefix web run build`
+  - `npm --prefix web test`
+  - `npm --prefix web run build`
   - 웹 테스트: `practiceTasks`가 ① 없는 `case_id`를 버림 ② `PRACTICE` 순서 유지 ③ 빈 예시 배열에 빈 결과. `question`·`checkpoints` 금칙어(`PASS`·`DENY`·`rule_seq`) 없음. `cloneTitle` 접두사·80자 절단. 복제 초안에 `actual`·`confirmed`·`confirmed_by`·`author`·`owner_id`·`verdict`·`engine_version`·`expect`·`hand_first` 키 없음, `claim`이 비어 있음. 기존 "판정기에서 열기" 경로는 `claim` 유지.
-  - 서버 테스트: 복제 payload를 `POST /api/cases`로 보내면 201, `actual.result`가 
-ull`, `confirmed`가 false, 작성자가 요청자, **화면이 보낸 `verdict`/`actual`/`confirmed` 값은 무시되고 서버 재계산값이 저장**된다.
+  - 서버 테스트: 복제 payload를 `POST /api/cases`로 보내면 201, `actual.result`가 `null`, `confirmed`가 false, 작성자가 요청자, **화면이 보낸 `verdict`/`actual`/`confirmed` 값은 무시되고 서버 재계산값이 저장**된다.
   - 브라우저(**375×812 기준**): 과제 시작 → 안내·질문·확인할 점 보임 → "판정하기"를 눌러야 저장 패널 열림 → 저장 제목 기본값 확인. 사례 상세에서 "복제해 다시 풀기" → 받은 답이 비어 있고 판정이 다시 필요함 확인. 본문 가로 넘침 없음(body scrollWidth ≤ viewport), console error 0. 임시 DB·합성 구성만 쓰고 사례 기대값은 건드리지 않는다.
   - `docs/practice.md`: 과제를 추가하는 방법(예시 사례 id에 과제 메타만 붙인다)과 "정답을 쓰지 않는다" 규칙 한 문단.
 
