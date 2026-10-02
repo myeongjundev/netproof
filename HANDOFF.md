@@ -131,13 +131,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 완료 내용 / 테스트 결과
 - 선행 설계 커밋 `04bccc5` 이후 observe 순수 엔진 파서·로그인 필요 상태 없는 API·작성자 상세 UI·후보 적용 helper 구현. verify/compare/matrix/기존 저장·확인 API·expect는 변경하지 않았다.
 - 정상·부분손실·무응답·closed/filtered 매핑, 대상·포트·프로토콜·혼합·불완전·숫자/제어문자·상한 거절, 임의 문자열/flow 예외 없음 Hypothesis 검증. Windows 오류 응답+0% 통계도 성공 거절. 한국어 `에 대한 Ping 통계`와 `의 통계` 지원.
-- 실제 실행: engine **246 passed, 2 xfailed in 2.45s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
+- 실제 실행: engine **249 passed, 2 xfailed in 2.33s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
 - 임시 DB 사례 #27, 합성 Nmap 텍스트 수동 QA: 후보 만들기/적용 후 새로고침하면 미저장 상태, 명시적 저장 후 PASS 유지. 원문 추가 표시자는 메모에 안 들어감, 사람이 쓴 메모 보존. 다른 목적지는 적용 버튼 없음·기존 결과 유지. filtered 미정 적용은 기존 DENY 선택 유지·자동 저장 없음.
 - 375×812: 긴 서비스 근거 300자에서도 body 360 ≤ 375, console error 0. 데스크톱 body 1265 ≤ 1280. 작성자 후보 패널을 브라우저에 열어 두었다.
 - 원문은 지역 상태·상태 없는 요청에만 사용, 근거 2줄만 확인 후 메모에 저장. 전체 DOM 자동 테스트·인위적 응답 지연 주입·실제 장비·PostgreSQL 실연결은 미검증. 사용자 양성 DENY는 다음 대시보드용으로 기록.
 
 ## 현재 과제 리뷰 기록
-- Claude (Claude Opus 5) 독립 리뷰 대기. Codex 구현 후 PR 코멘트로 기록한다.
+- PR #16: https://github.com/myeongjundev/netproof/pull/16 — Claude (Claude Opus 5) 독립 리뷰 대기.
+- 리뷰 전 추가 확인: 지원 밖 포트와 불완전 혼합 출력을 거절하는 회귀 3건을 추가했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #15 사례 복제·실습 과제 템플릿 (병합 완료, 7b15fde)**: `web/src/practice.ts`로 예시 사례에 질문·확인할 점만 붙인 실습 과제 3개, 받은 답을 비운 "복제해 다시 풀기", 저장 제목 기본값. 새 엔드포인트·새 라우트 없이 기존 `fromCase`·`load`·`api.createCase`만 재사용. Claude 독립 리뷰 PASS(9e7bdc9) → 사용자 병합.
