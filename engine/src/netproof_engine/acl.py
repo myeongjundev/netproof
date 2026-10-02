@@ -11,6 +11,8 @@ PROTOCOLS = ("ip", "tcp", "udp", "icmp")
 ICMP_TYPES = {"echo": 8, "echo-reply": 0}
 # IOS가 이름으로 받는 포트 가운데 뜻이 분명한 것만. 나머지는 숫자로 적게 한다.
 PORT_NAMES = {"www": 80, "telnet": 23, "ftp": 21, "smtp": 25, "domain": 53}
+# IOS 순번 최댓값과 기존 0 채움 포트를 허용한다. 실제 구성에 불필요한 11자리 이상은 지원하지 않는다.
+MAX_DIGITS = 10
 PORT_OPS = ("eq", "neq", "lt", "gt", "range")
 IGNORED_OPTIONS = ("log", "log-input")
 ANY = ipaddress.IPv4Network("0.0.0.0/0")
@@ -124,11 +126,20 @@ def _is_address(token: str) -> bool:
     return True
 
 
+def decimal_int(token: str, limit: int = MAX_DIGITS) -> int | None:
+    """십진 숫자면 int, 아니거나 자릿수가 한도를 넘으면 None.
+
+    isdecimal()만으로는 모자라다. int()는 CPython의 최대 변환 자릿수를 넘는 문자열을 거부한다.
+    """
+    return int(token) if token.isdecimal() and len(token) <= limit else None
+
+
 def _port(token: str) -> int:
     if token in PORT_NAMES:
         return PORT_NAMES[token]
-    if token.isdecimal() and 0 <= int(token) <= 65535:
-        return int(token)
+    number = decimal_int(token)
+    if number is not None and 0 <= number <= 65535:
+        return number
     raise Unsupported(f"알 수 없는 포트 이름: '{token}'. 숫자로 적어 주세요")
 
 
@@ -195,8 +206,10 @@ def parse_rule(line: str, seq: int) -> Rule | None:
         tokens.take("access-list")
         tokens.take("ACL 이름")
         first = tokens.peek()
-    if first is not None and first.isdecimal():
-        seq = int(tokens.take("순번"))
+    numeric_seq = decimal_int(first) if first is not None else None
+    if numeric_seq is not None:
+        tokens.take("순번")
+        seq = numeric_seq
         first = tokens.peek()
     if first == "remark":
         return None
@@ -218,8 +231,12 @@ def parse_rule(line: str, seq: int) -> Rule | None:
             continue
         if option == "established" and proto == "tcp":
             established = True
-        elif proto == "icmp" and icmp_type is None and (option in ICMP_TYPES or option.isdecimal()):
-            icmp_type = ICMP_TYPES.get(option, int(option) if option.isdecimal() else None)
+        elif proto == "icmp" and icmp_type is None:
+            numeric_type = decimal_int(option)
+            if option in ICMP_TYPES or numeric_type is not None:
+                icmp_type = ICMP_TYPES.get(option, numeric_type)
+            else:
+                raise Unsupported(f"지원하지 않는 옵션: '{option}'")
         else:
             raise Unsupported(f"지원하지 않는 옵션: '{option}'")
     return Rule(seq, action, proto, src, dst, line.strip(), src_port, dst_port, established, icmp_type)
