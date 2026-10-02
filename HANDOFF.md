@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main `c0ab37e`(**PR #14 정책 검증 + 도달성 매트릭스 병합 완료**). 판정기·정책 검증·사례 게시판·검색·대시보드는 모두 동작한다.
 - 브랜치: `codex/case-templates` (origin/main c0ab37e 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **Codex 구현·검증 완료 → Claude 독립 리뷰 대기.**
+- 단계: **구현·검증·Claude 독립 리뷰 PASS 완료 → 사용자 최종 확인·병합 결정 대기(PR #15).**
 - 보류: Cisco 설정 붙여넣기는 **수업 ACL이 Cisco인지 확인(사람 트랙)** 이 끝날 때까지 착수하지 않는다.
 
 ## 작업 정의
@@ -89,7 +89,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 공유·JSON 계약 기존 테스트 통과. 전체 DOM 자동 테스트·인위적 네트워크 지연 주입은 미검증.
 
 ## 현재 과제 리뷰 기록
-- Claude (Claude Opus 5) 독립 리뷰 대기.
+- PR #15: https://github.com/myeongjundev/netproof/pull/15
+- Claude (Claude Opus 5) 독립 리뷰 **PASS**, 차단 지적 0건. 검토 SHA `9e7bdc9658b0d8bb5ec7f389362a1afcb71baf55`, base `c0ab37e`. 코멘트: https://github.com/myeongjundev/netproof/pull/15#issuecomment-5944805502
+- Claude 직접 실행: engine **190 passed, 2 xfailed in 2.27s**; server **76 passed, 1 skipped in 14.98s**; web **8 files / 85 passed, 573ms**; build **359ms**. 별도 node probe로 복제 키·원본 문자열 누출 없음·기존 받은 답 유지·과제 순서·금칙어·코드포인트 80자 확인. 별도 pytest probe **3 passed in 0.79s**로 서버 재계산·작성자·실제/확인 초기화·원본 불변·제목 80/81 경계 확인.
+- 비차단 후속 3건: (1) 기존 예시 버튼 제목이 풀이 원인을 드러낸다. 예시/과제 구분 문구와 배치를 후속 설계에서 검토하며 기존 cases 정답/제목을 이번에 바꾸지 않는다. (2) 제목 입력 maxLength는 UTF-16 80, cloneTitle/서버는 코드포인트 80이다. 기본값 저장은 가능하나 이모지가 많은 제목을 편집할 때 단위 차이가 남는다. 후속 제목 입력 개선 대상. (3) 이번 설계는 구현 전에 Orca 대화와 HANDOFF 파일로 확정했으나 같은 구현 커밋에 포함됐다. 다음 과제는 설계 확정 기록을 먼저 커밋한다.
+- Claude 브라우저 확장이 연결되지 않아 독립 브라우저 확인은 못 했고, UI 동작은 Codex의 임시 DB 수동 실행과 코드 추적에 근거한다. DOM 전체 자동 테스트·인위적 응답 지연 주입은 미검증.
+- Codex: 차단 지적 없음 확인, 위 한계를 후속 기록하고 코드 추가 변경 없음. 다음 차례는 사용자 최종 확인·병합 결정. 병합 후 다음 로드맵 과제를 Claude가 설계한다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #14 정책 검증 + 도달성 매트릭스 (병합 완료, c0ab37e)**: 엔진 `policy_matrix`, `POST /api/policy-matrix`, `#/matrix` 화면. Claude 독립 리뷰 PASS(6404ef3) → 비차단 N1(a)/N2 보완 → 보완 확인 PASS(566e6fe) → 사용자 병합.
@@ -116,7 +121,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **2주차 (10-05~10-11)**
 - [x] 정책 검증 + 도달성 매트릭스 ★대표 — ③ (PR #14 병합 완료)
-- [ ] 사례 복제·실습 과제 템플릿 — ① **구현·검증 완료, Claude 독립 리뷰 대기 — 브랜치 codex/case-templates**
+- [ ] 사례 복제·실습 과제 템플릿 — ① **PR #15 구현·검증·Claude 리뷰 PASS, 사용자 병합 결정 대기 — 브랜치 codex/case-templates**
 - [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① **보류: 수업 ACL이 Cisco인지 확인(사람 트랙) 뒤 착수**
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
@@ -150,7 +155,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 다음 LLM이 확인할 내용
 - `git pull`, `git status`, `git log -3` 후 본 작업 정의와 PR diff, 테스트 출력 확인.
 - Codex: 구현 전에 `web/src/draft.ts`(`fromCase`·`toNetwork`·`EMPTY_CLAIM`), `web/src/pages/JudgePage.tsx`(`load`·`revision`·`api.examples`·저장 패널), `web/src/pages/CaseDetailPage.tsx`(`onOpenInJudge`), `server/netproof_api/cases.py`(`/api/examples`가 돌려주는 6개 키, `create_case`의 서버 재계산)를 읽어 **새 변환·새 엔드포인트를 만들지 않고 호출만 하는지** 확인한다.
-- 구현 완료 후 Claude 독립 리뷰, 사용자 병합 결정.
+- PR #15의 검토 SHA와 최신 diff를 확인하고 사용자 최종 확인·병합 결정. 아직 병합하지 않았다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
