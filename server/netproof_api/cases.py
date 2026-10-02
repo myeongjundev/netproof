@@ -10,7 +10,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import contains_eager, joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
-from netproof_engine import compare, policy_matrix, verify
+from netproof_engine import compare, observe, policy_matrix, verify
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -79,6 +79,15 @@ def matrix_endpoint():
         return error(422, problem)
     result = policy_matrix(data.get("network"), data.get("spec"))
     return jsonify(result), 422 if result["limit_exceeded"] else 200
+
+
+@bp.post("/observe")
+@login_required
+def observe_endpoint():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return error(400, "본문은 객체여야 합니다")
+    return jsonify(observe(data.get("text"), data.get("flow")))
 
 
 @bp.get("/examples")

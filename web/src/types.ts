@@ -122,6 +122,18 @@ export interface User {
 
 export type ActualSource = "nmap" | "ping" | "device" | "other";
 
+export interface Observation {
+  status: "OK" | "REJECTED";
+  problems: string[];
+  tool: "ping" | "nmap" | null;
+  observed: "reply" | "no_reply" | "partial" | "open" | "closed" | "filtered" | "unknown";
+  result: "PASS" | null;
+  source: "ping" | "nmap" | null;
+  note: string;
+  target: string | null;
+  evidence: string[];
+}
+
 export interface CaseSummary {
   id: number;
   title: string;

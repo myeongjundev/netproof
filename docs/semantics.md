@@ -83,3 +83,21 @@
 UNDECIDED는 의도 유무와 관계없이 미판정을 드러낸다. 우선순위는
 EXPOSED > BLOCKED > UNDECIDED > AGREE > NO_POLICY다. 의도를 판정 입력으로 사용하지 않는다.
 매트릭스 입력·상한·집계·오류 계약과 측정 한계는 [policy-matrix.md](policy-matrix.md)에 둔다.
+
+## 9. 관측(실제 결과)과 판정의 구분
+
+`observe`는 사람이 붙여넣은 텍스트에서 실제 결과 입력 후보를 만든다. `verify`의 네트워크 판정과는 별개이며 판정·비교를 바꾸지 않는다. 출발지와 실제 실행 여부는 출력으로 확인할 수 없다. 사람이 실행 환경을 확인해 적용·저장하고 검토자가 확인한다.
+
+| 관측 | observed | 입력 후보 |
+|---|---|---|
+| ping 손실 0%, 받음 ≥ 1 | reply | PASS |
+| ping 손실 100% | no_reply | 미정 |
+| ping 부분 손실 | partial | 미정 |
+| Nmap open | open | PASS |
+| Nmap closed | closed | 미정 |
+| Nmap filtered 또는 open\|filtered | filtered | 미정 |
+| 지원하지 않는 출력 | unknown | 미정·거절 |
+
+무응답과 filtered는 DENY를 증명하지 않는다. closed는 경로 도달을 나타낼 수 있지만 서비스 상태는 모델 밖이다. Nmap 상태의 의미는 [공식 포트 스캔 문서](https://nmap.org/book/man-port-scanning-basics.html)를 따른다. 이 기능은 DENY 후보를 만들지 않으며, 수동 실제 결과 입력은 그대로 유지한다.
+
+ping은 ICMP echo 흐름, Nmap은 단일 TCP/UDP 목적지 포트만 지원한다. 출력의 목적지·프로토콜·포트가 사례와 같아야 한다. 여러 대상·포트, 혼합·불완전 출력은 거절하며, Windows 오류 응답과 0% 손실 통계가 함께 있으면 성공으로 올리지 않는다. 후보 적용은 지역 입력만 바꾸고 저장·확인 해제는 기존 사례 API가 담당한다.

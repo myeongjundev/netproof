@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): PR #15 병합 완료 후 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main `7b15fde`(**PR #15 사례 복제·실습 과제 템플릿 병합 완료**). 판정기·정책 검증·매트릭스·사례 게시판·검색·대시보드·실습 과제·복제는 모두 동작한다.
 - 브랜치: `codex/actual-output` (origin/main 7b15fde 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 확정 → Codex 구현 대기.** PR #15의 비차단 후속 (3)에 따라 **이 설계 문서를 구현 전에 Codex가 먼저 단독 커밋**한다(설계 커밋과 구현 커밋을 가른다).
+- 단계: **구현·검증 완료 → Claude 독립 리뷰 대기.** PR #15의 비차단 후속 (3)에 따라 **이 설계 문서를 구현 전에 Codex가 먼저 단독 커밋**한다(설계 커밋과 구현 커밋을 가른다).
 - 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지, **오탐·미탐 대시보드**는 다음 과제로 설계한다. 사용자 결정(2026-10-02): **통신 차단(DENY)을 양성**으로 한다. 이번 과제 범위에는 포함하지 않는다.
 - 이 과제에서 **실제 장비 접속·명령 실행·패킷 전송·배포는 하지 않는다.** 사람이 다른 곳에서 얻어 **붙여넣은 텍스트만** 다룬다.
 
@@ -108,7 +108,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ### 4) 범위 밖 · 허용 파일
 - 허용 파일: `engine/src/netproof_engine/{observe.py,__init__.py}`, `engine/tests/test_observe.py`(신규), `server/netproof_api/cases.py`, `server/tests/test_observe.py`(신규), `web/src/{observe.ts,observe.test.ts}`(신규), `web/src/{api.ts,types.ts}`, `web/src/pages/CaseDetailPage.tsx`, `web/src/styles.css`, `docs/actual-paste.md`(신규), `docs/semantics.md`, `HANDOFF.md`, `decisions/ai-work-log.md`.
-- 제외: `verify`·`compare`·`policy_matrix` 수정, 판정·비교의 서버·화면 재계산, 기존 `expect`·`cases/*.json` 수정, 새 DB 컬럼·마이그레이션, 자동 저장·자동 확인·자동 판정, 원문 로그 저장, 오탐·미탐 대시보드(양성 정의 전 보류), Cisco 설정 붙여넣기(수업 장비 확인 전 보류), traceroute·curl·캡처·XML 지원, DENY 후보 생성, `draft.ts`·`share.ts`·`router.ts` 계약 변경, 새 의존성, 실제 장비 접속·명령 실행·패킷 전송, 배포·병합.
+- 제외: `verify`·`compare`·`policy_matrix` 수정, 판정·비교의 서버·화면 재계산, 기존 `expect`·`cases/*.json` 수정, 새 DB 컬럼·마이그레이션, 자동 저장·자동 확인·자동 판정, 원문 로그 저장, 오탐·미탐 대시보드(사용자 양성 DENY 확정, 다음 과제), Cisco 설정 붙여넣기(수업 장비 확인 전 보류), traceroute·curl·캡처·XML 지원, DENY 후보 생성, `draft.ts`·`share.ts`·`router.ts` 계약 변경, 새 의존성, 실제 장비 접속·명령 실행·패킷 전송, 배포·병합.
 - 위험:
   - **무응답을 DENY로 단정**하면 실습망의 장비 꺼짐·ARP 문제를 ACL deny로 기록하게 되고, ④ 실제 결과와 ⑤ 통계가 동시에 오염된다 → 매핑 표에서 `null`로 고정하고 테스트로 막는다.
   - **대상·포트가 다른 출력을 적용**하면 다른 흐름의 결과가 이 사례에 붙는다 → 엄격 일치 + 거절 테스트.
@@ -129,10 +129,15 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - `docs/actual-paste.md`(신규): 지원 형식·거절 사유·"원문을 저장하지 않는다"·형식을 넓히는 방법 한 문단.
 
 ## 완료 내용 / 테스트 결과
-- (Codex가 채운다)
+- 선행 설계 커밋 `04bccc5` 이후 observe 순수 엔진 파서·로그인 필요 상태 없는 API·작성자 상세 UI·후보 적용 helper 구현. verify/compare/matrix/기존 저장·확인 API·expect는 변경하지 않았다.
+- 정상·부분손실·무응답·closed/filtered 매핑, 대상·포트·프로토콜·혼합·불완전·숫자/제어문자·상한 거절, 임의 문자열/flow 예외 없음 Hypothesis 검증. Windows 오류 응답+0% 통계도 성공 거절. 한국어 `에 대한 Ping 통계`와 `의 통계` 지원.
+- 실제 실행: engine **246 passed, 2 xfailed in 2.45s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
+- 임시 DB 사례 #27, 합성 Nmap 텍스트 수동 QA: 후보 만들기/적용 후 새로고침하면 미저장 상태, 명시적 저장 후 PASS 유지. 원문 추가 표시자는 메모에 안 들어감, 사람이 쓴 메모 보존. 다른 목적지는 적용 버튼 없음·기존 결과 유지. filtered 미정 적용은 기존 DENY 선택 유지·자동 저장 없음.
+- 375×812: 긴 서비스 근거 300자에서도 body 360 ≤ 375, console error 0. 데스크톱 body 1265 ≤ 1280. 작성자 후보 패널을 브라우저에 열어 두었다.
+- 원문은 지역 상태·상태 없는 요청에만 사용, 근거 2줄만 확인 후 메모에 저장. 전체 DOM 자동 테스트·인위적 응답 지연 주입·실제 장비·PostgreSQL 실연결은 미검증. 사용자 양성 DENY는 다음 대시보드용으로 기록.
 
 ## 현재 과제 리뷰 기록
-- (Claude가 채운다)
+- Claude (Claude Opus 5) 독립 리뷰 대기. Codex 구현 후 PR 코멘트로 기록한다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #15 사례 복제·실습 과제 템플릿 (병합 완료, 7b15fde)**: `web/src/practice.ts`로 예시 사례에 질문·확인할 점만 붙인 실습 과제 3개, 받은 답을 비운 "복제해 다시 풀기", 저장 제목 기본값. 새 엔드포인트·새 라우트 없이 기존 `fromCase`·`load`·`api.createCase`만 재사용. Claude 독립 리뷰 PASS(9e7bdc9) → 사용자 병합.
