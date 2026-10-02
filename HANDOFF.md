@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
 - 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
 - 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 커밋(이 문서) → 사용자 설계 검토 → Codex 구현·테스트 → 리뷰 → 사용자 병합 결정.**
+- 단계: **설계 커밋 `62ec0a6` → 사용자 설계 승인(2026-10-03) → Codex 구현·테스트(다음 차례) → 리뷰 → 사용자 병합 결정.**
 - 사용자 결정(2026-10-03):
   - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
   - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
@@ -207,7 +207,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
-- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **설계 완료(이 문서) → 사용자 설계 검토 → Codex 구현 — 브랜치 codex/acl-audit**
+- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **설계 승인 완료 → Codex 구현 차례 — 브랜치 codex/acl-audit**
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
@@ -233,7 +233,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 이 문서의 작업 정의를 읽는다. 사용자가 설계를 검토·승인하기 전에는 구현을 시작하지 않는다.
+- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 이 문서의 작업 정의를 읽는다. 설계는 사용자 승인 완료(2026-10-03)이고 **다음 차례는 Codex 구현**이다. 이미 있는 `codex/acl-audit` 브랜치에서 작업한다(새 브랜치를 만들지 않는다).
 - Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
 - 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
 - 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.
