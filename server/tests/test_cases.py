@@ -13,6 +13,38 @@ def test_examples_are_public(api):
     assert "synthetic-01" in [item["id"] for item in api.get("/api/examples").get_json()]
 
 
+def test_practice_examples_do_not_publish_truth(api):
+    examples = api.get("/api/examples").get_json()
+    assert examples
+    for example in examples:
+        assert set(example) == {"id", "title", "source", "network", "flow", "claim"}
+
+
+def test_clone_is_new_ownership_and_recomputed_without_confirmation(api, other, reviewer):
+    assert api.register("원본작성자").status_code == 201
+    original_id = api.save_case().get_json()["id"]
+    api.patch(f"/api/cases/{original_id}", {"actual": ACTUAL})
+    original = reviewer.post(f"/api/cases/{original_id}/confirm").get_json()
+    assert other.register("복제작성자").status_code == 201
+    response = other.post("/api/cases", {
+        "title": "복제 · 다시 풀기", "network": original["network"], "flow": original["flow"],
+        "claim": None, "verdict": {"result": "PASS"}, "result": "PASS",
+        "owner_id": original["owner_id"], "actual": ACTUAL,
+        "confirmed": True, "confirmed_by": original["confirmed_by"],
+    })
+    cloned = response.get_json()
+    assert response.status_code == 201
+    assert cloned["id"] != original_id
+    assert cloned["owner_id"] != original["owner_id"]
+    assert cloned["author"] == "복제작성자"
+    assert cloned["actual"] == {"result": None, "source": None, "note": ""}
+    assert cloned["confirmed"] is False and cloned["confirmed_by"] is None
+    assert cloned["claim"] is None
+    assert cloned["result"] == cloned["verdict"]["result"] == "DENY"
+    assert cloned["network"] == original["network"] and cloned["flow"] == original["flow"]
+    assert api.get(f"/api/cases/{original_id}").get_json() == original
+
+
 def test_body_and_count_limits(api):
     huge = {"network": {"devices": [], "acls": {"A": ["permit ip any any"] * 5000}}, "flow": CASE["flow"]}
     assert api.post("/api/verify", huge).status_code == 413

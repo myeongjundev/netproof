@@ -17,11 +17,13 @@ export function App() {
   const [checked, setChecked] = useState(false);
   // 판정기 입력은 화면을 옮겨 다녀도 남긴다(로그인하러 갔다 와도 그대로).
   const [draft, setDraft] = useState<Draft>(blankDraft);
+  const [titleHint, setTitleHint] = useState("");
   // 로그인 화면으로 오기 직전에 보던 화면. 로그인한 뒤 그리로 돌려보낸다.
   const [back, setBack] = useState("/");
 
   useEffect(() => {
     if (route.page !== "login") setBack(window.location.hash.replace(/^#/, "") || "/");
+    if (route.page !== "judge") setTitleHint("");
   }, [route]);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export function App() {
   );
 
   let page;
-  if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} />;
+  if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} titleHint={titleHint} />;
   else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
   else if (!checked) page = <p className="hint">확인 중…</p>;
   else if (route.page === "login")
@@ -72,7 +74,7 @@ export function App() {
   else if (!user) page = needLogin;
   else if (route.page === "cases") page = <CasesPage />;
   else if (route.page === "case")
-    page = <CaseDetailPage id={route.id} user={user} onOpenInJudge={(next) => (setDraft(() => next), go("/"))} />;
+    page = <CaseDetailPage key={route.id} id={route.id} user={user} onOpenInJudge={(next, saveTitle) => (setDraft(() => next), setTitleHint(saveTitle ?? ""), go("/"))} />;
   else if (route.page === "dashboard")
     page =
       user.role === "reviewer" ? (
