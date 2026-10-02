@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): PR #15 병합 완료 후 다음 과제로 진행. Claude가 설계, Codex가 구현·테스트한다.
 - 기반: 최신 origin/main `7b15fde`(**PR #15 사례 복제·실습 과제 템플릿 병합 완료**). 판정기·정책 검증·매트릭스·사례 게시판·검색·대시보드·실습 과제·복제는 모두 동작한다.
 - 브랜치: `codex/actual-output` (origin/main 7b15fde 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **구현·검증 완료 → Claude 독립 리뷰 대기.** PR #15의 비차단 후속 (3)에 따라 **이 설계 문서를 구현 전에 Codex가 먼저 단독 커밋**한다(설계 커밋과 구현 커밋을 가른다).
+- 단계: **구현·검증·Claude 보완 재리뷰 PASS 완료 → 사용자 최종 확인·PR #16 병합 결정 대기.** 설계 선행 커밋 `04bccc5`, 최종 코드 검토 SHA `28eff26`. 병합 전 기록 커밋은 문서만 갱신한다.
 - 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지, **오탐·미탐 대시보드**는 다음 과제로 설계한다. 사용자 결정(2026-10-02): **통신 차단(DENY)을 양성**으로 한다. 이번 과제 범위에는 포함하지 않는다.
 - 이 과제에서 **실제 장비 접속·명령 실행·패킷 전송·배포는 하지 않는다.** 사람이 다른 곳에서 얻어 **붙여넣은 텍스트만** 다룬다.
 
@@ -131,7 +131,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 완료 내용 / 테스트 결과
 - 선행 설계 커밋 `04bccc5` 이후 observe 순수 엔진 파서·로그인 필요 상태 없는 API·작성자 상세 UI·후보 적용 helper 구현. verify/compare/matrix/기존 저장·확인 API·expect는 변경하지 않았다.
 - 정상·부분손실·무응답·closed/filtered 매핑, 대상·포트·프로토콜·혼합·불완전·숫자/제어문자·상한 거절, 임의 문자열/flow 예외 없음 Hypothesis 검증. Windows 오류 응답+0% 통계도 성공 거절. 한국어 `에 대한 Ping 통계`와 `의 통계` 지원.
-- 실제 실행: engine **263 passed, 2 xfailed in 2.79s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
+- Codex 실제 실행: engine **263 passed, 2 xfailed in 2.79s**; server **80 passed, 1 skipped in 12.98s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
 - 임시 DB 사례 #27, 합성 Nmap 텍스트 수동 QA: 후보 만들기/적용 후 새로고침하면 미저장 상태, 명시적 저장 후 PASS 유지. 원문 추가 표시자는 메모에 안 들어감, 사람이 쓴 메모 보존. 다른 목적지는 적용 버튼 없음·기존 결과 유지. filtered 미정 적용은 기존 DENY 선택 유지·자동 저장 없음.
 - 375×812: 긴 서비스 근거 300자에서도 body 360 ≤ 375, console error 0. 데스크톱 body 1265 ≤ 1280. 작성자 후보 패널을 브라우저에 열어 두었다.
 - 원문은 지역 상태·상태 없는 요청에만 사용, 근거 2줄만 확인 후 메모에 저장. 전체 DOM 자동 테스트·인위적 응답 지연 주입·실제 장비·PostgreSQL 실연결은 미검증. 사용자 양성 DENY는 다음 대시보드용으로 기록.
@@ -142,7 +142,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - Claude 직접 engine249+2 xfail(3.00s)/server80+1 skip(13.34s)/web90(602ms)/build332ms. 실제 localhost 영어 ping 출력 1회·한국어 OS 자원 문자열·Linux/Nmap 전체 출력과 별도 24,000건 변이(예외0, 경계0.42ms 이하) 검증. 실습망·실장비 접속은 하지 않았다.
 - Codex 보완: N1 보이지 않는 구분·제어 문자 전부 거절(회귀6), N3 주소 누락/머리글 누락 오류 문구, N4 target은 검증된 출력 머리글에서 읽음, N5 식별 가능한 ping timeout 혼합 거절(회귀2), N6 최신 실행 수 기록. 추가로 같은 대상 Windows 오류 응답·정상 echo 형식 검사(회귀5), 미인식 머리글 target null(회귀1). 총14개 추가.
 - N2 넓은 포트 토큰 인식은 보수적으로 지원 밖·잘못된 포트도 세어 다중 출력을 거절하는 동작으로 유지. 실제 지원 형식은 재현 통과. N5 임의의 무관한 줄을 모두 검증하거나 출력 위조를 증명하는 기능은 범위 밖이며, 사람 확인 절차를 유지.
-- 웹 소스 변경 없음. 보완분 engine **263 passed, 2 xfailed in 2.79s**, server 전체 재실행 통과. Claude 보완 재리뷰 대기.
+- Claude 보완 재리뷰 **PASS 유지(28eff26)**, 차단 0건. 코멘트 https://github.com/myeongjundev/netproof/pull/16#issuecomment-5945554079 . 직접 engine **263 passed, 2 xfailed in 2.25s**, server **80 passed, 1 skipped in 13.15s**, web **90 passed, 666ms**, build **445ms**. 보완 전후 비교에서 숨은 구분 문자·timeout 혼합·Windows 오류 응답 우회 거절 확인, 정상 EN/KO/Linux/Nmap 회귀 통과. 합성 변이 30,000건 예외·반환 상한 위반 없음. 이번 재현에는 장비·네트워크 명령을 실행하지 않았다.
+- Codex도 재시작한 미리보기 서버에서 NEL 구분 문자 포함 출력 거절·적용 버튼 없음 확인. 정상 Nmap 후보 화면으로 복구했고 기존 저장 값은 바꾸지 않았다.
+- 남은 비차단 후속 3건: Nmap에 ping 응답 낱줄만 섞인 경우 인식하지 않음(형식 확장 시 회귀 추가), NBSP·전각 공백도 보수적으로 거절(콘솔 원문 다시 붙여넣기 안내), 머리글 뒤 거절에서는 읽은 target이 남음(화면은 OK에서만 표시). 임의 줄·위조 증명은 범위 밖. 현 설계 매핑·저장 경로에는 변경 없음.
 - 리뷰 전 추가 확인: 지원 밖 포트와 불완전 혼합 출력을 거절하는 회귀 3건을 추가했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
@@ -175,7 +177,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① **보류: 수업 ACL이 Cisco인지 확인(사람 트랙) 뒤 착수**
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
-- [ ] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ **PR #16 구현·검증 완료, Claude 보완 재리뷰 대기 — 브랜치 codex/actual-output**
+- [ ] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ **PR #16 구현·검증·Claude 재리뷰 PASS 완료, 사용자 병합 결정 대기 — 브랜치 codex/actual-output**
 - [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **사용자 확정: 통신 차단(DENY)이 양성, 다음 Claude 설계 대상**
 - [ ] ACL 점검(가려진 규칙·중복·과도한 permit) — ③ `docs/semantics.md` 함께
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
@@ -203,7 +205,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git status`, `git log -3` 후 본 작업 정의 확인. 이 설계 문서를 **구현 전에 단독 커밋**한 뒤 구현을 시작한다.
+- `git pull`, `git status`, `git log -3` 후 PR #16의 사용자 병합 결정을 확인한다. 코드·테스트·재리뷰는 완료되어 새 구현은 필요 없다. 병합 후 다음 과제는 **오탐·미탐 대시보드 Claude 설계**이며 양성은 사용자 확정 **DENY**다. 새 작업 정의를 확정·선행 커밋한 뒤 Codex가 구현한다.
 - Codex: 구현 전에 `server/netproof_api/cases.py`(`update_case`의 `actual` 검증·`clear_confirmation`, `confirm_case`), `server/netproof_api/models.py`(`ACTUAL_RESULTS`·`ACTUAL_SOURCES`), `web/src/pages/CaseDetailPage.tsx:121-153`(실제 결과 입력칸·저장 버튼·`actualChanged`), `web/src/types.ts`(`CaseDetail.actual`·`ActualSource`), `engine/src/netproof_engine/matrix.py`(엔진에 새 공개 함수를 더하는 방식·`isascii()`/`isdecimal()` 숫자 처리)를 읽고 **새 DB 컬럼·새 저장 경로·판정 재계산을 만들지 않는지** 확인한다.
 - 매핑 표와 거절 목록을 줄이거나 늘리고 싶으면 먼저 요청한다. 표를 바꾸는 것은 판정 의미에 닿는 변경이다.
 

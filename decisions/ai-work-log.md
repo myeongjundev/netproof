@@ -48,3 +48,5 @@ AI가 무엇을 만들었고 사람이 무엇을 정했는지 나눠 적는다. 
 | 2026-10-02 | Codex (GPT-6) | PR #15 병합 후 Claude Opus 5 실제 결과 붙여넣기 설계 선행 커밋(04bccc5). engine observe/API/작성자 후보 적용 구현. 무응답·closed·filtered 자동 DENY 금지, 오류 응답·대상/포트/혼합 거절, 원문 비저장, 기존 PATCH만 저장. 최초 엔진246+2 xfail, 리뷰 전249+2 xfail/서버80+1 skip/웹90/빌드469ms, 임시 DB 375px·데스크톱 수동 QA | Claude 독립 리뷰 대기. 사용자 대시보드 양성 DENY 확정. DOM 전체·지연 주입·실장비·PostgreSQL 미검증 |
 
 | 2026-10-02 | Codex (GPT-6) | PR #16 Claude 독립 리뷰 PASS(33f957d)·비차단6건 확인. 보이지 않는 구분 문자 우회 차단, 주소/머리글 오류 문구·target 출처 정합성, timeout 혼합 거절 및 Windows 오류 응답/정상 echo 형식 추가 회귀14개. 엔진263+2 xfail, 서버 전체 재실행 통과 | 보완분 Claude 재리뷰 대기. 넓은 포트 인식은 지원 밖 포트까지 세는 보수적 정책 유지. 임의 출력 위조·출발지·UI 지연주입은 한계 |
+
+| 2026-10-02 | Codex (GPT-6) | Orca CLI로 Claude (Claude Opus 5) PR #16 보완 재리뷰 PASS(28eff26) 수령·HANDOFF 기록. Claude 직접 엔진263+2 xfail(2.25s)/서버80+1 skip(13.15s)/웹90(666ms)/빌드445ms, 보완 전후 및 정상 전체 출력 회귀·합성 변이30,000건 확인. Codex 최신 실행 엔진263+2 xfail(2.79s)/서버80+1 skip(12.98s), 웹90(1.19s)/빌드469ms. 브라우저 NEL 거절 확인·정상 후보 화면 유지 | 사용자 최종 확인·PR #16 병합 결정 대기. 응답 낱줄 혼합·NBSP 공백·거절 시 읽은 target 유지 3건은 비차단 후속. DOM 전체·지연주입·실장비·PostgreSQL 미검증. 다음 대시보드 양성 DENY 확정 |
