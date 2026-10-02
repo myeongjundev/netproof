@@ -21,8 +21,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-02): 이번 과제는 Codex가 설계까지 담당한다. 독립 리뷰는 Claude에게 요청한다.
 - 기반: main e0d420c, PR #11·#12 병합 완료.
 - 브랜치: codex/case-search
-- 단계: Claude 독립 리뷰 완료 → 6건 보완·검증 완료 → 재리뷰 대기
-- 다음 차례: Claude 보완분 재리뷰. 사용자 병합 결정 전까지 병합하지 않는다.
+- 단계: Claude 독립 리뷰·6건 보완·재리뷰 PASS 완료 → 사용자 최종 확인 대기
+- 다음 차례: 사용자 최종 확인·병합 결정(PROMPTS.md 5번). PR #13은 OPEN, 자동 병합하지 않는다.
 
 ## 작업 정의
 - 목표: 200개 제한 목록에서 제목·작성자·flow src/dst IP 검색, 판정·받은 답과 판정 비교·확인·실제 결과 출처 필터, 서버 페이지 이동을 제공한다.
@@ -50,7 +50,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 실제 장비 증거가 아닌 합성 데이터다. 기존 사용자 DB에 QA 사례를 넣지 않았다.
 
 ## 리뷰 기록
-- [Claude 독립 리뷰](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943803710), 검토 SHA b990e661d2d93355ae248c53cfe67f6c694ceb13. 모델 Claude Opus 5. 차단 결함 없음, 비차단 6건 보완 요청. 아래는 Codex 반영 상태이며 보완 SHA는 재리뷰 대기.
+- [Claude 독립 리뷰](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943803710), 검토 SHA b990e661d2d93355ae248c53cfe67f6c694ceb13. 모델 Claude Opus 5. 차단 결함 없음, 비차단 6건 보완 요청. 아래는 Codex 반영 상태이며 Claude가 a807b6a에서 F1~F6 해결을 확인했다.
 | 항목 | 반영 | 검증 |
 |---|---|---|
 | F1 SQLite 비ASCII 검색 설명 | ASCII 보장·DB별 Unicode 한계 문서/작업 정의 명시 | SQLite ÄÖ/äö와 ASCII 회귀 테스트 |
@@ -63,6 +63,13 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - F5는 실제 effect에서 쓰는 helper의 응답 순서 테스트이며 CasesPage DOM 마운트 전체를 자동 검증하는 테스트는 아니다. 화면 흐름은 브라우저로 확인했다.
 - Claude 직접 실행: 엔진 158+2 xfail(1.60s), 서버 68+1 skip(13.55s), 웹 67(557ms), 빌드 363ms. 보완 후 Codex 실행은 위 최신 결과.
 - PostgreSQL 실연결·EXPLAIN은 미실행.
+
+### Claude 재리뷰 PASS (2026-10-02)
+- [재리뷰 코멘트](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943941359). 검토 SHA a807b6a8c28a77529e9c97c96f0748032048c94e. 모델 Claude Opus 5. 검토 범위 b990e66..a807b6a, F1~F6.
+- 직접 실행: 서버 검색 테스트 26 passed in 5.01s, 서버 전체 70 passed/1 skipped in 11.59s, 웹 검색 테스트 4 passed(200ms). contains_eager SQL도 단일 users 조인 확인.
+- 미해결 차단 결함 없음. F5 helper 레이스 테스트와 DOM 전체 마운트 테스트를 구분한 범위에 동의했다.
+- 비차단 후속 1건: web/src/pages/CasesPage.tsx 빈 검색창에서 공백만 입력하면 매 타자마다 조건이 같아도 새 filters 객체로 재조회된다. 이미 q가 빈 값이면 건너뛰는 개선은 후속으로 남긴다. 결과 정확도에는 영향 없으며 이번 PASS를 막지 않는다.
+- 사용자 병합 결정 대기. 이후 문서 기록 커밋은 실행 코드 변경 없음.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
