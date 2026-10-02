@@ -1,4 +1,5 @@
-import type { CaseDetail, CaseItem, CaseSummary, Claim, Dashboard, Flow, Network, User, Verdict } from "./types";
+import type { CaseDetail, CaseFilters, CaseItem, CasePage, CaseSummary, Claim, Dashboard, Flow, Network, User, Verdict } from "./types";
+import { caseSearchParams } from "./caseSearch";
 
 export class ApiError extends Error {
   constructor(
@@ -45,6 +46,7 @@ export const api = {
     call<Verdict>("POST", "/api/verify", { network, flow, claim: claim.expected ? claim : null }),
   examples: () => call<CaseItem[]>("GET", "/api/examples"),
   cases: (mine: boolean) => call<CaseSummary[]>("GET", mine ? "/api/cases?mine=1" : "/api/cases"),
+  searchCases: (filters: CaseFilters, page: number) => call<CasePage>("GET", `/api/cases?${caseSearchParams(filters, page)}`),
   createCase: (title: string, network: Network, flow: Flow, claim: Claim) =>
     call<CaseDetail>("POST", "/api/cases", { title, network, flow, claim: claim.expected ? claim : null }),
   getCase: (id: number) => call<CaseDetail>("GET", `/api/cases/${id}`),

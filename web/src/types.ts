@@ -118,6 +118,23 @@ export interface CaseSummary {
   created_at: string;
 }
 
+export interface CaseFilters {
+  q: string;
+  mine: boolean;
+  result: Result | "";
+  comparison: Comparison | "";
+  confirmed: "" | "0" | "1";
+  source: ActualSource | "none" | "";
+}
+
+export interface CasePage {
+  items: CaseSummary[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
 export interface CaseDetail extends CaseSummary {
   owner_id: number;
   network: Network;

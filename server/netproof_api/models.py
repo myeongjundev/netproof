@@ -61,6 +61,11 @@ ACTUAL_SOURCES = ("nmap", "ping", "device", "other")
 
 class Case(db.Model):
     __tablename__ = "cases"
+    __table_args__ = (
+        db.Index("ix_cases_created_id", "created_at", "id"),
+        db.Index("ix_cases_owner_created_id", "owner_id", "created_at", "id"),
+        db.Index("ix_cases_result_created_id", "result", "created_at", "id"),
+    )
     id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     title = db.Column(db.String(80), nullable=False)
@@ -119,3 +124,9 @@ class Case(db.Model):
             "confirmed_at": iso(self.confirmed_at),
             "updated_at": iso(self.updated_at),
         }
+
+
+def ensure_case_indexes() -> None:
+    """create_all이 변경하지 않는 기존 표에도 목록 인덱스를 적용한다."""
+    for index in Case.__table__.indexes:
+        index.create(bind=db.engine, checkfirst=True)

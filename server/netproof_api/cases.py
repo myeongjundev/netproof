@@ -6,12 +6,14 @@ import json
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request
+from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
 from netproof_engine import compare, verify
 
 from .auth import current_user, error, login_required, reviewer_required
-from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, db, utcnow
+from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
 
 bp = Blueprint("cases", __name__, url_prefix="/api")
 
@@ -91,10 +93,52 @@ def _owned(case_id: int):
 @bp.get("/cases")
 @login_required
 def list_cases():
-    query = Case.query.order_by(Case.created_at.desc(), Case.id.desc())
+    # page/per_page를 보내는 새 화면은 메타데이터를 받는다. 기존 배열 응답은 유지한다.
+    paged = "page" in request.args or "per_page" in request.args
+    numbers = {}
+    for key, default, maximum in (("page", "1", 1000000), ("per_page", "20", 100)):
+        raw = request.args.get(key, default)
+        if not raw.isascii() or not raw.isdecimal() or len(raw) > 7 or not 1 <= int(raw) <= maximum:
+            return error(400, f"{key}는 1~{maximum} 사이 정수여야 합니다")
+        numbers[key] = int(raw)
+    allowed = {
+        "result": ("PASS", "DENY", "UNSUPPORTED", "INVALID"),
+        "comparison": ("AGREE", "DISAGREE", "NOT_COMPARABLE", "NO_CLAIM"),
+        "confirmed": ("1", "0"), "source": (*ACTUAL_SOURCES, "none"), "mine": ("1", "0"),
+    }
+    for key, values in allowed.items():
+        if request.args.get(key, "") not in ("", *values):
+            return error(400, f"알 수 없는 {key} 필터입니다")
+    search = request.args.get("q", "").strip()
+    if len(search) > 100:
+        return error(400, "검색어는 100자까지입니다")
+    query = Case.query
     if request.args.get("mine") == "1":
         query = query.filter_by(owner_id=current_user().id)
-    return jsonify([case.summary() for case in query.limit(200)])
+    for key in ("result", "comparison"):
+        if value := request.args.get(key):
+            query = query.filter(getattr(Case, key) == value)
+    if confirmed := request.args.get("confirmed"):
+        query = query.filter(Case.confirmed_at.is_not(None) if confirmed == "1" else Case.confirmed_at.is_(None))
+    if source := request.args.get("source"):
+        query = query.filter(Case.actual_source.is_(None) if source == "none" else Case.actual_source == source)
+    if search:
+        # LIKE 특수문자는 문자 그대로 찾는다. IP 검색은 flow의 src/dst만 대상이다.
+        pattern = "%" + search.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
+        query = query.join(Case.owner).filter(or_(
+            Case.title.ilike(pattern, escape="/"), User.nickname.ilike(pattern, escape="/"),
+            Case.flow["src"].as_string().ilike(pattern, escape="/"),
+            Case.flow["dst"].as_string().ilike(pattern, escape="/"),
+        ))
+    total = query.count() if paged else None
+    query = query.options(joinedload(Case.owner)).order_by(Case.created_at.desc(), Case.id.desc())
+    if not paged:
+        return jsonify([case.summary() for case in query.limit(200)])
+    page, per_page = numbers["page"], numbers["per_page"]
+    pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, pages)  # 삭제 등으로 마지막 페이지가 사라졌으면 유효한 마지막 페이지를 반환한다.
+    items = [case.summary() for case in query.offset((page - 1) * per_page).limit(per_page)]
+    return jsonify(items=items, total=total, page=page, per_page=per_page, pages=pages)
 
 
 @bp.post("/cases")
