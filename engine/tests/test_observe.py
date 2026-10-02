@@ -93,6 +93,39 @@ def test_korean_alternative_statistics_label():
     assert observe(text, ICMP)["result"] == "PASS"
 
 
+@pytest.mark.parametrize("separator", ["\x85", "\u2028", "\u2029", "\u200b", "\x7f", "\ud800"])
+def test_invisible_separators_cannot_hide_extra_ports(separator):
+    text = nmap() + f"\n80/{separator}tcp filtered http"
+    assert observe(text, TCP)["status"] == "REJECTED"
+
+
+@pytest.mark.parametrize("line", [
+    f"Reply from {DST}: Packet filtered.",
+    f"{DST}의 응답: 대상 호스트에 연결할 수 없습니다.",
+    f"{DST}의 응답: 전송 중 TTL이 만료되었습니다.",
+    f"Reply from {DST}: Unknown error.",
+])
+def test_windows_error_responses_never_become_pass(line):
+    assert observe(ping(locale="windows") + "\n" + line, ICMP)["status"] == "REJECTED"
+
+
+def test_windows_normal_echo_response_supported():
+    text = ping(locale="windows") + f"\nReply from {DST}: bytes=32 time<1ms TTL=128"
+    assert observe(text, ICMP)["result"] == "PASS"
+
+
+@pytest.mark.parametrize("timeout", ["Request timed out.", "요청 시간이 만료되었습니다."])
+def test_nmap_with_identifiable_ping_timeout_rejected(timeout):
+    assert observe(nmap() + "\n" + timeout, TCP)["status"] == "REJECTED"
+
+
+def test_rejected_without_target_header_has_null_target_and_specific_problem():
+    actual = observe("443/tcp open https", TCP)
+    assert actual["target"] is None and "IPv4" in actual["problems"][0]
+    actual = observe("443/tcp open service-for-192.0.2.5", TCP)
+    assert actual["target"] is None
+
+
 def test_limits_are_not_truncated_and_boundary_is_accepted():
     base = nmap()
     assert observe(base + "\nx" + "x" * (3998 - len(base)), TCP)["status"] == "OK"

@@ -32,20 +32,22 @@ def observe(text: str, flow: dict) -> dict:
         return reject("출력 텍스트를 붙여넣으세요")
     if len(text) > 4000 or len(text.splitlines()) > 80:
         return reject("출력은 4000자·80줄까지입니다")
-    if any(ord(c) < 32 and c not in "\r\n\t" for c in text):
-        return reject("제어문자가 있는 출력은 지원하지 않습니다")
+    if any(not c.isprintable() and c not in "\r\n\t" for c in text):
+        return reject("제어문자·보이지 않는 구분 문자가 있는 출력은 지원하지 않습니다")
     if not isinstance(flow, dict) or (dst := _ip(flow.get("dst"))) is None:
         return reject("흐름의 목적지 IPv4가 필요합니다")
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     ips = re.findall(r"(?<![\w.])[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(?![\w.])", text)
-    if not ips or any(_ip(ip) != dst for ip in ips):
+    if not ips:
+        return reject("출력에서 목적지 IPv4를 읽을 수 없습니다. 대상 머리글을 포함하세요")
+    if any(_ip(ip) != dst for ip in ips):
         return reject("출력의 목적지 IPv4가 사례와 다르거나 다른 장비 주소가 섞여 있습니다")
-    result["target"] = dst
     nmap = [line for line in lines if line.startswith("Nmap scan report for ")]
     ping_headers = [line for line in lines if re.match(r"(?:PING |Pinging |Ping (?!statistics))", line)]
     ping_stats = [line for line in lines if "ping statistics" in line.lower() or re.search(r"(?:의|에 대한) (?:Ping )?통계", line)]
     port_lines = [line for line in lines if re.match(r"\S+/\S+\s", line)]
-    if (nmap and (ping_headers or ping_stats or re.search(r"%\s*(?:packet loss|loss|손실)", text))) or (ping_headers and port_lines):
+    ping_signal = ping_headers or ping_stats or re.search(r"%\s*(?:packet loss|loss|손실)|Request timed out\.|요청 시간이 만료", text)
+    if (nmap and ping_signal) or (ping_headers and port_lines):
         return reject("ping과 Nmap 출력을 섞지 마세요")
     evidence = []
     if nmap:
@@ -54,6 +56,7 @@ def observe(text: str, flow: dict) -> dict:
         header = re.fullmatch(r"Nmap scan report for (?:[^()\n]+ \()?([0-9.]+)\)?", nmap[0])
         if not header or _ip(header[1]) != dst:
             return reject("Nmap 대상 IPv4를 읽을 수 없습니다")
+        result["target"] = _ip(header[1])
         ports = port_lines
         if len(ports) != 1:
             return reject("Nmap 단일 포트 결과 한 줄이 필요합니다")
@@ -70,12 +73,15 @@ def observe(text: str, flow: dict) -> dict:
         observed = "filtered" if port[3] == "open|filtered" else port[3]
         evidence = [nmap[0], ports[0]]
     else:
+        if not ping_headers:
+            return reject("지원하는 단일 대상 ping·Nmap 머리글이 필요합니다")
         if len(ping_headers) != 1 or len(ping_stats) != 1:
             return reject("단일 대상 ping 머리글과 통계 블록이 필요합니다")
         if flow.get("proto") != "icmp" or flow.get("icmp", "echo") not in ("echo", 8, "8"):
             return reject("ping은 ICMP echo 흐름에만 적용할 수 있습니다")
         if not re.search(r"(?<![0-9.])" + re.escape(dst) + r"(?![0-9.])", ping_headers[0]) or dst not in ping_stats[0]:
             return reject("ping 머리글과 통계의 목적지가 사례와 다릅니다")
+        result["target"] = _ip(re.search(r"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+", ping_headers[0])[0])
         summaries = [line for line in lines if re.search(r"(?:%\s*(?:packet loss|loss|손실))", line)]
         if len(summaries) != 1:
             return reject("ping 손실 통계 한 줄이 필요합니다")
@@ -100,8 +106,15 @@ def observe(text: str, flow: dict) -> dict:
         if (loss == 0 and received != sent) or (loss == 100 and received != 0) or (0 < loss < 100 and not 0 < received < sent):
             return reject("ping 손실률과 받은 패킷 수가 맞지 않습니다")
         # Windows는 오류 응답도 Received에 셀 수 있다. 0%만으로 성공시키지 않는다.
-        if loss == 0 and re.search(r"unreachable|general failure|timed out|TTL expired|도달할 수 없|일반 오류|요청 시간이 만료|기간이 만료|\+[0-9]+ errors", text, re.I):
+        if loss == 0 and re.search(r"unreachable|general failure|timed out|TTL.*(?:expired|만료)|Packet filtered|도달할 수 없|연결할 수 없|일반 오류|요청 시간이 만료|기간이 만료|\+[0-9]+ errors", text, re.I):
             return reject("오류 응답과 손실 없는 통계가 섞여 있어 성공으로 볼 수 없습니다")
+        if windows and loss == 0:
+            replies = [line for line in lines if line.startswith("Reply from ") or "의 응답:" in line]
+            for line in replies:
+                ttl = re.search(r"TTL=([0-9]+)(?:\s|$)", line)
+                number = _number(ttl[1]) if ttl else None
+                if number is None or not 1 <= number <= 255:
+                    return reject("Windows 응답 줄이 정상 echo 응답 형식이 아닙니다")
         tool = "ping"
         observed = "reply" if loss == 0 else "no_reply" if loss == 100 else "partial"
         evidence = [ping_stats[0], summary]

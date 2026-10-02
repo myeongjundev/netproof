@@ -131,13 +131,18 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 완료 내용 / 테스트 결과
 - 선행 설계 커밋 `04bccc5` 이후 observe 순수 엔진 파서·로그인 필요 상태 없는 API·작성자 상세 UI·후보 적용 helper 구현. verify/compare/matrix/기존 저장·확인 API·expect는 변경하지 않았다.
 - 정상·부분손실·무응답·closed/filtered 매핑, 대상·포트·프로토콜·혼합·불완전·숫자/제어문자·상한 거절, 임의 문자열/flow 예외 없음 Hypothesis 검증. Windows 오류 응답+0% 통계도 성공 거절. 한국어 `에 대한 Ping 통계`와 `의 통계` 지원.
-- 실제 실행: engine **249 passed, 2 xfailed in 2.33s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
+- 실제 실행: engine **263 passed, 2 xfailed in 2.79s**; server **80 passed, 1 skipped in 15.84s**; web **9 files, 90 passed, 1.19s**; build **tsc 성공, 38 modules, 469ms**. 최초 파서 테스트에서 Windows 통계 머리글을 새 ping으로 세는 오류 발견 후 수정·전체 엔진 재실행 통과.
 - 임시 DB 사례 #27, 합성 Nmap 텍스트 수동 QA: 후보 만들기/적용 후 새로고침하면 미저장 상태, 명시적 저장 후 PASS 유지. 원문 추가 표시자는 메모에 안 들어감, 사람이 쓴 메모 보존. 다른 목적지는 적용 버튼 없음·기존 결과 유지. filtered 미정 적용은 기존 DENY 선택 유지·자동 저장 없음.
 - 375×812: 긴 서비스 근거 300자에서도 body 360 ≤ 375, console error 0. 데스크톱 body 1265 ≤ 1280. 작성자 후보 패널을 브라우저에 열어 두었다.
 - 원문은 지역 상태·상태 없는 요청에만 사용, 근거 2줄만 확인 후 메모에 저장. 전체 DOM 자동 테스트·인위적 응답 지연 주입·실제 장비·PostgreSQL 실연결은 미검증. 사용자 양성 DENY는 다음 대시보드용으로 기록.
 
 ## 현재 과제 리뷰 기록
-- PR #16: https://github.com/myeongjundev/netproof/pull/16 — Claude (Claude Opus 5) 독립 리뷰 대기.
+- PR #16: https://github.com/myeongjundev/netproof/pull/16
+- Claude (Claude Opus 5) 독립 리뷰 PASS(33f957d), 차단 0건·비차단 6건. 코멘트 https://github.com/myeongjundev/netproof/pull/16#issuecomment-5945453535
+- Claude 직접 engine249+2 xfail(3.00s)/server80+1 skip(13.34s)/web90(602ms)/build332ms. 실제 localhost 영어 ping 출력 1회·한국어 OS 자원 문자열·Linux/Nmap 전체 출력과 별도 24,000건 변이(예외0, 경계0.42ms 이하) 검증. 실습망·실장비 접속은 하지 않았다.
+- Codex 보완: N1 보이지 않는 구분·제어 문자 전부 거절(회귀6), N3 주소 누락/머리글 누락 오류 문구, N4 target은 검증된 출력 머리글에서 읽음, N5 식별 가능한 ping timeout 혼합 거절(회귀2), N6 최신 실행 수 기록. 추가로 같은 대상 Windows 오류 응답·정상 echo 형식 검사(회귀5), 미인식 머리글 target null(회귀1). 총14개 추가.
+- N2 넓은 포트 토큰 인식은 보수적으로 지원 밖·잘못된 포트도 세어 다중 출력을 거절하는 동작으로 유지. 실제 지원 형식은 재현 통과. N5 임의의 무관한 줄을 모두 검증하거나 출력 위조를 증명하는 기능은 범위 밖이며, 사람 확인 절차를 유지.
+- 웹 소스 변경 없음. 보완분 engine **263 passed, 2 xfailed in 2.79s**, server 전체 재실행 통과. Claude 보완 재리뷰 대기.
 - 리뷰 전 추가 확인: 지원 밖 포트와 불완전 혼합 출력을 거절하는 회귀 3건을 추가했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
@@ -170,8 +175,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① **보류: 수업 ACL이 Cisco인지 확인(사람 트랙) 뒤 착수**
 
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
-- [ ] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ **설계 완료, Codex 구현 대기 — 브랜치 codex/actual-output**
-- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **보류: 양성 정의는 사용자가 정한다**
+- [ ] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ **PR #16 구현·검증 완료, Claude 보완 재리뷰 대기 — 브랜치 codex/actual-output**
+- [ ] 오탐·미탐 대시보드 — ⑤ AI 답·사람 예상·NetProof 판정을 각각 실제 결과와 2×2로, 칸을 누르면 목록 필터로. **사용자 확정: 통신 차단(DENY)이 양성, 다음 Claude 설계 대상**
 - [ ] ACL 점검(가려진 규칙·중복·과도한 permit) — ③ `docs/semantics.md` 함께
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
@@ -192,7 +197,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **사람 트랙 (동시에, LLM에 넘기지 않음)**
 - [ ] 동기 3명 인터뷰 · [ ] 실제 결과가 있는 사례 모으기(붙여넣기 기능의 재료) · [ ] 사례 04 손계산
-- [ ] **수업 ACL이 Cisco인지 pfSense인지 확인(Cisco 과제의 선행 조건)** · [ ] **오탐·미탐 양성 정의(대시보드 과제의 선행 조건)** · [ ] 표어 결정
+- [ ] **수업 ACL이 Cisco인지 pfSense인지 확인(Cisco 과제의 선행 조건)** · [x] **오탐·미탐 양성 정의: 통신 차단(DENY)** · [ ] 표어 결정
 - [ ] 배포(Vercel·Supabase 가입, 비밀값) · [ ] README 화면 다시 캡처(기능이 늘어난 뒤)
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
