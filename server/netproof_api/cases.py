@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request
-from sqlalchemy import or_
+from sqlalchemy import case as sql_case, func, or_
 from sqlalchemy.orm import contains_eager, joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
@@ -125,6 +125,8 @@ def list_cases():
         "result": ("PASS", "DENY", "UNSUPPORTED", "INVALID"),
         "comparison": ("AGREE", "DISAGREE", "NOT_COMPARABLE", "NO_CLAIM"),
         "confirmed": ("1", "0"), "source": (*ACTUAL_SOURCES, "none"), "mine": ("1", "0"),
+        "actual": (*ACTUAL_RESULTS, "none"), "claim_kind": (*CLAIM_KINDS, "none"),
+        "claim_expected": ACTUAL_RESULTS,
     }
     for key, values in allowed.items():
         if request.args.get(key, "") not in ("", *values):
@@ -142,6 +144,11 @@ def list_cases():
         query = query.filter(Case.confirmed_at.is_not(None) if confirmed == "1" else Case.confirmed_at.is_(None))
     if source := request.args.get("source"):
         query = query.filter(Case.actual_source.is_(None) if source == "none" else Case.actual_source == source)
+    for key, column in (("actual", Case.actual_result),
+                        ("claim_kind", Case.claim["kind"].as_string()),
+                        ("claim_expected", Case.claim["expected"].as_string())):
+        if value := request.args.get(key):
+            query = query.filter(column.is_(None) if value == "none" else column == value)
     if search:
         # LIKE 특수문자는 문자 그대로 찾는다. IP 검색은 flow의 src/dst만 대상이다.
         pattern = "%" + search.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
@@ -302,19 +309,44 @@ def export_case(case_id: int):
 @bp.get("/dashboard")
 @reviewer_required
 def dashboard():
-    cases = Case.query.all()
-    confirmed_in_scope = [c for c in cases if c.confirmed_at and c.in_scope]
-    mismatches = [c for c in confirmed_in_scope if c.result != c.actual_result]
-    ai_confirmed = [c for c in cases if c.confirmed_at and (c.claim or {}).get("kind") == "ai"]
-    ai_wrong = [c for c in ai_confirmed if c.claim["expected"] != c.actual_result]
-    return jsonify({
-        "total": len(cases),
-        "confirmed": sum(1 for c in cases if c.confirmed_at),
-        "unsupported": sum(1 for c in cases if c.result == "UNSUPPORTED"),
-        "invalid": sum(1 for c in cases if c.result == "INVALID"),
-        "confirmed_in_scope": len(confirmed_in_scope),
-        "agree": len(confirmed_in_scope) - len(mismatches),
-        "ai_confirmed": len(ai_confirmed),
-        "ai_wrong": len(ai_wrong),
-        "mismatches": [c.summary() for c in mismatches],
-    })
+    # 저장된 값만 집계한다. 네트워크/판정 JSON을 읽거나 판정을 재계산하지 않는다.
+    kind = Case.claim["kind"].as_string()
+    expected = Case.claim["expected"].as_string()
+    # 알 수 없는 값은 미정으로 묶어 집계 행 수도 유한하게 유지한다.
+    columns = (
+        sql_case((kind.in_(CLAIM_KINDS), kind), else_=None),
+        sql_case((expected.in_(ACTUAL_RESULTS), expected), else_=None),
+        sql_case((Case.result.in_((*ACTUAL_RESULTS, "UNSUPPORTED", "INVALID")), Case.result), else_=None),
+        sql_case((Case.actual_result.in_(ACTUAL_RESULTS), Case.actual_result), else_=None),
+        Case.confirmed_at.is_not(None),
+    )
+    groups = Case.query.with_entities(*columns, func.count(Case.id)).group_by(*columns).all()
+    axes = [{"axis": axis, "tp": 0, "fp": 0, "fn": 0, "tn": 0, "total": 0,
+             "excluded": {"not_confirmed": 0, "no_actual": 0, "no_prediction": 0}}
+            for axis in ("ai", "self", "engine")]
+    board = dict.fromkeys(("total", "confirmed", "unsupported", "invalid"), 0)
+    cells = {("DENY", "DENY"): "tp", ("DENY", "PASS"): "fp",
+             ("PASS", "DENY"): "fn", ("PASS", "PASS"): "tn"}
+    for claim_kind, claim_expected, result, actual, confirmed, count in groups:
+        board["total"] += count
+        board["confirmed"] += count if confirmed else 0
+        if result in ("UNSUPPORTED", "INVALID"):
+            board[result.lower()] += count
+        for axis in axes:
+            predicted = result if axis["axis"] == "engine" else claim_expected if claim_kind == axis["axis"] else None
+            excluded = "not_confirmed" if not confirmed else "no_actual" if actual not in ACTUAL_RESULTS else "no_prediction" if predicted not in ACTUAL_RESULTS else None
+            if excluded:
+                axis["excluded"][excluded] += count
+            else:
+                axis[cells[(predicted, actual)]] += count
+                axis["total"] += count
+    ai, _, engine = axes
+    mismatches = Case.query.filter(
+        Case.confirmed_at.is_not(None), Case.result.in_(ACTUAL_RESULTS),
+        Case.actual_result.in_(ACTUAL_RESULTS), Case.result != Case.actual_result,
+    ).options(joinedload(Case.owner)).order_by(Case.created_at.desc(), Case.id.desc()).limit(20).all()
+    return jsonify({**board, "confirmed_in_scope": engine["total"], "agree": engine["tp"] + engine["tn"],
+                    "ai_confirmed": ai["total"], "ai_wrong": ai["fp"] + ai["fn"],
+                    "mismatches_total": engine["fp"] + engine["fn"],
+                    "mismatches": [c.summary() for c in mismatches],
+                    "confusion": {"positive": "DENY", "axes": axes}})

@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { api, message } from "../api";
 import { ActualBadge, ComparisonBadge, ResultBadge } from "../components/Badges";
-import { emptyCaseFilters, loadCasePage } from "../caseSearch";
+import { emptyCaseFilters, loadCasePage, parseCaseFilters } from "../caseSearch";
+import { useRoute } from "../router";
 import type { CaseFilters, CasePage } from "../types";
 
 export function CasesPage() {
-  const [filters, setFilters] = useState<CaseFilters>(emptyCaseFilters);
-  const [search, setSearch] = useState("");
+  const route = useRoute();
+  const query = route.page === "cases" ? route.query ?? "" : "";
+  const [filters, setFilters] = useState<CaseFilters>(() => parseCaseFilters(query));
+  const [search, setSearch] = useState(() => parseCaseFilters(query).q);
   const [page, setPage] = useState(1);
   const [data, setData] = useState<CasePage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +20,11 @@ export function CasesPage() {
     setFilters((current) => ({ ...current, q: search.trim(), ...patch }));
     setPage(1);
   }
+
+  useEffect(() => {
+    const next = parseCaseFilters(query);
+    setFilters(next); setSearch(next.q); setPage(1);
+  }, [query]);
 
   useEffect(() => {
     setLoading(true);
@@ -45,7 +53,7 @@ export function CasesPage() {
           <input id="case-query" type="search" value={search} maxLength={100}
             placeholder="제목 · 작성자 · 출발지/목적지 IP" onChange={(e) => {
               setSearch(e.target.value);
-              if (!e.target.value.trim()) changeFilters({ q: "" });
+              if (!e.target.value.trim() && filters.q !== "") changeFilters({ q: "" });
             }} />
         </label>
         <button type="submit">검색</button>
@@ -69,11 +77,27 @@ export function CasesPage() {
           <option value="">전체</option><option value="nmap">Nmap</option><option value="ping">ping</option>
           <option value="device">장비</option><option value="other">기타</option><option value="none">출처 없음</option>
         </select></label>
+        <label>실제 결과<select value={filters.actual} onChange={(e) => changeFilters({ actual: e.target.value as CaseFilters["actual"] })}>
+          <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option><option value="none">미정</option>
+        </select></label>
+        <label>받은 답 종류<select value={filters.claim_kind} onChange={(e) => changeFilters({ claim_kind: e.target.value as CaseFilters["claim_kind"] })}>
+          <option value="">전체</option><option value="ai">AI 답</option><option value="self">사람 예상</option><option value="none">종류 없음</option>
+        </select></label>
+        <label>받은 답<select value={filters.claim_expected} onChange={(e) => changeFilters({ claim_expected: e.target.value as CaseFilters["claim_expected"] })}>
+          <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option>
+        </select></label>
       </div>
       {error && <div role="alert"><p className="error">{error}</p><button type="button" onClick={() => setRetry((n) => n + 1)}>다시 시도</button></div>}
       <div aria-live="polite">
         {loading && <p className="hint">불러오는 중…</p>}
         {filters.q && <p className="hint">적용한 검색어: {filters.q}</p>}
+        {(filters.actual || filters.claim_kind || filters.claim_expected) && <p className="hint">
+          적용한 조건: {filters.confirmed === "1" ? "검토 확인됨 · " : ""}
+          {filters.result && `NetProof 판정 ${filters.result} · `}
+          {filters.actual && `실제 ${filters.actual === "none" ? "미정" : filters.actual} · `}
+          {filters.claim_kind && `${filters.claim_kind === "ai" ? "AI 답" : filters.claim_kind === "self" ? "사람 예상" : "답 종류 없음"} · `}
+          {filters.claim_expected && `받은 답 ${filters.claim_expected}`}
+        </p>}
         {data && (loading || error) && <p className="hint">아래는 이전 조회 결과입니다.</p>}
         {data && <p className="hint">검색 결과 {data.total}개 · 페이지당 {data.per_page}개</p>}
         {data?.items.length === 0 && <p className="hint">조건에 맞는 사례가 없습니다. 검색 조건을 바꾸거나 판정기에서 사례를 저장해 보세요.</p>}

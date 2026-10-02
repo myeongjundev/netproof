@@ -9,6 +9,24 @@ from conftest import CASE
 from netproof_api.models import Case, User, db, ensure_case_indexes
 
 
+def test_actual_and_claim_filters_none_and_intersection(api, board):
+    a, b, c = board
+    with api.client.application.app_context():
+        db.session.get(Case, a).claim = {"expected": "PASS", "kind": "ai"}
+        db.session.get(Case, b).claim = {"expected": "DENY", "kind": "self"}
+        db.session.get(Case, c).claim = None
+        db.session.commit()
+    for query, expected in (("actual=DENY", [a]), ("actual=PASS", []), ("actual=none", [c, b]),
+                            ("claim_kind=ai", [a]), ("claim_kind=self", [b]), ("claim_kind=none", [c]),
+                            ("claim_expected=PASS", [a]), ("claim_expected=DENY", [b]),
+                            ("actual=DENY&claim_kind=ai&claim_expected=PASS&confirmed=1&mine=1&q=HTTPS", [a]),
+                            ("actual=none&result=INVALID", [b])):
+        assert ids(api.get(f"/api/cases?page=1&{query}")) == expected, query
+    assert [item["id"] for item in api.get("/api/cases?claim_kind=self").get_json()] == [b]
+    for query in ("actual=unknown", "claim_kind=human", "claim_expected=none", "actual=pass"):
+        assert api.get(f"/api/cases?{query}").status_code == 400
+
+
 @pytest.fixture
 def board(app, api, other, reviewer):
     api.register("Alice")
