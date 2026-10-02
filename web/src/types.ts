@@ -1,4 +1,16 @@
 export type Kind = "host" | "router";
+export type AuditFinding = "shadowed" | "redundant_earlier" | "redundant_later" | "never_matches" | "undetermined";
+export interface AuditLine {
+  line: number; raw: string; kind: "rule" | "remark" | "unread" | "unchecked";
+  action: "permit" | "deny" | null; finding: AuditFinding | null; by: number[];
+  implicit_deny: boolean; undetermined_reason: "limit" | "unread_below" | null;
+  open: ("src" | "dst" | "proto" | "dst_port" | "icmp_type")[]; catch_all: boolean;
+}
+export interface AclAudit {
+  status: "OK" | "INVALID"; problems: string[]; engine_version: string;
+  acls: { name: string; unchecked_from: number | null; lines: AuditLine[] }[];
+  totals: Record<AuditFinding, number>;
+}
 export type Proto = "tcp" | "udp" | "icmp";
 export type Mode = "session" | "one-way";
 export type Result = "PASS" | "DENY" | "UNSUPPORTED" | "INVALID";

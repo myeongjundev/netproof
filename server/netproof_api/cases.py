@@ -11,6 +11,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
 from netproof_engine import compare, observe, policy_matrix, verify
+from netproof_engine import acl_audit
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -88,6 +89,14 @@ def observe_endpoint():
     if not isinstance(data, dict):
         return error(400, "본문은 객체여야 합니다")
     return jsonify(observe(data.get("text"), data.get("flow")))
+
+
+@bp.post("/acl-audit")
+def audit_endpoint():
+    data = _body()
+    if problem := _limit_problem(data.get("network")):
+        return error(422, problem)
+    return jsonify(acl_audit(data.get("network")))
 
 
 @bp.get("/examples")
