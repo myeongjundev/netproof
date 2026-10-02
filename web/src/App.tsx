@@ -5,6 +5,7 @@ import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JudgePage } from "./pages/JudgePage";
+import { PolicyMatrixPage } from "./pages/PolicyMatrixPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { go, useRoute } from "./router";
@@ -54,6 +55,7 @@ export function App() {
 
   let page;
   if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} />;
+  else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
   else if (!checked) page = <p className="hint">확인 중…</p>;
   else if (route.page === "login")
     page = user ? (
@@ -97,6 +99,7 @@ export function App() {
         </a>
         <nav className="tabs" aria-label="주요 화면">
           {tab("판정기", "#/", route.page === "judge")}
+          {tab("정책 검증", "#/matrix", route.page === "matrix")}
           {tab("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}
           {user?.role === "reviewer" && tab("대시보드", "#/dashboard", route.page === "dashboard")}
           {tab("설정", "#/settings", route.page === "settings")}

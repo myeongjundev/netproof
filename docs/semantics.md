@@ -65,3 +65,21 @@
 - 인터페이스가 없는 ACL을 가리킴
 - 출발지 IP를 가진 장비가 모델에 없음
 - 목적지 IP가 모델 안의 어떤 인터페이스에도 없음 → `UNSUPPORTED`(모델 밖 목적지)
+
+## 8. 정책 검증·도달성 매트릭스
+
+`policy_matrix`는 교차 host 장비의 인터페이스 IP 순서쌍 × 서비스를 기존 `verify`로 계산한다.
+같은 장비 내부 쌍과 자기 자신은 검사에서 제외한다. 이 기능은 단일 흐름의 PASS/DENY 의미를 바꾸지 않는다.
+입력 전체의 status(OK/INVALID), 셀의 result(네 판정), 셀의 policy(의도 비교)는 서로 다른 필드다.
+
+| 조건 | policy | 기존 compare 대응 |
+|---|---|---|
+| result가 UNSUPPORTED/INVALID | UNDECIDED | 의도 있으면 NOT_COMPARABLE, 없으면 NO_CLAIM |
+| 판정 가능한데 의도 없음 | NO_POLICY | NO_CLAIM |
+| PASS/DENY가 의도와 같음 | AGREE | AGREE |
+| 의도 DENY인데 PASS | EXPOSED | DISAGREE |
+| 의도 PASS인데 DENY | BLOCKED | DISAGREE |
+
+UNDECIDED는 의도 유무와 관계없이 미판정을 드러낸다. 우선순위는
+EXPOSED > BLOCKED > UNDECIDED > AGREE > NO_POLICY다. 의도를 판정 입력으로 사용하지 않는다.
+매트릭스 입력·상한·집계·오류 계약과 측정 한계는 [policy-matrix.md](policy-matrix.md)에 둔다.

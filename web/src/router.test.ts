@@ -10,6 +10,7 @@ it("해시 주소를 화면으로 바꾼다", () => {
   expect(parseRoute("#/")).toEqual({ page: "judge" });
   expect(parseRoute("#/login")).toEqual({ page: "login" });
   expect(parseRoute("#/cases")).toEqual({ page: "cases" });
+  expect(parseRoute("#/matrix")).toEqual({ page: "matrix" });
   expect(parseRoute("#/cases/12")).toEqual({ page: "case", id: 12 });
   expect(parseRoute("#/dashboard")).toEqual({ page: "dashboard" });
   expect(parseRoute("#/settings")).toEqual({ page: "settings" });

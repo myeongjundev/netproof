@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Route =
   | { page: "judge"; share?: string }
+  | { page: "matrix" }
   | { page: "login" }
   | { page: "cases" }
   | { page: "case"; id: number }
@@ -13,6 +14,7 @@ export type Route =
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#/, "") || "/";
   if (path === "/") return { page: "judge" };
+  if (path === "/matrix") return { page: "matrix" };
   if (path.startsWith("/s/") && path.length > 3) return { page: "judge", share: path.slice(3) };
   if (path === "/login") return { page: "login" };
   if (path === "/cases") return { page: "cases" };

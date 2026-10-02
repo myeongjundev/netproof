@@ -10,7 +10,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import contains_eager, joinedload
 
 from netproof_engine import __version__ as ENGINE_VERSION
-from netproof_engine import compare, verify
+from netproof_engine import compare, policy_matrix, verify
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -70,6 +70,15 @@ def verify_endpoint():
         return error(422, problem)
     verdict, comparison = _judge(data.get("network"), data.get("flow"), _clean_claim(data.get("claim")))
     return jsonify({**verdict, "comparison": comparison})
+
+
+@bp.post("/policy-matrix")
+def matrix_endpoint():
+    data = _body()
+    if problem := _limit_problem(data.get("network")):
+        return error(422, problem)
+    result = policy_matrix(data.get("network"), data.get("spec"))
+    return jsonify(result), 422 if result["limit_exceeded"] else 200
 
 
 @bp.get("/examples")
