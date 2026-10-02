@@ -2,6 +2,7 @@
 
 from .verify import compare, verify
 from .matrix import policy_matrix
+from .observe import observe
 
 __version__ = "0.1.4"
-__all__ = ["compare", "verify", "policy_matrix", "__version__"]
+__all__ = ["compare", "verify", "policy_matrix", "observe", "__version__"]

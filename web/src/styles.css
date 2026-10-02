@@ -271,6 +271,11 @@ p .meta { display: inline; }
 .practice-guide { margin-bottom: 16px; overflow-wrap: anywhere; }
 .practice-guide ul { padding-left: 20px; }
 .practice-list button { white-space: normal; text-align: left; }
+.observation { min-width: 0; }
+.observation summary { cursor: pointer; padding: 12px 0; }
+.observation textarea { max-width: 100%; }
+.observation-candidate { margin-top: 12px; overflow-wrap: anywhere; }
+.observation-candidate pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
 
 @media (max-width: 900px) {
   .top { padding: 12px 16px; }
