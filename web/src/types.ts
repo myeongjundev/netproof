@@ -4,6 +4,21 @@ export type Mode = "session" | "one-way";
 export type Result = "PASS" | "DENY" | "UNSUPPORTED" | "INVALID";
 export type Comparison = "AGREE" | "DISAGREE" | "NOT_COMPARABLE" | "NO_CLAIM";
 
+export type PolicyState = "NO_POLICY" | "AGREE" | "EXPOSED" | "BLOCKED" | "UNDECIDED";
+export interface MatrixService { proto: Proto; dst_port?: number; icmp?: string; label?: string }
+export interface PolicyIntent { src: string; dst: string; service: string; expect: "PASS" | "DENY"; note?: string }
+export interface MatrixSpec { services: MatrixService[]; mode: Mode; intents: PolicyIntent[] }
+export interface MatrixEndpoint { ip: string; device: string; interface: string }
+export interface MatrixCell {
+  src: string; dst: string; service: string; result: Result; policy: PolicyState;
+  expect: "PASS" | "DENY" | null; reason: string; decisive: Hop | null;
+}
+export interface PolicyMatrix {
+  status: "OK" | "INVALID"; problems: string[]; mode: Mode; engine_version: string; limit_exceeded: boolean;
+  endpoints: MatrixEndpoint[]; services: (MatrixService & { key: string })[]; cells: MatrixCell[]; exposures: MatrixCell[];
+  totals: Record<Result | PolicyState | "checks", number>;
+}
+
 export interface Iface {
   name: string;
   ip: string;
@@ -36,6 +51,7 @@ export interface Flow {
   proto: Proto;
   dst_port?: number;
   mode?: Mode;
+  icmp?: string;
 }
 
 export interface Claim {

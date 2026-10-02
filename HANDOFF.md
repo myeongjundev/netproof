@@ -17,39 +17,62 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: 사례 목록 검색·필터·페이지
-- 사용자 승인(2026-10-02): 이번 과제는 Codex가 설계까지 담당한다. 독립 리뷰는 Claude에게 요청한다.
-- 기반: main e0d420c, PR #11·#12 병합 완료.
-- 브랜치: codex/case-search
-- 단계: Claude 독립 리뷰·6건 보완·재리뷰 PASS 완료 → 사용자 최종 확인 대기
-- 다음 차례: 사용자 최종 확인·병합 결정(PROMPTS.md 5번). PR #13은 OPEN, 자동 병합하지 않는다.
+- 작업: 정책 검증 + 도달성 매트릭스 (로드맵 2주차 ★대표)
+- 사용자 승인(2026-10-02): 이번 과제는 CLAUDE.md/AGENTS.md 역할대로 Claude가 설계, Codex가 구현·테스트한다.
+- 기반: 최신 origin/main(PR #13 병합 완료). 사례 목록 검색·필터·페이지는 끝났다.
+- 브랜치: codex/policy-matrix (origin/main 기반 새 브랜치). 설계는 main이 아니라 이 브랜치에 기록한다.
+- 단계: Claude 설계 → Codex 구현·검증 → Claude 독립 리뷰 PASS → 비차단 N1/N2 보완·재검증 → Claude 재확인 PASS 완료
+- 다음 차례: 사용자 최종 확인·병합 결정(PR #14). 자동 병합하지 않는다.
 
 ## 작업 정의
-- 목표: 200개 제한 목록에서 제목·작성자·flow src/dst IP 검색, 판정·받은 답과 판정 비교·확인·실제 결과 출처 필터, 서버 페이지 이동을 제공한다.
-- 검색: q(최대 100자), ASCII 영문 대소문자 무시 부분 문자열. SQLite 비ASCII 대소문자 변환은 보장하지 않으며 PostgreSQL locale/collation에 따라 결과가 다를 수 있다. %, _, /는 문자 그대로 처리한다. 네트워크 내부의 모든 주소 검색은 제외한다.
-- 필터: mine=0/1, result=PASS/DENY/UNSUPPORTED/INVALID, comparison=AGREE/DISAGREE/NOT_COMPARABLE/NO_CLAIM, confirmed=0/1, source=nmap/ping/device/other/none. 필터는 AND, 검색 대상 필드는 OR. 빈 값은 전체.
-- API: page 또는 per_page가 있으면 {items,total,page,per_page,pages}. 기본 20개, 최대 100개, page 최대 1,000,000. page/per_page 문자열은 7자리 이하 ASCII 숫자(앞의 0 포함). 형식/자리수와 값 범위 오류는 다른 문구로 400. 필터/검색 길이 오류는 400. page 초과는 마지막 페이지로 보정, 빈 목록은 page=pages=1. 페이지 인자가 없는 기존 요청은 배열(최대 200개)을 유지한다.
-- 정렬: created_at DESC, id DESC. 필터링·count·offset/limit을 DB에서 처리하고 owner를 한 번에 가져온다.
-- 인덱스: created_at/id, owner_id/created_at/id, result/created_at/id. 기존 SQLite는 앱 시작 시, 배포 DB는 기존 flask init-db 명령 재실행으로 checkfirst 적용한다. 데이터/컬럼 변경 없음.
-- UI: 검색 제출, 네 필터, 내 사례, 초기화, 전체 건수·페이지 수·이전/다음. 조건 변경 시 첫 페이지. 검색창을 비우면 q도 즉시 해제, 드롭다운 변경 시 현재 입력 검색어 적용. 로딩 중 이전 결과 표시와 비활성 페이지 버튼 유지. 요청 순서가 바뀌어도 이전 응답 무시. 로딩·오류·빈 결과·재시도 제공, 작은 화면에서도 줄바꿈.
-- 변경 파일: server/netproof_api/{cases,models,__init__}.py, server/tests/test_case_search.py, web/src/{api,types,caseSearch,caseSearch.test}.ts, web/src/pages/CasesPage.tsx, web/src/styles.css, docs/case-search.md, HANDOFF.md, decisions/ai-work-log.md.
-- 제외: 엔진/판정 로직, cases 기대값, 인증·권한, 대시보드, 새 의존성, 배포·병합.
-- 리스크: SQLite/PostgreSQL JSON 표현 차이, LIKE 와일드카드, 정렬 동률/페이지 경계, 기존 DB 인덱스 미적용, 이전 요청 덮어쓰기. 부분 검색/복합 필터는 데이터 규모에 따라 스캔할 수 있다. offset 페이지는 동시 추가/삭제 시 중복/누락 가능(스냅샷 계약 없음).
-- 완료 조건: engine pytest, server pytest, npm web test, npm web run build 직접 실행. 200개 초과 탐색·동률 정렬·각 필터/AND·검색 특수문자/작성자/양쪽 IP·잘못된 인자·비로그인 차단·기존 응답·기존 인덱스 적용 테스트. 브라우저로 데스크톱/모바일 UI 확인. PostgreSQL 실제 연결이 없으면 미검증으로 명시.
+- 목표: 판정기에 입력한 network로 모든 host 인터페이스 IP 순서쌍 × 주요 서비스(TCP/UDP 포트, ICMP)를 기존 `verify`로 반복 판정하고, 사용자가 적은 PASS/DENY 의도와 비교해 "막혀야 하는데 열림"(노출)을 최우선으로 보여 준다.
+- 엔진: 새 모듈 `matrix.py`, 공개 API는 `policy_matrix(network_data: dict, spec: dict) -> dict` 하나. `__init__.py`의 `__all__`에 추가한다. `verify`·`trace`·`acl`·`model`은 고치지 않고 호출만 한다. 판정·정책 비교·집계는 엔진 안에서만 한다(ADR-001). 어떤 입력에도 예외 대신 결과 사전을 돌려준다.
+- spec: `{"services":[{"proto":"tcp|udp|icmp","dst_port":1~65535,"icmp":"echo|echo-reply|숫자","label":"HTTPS"}], "mode":"session|one-way", "intents":[{"src","dst","service":"tcp/443","expect":"PASS|DENY","note"}]}`. mode는 매트릭스 전체에 하나. 서비스 키는 `tcp/443`·`udp/53`·`icmp/echo`로 정규화하고, 중복 서비스·중복 의도는 하나로 합친다. 의도는 (src, dst, service) 정확 일치만 쓰고 와일드카드는 넣지 않는다.
+- 끝점: `kind=host` 장비의 인터페이스 IP만. (device id, interface name) 순 정렬. **자기 자신 쌍(같은 IP)과 같은 장비 쌍은 제외**한다 — 실행으로 각각 INVALID와 허위 DENY를 확인했다(`trace.py:88` `_neighbor`가 같은 장비 인터페이스를 건너뛰어 "다음 홉 없음"이 된다). ACL은 방향성이 있으므로 두 방향을 각각 계산한다.
+- 셀 상태: `policy` = NO_POLICY(의도 없음) · AGREE(의도와 같음) · EXPOSED(의도 DENY인데 PASS) · BLOCKED(의도 PASS인데 DENY) · UNDECIDED(result가 UNSUPPORTED/INVALID라 비교 불가). 심각도 순서는 EXPOSED > BLOCKED > UNDECIDED > AGREE > NO_POLICY. 기존 `comparison`(AGREE/DISAGREE/NOT_COMPARABLE/NO_CLAIM)과 **다른 이름**을 쓰고 대응 관계를 `docs/semantics.md`에 적는다.
+- JSON 계약: `{status:"OK"|"INVALID", problems:[], mode, engine_version, endpoints:[{ip,device,interface}], services:[{key,proto,dst_port,icmp,label}], cells:[{src,dst,service,result,policy,expect,reason,decisive}], totals:{checks,PASS,DENY,UNSUPPORTED,INVALID,NO_POLICY,AGREE,EXPOSED,BLOCKED,UNDECIDED}, exposures:[심각도 순 셀]}`. network가 성립하지 않으면 `status:"INVALID"`와 `load`의 problems만 돌려주고 셀을 만들지 않는다. 셀에는 hop 전체를 넣지 않고 `decisive` 한 개만 넣는다.
+- 상한: 끝점 24개, 서비스 8개, 의도 500개, 검사 건수(쌍×서비스) 2,000개. 초과하면 계산하지 않고 `status:"INVALID"`와 초과 수치를 문구로 돌려준다. 기존 LIMITS(장비 40·인터페이스 16)는 그대로 둔다.
+- 서버: `POST /api/policy-matrix`. 기존 `_limit_problem`으로 network 크기 422, spec 상한 초과 422, 그 밖에는 엔진 결과를 그대로 jsonify한다. `/api/verify`처럼 로그인 없이 쓴다. 서버는 입력 한도와 API만 담당하고 판정·비교·집계를 복제하지 않는다.
+- UI: 새 라우트 `#/matrix`와 탭 "정책 검증". 판정기와 같은 draft의 `toNetwork(draft)`를 쓰고 판정기에 "정책 검증으로" 버튼을 둔다. 서비스 편집·mode 선택, 서비스별 src×dst 격자(행 출발지·열 목적지), 노출 셀 최우선 강조와 "노출 N건" 요약을 맨 위에 둔다. 셀을 누르면 의도를 PASS/DENY/없음으로 지정하고, **상세 증거는 기존 `POST /api/verify`를 그 흐름 하나로 호출해 기존 ResultPanel·AclEvidence로 보여 준다**(새 증거 계약 없음). spec은 이 화면의 localStorage 키에만 저장하고 사례·공유 JSON에는 넣지 않는다. UI는 입력·표시만 한다.
+- 순수 함수는 `web/src/policyMatrix.ts`에 두고(격자 피벗, 심각도 정렬, 셀↔의도 변환) DOM 없이 테스트한다.
+- 허용 파일: `engine/src/netproof_engine/{matrix.py(신규),__init__.py}`, `engine/tests/test_policy_matrix.py`(신규), `server/netproof_api/cases.py`, `server/tests/test_policy_matrix.py`(신규), `web/src/{policyMatrix.ts,policyMatrix.test.ts}`(신규), `web/src/pages/PolicyMatrixPage.tsx`(신규), `web/src/{App.tsx,router.ts,router.test.ts,api.ts,types.ts,styles.css}`, `web/src/pages/JudgePage.tsx`(링크 버튼만), `docs/{policy-matrix.md(신규),semantics.md}`, `HANDOFF.md`, `decisions/ai-work-log.md`.
+- 제외: `verify`·`trace`·`acl`·`model` 판정 로직 수정, 기존 malformed 입력 예외 버그 수정, cases 기대값, 새 의존성, DB 스키마·모델, 인증·권한, 실제 패킷·장비 접근, 대시보드·오탐/미탐, 배포·병합.
+- 위험: `verify`가 호출마다 `load`로 network를 다시 파싱하므로 상한에서 느릴 수 있다(측정 필수). 같은 장비 쌍 허위 DENY와 자기 자신 INVALID를 빼먹으면 노출·차단 판정이 거짓이 된다. ECMP·재귀 next hop은 `Unsupported`를 던져 UNDECIDED가 된다. session 모드의 비 echo ICMP는 UNSUPPORTED이며 버그가 아니다. 상한의 셀 수는 응답 크기·격자 렌더링·모바일 레이아웃에 부담이 된다. `policy`와 기존 `comparison`을 혼동할 수 있다. `load`의 기존 예외 버그는 그대로 상속된다(이번 범위 밖).
+- 완료 조건: `cd engine && ../.venv/Scripts/python -m pytest -q`, `cd server && ../.venv/Scripts/python -m pytest -q`, `npm --prefix web test`, `npm --prefix web run build`를 직접 실행하고 출력을 붙인다. 엔진 테스트: 방향별 두 셀 생성, 같은 장비 쌍·자기 자신 제외, 서비스·의도 중복 합치기, 네 상한 초과 거절, EXPOSED 최우선 정렬, ECMP로 UNDECIDED, session ICMP non-echo로 UNDECIDED, 의도 없음 NO_POLICY, INVALID network는 status INVALID + problems, totals 합이 checks와 같음, 같은 network/spec은 같은 결과(결정성). 서버 테스트: spec 상한 초과 422, 큰 network 422, 정상 200 계약. 웹 테스트: 격자 피벗·심각도 정렬·셀↔의도 변환, `#/matrix` 라우트. 상한 근처(끝점 16·서비스 8·검사 1,920)에서 `policy_matrix` 1회 실행 시간을 측정해 여기 적고, 2초를 넘으면 상한을 낮추자고 요청한다. 브라우저로 노출 강조·셀 상세와 375폭 가로 넘침 없음을 확인한다.
 
 ## 완료 내용 / 테스트 결과
-- 검색·필터·페이지 UI, 기존 배열 API 호환, owner 일괄 로드, 기존 DB 인덱스 적용 구현 완료.
-- 2026-10-02 직접 실행 결과:
-  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `158 passed, 2 xfailed in 3.03s`
-  - `cd server && ../.venv/Scripts/python -m pytest -q` → `70 passed, 1 skipped in 13.10s`
-  - `npm --prefix web test` → `Test Files 6 passed (6)`, `Tests 69 passed (69)`, `Duration 1.03s`
-  - `npm --prefix web run build` → `✓ built in 912ms`
-  - `git diff --check` → 오류 없음(exit 0).
-- 브라우저: 임시 SQLite/합성 사례 25개, 별도 4821 서버에서 2/2 페이지(5개) → ping 필터 13개/첫 페이지 → 빈 검색 0개 → 초기화 25개 → HTTPS 25 검색 1개 확인. 375×812에서 content width 360, viewport 375로 가로 넘침 없음. 콘솔 error 0.
-- PostgreSQL: JSON 검색 SQL 컴파일 테스트 통과. 실제 PostgreSQL 연결은 환경 미제공으로 미검증. 서버 테스트의 기존 PostgreSQL 전용 1건은 skip.
-- 실제 장비 증거가 아닌 합성 데이터다. 기존 사용자 DB에 QA 사례를 넣지 않았다.
+- 구현: 엔진 policy_matrix·공개 API, POST /api/policy-matrix, 판정기 draft 연동 정책 검증 탭·서비스 편집·의도 지정·서비스별 표·셀 상세 기존 증거 UI·localStorage 입력 저장.
+- Claude 추가 합의: exposures는 EXPOSED/BLOCKED/UNDECIDED의 우선 확인 목록, 실제 노출 수는 totals.EXPOSED만. 중복 기대값 충돌은 전체 INVALID. ICMP 8/0은 echo/echo-reply 키로 정규화. UNDECIDED는 의도 유무 무관. limit_exceeded boolean을 응답에 추가해 서버가 상한 계산을 복제하지 않고 422를 결정한다(나머지 INVALID는 200).
+- 형식 규칙: 서비스 label 80자·의도 note 200자, TCP/UDP JSON 정수 포트(bool 제외), ICMP 0~255/최대 3자리 ASCII. 대상 밖 의도는 자동으로 버리지 않고 INVALID 안내. 원본 서비스/의도 목록에도 상한 적용.
+- 2026-10-02 직접 실행:
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` → `190 passed, 2 xfailed in 2.68s`
+  - `cd server && ../.venv/Scripts/python -m pytest -q` → `74 passed, 1 skipped in 14.21s`
+  - `npm --prefix web test` → `Test Files 7 passed (7)`, `Tests 79 passed (79)`, `Duration 692ms`
+  - `npm --prefix web run build` → `✓ built in 373ms`
+- 독립 리뷰 중 Codex 자체 확인으로 422 상한 오류의 엔진 problems가 화면에서 일반 오류로 가려지던 부분을 보완했다. API errorDetail이 detail 또는 problems를 전달하고 회귀 테스트 1개를 추가했다.
+- 성능 실측: 합성 호스트 16·라우터 1(서브넷 2개/in permit ACL)·TCP 서비스 8·1,920건 → status OK, 0.8265초(perf_counter 1회). 모든 구성의 2초 보장은 아니다. 긴 ACL/많은 라우터에서의 속도 한계는 docs/policy-matrix.md에 명시.
+- 브라우저: 기본 구성 10건 PASS/의도 없음 → HTTPS DENY 의도 → 재계산 노출 1건·9건 의도 없음. 기존 예시 01 구성 연동 → HTTPS DENY/의도 일치 → 셀 상세 ACL 101 1번 차단·목적지 미도달 확인. console error 0. 375×812에서 첫 표 넘침 발견·수정 후 본문 scrollWidth 360/viewport 375, 표 내부 scrollWidth 436. 임시 DB·합성 구성만 사용했고 사례 기대값은 수정하지 않았다.
+- 입력 변경/언마운트·다른 셀 선택의 늦은 응답을 화면 guard로 무시. 성공/오류 guard는 순수 helper 테스트이며 전체 DOM 마운트 테스트는 아니다. 화면 흐름은 위 브라우저로 확인.
+- 설계 단계에서 Claude가 직접 실행해 확인한 사실(구현의 전제):
+  - 같은 장비의 다른 인터페이스 쌍(PC1 eth0 10.10.10.10 → PC1 eth1 10.30.30.10) → `DENY "다음 홉 없음"`. 실제 차단이 아니라 모델 한계이므로 매트릭스에서 제외한다.
+  - 자기 자신 쌍(같은 IP) → `INVALID "출발지와 목적지가 같습니다"`. 제외한다.
+  - 정상 교차 장비 쌍(10.10.10.10 → 10.20.20.5, tcp/443, session) → `PASS`.
+- 참고한 기존 코드: `engine/src/netproof_engine/verify.py`(RESULTS·mode·`_reverse`·UNSUPPORTED/INVALID 경로), `trace.py`(Hop·decisive·`_neighbor`·ECMP Unsupported), `model.py`(`kind=host/router`, `all_interfaces`, `owner`), `server/netproof_api/cases.py`(`LIMITS`·`_limit_problem`·`/api/verify`), `web/src/draft.ts`(`toNetwork`·`endpoints`), `web/src/components/ResultPanel.tsx`·`AclEvidence.tsx`(증거 UI 재사용 대상), `web/src/router.ts`.
 
-## 리뷰 기록
+## 현재 과제 리뷰 기록 (PR #14)
+- [Claude 독립 리뷰 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944402657). 검토 SHA 6404ef3ebe620b929926c76752d85c3bd9c2aa3b, base 7828622, 모델 Claude Opus 5.
+- Claude 직접 실행: 엔진 185 passed/2 xfailed in 2.01s, 서버 74 passed/1 skipped in 12.20s(9f81a98, 엔진/서버 변경 없음), 최신 웹 79 passed(517ms), 빌드 230ms(6404ef3). 임시 합성 probe로 집계 불변식·노출·미판정·의도 충돌·중복·ICMP 별칭 확인.
+- 비차단 N1(a) 반영: 대상 밖 의도 오류에 src → dst · service 명시, 재현 테스트 추가. N1(b) 자동 정리는 합의한 "자동 폐기 안 함"을 유지한다. 의도 목록의 삭제 UI로 사람이 정리하고 다시 계산한다. 자동 삭제하면 사용자 의도가 사라져 NO_POLICY/노출 0으로 오해할 수 있다.
+- 비차단 N2 반영: 의도 src/dst 문자열 가드, 정수·bool·null 거절 회귀 테스트 4개. 기존 verify·model은 수정하지 않았다.
+- 보완 후 Codex 전체 실행은 위 최신 결과.
+- [Claude 보완 확인 PASS](https://github.com/myeongjundev/netproof/pull/14#issuecomment-5944446594). 검토 SHA 566e6fea1585a889823de090cfb281ac2cccb3f2, 범위 6404ef3..566e6fe. 직접 실행 `engine pytest -q tests/test_policy_matrix.py` → `32 passed in 0.94s`, 대상 밖 의도·정수 IP 거절·정상 노출 probe 재현. N1(a)/N2 해결, N1(b) 사용자 의도 수동 정리 유지에 동의. 남은 지적 없음. 모델 Claude Opus 5.
+- 브라우저 보완 실측: HTTPS 포트 443→8443 변경 후 오류가 `의도 10.10.10.10 → 10.20.20.5 · tcp/443`를 식별, 443으로 복구 후 다시 노출 1건. 로컬 API/별도 preview를 최신 엔진으로 재시작했다.
+- 미검증: 긴 ACL·다수 라우터 최악 성능, 전체 DOM 마운트 자동 테스트. Claude는 Codex 브라우저 실측을 직접 재현하지 않았음을 명시했다. 이후 기록 커밋은 실행 코드 변경 없음.
+
+## 이전 과제 리뷰 기록 (PR #13 병합 완료)
+- 정책 검증 + 도달성 매트릭스: 설계만 끝났고 구현 전이라 리뷰 없음. Codex 구현 후 Claude 독립 리뷰 차례다.
+
+### 지난 과제 — 사례 목록 검색·필터·페이지 (PR #13 병합 완료)
 - [Claude 독립 리뷰](https://github.com/myeongjundev/netproof/pull/13#issuecomment-5943803710), 검토 SHA b990e661d2d93355ae248c53cfe67f6c694ceb13. 모델 Claude Opus 5. 차단 결함 없음, 비차단 6건 보완 요청. 아래는 Codex 반영 상태이며 Claude가 a807b6a에서 F1~F6 해결을 확인했다.
 | 항목 | 반영 | 검증 |
 |---|---|---|
@@ -69,7 +92,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 직접 실행: 서버 검색 테스트 26 passed in 5.01s, 서버 전체 70 passed/1 skipped in 11.59s, 웹 검색 테스트 4 passed(200ms). contains_eager SQL도 단일 users 조인 확인.
 - 미해결 차단 결함 없음. F5 helper 레이스 테스트와 DOM 전체 마운트 테스트를 구분한 범위에 동의했다.
 - 비차단 후속 1건: web/src/pages/CasesPage.tsx 빈 검색창에서 공백만 입력하면 매 타자마다 조건이 같아도 새 filters 객체로 재조회된다. 이미 q가 빈 값이면 건너뛰는 개선은 후속으로 남긴다. 결과 정확도에는 영향 없으며 이번 PASS를 막지 않는다.
-- 사용자 병합 결정 대기. 이후 문서 기록 커밋은 실행 코드 변경 없음.
+- 사용자가 PR #13을 병합했다(origin/main 반영 완료). 남은 비차단 후속 1건(빈 검색창 공백 재조회)은 다음에 CasesPage를 만질 때 함께 처리한다.
 
 ## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
 **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
@@ -85,10 +108,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합) — ② 판정을 가른 줄 빨강, 통과시킨 줄 초록, 도달하지 않은 줄 회색
 - [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음) — 버그. `isdigit()`가 참이어도 `int()`가 거부하는 **문자**(`²`·`①`)
 - [x] 이슈 #9 긴 숫자 `int()` 한도(PR #11 병합 완료) — 버그. 같은 약속("예외 없이 네 값 중 하나")의 남은 부분: 문자는 맞지만 **자릿수**가 4300을 넘는 경우
-- [ ] 사례 목록 검색·필터·페이지 — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
+- [x] 사례 목록 검색·필터·페이지(PR #13 병합 완료) — ⑤ 제목·작성자·IP 검색, 판정·일치·확인·출처 필터, 서버 페이지·인덱스
 
 **2주차 (10-05~10-11)**
-- [ ] 정책 검증 + 도달성 매트릭스 ★대표 — ③ "이 통신은 막혀야/열려야 한다" 의도 입력 → 모든 호스트 쌍 × 주요 포트 히트맵, "막혀야 하는데 열림"(노출) 최우선 강조. 기존 `verify` 반복 호출로 판정 의미 유지
+- [ ] 정책 검증 + 도달성 매트릭스 ★대표 — ③ "이 통신은 막혀야/열려야 한다" 의도 입력 → 모든 호스트 쌍 × 주요 포트 히트맵, "막혀야 하는데 열림"(노출) 최우선 강조. 기존 `verify` 반복 호출로 판정 의미 유지. **설계 완료(위 작업 정의), 구현 진행 중 — 브랜치 codex/policy-matrix**
 - [ ] Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route` — ① (수업 ACL이 Cisco인지 확인 필요)
 - [ ] 사례 복제·실습 과제 템플릿 — ①
 
@@ -123,10 +146,17 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 다음 LLM이 확인할 내용
 - git pull, git status, git log -3 후 본 작업 정의와 PR diff, 테스트 출력 확인.
+- Codex: 구현 전에 `engine/src/netproof_engine/{verify,trace,model}.py`와 `web/src/{draft.ts,components/ResultPanel.tsx}`를 읽어 매트릭스가 호출만 하고 판정을 복제하지 않는지 확인한다.
 - 구현 완료 후 Claude 독립 리뷰, 사용자 병합 결정.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
 - 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
+- 매트릭스는 `verify`를 호출만 한다. 셀 하나라도 판정·비교를 서버나 화면에서 다시 계산하면 ADR-001 위반이다.
+- 같은 장비 쌍 허위 DENY와 자기 자신 INVALID는 엔진 버그 수정 대상이 아니라 **매트릭스에서 제외할 입력**이다. `verify`·`trace`를 고치지 않는다.
+- 상한 초과는 잘라서 계산하지 말고 거절한다. 일부만 계산한 매트릭스는 "노출 없음"을 거짓으로 보이게 한다.
+- CasesPage 후속 1건(빈 검색창 공백 재조회)은 이번 과제 범위가 아니다.
+
+설계: Claude (Claude Opus 5)
 
 Codex (GPT-6)

@@ -168,6 +168,7 @@ export function JudgePage({ user, draft, setDraft, share }: Props) {
       />
 
       <div>
+        <a className="ghost-link" href="#/matrix">정책 검증으로</a>{" "}
         <button type="button" className="ghost" onClick={copyLink} disabled={sharing}>
           {sharing ? "링크 만드는 중…" : "링크 복사"}
         </button>
