@@ -22,8 +22,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 기반: origin/main `c19f554`(PR #18 병합 완료). PR #19는 OPEN/Claude 독립 리뷰 대기로, 변경하지 않는다.
 - 브랜치: `codex/case-learning-ui`. 별도 managed worktree에서 진행하며 원래 폴더는 `codex/acl-suggest` 그대로 유지한다.
 - PR: https://github.com/myeongjundev/netproof/pull/20 (Draft, main 대상). 설계 기록 183aaa2/78e6648. 사용자 G0 승인(2026-10-03 “진행하자”) 후 허용 파일에 구현했다. 병합 승인 없음.
-- 단계: **G0 사용자 승인 완료 → G1 구현·네 명령·12캡처 완료, 브라우저 전수 QA는 미완료 → G2 사용자 화면 확인 및 남은 QA → G3 Claude 리뷰 → G4 사용자 병합 결정.**
-- 다음 차례: **사용자 화면 확인(G2) 및 삭제 취소 수동 확인**. 모두 확인하기 전 Draft 유지, Claude 리뷰/병합으로 자동 진행하지 않는다.
+- 단계: **G0 승인 → G1 구현 → Claude 화면 확인·조사 → F1 수정 완료 → Claude 재리뷰 → 사용자 남은 수동 QA·병합 결정.** 최초 브라우저 기능 전수 QA는 미완료이며 재리뷰와 별개로 남긴다.
+- 다음 차례: **리뷰 — Claude 재리뷰**. 최신 사용자 지시(2026-10-03)에 따라 F1 수정 후 리뷰로 넘긴다. 삭제 취소의 실제 기본 확인창은 사용자 수동 확인 대기이며, PR20 Draft 유지·병합하지 않음.
 - 설계 전문: [docs/case-learning-ui.md](docs/case-learning-ui.md). 계약의 모든 표·수치·문구·금지 항목을 기준으로 한다.
 - self=“사람 예상”도 승인된 설계 문구로 적용했다. ResultPanel의 기존 “내 예상”은 그대로 유지했다.
 
@@ -40,7 +40,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ### 2) 허용 파일 (G0 승인 완료)
 - 신규: `web/src/caseView.ts`, `web/src/caseView.test.ts`, `web/src/components/CaseNetwork.tsx`.
 - `web/src/pages/JudgePage.tsx`: page-head 블록만.
-- `web/src/pages/CasesPage.tsx`: 표 머리/셀 표시, 적용 조건 문구만.
+- `web/src/pages/CasesPage.tsx`: 표 머리/셀 표시, 적용 조건 문구. 최신 사용자 F1 수정 지시로 기존 7필터의 네이티브 details/summary 포장 및 적용 개수 표시도 허용. 기존 선택지·핸들러·상태·요청은 유지.
 - `web/src/pages/CaseDetailPage.tsx`: 설계 3-3절 배치/받은 답 영역/CaseNetwork/비소유자 출처 dt/오류 목록 링크만. 기존 상태·핸들러·props 유지.
 - `web/src/styles.css`: 끝의 사례 학습형 UI 블록과 기존 board 640px 규칙만.
 - 문서: `docs/case-learning-ui.md`, `HANDOFF.md`, `decisions/ai-work-log.md`.
@@ -64,10 +64,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - #19의 현재 완료 내용·리뷰 인계는 그 브랜치 HANDOFF와 PR 코멘트에 보존되어 있다.
 
 ## 완료 내용 / 테스트 결과
-- 승인된 시작 안내·4열 게시판/모바일 카드·읽기 전용 네트워크 구성·받은 답 출처 영역을 구현했다. 순수 표시 함수 5개와 신규 테스트 27개. 기존 상태/핸들러/ResultPanel props/배지/검색/저장 의미는 유지했다.
+- 승인된 시작 안내·4열 게시판/모바일 카드·읽기 전용 네트워크 구성·받은 답 출처 영역을 구현했다. 순수 표시 함수 5개와 테스트 28개(최초 신규27 + F1 개수 회귀1). F1 모바일 필터 접기와 바깥 적용 조건을 보완했다. 기존 상태/핸들러/ResultPanel props/배지/검색/저장 의미는 유지했다.
 - 변경: 허용된 UI 7파일(신규 3개 포함)과 문서 3개만. 엔진/서버/기준 사례/expect/기존 테스트/의존성/금지 파일 diff 없음. 새 API·상태·N+1 없음. git diff --check 성공.
 - PR19 겹침 직접 확인: JudgePage.tsx, styles.css, HANDOFF.md, decisions/ai-work-log.md. #19를 병합/cherry-pick하지 않았다. 판정기 page-head와 CSS 별도 블록만 수정.
-- 아래 네 명령은 최종 코드에서 직접 실행했다(2026-10-03). 기준 294+2 xfail / 88+1 skip / 웹114 → 이번 294+2 xfail / 88+1 skip / 웹141. Python에는 worktree engine/src·server PYTHONPATH를 지정했으며 기존 ignored .venv/node_modules junction을 사용했다. 설치/운영 DB 변경 없음.
+- 아래 네 명령은 F1 수정 후 최종 코드에서 직접 실행했다(2026-10-03). 기준 294+2 xfail / 88+1 skip / 웹114 → 최초 UI 웹141 → F1 반영 후 294+2 xfail / 88+1 skip / 웹142, 빌드 성공. Python에는 worktree engine/src·server PYTHONPATH를 지정했으며 기존 ignored .venv/node_modules junction을 사용했다. 설치/운영 DB 변경 없음.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
@@ -77,7 +77,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ........................................................................ [ 72%]
 ........................................................................ [ 97%]
 ......xx                                                                 [100%]
-294 passed, 2 xfailed in 4.79s
+294 passed, 2 xfailed in 4.55s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
@@ -85,7 +85,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ```text
 .......................................................................s [ 80%]
 .................                                                        [100%]
-88 passed, 1 skipped in 29.27s
+88 passed, 1 skipped in 29.29s
 ```
 
 ### `npm --prefix web test`
@@ -99,9 +99,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 
  Test Files  12 passed (12)
-      Tests  141 passed (141)
-   Start at  21:06:49
-   Duration  600ms (transform 63%, import 21%, tests 11%, worker 5%)
+      Tests  142 passed (142)
+   Start at  21:58:33
+   Duration  510ms (transform 56%, import 26%, tests 12%, worker 6%)
 ```
 
 ### `npm --prefix web run build`
@@ -208,11 +208,21 @@ dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
 dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
 dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
 dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-DsVCKh9a.css                            68.17 kB │ gzip: 20.07 kB
-dist/assets/index-Bf2zEbrK.js                            307.57 kB │ gzip: 93.24 kB
+dist/assets/index-DG6-eJRc.css                            68.40 kB │ gzip: 20.14 kB
+dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.31 kB
 
-✓ built in 324ms
+✓ built in 299ms
 ```
+
+### F1 수정 후 임시 DB 브라우저 확인 (2026-10-03)
+- localhost:5183의 무작위 netproof-case-ui-f1-…/qa.db만 사용. API로 임시 계정 1개·예시01 기반 합성 사례 1개를 준비하고 브라우저 로그인 후 확인. 운영 DB/기준 사례/expect 불변.
+- Codex IAB에서 375×812 및 1280×900 라이트/다크 확인. 모바일 초기 open=false, select는 숨김, summary 높이 47.25px, 첫 카드 문서 top=510.90625px(Claude 이전 보고 약1013px). body.scrollWidth=360≤375(스크롤바 제외), 데스크톱1280=1280, 가로 넘침 없음.
+- 모바일 Enter 펼치기/Space 접기/Tab 첫 select 이동·solid 포커스 확인. 7필터를 모두 선택하면 적용7개·0건, 초기화는 적용0개·1건 복원. 미확인/출처없음/미정은 적용3개로 셈. 검색어·내 사례만은 n에 넣지 않고 바깥 문구에 계속 표시. 주소 confirmed=0&source=none&actual=none로 새로고침하면 닫힌 채 적용3개·조건 문구·1건 복원.
+- 데스크톱은 details open=false 상태에서도 7개 select 노출, summary display=none, ::details-content content-visibility=visible. 검색/초기화 다음 Tab은 판정 select로 이동. 모바일→데스크톱→모바일 크기 변경에도 동일한 7개 DOM·선택값 유지. 지원하지 않는 CSS 환경의 summary fallback 및 Firefox/Safari 실브라우저는 미검증(지원 여부를 통과라고 단정하지 않음).
+- 최종 빌드에서 목록 네 조합 PNG 및 모바일 펼침/적용 조건 캡처 저장. 경로: C:/Users/dora2/.codex/visualizations/2026/10/03/case-ui-f1. 화면 확인에 computer-use 스킬의 브라우저 도구 사용. console error/warn 로그=[]; 지연 주입·전체 화면 기능 전수 재시험 아님. 이번 요청 수 정량 로그는 도구 세션 중단으로 확보하지 못함(이전 구현의 로그 근거는 아래 보존). 새 요청 코드나 상세 조회는 추가하지 않음.
+- 삭제 버튼/확인창을 이번에는 조작하지 않았음. 사용자 수동 확인 대기 상태 유지.
+- 테마 기기 설정·viewport 복원, 로그아웃·검사 탭 종료. 5183 Listen 및 python 프로세스 없음 확인. 정확한 절대 경로 검증 후 임시 DB 폴더(계정·합성 사례)를 삭제, Test-Path=False. 재생성 가능한 QA 데이터만 제거했으며 PNG는 보존.
+
 
 
 ### 임시 DB 브라우저 확인 (2026-10-03)
@@ -237,7 +247,18 @@ dist/assets/index-Bf2zEbrK.js                            307.57 kB │ gzip: 93.
 - 정리: 검사 탭 종료/뷰포트 reset/테마 기기 설정 복원. 검사 서버가 더 이상 5183에서 듣지 않음을 확인했다. 검증한 절대 경로의 임시 폴더와 QA DB(계정·시험 사례)를 삭제, Test-Path=False. 캡처 12개는 화면 확인용으로 보존.
 
 ## 현재 과제 리뷰 기록
-- G0 승인 후 구현/직접 테스트/12캡처 완료. 독립 코드 리뷰는 아직 없음. 삭제 취소 QA와 사용자 G2 화면 확인 대기, PR20 Draft 유지.
+- [Claude 화면 확인·삭제 취소 조사](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969258205), 2026-10-03, 검토 HEAD `4befccd`, Claude (Claude Opus 5.5). 방향 유지, F1 병합 전 수정 권장. 아래는 이 코멘트의 조사 사실과 이번 조치이며, 수정 후 PASS 리뷰를 뜻하지 않는다.
+- **F1: 이번에 수정.** 640px 이하에서 7필터를 기본 닫힌 details로 감싼다. “필터 (적용 n개)”의 n은 안쪽 선택 필터만(검색어·바깥 내 사례만 제외), 적용한 검색어·조건 문구는 접힘 밖에 계속 표시. 데스크톱은 같은 필터 DOM을 CSS ::details-content로 노출하고 summary를 숨긴다. 미지원 CSS에서는 summary를 남겨 필터 접근을 보장한다. 새 React 상태·effect·요청·의존성 없음.
+- **F2: 후속으로 기록만.** 통과/막힘·된다/안 된다 용어 정리는 금지 파일 Badges/ResultPanel 및 judge-ux와 함께 설계·승인 후 적용. 원래 값/문구를 이번에 일부만 바꾸지 않았다.
+- **F3: 후속으로 기록만.** 받은 답 패널의 종류·답 중복 제거는 승인된 상세 3-3절 계약 변경이므로 후속 설계에서 출처·내용만 남길지 결정. 이번 상세 변경 없음.
+- **F4: 후속으로 기록만.** 모바일 네트워크 구성 접기는 승인된 상세 배치 변경이므로 후속 설계에서 검토. 이번 CaseNetwork 변경 없음.
+
+### 2026-10-03 Claude 삭제 취소 조사 / 사용자 수동 확인 대기
+- Claude는 별도 worktree `4befccd`, localhost:4830의 임시 SQLite, API로 만든 2계정·4합성 사례에서 확인했다. 종료 후 worktree·서버·DB·계정을 정리했다고 보고했다.
+- `CaseDetailPage.tsx`의 `if (!window.confirm(...)) return;` 뒤에서만 단일 deleteCase 호출이 나가며, 핸들러는 main과 동일. 이번 F1 수정에서도 건드리지 않았다.
+- **Claude 직접 재현 사실:** 브라우저의 window.confirm을 대체해 false(취소)를 반환하면 #/cases/1에 머물고 GET case1=200, DELETE 없음. true(확인)면 case4 삭제 후 목록 이동·GET case4=404, 로그의 DELETE case4 한 건뿐. 실제 네이티브 취소 버튼 클릭 검증과는 다르다.
+- **Claude의 추정:** 이전 Codex 자동화 timeout/강제 탭 정리 중 확인이 true로 처리됐을 가능성. 당시 서버 로그가 없어 QA1 소실 원인은 증명되지 않았다. 앱 취소 분기에서는 삭제 요청이 없었다는 재현과 추정을 구분한다.
+- **미완료 — 사용자 수동 확인 대기:** 새 임시 DB/합성 사례에서 실제 브라우저 삭제 확인창의 “취소”를 직접 누른 뒤 상세 유지·사례 조회 가능·DELETE 없음을 확인해 기록한다. 이번 Codex는 삭제 버튼을 누르거나 확인창을 대체하지 않았다. 이 항목은 PASS로 바꾸지 않는다.
 
 ## 이전 과제 기록 (요약)
 - PR #19 수정 후보: 별도 codex/acl-suggest, b65a28b, OPEN/Claude 리뷰 대기. 구현 326+2 xfail/91+1 skip/web128/build 성공, 현재 작업에 포함하지 않음.
@@ -293,11 +314,11 @@ dist/assets/index-Bf2zEbrK.js                            307.57 kB │ gzip: 93.
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
-- [ ] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ 기존 기능 화면 정리, 구현·테스트·12캡처 완료 → 사용자 화면 확인/삭제 취소 QA.
+- [ ] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ 기존 기능 화면 정리, F1 수정 완료 → Claude 재리뷰. 삭제 취소 사용자 수동 QA 별도 대기.
 
 ## 다음 LLM이 확인할 내용
 - UI 작업은 `codex/case-learning-ui` worktree에서 git pull 후 이 문서와 docs/case-learning-ui.md를 읽는다. 원래 폴더의 PR #19 인계를 덮어쓰지 않는다.
 - 사용자 G0 승인 완료. self=“사람 예상”을 적용했고 ResultPanel의 “내 예상”은 그대로다.
-- 다음은 사용자 G2 화면 확인 및 미확인 삭제 취소 QA. 임시 DB는 정리했으므로 수동 재현 시 새 임시 DB/합성 사례로 한다. G2 완료 후에만 Claude 독립 리뷰를 요청한다. 배포·병합 자동 진행 없음.
+- 다음은 최신 사용자 지시에 따른 Claude 재리뷰(F1, F2~F4 후속 기록, 삭제 취소 조사 구분). 삭제 취소는 새 임시 DB/합성 사례에서 사용자 기본 확인창 수동 확인 대기이며 리뷰와 별도로 남긴다. 배포·병합 자동 진행 없음.
 
 설계: Claude (Claude Opus 5.5), 구현·테스트·기록: Codex (GPT-6)

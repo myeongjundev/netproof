@@ -83,6 +83,14 @@ describe("저장된 네트워크 표시", () => {
 });
 
 describe("적용 조건의 사실 표시", () => {
+  it("접힌 필터 개수는 일곱 선택 조건만 세고 검색어·내 사례만은 바깥에 표시한다", () => {
+    const filters = { ...emptyCaseFilters, q: "query", mine: true, confirmed: "0" as const, source: "none" as const, actual: "none" as const };
+    expect(appliedFilterText({ ...filters, mine: false })).toHaveLength(3);
+    expect(appliedFilterText(filters)).toEqual(["내 사례만", "검토 확인 미확인", "실제 결과 출처 출처 없음", "실제 결과 미정"]);
+    expect(filters.mine).toBe(true);
+    expect(appliedFilterText({ ...emptyCaseFilters, q: "query", mine: false })).toHaveLength(0);
+    expect(appliedFilterText({ q: "", mine: false, result: "PASS", comparison: "AGREE", confirmed: "1", source: "ping", actual: "PASS", claim_kind: "self", claim_expected: "PASS" })).toHaveLength(7);
+  });
   it("빈 조건과 검색어만 있으면 별도 표시", () => {
     expect(appliedFilterText(emptyCaseFilters)).toEqual([]);
     expect(appliedFilterText({ ...emptyCaseFilters, q: "query" })).toEqual([]);

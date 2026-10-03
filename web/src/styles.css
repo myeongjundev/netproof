@@ -333,6 +333,7 @@ p .meta { display: inline; }
 .audit-block li p { margin-bottom: .35rem; }
 
 /* 사례 학습형 UI */
+.case-filter-disclosure > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
 .page-head:has(.case-start) { display: grid; gap: 12px; }
 .case-start { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style-position: inside; }
 .case-start li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
@@ -354,6 +355,11 @@ p .meta { display: inline; }
 .case-raw-acl li > span { color: var(--muted); text-align: right; }
 .case-raw-acl code, .case-claim-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (min-width: 641px) {
+  @supports selector(::details-content) {
+    .case-filter-disclosure > summary { display: none; }
+    /* 미지원 브라우저에는 summary를 남겨 필터에 접근할 수 있게 한다. */
+    .case-filter-disclosure::details-content { content-visibility: visible; }
+  }
   .board th:not(:first-child) { white-space: nowrap; }
   .board td:not(:first-child) { width: 1%; white-space: nowrap; }
 }
