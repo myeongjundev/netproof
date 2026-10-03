@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { lessonById, lessonByCaseId } from "./learning";
 
 export type Route =
-  | { page: "judge"; share?: string }
+  | { page: "home" }
+  | { page: "learn"; lessonId?: string }
+  | { page: "judge"; share?: string; practiceId?: string }
   | { page: "matrix" }
   | { page: "login" }
   | { page: "cases"; query?: string }
@@ -12,7 +15,12 @@ export type Route =
 
 /** 해시 주소(#/cases/3)를 화면 이름으로 바꾼다. 서버 설정 없이 새로고침·뒤로 가기가 된다. */
 export function parseRoute(hash: string): Route {
+  if (hash === "" || hash === "#") return { page: "home" };
   const path = hash.replace(/^#/, "") || "/";
+  if (path === "/home") return { page: "home" };
+  if (path === "/learn") return { page: "learn" };
+  if (path.startsWith("/learn/") && lessonById(path.slice(7))) return { page: "learn", lessonId: path.slice(7) };
+  if (path.startsWith("/practice/") && lessonByCaseId(path.slice(10))) return { page: "judge", practiceId: path.slice(10) };
   if (path === "/") return { page: "judge" };
   if (path === "/matrix") return { page: "matrix" };
   if (path.startsWith("/s/") && path.length > 3) return { page: "judge", share: path.slice(3) };

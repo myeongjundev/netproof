@@ -6,7 +6,7 @@ it("공유 링크와 빈 공유 주소를 구분한다", () => {
 });
 
 it("해시 주소를 화면으로 바꾼다", () => {
-  expect(parseRoute("")).toEqual({ page: "judge" });
+  expect(parseRoute("")).toEqual({ page: "home" });
   expect(parseRoute("#/")).toEqual({ page: "judge" });
   expect(parseRoute("#/login")).toEqual({ page: "login" });
   expect(parseRoute("#/cases")).toEqual({ page: "cases" });
@@ -14,6 +14,25 @@ it("해시 주소를 화면으로 바꾼다", () => {
   expect(parseRoute("#/cases/12")).toEqual({ page: "case", id: 12 });
   expect(parseRoute("#/dashboard")).toEqual({ page: "dashboard" });
   expect(parseRoute("#/settings")).toEqual({ page: "settings" });
+});
+
+it("빈 해시와 명시적인 홈, 학습실을 구분한다", () => {
+  expect(parseRoute("#")).toEqual({ page: "home" });
+  expect(parseRoute("#/home")).toEqual({ page: "home" });
+  expect(parseRoute("#/learn")).toEqual({ page: "learn" });
+  for (const lessonId of ["https-acl", "round-trip", "output-acl"]) {
+    expect(parseRoute(`#/learn/${lessonId}`)).toEqual({ page: "learn", lessonId });
+  }
+});
+
+it("실습 주소는 자동 불러오기가 아닌 판정기 진입이다", () => {
+  for (const practiceId of ["synthetic-01", "synthetic-02", "synthetic-03"]) {
+    expect(parseRoute(`#/practice/${practiceId}`)).toEqual({ page: "judge", practiceId });
+  }
+});
+
+it.each(["#/learn/unknown", "#/learn/", "#/learn/https-acl?x=1", "#/practice/synthetic-04", "#/practice/", "#/home?x=1"])("알 수 없는 학습 주소 %s는 없는 화면이다", (hash) => {
+  expect(parseRoute(hash)).toEqual({ page: "missing" });
 });
 
 it("사례 목록에만 질의 문자열을 허용한다", () => {

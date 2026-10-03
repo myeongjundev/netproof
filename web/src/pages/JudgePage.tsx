@@ -7,8 +7,9 @@ import { AclAudit } from "../components/AclAudit";
 import { SuggestPanel } from "../components/SuggestPanel";
 import type { Suggestion, SuggestionTarget } from "../types";
 import { aclSelection } from "../components/AclEvidence";
-import { blankDraft, caseJson, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "../draft";
+import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
 import { practiceTasks, type PracticeTask } from "../practice";
+import { lessonByCaseId, practiceDraft, practiceEntry, type ExampleStatus } from "../learning";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import type { CaseItem, Claim, Draft, Network, User, Verdict } from "../types";
@@ -19,11 +20,14 @@ interface Props {
   draft: Draft;
   setDraft: (update: (current: Draft) => Draft) => void;
   share?: string;
+  practiceId?: string;
   titleHint?: string;
 }
 
-export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
+export function JudgePage({ user, draft, setDraft, share, practiceId, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
+  const [examplesStatus, setExamplesStatus] = useState<ExampleStatus>("loading");
+  const [examplesRequest, setExamplesRequest] = useState(0);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [audit, setAudit] = useState<AuditResult | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
@@ -57,15 +61,23 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
 
   useEffect(() => {
     let active = true;
-    api.examples().then((items) => { if (active) setExamples(items); }, () => { if (active) setExamples([]); });
+    setExamples([]);
+    setExamplesStatus("loading");
+    api.examples().then((items) => {
+      if (active) { setExamples(items); setExamplesStatus("ready"); }
+    }, () => {
+      if (active) { setExamples([]); setExamplesStatus("error"); }
+    });
     return () => { active = false; };
-  }, []);
+  }, [practiceId, examplesRequest]);
 
   useEffect(() => {
     if (titleHint) setTitle(titleHint);
   }, [titleHint]);
 
   const tasks = useMemo(() => practiceTasks(examples), [examples]);
+  const entryLesson = practiceId ? lessonByCaseId(practiceId) : undefined;
+  const entry = practiceId ? practiceEntry(practiceId, examples, examplesStatus) : null;
 
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const latestSnapshot = useRef(snapshot);
@@ -129,6 +141,16 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
     setTitle("");
     setSaveError(null);
   }, [setDraft]);
+
+  const startPractice = (nextTask: PracticeTask, example: CaseItem) => {
+    load(practiceDraft(example), `${nextTask.title} 실습을 시작했습니다`);
+    setTask(nextTask);
+    setTitle(nextTask.title);
+    if (practiceId) {
+      window.history.replaceState(null, "", "#/");
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }
+  };
 
   useEffect(() => {
     if (share === undefined) return;
@@ -273,6 +295,16 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
       }
     }}>
       <h1 className="sr-only">판정기</h1>
+      {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
+        <p className="home-eyebrow">학습실에서 선택한 실습 · 합성 구성</p>
+        <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.task.question}</p>
+        <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
+        {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>실습 구성 불러오기</button></>}
+        {entry.kind === "error" && <><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setExamplesRequest(value => value + 1)}>다시 시도</button></>}
+        {entry.kind === "missing" && <p role="status">이 실습 구성은 현재 제공되지 않습니다.</p>}
+        {entry.kind === "ready" && <button type="button" className="primary" onClick={() => startPractice(entryLesson.task, entry.example)}>실습 구성 불러오기</button>}
+        <a href="#/">판정기로 이동</a>
+      </section>}
       <div className="page-head">
         <p>AI나 내가 예상한 “이 통신은 된다/안 된다”를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 줍니다. 판정은 로그인 없이 됩니다.</p>
         <ol className="case-start" aria-label="시작 안내">
@@ -298,11 +330,7 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
             <p className="hint">합성 구성으로 경로와 ACL을 직접 살펴보세요.</p>
             <div className="examples">
               {tasks.map(({ task: nextTask, example }) => (
-                <button key={nextTask.case_id} type="button" className="ghost small" onClick={() => {
-                  load({ ...fromCase(example), claim: { ...EMPTY_CLAIM } }, `${nextTask.title} 실습을 시작했습니다`);
-                  setTask(nextTask);
-                  setTitle(nextTask.title);
-                }}>{nextTask.title} · 시작</button>
+                <button key={nextTask.case_id} type="button" className="ghost small" onClick={() => startPractice(nextTask, example)}>{nextTask.title} · 시작</button>
               ))}
             </div>
           </details>
