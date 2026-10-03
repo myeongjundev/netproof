@@ -154,3 +154,20 @@ permit의 `open`은 출발지 전체·목적지 전체·모든 프로토콜·모
 선택 한도의 별도 재현: 겹치지 않는 `permit ip host 10.0.0.%d any` 120줄은 **0.096953초·undetermined 0**, `permit tcp host 10.0.%d.%d any eq 80`(`i // 256`, `i % 256`) 500줄은 **0.508682초·undetermined 0**. 120줄은 회귀 테스트로 고정했다. 선택값 최악 사례 테스트를 다시 실행한 결과는 **0.590387초·undetermined 486**, 해당 회귀와 합쳐 `2 passed in 0.95s`였다.
 
 재현: `cd engine && ../.venv/Scripts/python -m pytest -q -s tests/test_acl_audit.py::test_disjoint_120_hosts_complete_under_request_budget tests/test_acl_audit.py::test_500_line_bounded_measurement`. 후보 비교는 저장소 루트의 Python에서 `runpy.run_path('engine/tests/test_acl_audit.py')['worst_case_lines']()`를 만들고, `audit.MAX_INTERSECTIONS`를 표의 각 값으로 바꿔 `acl_audit({'acls': {'worst': raw}})` 호출 전후의 `perf_counter` 차이를 3회 잰다(소스 파일 변경 없이 프로세스 안에서만 바꿈).
+
+## 12. 수정 후보
+
+수정 후보는 판정·정답·안전 보장이 아니다. 사용자가 목표 PASS/DENY를 직접 고르며 기본값은 없다. 기존 `verify`의 원인 홉을 읽어 ACL 줄 **삽입만** 제안하고, 복사한 구성에 삽입한 뒤 같은 `verify`가 목표 결과를 낸 후보만 반환한다. 입력·DB·장비에는 쓰지 않고 수정한 network도 응답에 포함하지 않는다. 다른 흐름 영향은 계산하지 않는다. 공유 ACL에 붙은 모든 장비·인터페이스·방향을 사실로 표시한다.
+
+정방향 tcp/udp는 `{act} {proto} host S host D eq P`, ICMP는 `{act} icmp host S host D {종류}`다. 복귀 permit은 TCP `permit tcp host D eq P host S established`, UDP `permit udp host D eq P host S`, ICMP `permit icmp host D host S echo-reply`다. 8은 echo, 0은 echo-reply, 나머지는 숫자다. 기존 `_flow_packet`·`_reverse`로 패킷을 얻고 `parse_rule`·`Rule.matches`로 생성 문법을 확인한다. 복귀 줄에는 고정 출발지 포트 50000을 넣지 않는다.
+
+`anchor_before`는 빈 줄을 포함한 원래 입력 목록의 1부터 센 줄 번호이며 null이면 맨 끝이다. 원래 줄 k마다 anchor가 k인 편집을 편집 목록 순서대로 먼저 넣고 원래 줄을 넣는다. 마지막에는 null anchor 편집을 순서대로 붙인다. `insert_at`은 **모든 편집 적용 뒤** 새 목록의 1부터 센 위치다. 중간 결과의 줄 번호는 원래 번호로 되돌리고, 매번 원본에서 이 규칙으로 재구성한다. 화면의 입력 변환은 기존과 같이 빈 줄을 제외하므로 화면 표시 번호는 판정에 보낸 목록 기준이다.
+
+PASS는 현재 ACL drop 앞(암묵적 deny면 끝)에 permit을 넣고 최대 4번 재판정한다. 경로·게이트웨이 등 다른 원인은 수정하지 않는다. DENY는 현재 PASS의 정방향 ACL 통과 홉만 보며 `(acl, rule_line)` 중복을 제외한 앞 8곳에 deny 하나씩 삽입한 후보를 각각 재판정한다. 초과한 홉은 `truncated: true`로 표시한다. 복귀 방향 DENY는 범위 밖이다. 전체 verify 호출 상한은 처음 판정을 포함해 9회(PASS는 최대 5회)다. 삽입 후 ACL 전체가 500줄을 넘으면 `line_limit`; 서버 입력 500줄 상한과 일치한다.
+
+- `INVALID`: 목표 누락·잘못된 목표 또는 예기치 않은 입력 형식. before는 null, problems는 비어 있지 않다.
+- `ALREADY`: 현재 판정이 이미 선택한 목표다. 후보는 없다.
+- `OK`: 재판정으로 목표가 확인된 후보만 있다.
+- `NO_CANDIDATE`: before를 그대로 보존하고 후보 없음 사유를 준다. `not_decidable`(처음 INVALID/UNSUPPORTED), `not_acl_cause`(ACL 아닌 원인), `no_acl_on_path`(정방향 ACL 없음), `edit_limit`(4줄 초과), `reverify_failed`(재판정 실패), `line_limit`(삽입 후 500줄 초과). 후보 없음은 안전하거나 수정 불가능하다는 증명이 아니다.
+
+화면은 목표 변경·재판정·예시 불러오기에 이전 후보를 지우며 늦은 응답을 버린다. 입력만 바뀌면 이전 결과를 표시하고 원래 줄 이동을 막는다. 자동 적용·복사·입력 반영 버튼은 없다. API는 로그인 없이 사용하며 기존 CSRF·64KB 제한·no-store 정책을 유지한다.

@@ -4,6 +4,8 @@ import { FlowForm } from "../components/FlowForm";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { AclAudit } from "../components/AclAudit";
+import { SuggestPanel } from "../components/SuggestPanel";
+import type { Suggestion, SuggestionTarget } from "../types";
 import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "../draft";
 import { practiceTasks, type PracticeTask } from "../practice";
@@ -39,6 +41,11 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
   const [shareNotice, setShareNotice] = useState("");
   const [shareLink, setShareLink] = useState("");
   const revision = useRef(0);
+  const suggestRevision = useRef(0);
+  const [suggestTarget, setSuggestTarget] = useState<SuggestionTarget | null>(null);
+  const [suggestResult, setSuggestResult] = useState<Suggestion | null>(null);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -53,11 +60,27 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
   const tasks = useMemo(() => practiceTasks(examples), [examples]);
 
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
+  const latestSnapshot = useRef(snapshot);
+  latestSnapshot.current = snapshot;
+  // An edit followed by an undo still invalidates an in-flight response.
+  const previousSnapshot = useRef(snapshot);
+  useEffect(() => {
+    if (previousSnapshot.current !== snapshot) {
+      previousSnapshot.current = snapshot;
+      suggestRevision.current += 1;
+      setSuggestLoading(false);
+    }
+  }, [snapshot]);
   const update = (patch: Partial<Draft>) => setDraft((current) => ({ ...current, ...patch }));
   const stale = judged !== null && judged !== snapshot;
 
   const load = useCallback((next: Draft) => {
     revision.current += 1;
+    suggestRevision.current += 1;
+    setSuggestTarget(null);
+    setSuggestResult(null);
+    setSuggestError(null);
+    setSuggestLoading(false);
     setDraft(() => next);
     setVerdict(null);
     setAudit(null);
@@ -110,6 +133,11 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
 
   const judge = async () => {
     const started = ++revision.current;
+    suggestRevision.current += 1;
+    setSuggestTarget(null);
+    setSuggestResult(null);
+    setSuggestError(null);
+    setSuggestLoading(false);
     setLoading(true);
     setError(null);
     try {
@@ -136,6 +164,31 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
       if (started === revision.current) setError(message(e));
     } finally {
       if (started === revision.current) setLoading(false);
+    }
+  };
+
+  const chooseSuggestTarget = (target: SuggestionTarget) => {
+    suggestRevision.current += 1;
+    setSuggestTarget(target);
+    setSuggestResult(null);
+    setSuggestError(null);
+    setSuggestLoading(false);
+  };
+
+  const calculateSuggestion = async () => {
+    if (stale || loading || !judgedNetwork || !suggestTarget) return;
+    const started = ++suggestRevision.current;
+    const requestedSnapshot = snapshot;
+    setSuggestLoading(true);
+    setSuggestError(null);
+    const current = () => started === suggestRevision.current && latestSnapshot.current === requestedSnapshot;
+    try {
+      const result = await api.suggest(structuredClone(judgedNetwork), structuredClone(draft.flow), suggestTarget);
+      if (current()) setSuggestResult(result);
+    } catch (error) {
+      if (current()) setSuggestError(message(error));
+    } finally {
+      if (current()) setSuggestLoading(false);
     }
   };
 
@@ -275,6 +328,9 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
           <div className="follow">
             <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
             {auditRequested && Object.keys(toNetwork(draft).acls).length > 0 && <AclAudit result={audit} error={auditError} stale={stale} loading={loading} onShow={showAcl} />}
+            {!loading && verdict && (verdict.result === "PASS" || verdict.result === "DENY") && (!stale || suggestResult !== null) &&
+              <SuggestPanel target={suggestTarget} result={suggestResult} error={suggestError} loading={suggestLoading} stale={stale}
+                onTarget={chooseSuggestTarget} onCalculate={calculateSuggestion} onShow={showAcl} />}
             {verdict && !stale && (
               <section className="panel save" aria-labelledby="save-title">
                 <h2 id="save-title">사례로 저장</h2>

@@ -1,4 +1,17 @@
 export type Kind = "host" | "router";
+export type SuggestionTarget = "PASS" | "DENY";
+export type SuggestionReason = "not_decidable" | "not_acl_cause" | "no_acl_on_path" | "edit_limit" | "reverify_failed" | "line_limit";
+export interface SuggestionEdit {
+  acl: string; anchor_before: number | null; insert_at: number; raw: string; action: "permit" | "deny";
+  device: string; interface: string; direction: "in" | "out"; path: "forward" | "return";
+  shared_by: { device: string; interface: string; direction: "in" | "out" }[];
+}
+export interface Suggestion {
+  status: "OK" | "ALREADY" | "NO_CANDIDATE" | "INVALID"; target: SuggestionTarget | null;
+  reason: SuggestionReason | null; problems: string[]; engine_version: string; truncated: boolean;
+  before: Omit<Verdict, "comparison"> | null;
+  candidates: { id: string; edits: SuggestionEdit[]; after: Omit<Verdict, "comparison"> }[];
+}
 export type AuditFinding = "shadowed" | "redundant_earlier" | "redundant_later" | "never_matches" | "undetermined";
 export interface AuditLine {
   line: number; raw: string; kind: "rule" | "remark" | "unread" | "unchecked";

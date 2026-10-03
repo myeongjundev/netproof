@@ -331,6 +331,11 @@ p .meta { display: inline; }
 .audit-block ul { padding-left: 1.25rem; }
 .audit-block li { margin-bottom: .75rem; }
 .audit-block li p { margin-bottom: .35rem; }
+.suggest fieldset { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.suggest fieldset label { display: flex; align-items: center; gap: .35rem; }
+.suggest input[type="radio"] { width: auto; }
+.suggest pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; }
+.suggest-edit { border-top: 1px solid var(--line); padding: .5rem 0; }
 
 /* 사례 학습형 UI */
 .case-filter-disclosure > summary { min-height: 44px; padding: 12px 0; cursor: pointer; }

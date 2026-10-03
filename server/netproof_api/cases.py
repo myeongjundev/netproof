@@ -12,6 +12,7 @@ from sqlalchemy.orm import contains_eager, joinedload
 from netproof_engine import __version__ as ENGINE_VERSION
 from netproof_engine import compare, observe, policy_matrix, verify
 from netproof_engine import acl_audit
+from netproof_engine import suggest
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -97,6 +98,16 @@ def audit_endpoint():
     if problem := _limit_problem(data.get("network")):
         return error(422, problem)
     return jsonify(acl_audit(data.get("network")))
+
+
+@bp.post("/suggest")
+def suggest_endpoint():
+    data = _body()
+    if problem := _limit_problem(data.get("network")):
+        return error(422, problem)
+    network, flow = data.get("network"), data.get("flow")
+    return jsonify(suggest(network if isinstance(network, dict) else {},
+                           flow if isinstance(flow, dict) else {}, data.get("target")))
 
 
 @bp.get("/examples")

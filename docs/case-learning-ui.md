@@ -293,7 +293,7 @@ engine·server 기준 수치는 구현 전에 main에서 한 번 실행해 HANDO
 
 ## 10. PR19(`codex/acl-suggest`)와의 충돌 대응
 
-PR19 diff는 직접 확인하지 못했습니다.
+아래는 최초 설계 시 예상한 충돌 대응이다. 2026-10-04 사용자 지시로 PR19가 병합된 origin/main `8be25a8`을 merge했다. 실제 충돌은 HANDOFF·작업 로그·CSS이며, PR20 상태와 양쪽 CSS/로그를 보존했다. JudgePage는 자동 병합됐고 main 대비 page-head 변경만 남았다. PR19 엔진/API/후보/타입/테스트/semantics는 main과 동일하다.
 - **구현 시작 전:** Codex가 `git diff --stat main...origin/codex/acl-suggest`로 겹치는 파일을 HANDOFF에 적습니다.
 - **예상 충돌 지점:** `JudgePage.tsx`, `styles.css`, `HANDOFF.md`, `ai-work-log.md`. 이 작업은 `types.ts`·`api.ts`·`AclAudit`를 건드리지 않습니다.
 - **충돌 최소화**

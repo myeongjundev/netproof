@@ -19,11 +19,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **사례 게시판 학습형 UI 1차** — 기존 기능의 배치·여백·정보 위계를 정리한다.
 - 사용자 요청(2026-10-03): 백준/정처기 학습 사이트의 좋은 화면 구성 패턴을 NetProof에 적용. 시작 안내·사례 목록·사례 상세 개선 제안에 “진행해”.
-- 기반: origin/main `c19f554`(PR #18 병합 완료). PR #19는 OPEN/Claude 독립 리뷰 대기로, 변경하지 않는다.
+- 기반: origin/main `8be25a8`(PR #19 병합 완료). 사용자 지시(2026-10-04)로 git merge origin/main 최신화. PR20 작업 상태·사용자 G2·삭제 취소 확인 대기는 유지한다.
 - 브랜치: `codex/case-learning-ui`. 별도 managed worktree에서 진행하며 원래 폴더는 `codex/acl-suggest` 그대로 유지한다.
 - PR: https://github.com/myeongjundev/netproof/pull/20 (Draft, main 대상). 설계 기록 183aaa2/78e6648. 사용자 G0 승인(2026-10-03 “진행하자”) 후 허용 파일에 구현했다. 병합 승인 없음.
-- 단계: **G0 승인 → G1 구현 → Claude 화면 확인·조사 → F1 수정 완료 → Claude 재리뷰 → 사용자 남은 수동 QA·병합 결정.** 최초 브라우저 기능 전수 QA는 미완료이며 재리뷰와 별개로 남긴다.
-- 다음 차례: **리뷰 — Claude 재리뷰**. 최신 사용자 지시(2026-10-03)에 따라 F1 수정 후 리뷰로 넘긴다. 삭제 취소의 실제 기본 확인창은 사용자 수동 확인 대기이며, PR20 Draft 유지·병합하지 않음.
+- 단계: **G0 승인 → G1 구현 → Claude 화면 조사·F1 해결 재확인 → main 최신화·네 명령 재실행 완료 → 사용자 G2·삭제 취소 수동 확인 대기 → Claude 독립 리뷰 → 사용자 병합 결정.** 최초 브라우저 기능 전수 QA는 미완료이며 이번 병합 확인으로 닫지 않는다.
+- 다음 차례: **사용자 G2 화면 확인 및 실제 기본 확인창 삭제 취소 수동 확인 대기**. Claude의 F1 해결 확인(`075f2b8`) 이후에도 이 두 확인은 완료되지 않았다. main 최신화는 이 대기를 닫거나 병합을 승인하지 않는다. G2 확인 뒤 Claude 독립 리뷰, PR20 Draft 유지·병합하지 않음.
 - 설계 전문: [docs/case-learning-ui.md](docs/case-learning-ui.md). 계약의 모든 표·수치·문구·금지 항목을 기준으로 한다.
 - self=“사람 예상”도 승인된 설계 문구로 적용했다. ResultPanel의 기존 “내 예상”은 그대로 유지했다.
 
@@ -57,35 +57,35 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 임시 SQLite만 사용, 3화면×1280/375×812×라이트/다크 캡처. 출처 구분·검색/빈 결과/오류/이전 결과·권한/관측/복제·주소/로그인 복귀·요청 수·키보드·넘침·콘솔을 확인한다(설계 9절).
 - UI 시험 데이터는 합성이며 실제 장비 결과를 증명하지 않는다. 예상 오류 재현 시의 console/network error는 정상 흐름 오류와 구분해 기록한다.
 
-### 5) PR #19 분리
-- 현재 UI 작업에서 PR #19 commit을 cherry-pick/병합하지 않는다.
+### 5) PR #19 병합 뒤 최신화 (2026-10-04 사용자 지시)
+- 사용자 지시로 이미 main에 병합된 PR #19(`8be25a8`)를 git merge origin/main으로 가져온다. 별도 cherry-pick/rebase/force 없음. PR #20을 main으로 병합하지 않는다.
 - 겹치는 파일은 JudgePage.tsx·styles.css·HANDOFF.md·작업로그. UI는 소개 블록만, PR #19는 결과 후보 블록이므로 변경 영역을 나눈다.
 - 병합 순서는 사용자가 정한다. 뒤 작업은 origin/main을 merge하고 충돌 정리 뒤 네 명령과 판정기 동작을 다시 확인한다. force/rebase/main 직접 push 금지.
-- #19의 현재 완료 내용·리뷰 인계는 그 브랜치 HANDOFF와 PR 코멘트에 보존되어 있다.
+- #19 완료 내용·Claude 리뷰는 main `8be25a8`의 HANDOFF와 PR 코멘트·작업 로그에 보존. 이 브랜치 HANDOFF의 현재 작업은 PR20이다. 충돌은 HANDOFF·작업 로그·CSS 세 곳, 양쪽 코드/CSS/로그 보존 및 PR20 상태 유지로 해결한다. 엔진/API/타입/후보 테스트는 main 변경을 그대로 가져오며 PR20에서 별도 수정하지 않는다.
 
 ## 완료 내용 / 테스트 결과
 - 승인된 시작 안내·4열 게시판/모바일 카드·읽기 전용 네트워크 구성·받은 답 출처 영역을 구현했다. 순수 표시 함수 5개와 테스트 28개(최초 신규27 + F1 개수 회귀1). F1 모바일 필터 접기와 바깥 적용 조건을 보완했다. 기존 상태/핸들러/ResultPanel props/배지/검색/저장 의미는 유지했다.
-- 변경: 허용된 UI 7파일(신규 3개 포함)과 문서 3개만. 엔진/서버/기준 사례/expect/기존 테스트/의존성/금지 파일 diff 없음. 새 API·상태·N+1 없음. git diff --check 성공.
-- PR19 겹침 직접 확인: JudgePage.tsx, styles.css, HANDOFF.md, decisions/ai-work-log.md. #19를 병합/cherry-pick하지 않았다. 판정기 page-head와 CSS 별도 블록만 수정.
-- 아래 네 명령은 F1 수정 후 최종 코드에서 직접 실행했다(2026-10-03). 기준 294+2 xfail / 88+1 skip / 웹114 → 최초 UI 웹141 → F1 반영 후 294+2 xfail / 88+1 skip / 웹142, 빌드 성공. Python에는 worktree engine/src·server PYTHONPATH를 지정했으며 기존 ignored .venv/node_modules junction을 사용했다. 설치/운영 DB 변경 없음.
+- PR20 고유 변경(main 대비): 허용된 UI 7파일(신규3) 및 문서3만. engine/server/expect/의존성/금지 파일은 main과 동일. main에서 가져온 PR19의 후보 기능·테스트를 별도 수정하지 않는다.
+- main 최신화: HANDOFF는 PR20 상태를 보존하고 PR19 병합 기록만 갱신, 작업 로그는 양쪽 기록 보존, CSS는 main의 suggest 규칙과 UI 블록을 모두 보존. JudgePage 자동 병합 결과는 main 대비 기존 page-head 변경뿐인지 확인한다.
+- 아래 네 명령은 origin/main `8be25a8` 병합·충돌 해결 후 직접 실행했다(2026-10-04). 최신화 전 UI 294+2 xfail/88+1 skip/web142 → PR19 테스트 포함 후 326+2 xfail/91+1 skip/web156(13파일), 빌드45모듈 성공. Python에는 worktree engine/src·server PYTHONPATH를 지정했으며 기존 ignored .venv/node_modules junction을 사용했다. 설치/운영 DB 변경 없음.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
 ```text
-........................................................................ [ 24%]
-........................................................................ [ 48%]
-........................................................................ [ 72%]
-........................................................................ [ 97%]
-......xx                                                                 [100%]
-294 passed, 2 xfailed in 4.55s
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 5.34s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
 
 ```text
-.......................................................................s [ 80%]
-.................                                                        [100%]
-88 passed, 1 skipped in 29.29s
+.......................................................................s [ 78%]
+....................                                                     [100%]
+91 passed, 1 skipped in 31.07s
 ```
 
 ### `npm --prefix web test`
@@ -98,10 +98,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
  RUN  v5.0.2 C:/Users/dora2/.codex/worktrees/case-learning-ui/netproof/web
 
 
- Test Files  12 passed (12)
-      Tests  142 passed (142)
-   Start at  21:58:33
-   Duration  510ms (transform 56%, import 26%, tests 12%, worker 6%)
+ Test Files  13 passed (13)
+      Tests  156 passed (156)
+   Start at  00:10:54
+   Duration  549ms (transform 60%, import 23%, tests 10%, worker 7%)
 ```
 
 ### `npm --prefix web run build`
@@ -112,7 +112,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 vite v8.3.1 building client environment for production...
 transforming...
-✓ 43 modules transformed.
+✓ 45 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                                            0.62 kB │ gzip:  0.45 kB
@@ -208,11 +208,18 @@ dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
 dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
 dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
 dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-DG6-eJRc.css                            68.40 kB │ gzip: 20.14 kB
-dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.31 kB
+dist/assets/index-CLZ9mRAd.css                            68.71 kB │ gzip: 20.22 kB
+dist/assets/index-CFlawC6X.js                            311.84 kB │ gzip: 94.52 kB
 
-✓ built in 299ms
+✓ built in 306ms
 ```
+
+### main 최신화 후 판정기 스모크 확인 (2026-10-04)
+- computer-use 스킬의 Codex IAB 브라우저 도구, localhost:5183 및 무작위 netproof-pr20-merge-…/qa.db만 사용. init-db의 기존 합성 예시01로 검사, 계정 생성·로그인·저장·사례 삭제·운영 DB 접근 없음.
+- 1280×900 및 375×812에서 시작 안내3개(3열/1열), 예시01 판정=DENY, ACL 점검, 목표 미선택 후보 계산 비활성 → PASS 선택·계산 → c1 원래1번 앞 permit tcp host … eq 443 및 다시 판정 PASS 표시. 원래 ACL 두 줄은 그대로 유지됨.
+- 입력 포트443→444로 바꾸면 이전 후보 표시를 유지하고 목표 라디오·후보 계산·원래 줄 보기 모두 비활성. 모바일 판정 버튼 fixed 유지. 가로 넘침 없음(body.scrollWidth=1265≤1280, 360≤375), console error/warn=[].
+- 접근 로그: 00:12:24 GET /api/examples 200, 00:12:48 POST /api/verify 및 /api/acl-audit 200, 00:13:10/00:13:49 POST /api/suggest 200. 화면 안내가 기존 후보 기능을 방해하지 않는지 확인한 제한된 검사이며, 전체 화면·다크·타 브라우저·지연주입 전수 QA/G2/삭제 취소를 대신하지 않음.
+- PNG 두 장: C:/Users/dora2/.codex/visualizations/2026/10/04/pr20-main-merge/judge-1280-candidate.png 및 judge-375-candidate.png. viewport reset·탭 닫기·서버 종료, 정확한 절대 경로 검증 뒤 임시 폴더/DB 삭제(Test-Path=False). 캡처는 보존, 운영 데이터 영향 없음.
 
 ### F1 수정 후 임시 DB 브라우저 확인 (2026-10-03)
 - localhost:5183의 무작위 netproof-case-ui-f1-…/qa.db만 사용. API로 임시 계정 1개·예시01 기반 합성 사례 1개를 준비하고 브라우저 로그인 후 확인. 운영 DB/기준 사례/expect 불변.
@@ -247,6 +254,7 @@ dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.
 - 정리: 검사 탭 종료/뷰포트 reset/테마 기기 설정 복원. 검사 서버가 더 이상 5183에서 듣지 않음을 확인했다. 검증한 절대 경로의 임시 폴더와 QA DB(계정·시험 사례)를 삭제, Test-Path=False. 캡처 12개는 화면 확인용으로 보존.
 
 ## 현재 과제 리뷰 기록
+- [Claude F1 재확인](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969452026), 검토 HEAD `075f2b8`: F1 해결·차단 없음, 네 명령 결과 일치, 임시 DB Chromium 모바일 카드541px·적용 조건 바깥/데스크톱7필터·넘침없음 확인. F2~F4 후속·삭제 취소 사용자 확인 대기 유지. 이 재확인은 main 최신화 뒤 HEAD의 독립 리뷰를 뜻하지 않는다.
 - [Claude 화면 확인·삭제 취소 조사](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969258205), 2026-10-03, 검토 HEAD `4befccd`, Claude (Claude Opus 5.5). 방향 유지, F1 병합 전 수정 권장. 아래는 이 코멘트의 조사 사실과 이번 조치이며, 수정 후 PASS 리뷰를 뜻하지 않는다.
 - **F1: 이번에 수정.** 640px 이하에서 7필터를 기본 닫힌 details로 감싼다. “필터 (적용 n개)”의 n은 안쪽 선택 필터만(검색어·바깥 내 사례만 제외), 적용한 검색어·조건 문구는 접힘 밖에 계속 표시. 데스크톱은 같은 필터 DOM을 CSS ::details-content로 노출하고 summary를 숨긴다. 미지원 CSS에서는 summary를 남겨 필터 접근을 보장한다. 새 React 상태·effect·요청·의존성 없음.
 - **F2: 후속으로 기록만.** 통과/막힘·된다/안 된다 용어 정리는 금지 파일 Badges/ResultPanel 및 judge-ux와 함께 설계·승인 후 적용. 원래 값/문구를 이번에 일부만 바꾸지 않았다.
@@ -261,7 +269,7 @@ dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.
 - **미완료 — 사용자 수동 확인 대기:** 새 임시 DB/합성 사례에서 실제 브라우저 삭제 확인창의 “취소”를 직접 누른 뒤 상세 유지·사례 조회 가능·DELETE 없음을 확인해 기록한다. 이번 Codex는 삭제 버튼을 누르거나 확인창을 대체하지 않았다. 이 항목은 PASS로 바꾸지 않는다.
 
 ## 이전 과제 기록 (요약)
-- PR #19 수정 후보: 별도 codex/acl-suggest, b65a28b, OPEN/Claude 리뷰 대기. 구현 326+2 xfail/91+1 skip/web128/build 성공, 현재 작업에 포함하지 않음.
+- PR #19 수정 후보: Claude 독립 리뷰 PASS(`b65a28b`, 차단0) 후 사용자 병합 완료 `8be25a8`. 구현/리뷰 326+2 xfail/91+1 skip/web128/build 성공. 이번 origin/main merge로 후보 기능을 그대로 포함하며 기존 판정 코드·expect는 불변.
 - PR #18 ACL 점검: 사용자 병합 완료 c19f554. 294+2 xfail/88+1 skip/web114/build 성공.
 - 그 이전 과제 상세/비차단 후속은 main의 이전 HANDOFF와 decisions/ai-work-log.md에 유지되어 있다. 이번 UI 범위에 포함하지 않는다.
 
@@ -294,7 +302,7 @@ dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
 **4주차 (10-19~10-25) — 사용자 테스트 주간, 기능은 병행**
-- [ ] 수정 후보 제안("무엇을 바꾸면 통하나") — ② **PR #19 구현 완료, 독립 리뷰 대기(별도 브랜치)**
+- [x] 수정 후보 제안("무엇을 바꾸면 통하나") — ② **PR #19 병합 완료, 8be25a8**
 - [ ] 변경 전/후 판정 비교 — ②
 - [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤
 
@@ -314,11 +322,11 @@ dist/assets/index-BzE7NTvT.js                            307.74 kB │ gzip: 93.
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
-- [ ] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ 기존 기능 화면 정리, F1 수정 완료 → Claude 재리뷰. 삭제 취소 사용자 수동 QA 별도 대기.
+- [ ] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ 기존 기능 화면 정리, F1 해결 확인·main 최신화 → 사용자 G2/삭제 취소 수동 QA 대기.
 
 ## 다음 LLM이 확인할 내용
 - UI 작업은 `codex/case-learning-ui` worktree에서 git pull 후 이 문서와 docs/case-learning-ui.md를 읽는다. 원래 폴더의 PR #19 인계를 덮어쓰지 않는다.
 - 사용자 G0 승인 완료. self=“사람 예상”을 적용했고 ResultPanel의 “내 예상”은 그대로다.
-- 다음은 최신 사용자 지시에 따른 Claude 재리뷰(F1, F2~F4 후속 기록, 삭제 취소 조사 구분). 삭제 취소는 새 임시 DB/합성 사례에서 사용자 기본 확인창 수동 확인 대기이며 리뷰와 별도로 남긴다. 배포·병합 자동 진행 없음.
+- 다음은 사용자 G2 화면 확인 및 새 임시 DB/합성 사례의 실제 기본 확인창 삭제 취소 수동 확인 대기. main 최신화로 이 두 대기를 닫지 않는다. 이후 Claude 독립 리뷰를 진행하며, F2~F4 후속·원인 추정/재현 구분을 유지한다. 배포·병합 자동 진행 없음.
 
 설계: Claude (Claude Opus 5.5), 구현·테스트·기록: Codex (GPT-6)
