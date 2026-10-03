@@ -323,3 +323,8 @@ p .meta { display: inline; }
 .danger-button { background: var(--deny); color: var(--surface); border: 0; font-weight: 600; }
 .check-row { display: flex; flex-direction: row; gap: 8px; align-items: center; color: var(--ink); font-size: 14px; }
 .check-row input { width: auto; min-height: 0; }
+/* ACL 점검의 긴 줄과 이름도 휴대폰 본문 폭 안에서 줄바꿈한다. */
+.acl-audit, .audit-block { min-width: 0; overflow-wrap: anywhere; }
+.audit-block ul { padding-left: 1.25rem; }
+.audit-block li { margin-bottom: .75rem; }
+.audit-block li p { margin-bottom: .35rem; }

@@ -3,12 +3,14 @@ import { api, message } from "../api";
 import { FlowForm } from "../components/FlowForm";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
+import { AclAudit } from "../components/AclAudit";
 import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "../draft";
 import { practiceTasks, type PracticeTask } from "../practice";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import type { CaseItem, Draft, Network, User, Verdict } from "../types";
+import type { AclAudit as AuditResult } from "../types";
 
 interface Props {
   user: User | null;
@@ -21,6 +23,9 @@ interface Props {
 export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
+  const [audit, setAudit] = useState<AuditResult | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
+  const [auditRequested, setAuditRequested] = useState(false);
   const [judgedNetwork, setJudgedNetwork] = useState<Network | null>(null);
   const aclInputs = useRef(new Map<number, HTMLTextAreaElement>());
   const [judged, setJudged] = useState<string | null>(null);
@@ -55,6 +60,10 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
     revision.current += 1;
     setDraft(() => next);
     setVerdict(null);
+    setAudit(null);
+    setAuditError(null);
+    setAuditRequested(false);
+    setLoading(false);
     setJudgedNetwork(null);
     setJudged(null);
     setError(null);
@@ -100,14 +109,23 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
   };
 
   const judge = async () => {
-    const started = revision.current;
+    const started = ++revision.current;
     setLoading(true);
     setError(null);
     try {
       const network = structuredClone(toNetwork(draft));
-      const result = await api.verify(network, draft.flow, draft.claim);
+      const hasAcls = Object.keys(network.acls).length > 0;
+      setAuditRequested(hasAcls);
+      setAuditError(null);
+      const [verification, inspection] = await Promise.allSettled([
+        api.verify(network, draft.flow, draft.claim),
+        hasAcls ? api.aclAudit(network) : Promise.resolve(null),
+      ]);
       if (started !== revision.current) return;
-      setVerdict(result);
+      setVerdict(verification.status === "fulfilled" ? verification.value : null);
+      setError(verification.status === "rejected" ? message(verification.reason) : null);
+      setAudit(inspection.status === "fulfilled" ? inspection.value : null);
+      setAuditError(inspection.status === "rejected" ? message(inspection.reason) : null);
       setJudgedNetwork(network);
       setJudged(snapshot);
       // 한 줄 배치(휴대폰)에서는 결과가 폼 아래에 있어 눌러도 안 보인다. 결과로 옮겨 준다.
@@ -117,7 +135,7 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
     } catch (e) {
       if (started === revision.current) setError(message(e));
     } finally {
-      setLoading(false);
+      if (started === revision.current) setLoading(false);
     }
   };
 
@@ -250,6 +268,7 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
           </div>
           <div className="follow">
             <ResultPanel verdict={verdict} claim={draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
+            {auditRequested && Object.keys(toNetwork(draft).acls).length > 0 && <AclAudit result={audit} error={auditError} stale={stale} loading={loading} onShow={showAcl} />}
             {verdict && !stale && (
               <section className="panel save" aria-labelledby="save-title">
                 <h2 id="save-title">사례로 저장</h2>

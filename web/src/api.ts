@@ -2,6 +2,7 @@ import type { CaseDetail, CaseFilters, CaseItem, CasePage, CaseSummary, Claim, D
 import { caseSearchParams } from "./caseSearch";
 import type { MatrixSpec, PolicyMatrix } from "./types";
 import type { Observation } from "./types";
+import type { AclAudit } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -58,6 +59,7 @@ export const api = {
   verify: (network: Network, flow: Flow, claim: Claim) =>
     call<Verdict>("POST", "/api/verify", { network, flow, claim: claim.expected ? claim : null }),
   policyMatrix: (network: Network, spec: MatrixSpec) => call<PolicyMatrix>("POST", "/api/policy-matrix", { network, spec }),
+  aclAudit: (network: Network) => call<AclAudit>("POST", "/api/acl-audit", { network }),
   examples: () => call<CaseItem[]>("GET", "/api/examples"),
   observe: (text: string, flow: Flow) => call<Observation>("POST", "/api/observe", { text, flow }),
   cases: (mine: boolean) => call<CaseSummary[]>("GET", mine ? "/api/cases?mine=1" : "/api/cases"),
