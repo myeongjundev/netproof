@@ -17,523 +17,179 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **ACL 점검** — 가려진 규칙·중복 규칙·일치 불가 규칙을 엔진이 **정확히 계산**해 짚고, permit 줄의 열린 범위를 사실로 보여 준다 (로드맵 3주차, 순환 고리 ③)
-- 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
-- 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
-- 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인 R1·R2 → Codex 한도 재측정·기록 완료(`cc5cf96`) → Claude 재리뷰 PASS → 사용자 최종 확인·병합 결정(다음 차례).**
+- 작업: **판정기 화면 개선** — Impeccable critique(2026-10-03, 23/40)의 우선 문제 5개와 마무리 다듬기. "받은 답이 맞았나"를 화면이 직접 말하게 하고, 학생 입력을 지키고, 오류·결과 칸·스크린리더를 정리한다 (순환 고리 ② 판정·설명)
+- 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-03T12-24-26Z__web-src-pages-judgepage-tsx.md`. 디자인 리뷰 서브에이전트와 Impeccable 검사기(코드 검사 0건, 브라우저 오버레이는 CSP 때문에 실행 못 함)를 합친 결과다. 필요한 내용은 이 문서의 작업 정의에 모두 옮겼다.
 - 사용자 결정(2026-10-03):
-  - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
-  - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
-  - **계산 방식: A(정확 집합 계산).** 쌍별 포함(B)·표본 패킷(C)은 쓰지 않는다.
-- 보류: **Cisco 설정 붙여넣기**는 수업 ACL이 Cisco인지 확인(사람 트랙)까지 보류.
-- 이 과제는 **쓰기가 없다.** 사례·DB·공유 링크를 바꾸지 않고 판정 의미도 바꾸지 않는다.
+  - **우선 영역: 일치·불일치 표시.** 범위: **우선 문제 5개 전부 + 마무리.**
+  - **예시 버튼 제목이 정답을 드러내는 문제는 이번 범위 밖**(PR #15 후속으로 남김).
+- 브랜치: `codex/judge-ux` (origin/main `c19f554` 기반, 설계 커밋만 있음). 설계는 이 브랜치에 기록한다.
+- **선행 조건: PR #19(`codex/acl-suggest`, 수정 후보) 병합.** 이 설계는 PR #19의 `SuggestPanel`·`suggest.ts`·`JudgePage` 변경을 전제로 한다. Codex는 PR #19가 main에 병합된 뒤 `git merge origin/main`으로 이 브랜치를 최신화하고 구현을 시작한다. PR #19가 바뀌면 아래 이름(함수·클래스)을 기준으로 따른다.
+- 단계: **설계(이 문서) → 사용자 설계 검토 → (PR #19 병합 후) Codex 구현·테스트 → 리뷰 → 사용자 병합 결정.**
+- **판정·엔진은 그대로다.** 화면 표시만 바꾼다. 엔진·서버·API 응답·저장 데이터를 바꾸지 않는다.
 
 ## 작업 정의
-- 목표: 판정기에 입력한 **모든 ACL**을 줄마다 점검해, 가려짐·중복·일치 불가·점검 못 함을 **원인이 된 줄 번호와 함께** 보여 주고, permit 줄의 열린 범위를 적는다.
-- **이것은 판정이 아니라 점검이다.** 흐름·경로·토폴로지와 상관없이 ACL 규칙만 계산한다. PASS/DENY·`comparison`·`policy`를 만들거나 바꾸지 않는다. 점검 계산은 `engine/`만 하고(ADR-001) 서버·화면은 결과를 전달·표시만 한다.
-- **정확성이 이 과제의 핵심이다.** "가려진 규칙 없음"이라고 말하려면 여러 줄의 합집합이 가리는 경우(예: `/25` 두 줄이 `/24` 한 줄을 가림)까지 잡아야 한다. 계산이 한도를 넘거나 해석 못 한 줄 때문에 결론을 낼 수 없으면 **추측하지 않고 "점검 못 함"**으로 둔다.
+- 목표: 판정기에서 다섯 가지를 한다.
+  1. 받은 답이 맞았는지 틀렸는지를 가장 먼저 보여 준다.
+  2. 학생이 만든 입력을 실수로 잃지 않게 한다.
+  3. 입력 오류를 원인과 칸으로 안내한다.
+  4. 판정 뒤 결과 칸을 판정 중심으로 정리한다.
+  5. 스크린리더·키보드로도 같은 흐름을 쓸 수 있게 한다.
+- **이것은 표시 변경이다.** `verdict.result`·`verdict.comparison`·`problems`·`reason` 값은 엔진이 준 그대로 쓴다. 화면이 판정을 다시 계산하거나 비교를 새로 만들지 않는다(ADR-001). 엔진 문구(`reason`의 "정방향" 등)도 고치지 않는다.
 
-### 1) 점검 대상 패킷 공간
-`verify`가 만들 수 있는 패킷과 같다(`docs/semantics.md` 1·2·6절).
+### 1) 일치·불일치를 결과 맨 앞에 (P1, 사용자 우선 영역)
+- 현재:
+  - `ResultPanel`의 결과 상자 색은 `verdict.result`(PASS 초록·DENY 빨강)만 따른다(`styles.css`의 `.verdict.pass`·`.verdict.deny`).
+  - `.verdict-line.agree`·`.disagree` 클래스는 붙지만 스타일이 없다.
+  - 그래서 "안 된다 = 막힘"처럼 일치한 경우도 경고처럼 빨간 상자로 보인다.
+- 바꿀 것:
+  - 받은 답이 있고 `comparison`이 `AGREE`/`DISAGREE`면 결과 상자 **맨 위에 비교 배너** 한 줄을 둔다.
+    - `DISAGREE`: **"✕ {누구}이(가) 틀렸습니다"**. 진한 배경에 대비되는 글자색으로 강하게 표시한다.
+    - `AGREE`: **"✓ {누구}이(가) 맞았습니다"**. 옅은 배경이나 테두리로 차분하게 표시한다.
+    - `{누구}`는 기존 `claimLabel`의 앞부분과 같은 말이다: `AI 답` / `내 예상` / `받은 답`(종류 없음). 출처(`claim.source`)는 배너에 넣지 않는다.
+    - 기호(✕/✓)와 문장을 함께 써서 **색만으로 뜻을 전하지 않는다.**
+  - 배너가 있으면 결과 상자 배경을 **중립색**(`--gray-bg` 계열)으로 바꾼다. PASS/DENY 색은 대결 머리의 "NetProof 계산" 결과 글자(통과/막힘)에만 남긴다.
+  - 배너 색은 일치에는 통과 계열, 불일치에는 막힘 계열 토큰을 쓴다. 라이트·다크 모두 글자 대비 4.5:1 이상이어야 한다.
+  - 대결 머리(`versus`), `≠`/`=` 기호, 기존 `verdict-line` 문장은 그대로 둔다. 배너는 그 위에 더하는 것이다.
+  - `NO_CLAIM`(받은 답 없음)과 `NOT_COMPARABLE`은 배너를 만들지 않는다. `NO_CLAIM` 화면은 지금 그대로 둔다.
+- 새 순수 모듈 `web/src/verdictView.ts`:
+  - `comparisonBanner(verdict, claim): { tone: "agree" | "disagree"; text: string } | null` — 위 규칙을 **여기 한 곳에서만** 정한다.
 
-| 프로토콜 | 차원 |
-|---|---|
-| `tcp` | 출발지 IP(32비트 전체) · 목적지 IP · 출발지 포트 1~65535 · 목적지 포트 1~65535 · ACK {0,1} |
-| `udp` | 출발지 IP · 목적지 IP · 출발지 포트 1~65535 · 목적지 포트 1~65535 |
-| `icmp` | 출발지 IP · 목적지 IP · ICMP 종류 0~255 |
+### 2) 입력 보호: 덮어쓰기·삭제 되돌리기 (P1)
+- 현재:
+  - `JudgePage`의 `load()`가 입력 전체를 말없이 바꾼다. 부르는 곳은 예시 버튼, "처음 구성", 실습 과제 "시작", JSON 붙여넣기 가져오기(`importPasted`)다.
+  - `NetworkEditor`의 장비·인터페이스·경로·ACL 삭제도 누르는 즉시 지운다.
+- 바꿀 것: 학생 흐름을 끊지 않도록 **확인 창 대신 한 단계 되돌리기**를 둔다.
+  - 위 네 가지 덮어쓰기와 네 가지 삭제를 실행하기 **직전의 입력**을 하나 보관하고, 알림 한 줄을 띄운다: **"{무엇}을(를) 했습니다. [되돌리기]"** (예: "예시 01을 불러왔습니다", "R1 장비를 삭제했습니다", "ACL 101을 삭제했습니다").
+  - "되돌리기"를 누르면 보관한 입력으로 돌아가고 알림을 닫는다. 판정 결과는 기존 `stale` 규칙대로 "이전 결과"가 된다.
+  - 보관은 **한 단계만** 한다. 새 덮어쓰기·삭제가 오면 바꿔 끼운다.
+  - 그 뒤 사용자가 입력을 직접 고치면 알림을 닫고 보관을 버린다. 되돌리기가 사용자의 새 입력을 지우지 않게 하기 위해서다.
+  - 알림은 시간이 지나도 저절로 사라지지 않고, 닫기 단추(×)로 닫는다. `role="status"`로 알린다. 휴대폰에서는 하단 고정 판정 단추와 겹치지 않는 위치에 둔다.
+  - 공유 링크로 처음 들어올 때의 `load`(페이지 진입 시)는 되돌리기 대상이 아니다.
+  - **입력이 비어 있거나 직전과 같으면 알림을 띄우지 않는다.** 쓸데없는 알림을 막기 위해서다. 비교는 `toNetwork(draft)`·흐름·받은 답을 JSON으로 비교하는 수준이면 된다.
+- `NetworkEditor`는 삭제 직전에 무엇을 지우는지 알리는 콜백 하나만 더 받는다(예: `onBeforeRemove(label)`). 보관·복원 상태는 `JudgePage`가 가진다.
 
-- 규칙 한 줄 = 상자(각 차원의 구간 곱)의 합집합.
-  - `ip`는 세 프로토콜 모두. `tcp`·`udp`·`icmp`는 그 프로토콜만.
-  - 주소는 `Rule.src`·`Rule.dst` 네트워크의 [네트워크 주소, 브로드캐스트 주소] 구간.
-  - 포트: `eq p` → [p,p], `neq p` → [1,p-1] ∪ [p+1,65535], `lt p` → [1,p-1], `gt p` → [p+1,65535], `range a b` → [a,b]. 모두 1~65535와 교차한다. 포트 조건이 없으면 1~65535.
-  - `established` → ACK=1만. 없으면 ACK {0,1}.
-  - ICMP 종류가 있으면 [t,t] ∩ [0,255], 없으면 0~255.
-- 이 정의는 `Rule.matches`와 같은 뜻이어야 한다. **엔진의 `acl.py`·`Rule.matches`는 고치지 않고 읽기만 한다.** 같은 뜻인지는 아래 교차 확인 테스트로 못 박는다.
+### 3) 입력 오류: 원인을 위로, 틀린 칸 표시 (P2)
+- 현재: `INVALID`인데도 받은 답이 있으면 대결 머리("된다 ? 입력 오류")가 뜨고, 진짜 원인(`verdict.problems`)은 상자 아래 작은 목록에 있다.
+- 바꿀 것:
+  - `result`가 `INVALID`·`UNSUPPORTED`면 **대결 머리를 만들지 않는다.** 상자 제목(`입력 오류`/`판정 불가`) 바로 아래에 `problems` 목록을 두고, 그 위에 한 줄을 넣는다.
+    - INVALID: **"입력을 고쳐야 계산할 수 있습니다. 받은 답과는 비교하지 않았습니다."**
+    - UNSUPPORTED: **"지원 범위 밖이라 계산을 멈췄습니다. 받은 답과는 비교하지 않았습니다."**
+  - **칸 즉시 검사**:
+    - `FlowForm`의 출발지·목적지 IP는 칸에서 벗어날 때(blur) IPv4 형식을 검사한다.
+    - `NetworkEditor`의 인터페이스 IP는 `주소/길이`(CIDR, 길이 0~32) 형식을 검사한다.
+    - 틀리면 `aria-invalid="true"`를 붙이고, 칸 아래에 짧은 문구를 `aria-describedby`로 연결한다: "IPv4 주소 형식이 아닙니다(예: 10.10.10.10)", "주소/길이 형식이 아닙니다(예: 10.10.10.1/24)".
+    - 빈 칸은 오류로 표시하지 않는다.
+  - 즉시 검사는 **안내일 뿐 판정을 막지 않는다.** 판정 단추는 그대로 누를 수 있고, 최종 판단은 엔진의 INVALID가 한다.
+  - 숫자 변환에 `int()`/`Number()`를 쓰지 않고 ASCII 숫자 정규식으로 검사한다. 이슈 #7·#9가 다시 생기지 않게 하기 위해서다. 각 옥텟은 `/^\d{1,3}$/`에 0~255, 길이는 `/^\d{1,2}$/`에 0~32.
+- 새 순수 모듈 `web/src/validate.ts`: `ipv4Problem(value): string | null`, `cidrProblem(value): string | null`.
+- 엔진 `problems` 문구를 해석해 칸으로 이어 주는 기능은 만들지 않는다. 문자열 해석은 깨지기 쉽고, 흔한 경우는 즉시 검사가 미리 잡는다.
 
-### 2) 줄 분류 (한 줄에 `finding`은 최대 하나)
-줄 i의 상자 집합을 R_i라 한다.
+### 4) 결과 칸 정리와 말씨 통일 (P2)
+- 현재:
+  - 판정 뒤 오른쪽 칸에 판정·ACL 근거·ACL 점검·수정 후보·저장이 모두 펼쳐져 쌓인다.
+  - ACL 점검 요약은 `가려짐 0 · 중복 0 · 일치 불가 0 · 점검 못 함 0`처럼 0까지 다 적는다.
+  - 수정 후보는 `PASS`/`DENY`를 그대로 쓴다.
+- 바꿀 것:
+  - **ACL 점검**(`AclAudit`)을 `<details>`로 감싼다.
+    - `<summary>`는 한 줄 요약이다. 문제가 있으면 `ACL 점검 · 가려짐 1 · 중복 2`처럼 **0인 항목은 뺀다.** 문제가 없으면 `ACL 점검 · 문제 없음`이고, 열린 범위가 있으면 ` · 열린 범위 N줄`을 붙인다. 점검 못 함이 있으면 `점검 못 함 N`도 요약에 넣는다.
+    - 가려짐·중복·일치 불가·점검 못 함 중 하나라도 있으면 **처음부터 펼친다**(`open`). 열린 범위만 있거나 문제가 없으면 접어 둔다.
+    - 고정 문구("이 점검은 판정이 아닙니다…"), 줄 목록, "입력에서 보기"는 펼친 안쪽에 그대로 둔다.
+    - "나머지 전부 허용" 줄 옆에 한 줄 설명을 붙인다: "앞 줄에 걸리지 않은 모든 통신을 허용합니다." 경고나 위험 판단은 하지 않는다(PR #18 사용자 결정 유지).
+  - **수정 후보**(`SuggestPanel`)를 `<details>`로 감싸고 **기본은 접는다.** `<summary>`는 `수정 후보 — 무엇을 넣으면 결과가 바뀌나`. 면책 문구·목표 선택·계산 단추는 펼친 안쪽에 둔다.
+  - **말씨 통일**(화면 표시만 바꾸고 값은 그대로):
+    - 수정 후보 목표 선택 라벨 `PASS`/`DENY` → `통과`/`막힘`. `afterDescription`의 `다시 판정: PASS — …` → `다시 판정: 통과 — …`.
+    - `suggest.ts`의 `정방향`/`복귀 방향` → `가는 길`/`돌아오는 길`(`TRUNCATED`·`REASONS.no_acl_on_path`·`editDescription` 포함). 엔진이 준 `reason` 문장은 고치지 않는다.
+  - 요약 규칙(0 제외)은 `aclAudit.ts`의 `auditBlocks`에 넣고 `summary` 필드 형식만 바꾼다. 줄 문구(`auditLineText`)는 그대로다.
 
-1. **먼저 잡힘 계산**: 남은 = R_i. 앞 줄 j = 1…i-1을 차례로 보며 `남은 ∩ R_j`가 비어 있지 않으면 j를 `by`에 넣고 `남은 -= R_j`. 끝난 뒤의 `남은`이 F_i(이 줄이 실제로 처음 잡는 패킷)다. 이렇게 모은 `by`는 **R_i의 패킷을 실제로 먼저 잡는 줄**만 담는다.
-2. R_i가 처음부터 비었으면 → **`never_matches`**(일치 불가). `by`는 빈 목록.
-3. F_i가 비었으면(전부 먼저 잡힘):
-   - `by` 중 이 줄과 **동작이 반대인 줄이 하나라도 있으면** → **`shadowed`**(가려짐). 이 줄의 동작은 어떤 패킷에도 적용되지 않는다.
-   - 모두 같은 동작이면 → **`redundant_earlier`**(중복·앞 줄).
-4. F_i가 비지 않았으면 **뒤 줄로 흘려 본다**: 남은 = F_i, `by` = 빈 목록. 뒤 줄 k = i+1…를 차례로 보며 `남은 ∩ R_k`가 비지 않았을 때
-   - k의 동작이 이 줄과 반대면 → 지우면 결과가 바뀐다. **`finding` 없음**(멈춤).
-   - 같으면 k를 `by`에 넣고 `남은 -= R_k`.
-   - 끝까지 갔을 때 `남은`이 비었으면 → **`redundant_later`**(중복·뒤 줄).
-   - `남은`이 남았으면 암묵적 deny가 받는다. 이 줄이 `deny`면 → **`redundant_later`** + `implicit_deny: true`, `permit`이면 → `finding` 없음.
-5. **결론을 낼 수 없으면** → **`undetermined`**(점검 못 함) + `undetermined_reason`:
-   - `"limit"` — 계산 한도 초과(아래 4절).
-   - `"unread_below"` — 4단계에서 `남은`이 비지 않은 채 해석 못 한 줄에 닿았다.
-- **해석 못 한 줄(`UnreadLine`)**: 엔진 `evaluate`처럼 거기서 멈춘다. 그 줄은 `kind: "unread"`, 그 뒤의 규칙 줄은 `kind: "unchecked"`이고 둘 다 `finding: null`이다. 그 ACL의 `unchecked_from`에 그 줄 번호를 적는다(없으면 `null`). 그 앞 줄은 정상 점검한다(1~3단계는 앞 줄만 보므로 영향이 없다).
-- `remark` 줄은 `kind: "remark"`, `finding: null`. 빈 줄은 목록에 넣지 않는다.
-- **줄 번호(`line`)는 엔진 `Rule.line`과 같은 기준**(보낸 목록의 1부터 센 위치, 빈 줄도 센다)이다. 그래야 기존 "ACL 근거"·"입력에서 보기"와 번호가 맞는다.
-- 주의: 지운다고 결과가 같다는 것은 **이 ACL의 판정**에 대한 사실이다. 맨 끝에 일부러 쓴 `deny ip any any`(로그용 관습)도 암묵적 deny 때문에 `redundant_later`로 나온다. 정의대로 맞는 사실이고, 화면 문구가 "지워도 결과가 같습니다"로 사실만 말한다.
+### 5) 스크린리더·키보드 (P2)
+- 현재:
+  - 결과 `section` 전체가 `aria-live="polite"`라 판정할 때마다 경로·근거까지 다 읽는다.
+  - "입력에서 보기" 단추가 여러 개인데 이름이 같다.
+  - 판정기에 h1이 없다.
+  - Enter로 판정할 수 없다.
+- 바꿀 것:
+  - 결과 `section`에서 `aria-live`를 뺀다. 대신 결과 맨 위에 **짧은 상태 한 줄**(`role="status"`)을 둔다.
+    - 배너가 있으면 `"{배너 문장} · NetProof 계산 {통과/막힘}"`, 없으면 `"NetProof 계산 {제목}"`, 계산 중이면 `"계산 중…"`.
+    - 화면에 보여도 되고 `sr-only`여도 된다. 배너와 내용이 겹치면 `sr-only`로 둔다.
+  - "입력에서 보기" 단추마다 구분되는 `aria-label`을 붙인다.
+    - ACL 근거: `"ACL {이름} {N}번 줄 입력에서 보기"`, 암묵적 deny: `"ACL {이름} 전체 입력에서 보기"`.
+    - ACL 점검도 같은 형식.
+    - 수정 후보의 "원래 줄 보기": `"ACL {이름} {N}번 줄 보기"`.
+  - 판정기에 h1 **"판정기"**를 둔다. 화면 배치를 바꾸지 않도록 `sr-only`면 충분하다.
+  - **Ctrl+Enter(맥은 Cmd+Enter)로 판정**:
+    - 판정기 안 어느 입력에서든 누르면 판정 단추와 같은 동작을 한다. 로딩 중이면 무시한다.
+    - 판정 단추 옆이나 아래에 작은 안내 `Ctrl+Enter`를 둔다. 휴대폰(`pointer: coarse`)에서는 숨긴다.
+    - `<form>`으로 바꾸지는 않는다. ACL `textarea`에서 Enter가 줄바꿈으로 동작해야 하기 때문이다.
+- 상태 한 줄 문구는 `verdictView.ts`의 `statusLine(verdict, claim, loading)`이 만든다.
 
-### 3) 열린 범위 (permit 줄만, `finding`과 별개)
-- `open`: 아래 값 중 해당하는 것을 이 순서로 담는다. deny 줄은 빈 목록.
-  - `"src"` — 출발지가 `any`(0.0.0.0/0)
-  - `"dst"` — 목적지가 `any`
-  - `"proto"` — 프로토콜이 `ip`(모든 프로토콜)
-  - `"dst_port"` — `tcp`·`udp` 줄인데 목적지 포트 조건이 없음
-  - `"icmp_type"` — `icmp` 줄인데 종류가 없음
-- `catch_all`: `permit ip any any`(옵션은 무시되는 `log`만)일 때 `true`. 화면 이름 "나머지 전부 허용". 위치와 상관없이 붙인다(그 뒤 줄들은 2절대로 가려짐·중복이 된다).
-- **경고·점수·순위를 만들지 않는다**(사용자 결정). 출발지 포트가 열린 것은 정상이므로 적지 않는다.
-
-### 4) 엔진: `engine/src/netproof_engine/audit.py` (신규)
-- `acl_audit(network_data) -> dict`. 어떤 입력에도 예외 대신 사전을 돌려준다.
-  - `acls`만 읽는다. 형태 검사는 기존 `model._check_shape`를 재사용하고 `Invalid`면 `status: "INVALID"`·`problems`. **`load()`를 부르지 않는다** — 게이트웨이·IP 중복 같은 토폴로지 오류가 ACL 점검을 막지 않게 한다.
-  - 해석은 기존 `parse_acl`을 그대로 쓴다. ACL 순서는 입력 순서.
-- 계산 한도(모듈 상수, 테스트에서 작게 바꿀 수 있게):
-  - 한 줄 계산 중 상자 수 **2,000개** 초과 → 그 줄 `undetermined`(`"limit"`), 다음 줄은 계속 점검.
-  - 요청 전체의 상자 교차 연산 수 상한(값은 Codex가 아래 측정으로 정한다) 초과 → 그 줄과 **남은 모든 줄** `undetermined`(`"limit"`).
-  - 측정: 500줄 합성 최악 사례(겹치는 접두사·`neq` 포트 혼합)의 `perf_counter` 시간을 `docs/semantics.md` 11절에 적는다. 목표는 2초 이하. `policy-matrix.md`의 측정처럼 "모든 구성의 상한 보장 아님"을 함께 적는다.
-- 응답:
-
-```json
-{"status": "OK", "problems": [], "engine_version": "…",
- "acls": [{"name": "101", "unchecked_from": null,
-   "lines": [{"line": 3, "raw": "access-list 101 deny tcp any any eq 443", "kind": "rule",
-              "action": "deny", "finding": "shadowed", "by": [1, 2], "implicit_deny": false,
-              "undetermined_reason": null, "open": [], "catch_all": false}]}],
- "totals": {"shadowed": 0, "redundant_earlier": 0, "redundant_later": 0, "never_matches": 0, "undetermined": 0}}
-```
-
-  - `kind`: `rule` · `remark` · `unread` · `unchecked`. `action`은 `rule`만(`permit`/`deny`), 나머지는 `null`.
-  - `by`는 오름차순 줄 번호. `implicit_deny`는 `redundant_later`에서만 `true`가 될 수 있다.
-  - `totals`는 모든 ACL의 `finding` 개수 합. 다섯 키를 항상 담는다.
-  - `status: "INVALID"`일 때 `acls`는 빈 목록, `totals`는 모두 0.
-- **고치지 않는 것**: `acl.py`·`model.py`·`trace.py`·`verify.py`·`matrix.py`·`observe.py`·`__version__`. `__init__.py`에는 `acl_audit` 내보내기 한 줄만 더한다.
-
-### 5) 서버: `POST /api/acl-audit` (`server/netproof_api/cases.py`)
-- `/api/verify`·`/api/policy-matrix`와 같은 모양: 로그인 없이 사용, 기존 CSRF·X-NetProof 검사 그대로, 기존 `_limit_problem`(ACL 500줄·장비 수 등)과 64KB 요청 상한 → 422.
-- 본문 `{"network": {...}}`. 엔진 응답을 그대로 HTTP 200으로 돌려준다(`INVALID`도 200 — policy-matrix 관례).
-- DB 접근·저장 없음. 다른 엔드포인트는 고치지 않는다.
-
-### 6) 화면: 판정기만 (`web/src/pages/JudgePage.tsx`)
-- `judge()`에서 `api.verify`와 **`api.aclAudit`를 함께**(`Promise.allSettled`) 부른다. 점검이 실패해도 판정은 보이고, 점검은 자기 자리에 오류를 따로 보인다. 기존 `revision` 가드로 늦게 온 응답은 버린다. 입력이 바뀌면 판정과 같은 방식으로 "이전 결과"임을 표시하고 "입력에서 보기"를 막는다.
-- ACL이 하나도 없으면 점검을 부르지 않고 섹션도 숨긴다.
-- `ResultPanel` 바로 뒤에 **"ACL 점검" 섹션**(`web/src/components/AclAudit.tsx` 신규). `ResultPanel`은 사례 상세·매트릭스도 쓰므로 **고치지 않는다.**
-  - 섹션 머리 고정 문구: **"이 점검은 판정이 아닙니다. 흐름·경로와 상관없이 ACL 규칙만 계산합니다."**
-  - ACL마다 요약 한 줄: `가려짐 n · 중복 n · 일치 불가 n · 점검 못 함 n` (점검 못 함 = `undetermined` + `unread` + `unchecked` 줄 수).
-  - 문제 있는 줄만 나열하고, 문제 없는 줄은 "문제를 찾지 못한 줄 n개"로 센다. 줄 문구:
-    - `shadowed`: "N번 줄 · 가려짐 — {by}번 줄이 먼저 잡고, 그중 동작이 반대인 줄이 있어 이 줄의 {permit/deny}는 적용되지 않습니다."
-    - `redundant_earlier`: "N번 줄 · 중복 — {by}번 줄이 같은 동작으로 먼저 잡습니다. 지워도 결과가 같습니다."
-    - `redundant_later`: "N번 줄 · 중복 — 지워도 {by}번 줄{·암묵적 deny}이(가) 같은 동작을 합니다."
-    - `never_matches`: "N번 줄 · 일치 불가 — 이 줄에 맞는 패킷이 없습니다(포트 1~65535, ICMP 종류 0~255 기준)."
-    - `undetermined`: "N번 줄 · 점검 못 함 — 계산 한도를 넘었습니다." / "— 아래 해석하지 못한 줄 때문에 판단할 수 없습니다."
-    - `unread`부터: "N번 줄부터 점검하지 않았습니다 — 해석하지 못한 줄이 있습니다."
-  - permit 줄의 열린 범위는 문제 줄과 따로 한 줄씩: "N번 줄 · 열린 범위: 출발지 전체 · 목적지 전체 · 모든 프로토콜 · 모든 목적지 포트 · 모든 ICMP 종류"(해당 항목만). `catch_all`이면 "N번 줄 · 나머지 전부 허용".
-  - 각 줄에 기존 `showAcl(name, line)`을 쓰는 "입력에서 보기" 단추.
-- 새 순수 모듈 `web/src/aclAudit.ts`: 응답 → 화면 줄(문구·요약 수) 변환을 **여기 한 곳에서만** 한다. 분류를 다시 계산하지 않는다.
-- `web/src/api.ts`에 `aclAudit(network)` 한 줄, `web/src/types.ts`에 `AclAudit` 타입만 더한다. 기존 타입은 바꾸지 않는다.
-- 사례 상세·공유 링크·저장 데이터·매트릭스 화면에는 넣지 않는다.
+### 6) 마무리 다듬기
+- **이전 결과 표시 강화**: `stale`이면 결과 상자와 배너를 흐리게(`opacity` 0.55 안팎) 하고, 상자 위에 "이전 결과" 표시를 더한다. 기존 경고 문장은 그대로 둔다.
+- **데스크톱 겹침**: 스크롤할 때 위에 붙는 판정 단추 줄(`.judge`, sticky `top:0`)이 결과(`.follow`, sticky `top:80px`) 글자 위로 겹친다. 겹치지 않게 정리한다. 방법은 Codex가 고르고, 1280×800에서 스크롤 중간과 끝을 캡처해 확인한다.
+- **단추 위계**: "사례로 저장"의 저장 단추를 `ghost`가 아닌 기본 단추(채움 또는 테두리 강조)로 바꾼다. 판정 단추(`primary`) 다음 위계다.
 
 ### 7) 범위 밖 · 허용 파일
-- 허용 파일: `engine/src/netproof_engine/{audit.py(신규),__init__.py(내보내기 한 줄)}`, `engine/tests/test_acl_audit.py`(신규), `server/netproof_api/cases.py`, `server/tests/test_acl_audit.py`(신규), `web/src/{aclAudit.ts,aclAudit.test.ts}`(신규), `web/src/components/AclAudit.tsx`(신규), `web/src/{api.ts,types.ts,styles.css}`, `web/src/pages/JudgePage.tsx`, `docs/semantics.md`(11절 추가만), `HANDOFF.md`, `decisions/ai-work-log.md`.
-- 제외: 엔진 판정 코드 전부(`acl.py`·`model.py`·`trace.py`·`verify.py`·`matrix.py`·`observe.py`·`__version__`), `server/netproof_api/{models.py,auth.py,__init__.py}`, DB 열·마이그레이션, `ResultPanel`·`AclEvidence`·`CaseDetailPage`·`PolicyMatrixPage`·`DashboardPage`·`CasesPage`, `share.ts`·`draft.ts`·`practice.ts`, 기존 `expect`·`cases/*.json`, 새 의존성, 앱 안 LLM 호출, 배포·병합.
-- **하지 않는 것**: 토폴로지 기반 점검(없는 서브넷을 가리키는 줄, 어디에도 붙지 않은 ACL), 수정 후보 자동 제안(4주차 과제), 과도함 경고·점수, 사례 상세 표시, Cisco 붙여넣기, 판정 변경.
-- 위험:
-  - **엔진과 다른 뜻으로 상자를 만듦**(예: `neq`·`established`·`ip` 처리) → 점검이 엔진 판정과 어긋난다 → 아래 교차 확인 테스트.
-  - **쌍별 포함으로 단순화** → 합집합 가림을 놓쳐 "가려짐 없음"이 거짓이 된다 → `/25` 두 줄 테스트.
-  - **해석 못 한 줄을 건너뛰고 계속 점검** → 엔진은 거기서 멈추므로 뒤 줄 결론이 틀린다 → `unread`·`unchecked`·`unread_below` 테스트.
-  - **상자 폭증** → 500줄에서 응답이 멈춤 → 한도·`undetermined`·측정 기록.
-  - **"문제 없음"을 안전으로 오해** → 고정 문구로 판정이 아님을 밝히고, 열린 범위는 사실만 적는다.
+- 허용 파일:
+  - 신규: `web/src/{verdictView.ts,verdictView.test.ts,validate.ts,validate.test.ts}`
+  - 수정: `web/src/pages/JudgePage.tsx`, `web/src/components/{ResultPanel.tsx,FlowForm.tsx,NetworkEditor.tsx,AclEvidence.tsx,AclAudit.tsx,SuggestPanel.tsx}`, `web/src/{aclAudit.ts,aclAudit.test.ts,suggest.ts,suggest.test.ts,styles.css,types.ts}`
+  - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`
+- 제외:
+  - 엔진 전부, 서버 전부, API 응답 형식, DB
+  - `CaseDetailPage`·`CasesPage`·`DashboardPage`·`PolicyMatrixPage`·`SettingsPage`. 단, `ResultPanel`·`AclEvidence`를 같이 쓰는 화면에서 바뀐 표시가 깨지지 않는지는 확인한다.
+  - `share.ts`·`draft.ts`·`practice.ts`, 기존 `expect`·`cases/*.json`
+  - 새 의존성, 앱 안 LLM 호출, 배포·병합
+- **하지 않는 것**:
+  - 예시 버튼 제목 변경 (사용자 결정, 범위 밖)
+  - 토폴로지 그림
+  - ACL 점검 위치 이동 (다른 탭으로 빼기)
+  - 엔진 문구 변경, 엔진 `problems`를 칸과 잇는 기능
+  - 휴대폰 "결과로 돌아가기" 단추
+  - 확인 창 (되돌리기로 대신한다)
+  - 판정 의미 변경
+- **`ResultPanel`은 사례 상세와 매트릭스 화면도 쓴다.** 배너·상태 줄·INVALID 표시 변경은 그 화면에도 나타나는데, 의도한 변경으로 본다. 사례 상세에서 깨지지 않는지 브라우저로 확인한다. 되돌리기·Ctrl+Enter·즉시 검사는 판정기에만 둔다.
+- 위험과 막는 방법:
+  - **배너가 비교를 새로 계산함** → `comparison` 값만 읽는다. `verdict.comparison`이 없으면 배너가 없는지 테스트로 확인한다.
+  - **색만으로 뜻을 전함** → 기호와 문장을 함께 쓰고, 대비 4.5:1 이상.
+  - **되돌리기가 사용자의 새 입력을 지움** → 직접 고치면 보관을 버리는 규칙 + 브라우저 확인.
+  - **즉시 검사가 판정을 막거나 이슈 #7·#9가 다시 생김** → 판정은 막지 않고, 정규식으로 검사하고, 테스트에 유니코드 숫자·긴 숫자를 넣는다.
+  - **접힌 ACL 점검이 문제를 숨김** → 문제가 있으면 처음부터 펼친다.
+  - **사례 상세 화면 회귀** → 브라우저 확인 항목에 넣는다.
 - 완료 조건: 아래 네 명령을 **직접 실행**하고 출력을 붙인다.
-  - `cd engine && ../.venv/Scripts/python -m pytest -q`
+  - `cd engine && ../.venv/Scripts/python -m pytest -q` (엔진은 고치지 않지만 회귀 확인)
   - `cd server && ../.venv/Scripts/python -m pytest -q`
   - `npm --prefix web test`
   - `npm --prefix web run build`
-  - 엔진 테스트(`test_acl_audit.py`):
-    - `/25` 두 줄이 `/24` 한 줄을 가림(반대 동작 → `shadowed`, `by`에 두 줄), 같은 동작이면 `redundant_earlier`.
-    - 앞 줄과 일부만 겹치는 줄은 `finding` 없음.
-    - 끝의 `deny ip any any` → `redundant_later` + `implicit_deny`. 끝의 `permit` 뒤에 아무것도 없으면 `finding` 없음.
-    - 뒤에 같은 동작 줄이 덮으면 `redundant_later`(`by`에 그 줄), 사이에 반대 동작 줄이 끼면 `finding` 없음.
-    - `lt 1`·`gt 65535`·ICMP 종류 300 → `never_matches`.
-    - `neq` 포트, `established`(ACK)와 non-established 구분, `ip` 줄이 tcp·udp·icmp 줄을 가림.
-    - 해석 못 한 줄: 그 줄 `unread`, 뒤 줄 `unchecked`, `unchecked_from` 값, 앞 줄의 `unread_below`.
-    - 한도를 작게 바꿔 `undetermined`(`"limit"`)와 남은 줄 처리.
-    - `remark`·빈 줄이 섞여도 `line`이 `Rule.line`과 같음. `open`·`catch_all` 값.
-    - 형태 오류 → `INVALID`, 토폴로지 오류(게이트웨이 밖 등)는 점검을 막지 않음.
-  - **엔진 교차 확인(정확성)**: Hypothesis로 작은 ACL(1~5줄, 좁은 주소 풀·작은 포트 집합, 모든 포트 조건·`established`·ICMP 종류 포함)을 만들고, 모든 규칙 경계값과 그 ±1, 차원 양 끝을 조합한 패킷을 **전수**로 만든다(구간 경계 사이는 결과가 같으므로 이것으로 모든 경우를 덮는다). 해석 못 한 줄 없이·한도 충분히 크게 두고:
-    - `finding`이 네 종류 중 하나인 줄은, 그 줄을 지운 `Acl`의 `evaluate` 동작이 모든 패킷에서 원래와 같다.
-    - `finding`이 없는 규칙 줄은, 지웠을 때 동작이 바뀌는 패킷이 적어도 하나 있다.
-    - `never_matches`·`shadowed`·`redundant_earlier` 줄은 원래 `Acl`에서 어떤 패킷에도 결정 규칙으로 나오지 않는다.
-    - 엔진 전체 테스트 시간이 지금보다 10초 넘게 늘지 않도록 예제 수를 조정하고 고정 시드 회귀 1개를 둔다.
-  - 서버 테스트: 정상 200·응답 키, `INVALID` 200, ACL 501줄 422, 로그인 없이 사용 가능, 다른 엔드포인트 회귀.
-  - 웹 테스트(`aclAudit.test.ts`): 다섯 `finding`·`unread`·`catch_all`·`open` 문구, 요약 수(점검 못 함 합산), `by`·암묵적 deny 표기, 빈 ACL 목록이면 아무 줄도 만들지 않음.
-  - 브라우저(**375×812와 1280**): 예시 사례에 가려진 줄을 하나 넣고 판정 → "ACL 점검" 섹션·고정 문구·가려짐 줄·"입력에서 보기"가 해당 줄을 선택 → 입력을 고치면 이전 결과 표시 → ACL을 모두 지우면 섹션 숨김 → 흐름이 `INVALID`여도 점검은 보임. 본문 가로 넘침 없음(body scrollWidth ≤ 화면 폭), console error 0.
-  - `docs/semantics.md`에 **11절 "ACL 점검"** 추가: 패킷 공간 / 다섯 `finding`의 정의와 우선 순서 / 해석 못 한 줄에서 멈춤 / 열린 범위는 사실 표시 / 판정이 아니라는 점 / 계산 한도와 측정값. **1~10절은 바꾸지 않는다.**
+- 웹 테스트:
+  - `verdictView.test.ts`:
+    - AGREE·DISAGREE × 종류(ai/self/없음)의 배너 문장과 tone
+    - `NO_CLAIM`·`NOT_COMPARABLE`·받은 답 없음·`INVALID`·`UNSUPPORTED`는 배너 없음
+    - `statusLine`의 계산 중·배너 있음·없음 문구
+  - `validate.test.ts`:
+    - 정상 IPv4/CIDR
+    - 옥텟 256, 길이 33, 자리 빠짐, 앞뒤 공백
+    - 빈 문자열은 오류가 아님
+    - 유니코드 숫자(`１０.０.０.１`, `١٠.٠.٠.١`)와 긴 숫자 문자열도 예외 없이 오류 문구를 돌려줌
+  - `aclAudit.test.ts`: 요약에서 0 제외, "문제 없음 + 열린 범위 N줄", 점검 못 함 포함, 기존 줄 문구 회귀
+  - `suggest.test.ts`: 통과/막힘·가는 길/돌아오는 길 표기, 기존 문구 회귀
+- 브라우저(**375×812와 1280×800, 라이트·다크**, 임시 DB만):
+  - 예시를 불러와 받은 답을 바꿔 가며 판정한다. 일치 배너(✓)와 불일치 배너(✕)가 각각 보이고, 불일치가 더 강하게 보이는지. 받은 답이 없으면 배너가 없는지.
+  - 장비를 만들거나 고친 뒤 예시 버튼을 누른다. 알림 "…불러왔습니다 [되돌리기]"가 뜨고, 되돌리기로 원래 입력이 복구되는지. ACL을 삭제한 뒤 되돌리기로 복구되는지. 알림이 뜬 뒤 입력을 직접 고치면 알림이 닫히는지.
+  - 출발지에 `10.10.10.300`을 넣는다. 칸에서 벗어날 때 오류 문구와 `aria-invalid`가 붙는지, 그래도 판정할 수 있는지, INVALID 화면이 대결 머리 없이 원인 목록부터 보이는지.
+  - ACL 점검: 문제 있는 ACL은 펼쳐진 채, 문제 없는 ACL은 접혀 요약만 보이는지. 수정 후보는 접혀 있는지.
+  - Ctrl+Enter로 판정되는지. "입력에서 보기" 단추 이름이 서로 다른지(접근성 트리로 확인). h1 "판정기"가 있는지.
+  - 입력을 고치면 결과가 흐려지고 "이전 결과" 표시가 붙는지. 1280에서 스크롤하는 동안 판정 단추 줄과 결과가 겹치지 않는지.
+  - **사례 상세 화면**(`#/cases/<id>`)에서 결과 표시가 깨지지 않는지.
+  - body scrollWidth ≤ 화면 폭, console error 0.
+- 가능하면 `/impeccable critique web/src/pages/JudgePage.tsx`를 다시 돌려 점수(이전 23/40)를 기록한다. 못 돌리면 "미실행"으로 적는다.
 
 ## 완료 내용 / 테스트 결과
-- 정확 상자 차집합으로 앞·뒤 줄 합집합을 계산하는 `acl_audit`와 상태 없는 API, 판정기의 독립 점검 섹션을 구현했다. unread·unchecked·unread_below 및 한도 초과를 문제 없음으로 바꾸지 않는다. 열린 범위는 사실만 표시한다.
-- 기존 엔진 판정 파일·ResultPanel·사례 정답·DB 구조는 변경하지 않았다. `__init__.py`는 import 한 줄만 추가했다. semantics는 11절만 추가했다.
-- Hypothesis 20개 고정 시드 예제 + 고정 회귀 + 모든 포트 조건 양 차원 회귀에서 규칙 경계값 ±1 전수 패킷의 Rule.matches/상자 소속과 줄 삭제 전후 Acl.evaluate를 교차 확인했다. 엔진 신규 테스트 30개, 서버 3개, 웹 9개.
-- 최초 500줄 측정 `0.204629s`/100,000회는 한도에 조기 중단한 값이므로 R1에서 근거를 대체했다. 현재 한도 **300,000회**, 후보별 순차 3회 측정의 최댓값 **0.589586s**, 선택값 별도 최악 사례 **0.590387s·undetermined 486**. 한 줄 상자 2,000·분류 로직은 불변. 측정 표와 재현은 semantics 11절. 모든 구성의 시간 상한을 보장하지 않는다.
-- R2: verify 요청 실패 시 이전 판정을 지우고 오류만 표시하는 것은 **의도한 동작 변경으로 받아들인다**. 이번에는 화면 코드를 변경하지 않았다.
-- computer-use 스킬로 임시 SQLite `C:\Users\dora2\AppData\Local\Temp\netproof-acl-audit-a1fqeaxd\qa.db`와 로컬 5183 포트만 사용해 브라우저를 확인했다(기존 DB 미사용). 375×812·1280×900에서 예시01에 catch-all 뒤 deny tcp eq80을 추가: 점검 고정 문구·가려짐1/by2·열린 범위, 입력에서 보기의 정확한 3번 줄 선택, 수정 후 이전 결과/버튼 비활성, ACL 전부 삭제 시 섹션 숨김, 출발지 bad-ip의 INVALID 판정과 독립 점검 표시 확인. body scrollWidth 각각 360≤375, 1265≤1280; console error 0. 임시 탭 종료·viewport 복원. 지연 주입·전체 DOM 자동화·PostgreSQL 실연결은 미검증.
-- 기존 64KB 전역 요청 상한은 HTTP **413**이다. 이 엔드포인트도 기존 동작을 유지했다(작업 정의의 422 문구와 차이). ACL 501줄 등 `_limit_problem`은 422이다. 상한 초과·CSRF·비로그인·SQL 미접근 테스트를 실행했다.
-- 아래는 완료 조건 네 명령의 직접 실행 출력이다(PowerShell에서는 해당 디렉터리의 workdir로 실행).
-
-```text
-$ cd engine && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 24%]
-........................................................................ [ 48%]
-........................................................................ [ 73%]
-........................................................................ [ 97%]
-.....xx                                                                  [100%]
-293 passed, 2 xfailed in 2.60s
-```
-
-```text
-$ cd server && ../.venv/Scripts/python -m pytest -q
-.......................................................................s [ 80%]
-.................                                                        [100%]
-88 passed, 1 skipped in 17.09s
-```
-
-```text
-$ npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
-
-
- Test Files  11 passed (11)
-      Tests  114 passed (114)
-   Start at  02:15:42
-   Duration  550ms (transform 56%, import 24%, tests 14%, worker 6%)
-```
-
-```text
-$ npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 41 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.60 kB │ gzip:  0.44 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-LH15JoJ2.css                            66.36 kB │ gzip: 19.73 kB
-dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.10 kB
-
-✓ built in 401ms
-```
-
-구현: Codex (GPT-6)
-
-### 2026-10-03 R1·R2 처리 / 재실행
-
-- 대상: [최신 Claude 요청](https://github.com/myeongjundev/netproof/pull/18#issuecomment-5965475950), 설계/분류 변경 없이 한도 상수 한 줄과 요청된 120줄 회귀 테스트 1개만 코드 변경.
-- R1 후보별 순차 3회 측정(초 / undetermined): 100k `0.199369·0.203259·0.200970 / 499`, 300k `0.576441·0.588693·0.589586 / 486`, 500k `1.888684·2.279005·2.242028 / 472`, 600k `2.705693·2.600109·2.558699 / 464`, 1M `4.391783·4.471092·4.344047 / 445`, 3M `13.548361·13.049480·13.339442 / 320`。측정 후보 중 세 번 모두 1.5초 이하인 최대값 300k를 선택했다. 이는 제한된 요청의 시간이며 완전 계산 시간은 아니다.
-- 선택값 재현: ip host 120줄 **0.096953s·undetermined 0**; tcp host 500줄 **0.508682s·undetermined 0**. `test_disjoint_120_hosts_complete_under_request_budget`로 120줄 결과를 고정했다.
-- 직접 실행: `cd engine && ../.venv/Scripts/python -m pytest -q -s tests/test_acl_audit.py::test_disjoint_120_hosts_complete_under_request_budget tests/test_acl_audit.py::test_500_line_bounded_measurement` → `500-line mixed-prefix/neq: 0.590387s; operations limit=300000; totals={'shadowed': 0, 'redundant_earlier': 0, 'redundant_later': 10, 'never_matches': 0, 'undetermined': 486}` / **2 passed in 0.95s**.
-- R2는 위 완료 내용에 수용 기록만 추가했다. 화면·서버·기존 판정 파일·__all__·expect·DB 변경 없음. docs는 11절 안에서만 변경.
-- 네 완료 조건 명령의 직접 실행 출력:
-
-```text
-$ cd engine && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 24%]
-........................................................................ [ 48%]
-........................................................................ [ 72%]
-........................................................................ [ 97%]
-......xx                                                                 [100%]
-294 passed, 2 xfailed in 3.87s
-```
-
-```text
-$ cd server && ../.venv/Scripts/python -m pytest -q
-.......................................................................s [ 80%]
-.................                                                        [100%]
-88 passed, 1 skipped in 29.88s
-```
-
-```text
-$ npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
-
-
- Test Files  11 passed (11)
-      Tests  114 passed (114)
-   Start at  13:26:04
-   Duration  530ms (transform 59%, import 21%, tests 13%, worker 6%)
-```
-
-```text
-$ npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 41 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.60 kB │ gzip:  0.44 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-LH15JoJ2.css                            66.36 kB │ gzip: 19.73 kB
-dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.10 kB
-
-✓ built in 289ms
-```
-
-Codex (GPT-6)
+- (Codex 구현 후 채운다.)
 
 ## 현재 과제 리뷰 기록
-- 2026-10-03 Claude Code의 **Claude Opus 5.5 (`claude-opus-5-5`)**가 구현 `c3507bf`를 독립 리뷰: **PASS, 차단 0건·비차단 P3 참고 3건**. 세션 `b855d3d6-69de-4e55-b128-2d17a0b7904b`. [리뷰 원문과 재현 근거](https://github.com/myeongjundev/netproof/pull/18#issuecomment-5965426484)는 Codex가 출처를 명시해 대신 게시했다. 코드 수정 없음.
-- Claude 직접 실행 출력(구현 기록과 테스트 수·빌드 해시 일치):
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-293 passed, 2 xfailed in 4.18s
-cd server && ../.venv/Scripts/python -m pytest -q
-88 passed, 1 skipped in 29.59s
-npm --prefix web test
-Test Files 11 passed (11); Tests 114 passed (114); Duration 905ms
-npm --prefix web run build
-tsc --noEmit && vite build
-41 modules transformed; built in 956ms
-index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
-```
-
-- Claude의 파일 비쓰기 독립 probe: ACL 600개(remark·빈 줄·unread 포함), 규칙 1,522줄, 경계±1 전수 패킷에 대해 감사 코드 아닌 Rule.matches 첫 일치 오라클로 finding/by/implicit_deny/reason/kind 비교 → **mismatches 0, 2.2s**. Codex는 보고서뿐 아니라 실제 도구 출력도 확인했다. 요청 전체 한도가 다른 ACL까지 이어짐·unread 줄 번호·형태 오류·토폴로지 독립성도 probe 확인.
-- 비차단 참고: (1) 서로 겹치지 않는 ip host 120줄도 한도 때문에 27줄 미판단(0.076s), tcp host 500줄은 300줄 미판단(0.216s) — 보수적 설계대로이며 이번에는 한도 변경 없음. (2) verify 요청 실패 시 이전 판정이 사라지는 기존 동작 차이 — 코드상 확인만, 더 정확한 표시로 판단. (3) __all__에 acl_audit 없음 — 명시적 import 정상이며 승인된 import 한 줄 범위를 유지.
-- Claude는 브라우저·지연 주입·PostgreSQL 실연결을 직접 확인하지 않았다. git fetch는 권한 검사로 실행하지 못하고 로컬 origin/main `6c7c9b1` 기준으로 리뷰했다. 일부 probe 명령도 초기 권한 검사에 막혔지만 다른 허용된 호출로 실행 완료했다. 리뷰가 실제 네트워크 보안의 안전성 보증이라는 뜻은 아니다.
-- 리뷰: Claude (Claude Opus 5.5), 게시·인계: Codex (GPT-6)
-
-### 2026-10-03 Claude 재확인 · 병합 전 수정 요청 1건
-- Claude Code(Claude Opus 5.5, 이 리뷰를 쓴 세션과 다른 세션)가 HEAD `b3faee4`에서 다시 확인했다. `c3507bf..b3faee4`는 `HANDOFF.md`·`decisions/ai-work-log.md`만 바뀌어 코드는 리뷰한 그대로다.
-- 직접 실행: engine **293 passed, 2 xfailed** / server **88 passed, 1 skipped** / web **114 passed** / build 성공. 기존 리뷰 기록과 같다. 겹치지 않는 host 120줄 probe도 **0.077초, undetermined 27** — 같다.
-- **기존 PASS는 유지한다.** 판정이 틀린 곳은 없고 차단 지적도 없다. 다만 사용자가 다음 작업을 Codex에 넘기기로 해서, 비차단 (1)을 **병합 전에 고칠 항목**으로 올린다.
-- **수정 요청 R1 — 전체 연산 한도 재측정** (`engine/src/netproof_engine/audit.py:11`의 `MAX_INTERSECTIONS = 100_000`)
-  - 문제: 설계 4절은 "500줄 합성 최악 사례의 시간을 재서 한도를 정한다, 목표 2초 이하"였다. 그런데 기록된 측정(0.204629s)은 **500줄 중 499줄이 `undetermined`인 상태**의 시간이다. 한도에 걸려 일찍 멈춘 시간이라 한도를 정하는 근거가 되지 않는다. 그 결과 겹치지 않는 단순한 120줄도 27줄이 "점검 못 함"이고(0.077초), 목표 시간의 약 4%만 쓴다.
-  - 재현: `cd engine && ../.venv/Scripts/python -c "import time;from netproof_engine import acl_audit as a;t=time.perf_counter();r=a({'acls':{'a':['permit ip host 10.0.0.%d any'%i for i in range(120)]}});print(round(time.perf_counter()-t,3),r['totals'])"`
-  - 고칠 것:
-    1. semantics 11절의 500줄 최악 사례로 한도를 여러 값(예: 100k·300k·1M·3M)으로 바꿔 가며 `perf_counter` 시간과 `undetermined` 수를 잰다. **이 PC에서 최악 사례가 1.5초 이하(2초 목표에 여유)인 가장 큰 값**을 고른다.
-    2. `MAX_INTERSECTIONS` 값만 바꾼다. `MAX_BOXES`·분류 로직·응답 형식은 바꾸지 않는다.
-    3. 회귀 테스트 1개 추가(`engine/tests/test_acl_audit.py`): 위 재현의 겹치지 않는 host 120줄은 `undetermined` 0이다.
-    4. `docs/semantics.md` **11절 안에서만** 측정 표(한도 값별 시간·`undetermined` 수)와 고른 값을 갱신한다. "모든 구성의 시간 상한을 보장하지 않음" 문구는 유지한다.
-  - 완료 조건: 위 재현 → `undetermined` 0 / 아래 tcp 500줄의 시간·`undetermined` 수 기록 / 500줄 최악 사례 1.5초 이하 / 기존 테스트 전부 통과.
-    - tcp 500줄: `['permit tcp host 10.0.%d.%d any eq 80' % (i // 256, i % 256) for i in range(500)]`
-- **기록 요청 R2 — 코드 변경 없음**: 비차단 (2) "verify 실패 시 이전 판정을 지우고 오류만 보임"은 **의도한 동작 변경으로 받아들인다.** `완료 내용`에 한 줄로 적는다.
-- 비차단 (3) `__all__`은 그대로 둔다(승인 범위 유지).
-- 허용 파일: `engine/src/netproof_engine/audit.py`(한도 상수 한 줄), `engine/tests/test_acl_audit.py`, `docs/semantics.md`(11절만), `HANDOFF.md`, `decisions/ai-work-log.md`. 그 밖은 건드리지 않는다.
-- Codex는 네 명령(engine·server pytest, web test, build)을 직접 실행해 출력을 붙이고, PR 코멘트 `[Codex]`로 R1·R2 결과를 남긴 뒤 다음 차례를 **Claude 재리뷰**로 바꾼다. 병합하지 않는다.
-- R1·R2 Codex 처리 완료(위 완료 내용과 재실행 참조).
-
-### 2026-10-03 Claude 재리뷰 (`cc5cf96`) — PASS
-- **결론: PASS. 차단 0건, R1·R2 모두 해결.** 코드 수정·병합 없음.
-- 범위: `d76e6db..cc5cf96`의 코드 변경은 `audit.py:11` 상수 한 줄(`100_000 → 300_000`)과 회귀 테스트 1개뿐이다. `MAX_BOXES`·분류·응답·`__all__`·서버·웹은 그대로이고, `docs/semantics.md`는 11절 안만 바뀌었다. 나머지는 `HANDOFF.md`·작업 로그다.
-- 직접 실행: engine **294 passed, 2 xfailed** / server **88 passed, 1 skipped** / web **114 passed** / build 성공. Codex 기록과 테스트 수가 같다.
-- R1 측정 직접 재현(한도 300,000):
-
-| 입력 | Claude 측정 | Codex 기록 |
-|---|---|---|
-| 겹치지 않는 `ip host` 120줄 | 0.096초 · undetermined 0 | 0.096953초 · 0 |
-| `tcp host … eq 80` 500줄 | 0.542초 · undetermined 0 | 0.508682초 · 0 |
-| 500줄 합성 최악 사례 3회 | 0.582 / 0.572 / 0.576초 · undetermined 486 | 0.576~0.590초 · 486 |
-
-- R2: verify 실패 시 이전 판정을 지우는 동작이 `완료 내용`에 의도한 변경으로 기록됐다.
-- 비차단 참고(조치 불필요): 후보 사이 간격이 300k → 500k라 그 사이 값(예: 400k)은 재지 않았다. 300k~500k에서 시간이 연산 수보다 빠르게 늘어나는(0.58초 → 약 2.1초) 점을 보면, 배포 서버가 이 PC보다 느릴 때를 대비한 여유로 300k가 적절하다. 실제 수업 ACL(20줄 안팎)은 한도에 닿지 않는다.
-- 이번에도 Claude는 브라우저·지연 주입·PostgreSQL 실연결을 직접 확인하지 않았다.
-- 다음 차례: **사용자 최종 확인·병합 결정**(PROMPTS.md 5단계). PR #18은 OPEN, 자동 병합하지 않는다.
-
-재리뷰: Claude (Claude Opus 5.5)
+- (리뷰 후 채운다.)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #18 ACL 점검 (병합 완료, `c19f554`)**: 엔진 `acl_audit`(정확 상자 합집합 계산)으로 가려짐·중복·일치 불가·점검 못 함과 permit 열린 범위를 계산, `POST /api/acl-audit`, 판정기 "ACL 점검" 섹션. Claude 독립 리뷰 PASS → 재확인 R1(전체 연산 한도 100k→300k 재측정)·R2 → 재리뷰 PASS(`cc5cf96`) → 사용자 병합.
+  - 유지되는 합의: **점검 ≠ 판정.** 결론을 못 내면 "점검 못 함"(추측 금지). **과도함은 경고하지 않고 열린 범위를 사실로만 적는다**(사용자 결정).
 - **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
   - 유지되는 합의: **양성은 통신 차단(`DENY`)**(사용자 확정). **집계 ≠ 판정.** 미확인·미정·미지원은 분모에서 빼고 제외 수를 화면에 보인다. 필터 주소 동기화는 주소 → 화면 단방향.
   - 남은 비차단 후속 3건: CasesPage 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind` 값과 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·DOM 전체 자동 테스트·지연 주입은 미검증.
@@ -567,7 +223,8 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
-- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **PR #18 R1·R2 처리 완료 → Claude 재리뷰 대기**
+- [x] ACL 점검(가려진 규칙·중복·열린 범위) — ③ (PR #18 병합 완료, `c19f554`)
+- [ ] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **설계 완료(이 문서) → 사용자 검토 → PR #19 병합 후 Codex 구현 — 브랜치 codex/judge-ux**
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
@@ -593,10 +250,15 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 사용자 최종 확인·병합 결정**이다(Claude 재리뷰 PASS, `cc5cf96`). 사용자가 PROMPTS.md 5단계대로 직접 확인한다. 새 브랜치를 만들거나 사용자 요청 없이 병합하지 않는다.
-- Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
-- 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
-- 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.
+- `git pull`, `git switch codex/judge-ux`, `git log -3` 후 이 문서의 작업 정의를 읽는다. **사용자가 설계를 검토·승인하기 전에는 구현하지 않는다.** 승인 뒤에도 **PR #19(수정 후보)가 main에 병합된 다음** `git merge origin/main`으로 최신화하고 시작한다.
+- Codex: 구현 전에 다음 파일을 읽는다.
+  - `web/src/components/ResultPanel.tsx`(`RESULT_TEXT`·`COMPARISON_TEXT`·`claimLabel`·`verdict-line`)
+  - `web/src/pages/JudgePage.tsx`(`load`·`judge`·`importPasted`·`stale`·`showAcl`)
+  - `web/src/components/NetworkEditor.tsx`(삭제 단추들), `web/src/components/FlowForm.tsx`
+  - `web/src/components/{AclEvidence,AclAudit,SuggestPanel}.tsx`, `web/src/{aclAudit,suggest}.ts`
+  - `web/src/styles.css`(`.verdict*`·`.judge`·`.follow`·`.stale`)
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: 배너 문장, 되돌리기 동작(한 단계·직접 고치면 버림), 즉시 검사가 판정을 막지 않는다는 규칙, ACL 점검 펼침 조건.
+- 화면이 판정·비교를 다시 계산하게 되면 **설계 위반이다.** 엔진이 준 값만 표시한다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
@@ -608,7 +270,8 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 - 앱은 기대값·정답·채점을 만들지 않는다(AGENTS.md). 기존 `expect`·`cases/*.json`을 바꾸지 않는다.
 - 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 되돌아온다. 점검은 `parse_acl` 결과만 쓰므로 새 숫자 변환을 만들지 않는다.
 - 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
-- PR #15·#16·#17 후속(위 이전 과제 기록)은 이번 범위가 아니다.
+- PR #15·#16·#17 후속(위 이전 과제 기록)은 이번 범위가 아니다. 단 PR #15 후속 "예시 버튼 제목이 풀이 원인을 드러냄"은 critique에서도 다시 지적됐고, 사용자가 이번 범위 밖으로 정했다.
+- **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
 설계: Claude (Claude Opus 5.5)
