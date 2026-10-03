@@ -17,6 +17,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
+### 현재: 홈·학습실·헤더 MVP
+- 사용자 요청 “이번 설계는 너가 해줘”로 이번 설계만 Codex가 맡았으며, “작업진행하자”(2026-10-04)로 [설계](docs/home-learning-ui.md)와 구현 범위를 승인했다. 일반 역할 규칙은 변경하지 않는다.
+- PR #22 MERGED·`b3f145b` 확인 후 같은 worktree `C:/gov/project/skt aleph/netproof-judge-ux`에서 origin/main 기반 `codex/home-learning-ui`를 생성했다. 원래 `codex/acl-suggest` 폴더와 이전 브랜치는 보존한다.
+- 목표: 공개 홈·고정 배너·학습실 3주제·모바일 헤더·현재 입력으로 돌아가기·명시적 실습 불러오기. 첫 방문(빈 해시)은 홈, 기존 `#/`·공유 주소는 판정기로 유지한다.
+- 다음 차례: **Codex 구현·테스트 → 리뷰(Claude) → 사용자 병합 결정**. 병합하지 않는다.
+- 자동 저장·내 실습·점수·뉴스·사례 공개 피드는 제외. F5·F6, PR #20 G2/실제 삭제 취소 수동 QA는 별도 대기 유지.
+
+### 이전: PR #22 문서 정리 (병합 완료 — 아래는 당시 기록)
 - 작업: **PR #21 병합 후 인계 정리(문서만)**. 판정기 화면 개선은 Claude 재리뷰 PASS 후 main에 병합됐다. 새 기능·F5·F6 수정은 시작하지 않고, 완료 상태와 남은 확인을 분리한다.
 - 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-03T12-24-26Z__web-src-pages-judgepage-tsx.md`. 디자인 리뷰 서브에이전트와 Impeccable 검사기(코드 검사 0건, 브라우저 오버레이는 CSP 때문에 실행 못 함)를 합친 결과다. 필요한 내용은 이 문서의 작업 정의에 모두 옮겼다.
 - 사용자 결정(2026-10-03):
@@ -34,6 +42,16 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **이번 작업은 문서만 변경한다.** 판정기 표시 코드·엔진·서버·API 응답·저장 데이터는 그대로다. 아래 원래 설계는 병합된 PR #21의 기록이다.
 
 ## 작업 정의
+### 현재 홈·학습실·헤더 — 승인 설계 1)~7)
+1. 홈: 고정 배너/기존 3개 합성 실습 안내/로그인 전용 게시판 안내. 사례 원문·가짜 통계·정답 노출 없음.
+2. 헤더/주소: 로고 홈, 학습실 추가, 모바일 메뉴·Escape/focus·선택 후 닫기, 설정 보조 위치, 검토자 대시보드 유지. 빈 해시 홈 + 명시적 `/home`, 기존 `/`와 공유 및 권한/로그인 복귀 유지.
+3. 현재 입력 안내: 초기 blankDraft와 메모리 입력의 표시 비교만. 수정된 입력을 유지한 채 판정기로 돌아감. 새로고침 복구·이전 결과 유지 약속 없음.
+4. 학습실: 기존 PRACTICE를 연결한 고정 설명/비유/체크포인트/모델 의미론 출처. 신규 정답·채점 없음.
+5. 실습 진입: `/practice/synthetic-01~03`은 질문과 명시적 불러오기만. 진입/API/재시도로 입력 덮어쓰기 없음. 직접 클릭하면 기존 load/undo/EMPTY_CLAIM 사용, 실패·누락·지연 구분.
+6. 허용: 신규 HomePage/LearningPage/AppHeader와 각 test, learning/homeView와 각 test, JudgePage.test.tsx. 수정 App.tsx/router.ts/router.test.ts/JudgePage.tsx/styles.css. 기록 HANDOFF·ai-work-log·docs/home-learning-ui.md. 엔진/서버/API/DB/types/draft/practice/share/기존 expect/다른 페이지/결과 컴포넌트/의존성/AGENTS는 읽기만.
+7. 완료: 네 명령 실제 출력 + 임시 DB 375×812/1280×800 라이트·다크 브라우저/320px·200%·오류/주소/권한 회귀를 기록, 작업 로그 한 줄·다음 차례 리뷰·커밋/푸시/PR. 미실행은 미실행으로 적고 병합하지 않음. 세부 조건은 승인 설계 7절.
+
+### 이전 PR #22 문서 정리 범위 (당시 기록)
 - 이번 문서 정리 범위: `HANDOFF.md`, `decisions/ai-work-log.md`만 변경한다.
 - PR #21 병합 사실·로드맵 완료를 반영하고, 낡은 병합/재리뷰 대기 지시를 정리한다. 과거 설계·리뷰·실행 근거는 보존한다.
 - F5·F6 및 PR #20 G2·삭제 취소 수동 확인은 별도 대기로 유지하며 아래 확인 절차를 인계한다. 기능 설계·구현·배포·새 PR 병합은 하지 않는다.
@@ -195,7 +213,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - body scrollWidth ≤ 화면 폭, console error 0.
 - 가능하면 `/impeccable critique web/src/pages/JudgePage.tsx`를 다시 돌려 점수(이전 23/40)를 기록한다. 못 돌리면 "미실행"으로 적는다.
 
-## 완료 내용 / 테스트 결과
+## 이전 PR #22 완료 내용 / 테스트 결과 (당시 출력)
 - **문서 인계 정리 완료(2026-10-04)**: PR #21 GitHub 상태 MERGED·병합 커밋 `388a9cf`와 Claude 병합 코멘트를 확인해 현재 상태·로드맵·다음 지시를 수정했다. HANDOFF·작업 로그 두 파일만 변경, 코드·expect·운영 DB·브랜치 삭제·배포·새 PR 병합 없음. 사용자 수동 QA 절차를 기록했으며 이번에 실행/완료한 것은 아니다.
 - 아래 네 명령은 **문서 정리 시점에 직접 재실행한 출력**이다. engine 326+2 xfail, server 91+1 skip, web 219, build 성공. UI 변경이 없어 브라우저 검사는 재실행하지 않았다. 기존 ignored 의존성과 worktree engine/src·server PYTHONPATH 사용, 서버 테스트는 임시 DB만 사용했다. 다음 차례는 문서 리뷰·사용자 병합 결정이며 사람의 G2·삭제 취소 확인은 별도 대기다.
 
@@ -371,7 +389,7 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 
 구현·테스트·기록: Codex (GPT-6)
 
-## 현재 과제 리뷰 기록
+## 이전 과제 리뷰 기록
 ### PR #22 문서 정리 Claude 리뷰 (2026-10-04, HEAD `463ddb6`) — **PASS**
 - diff는 `HANDOFF.md`·`decisions/ai-work-log.md` 두 파일뿐이다. main 코드는 Claude가 재리뷰한 `5056cb0`과 트리가 같다(`git diff 5056cb0 origin/main` 비어 있음).
 - 직접 실행: 엔진 `326 passed, 2 xfailed in 3.32s` · 서버 `91 passed, 1 skipped in 29.89s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 235ms`.
@@ -480,6 +498,7 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
+- **현재 리뷰는 `codex/home-learning-ui`에서 git pull 후 AGENTS/HANDOFF·docs/home-learning-ui.md와 main 대비 diff를 읽는다. 사용자 승인한 이번 설계는 Codex 작성이다. 아래 PR #22/21 지시는 과거 기록이며 현재 착수/병합 지시가 아니다.**
 - 문서 PR 리뷰는 `codex/post-judge-handoff`에서 git pull 후 AGENTS.md·이 문서·main 대비 diff를 읽는다. **두 기록 파일만 변경됐는지**, PR #21 병합 커밋 `388a9cf`, 수동 QA·F5·F6이 해결로 둔갑하지 않았는지 확인한다.
 - PR #21은 병합 완료다. R1 재수정·재리뷰·병합을 다시 진행하지 않는다. 새 코드 작업은 Claude의 별도 설계와 사용자 승인 후 새 codex 브랜치에서 시작한다.
 - 다음 우선 확인은 아래 **사용자 수동 QA**다. 미확인을 PASS로 적거나 실제 결과·정답을 AI가 대신 만들지 않는다. 코드·배포·병합·다른 채팅 메시지 전송은 자동 진행하지 않는다.
