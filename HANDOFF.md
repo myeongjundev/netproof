@@ -17,7 +17,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **판정기 화면 개선** — Impeccable critique(2026-10-03, 23/40)의 우선 문제 5개와 마무리 다듬기. "받은 답이 맞았나"를 화면이 직접 말하게 하고, 학생 입력을 지키고, 오류·결과 칸·스크린리더를 정리한다 (순환 고리 ② 판정·설명)
+- 작업: **PR #21 병합 후 인계 정리(문서만)**. 판정기 화면 개선은 Claude 재리뷰 PASS 후 main에 병합됐다. 새 기능·F5·F6 수정은 시작하지 않고, 완료 상태와 남은 확인을 분리한다.
 - 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-03T12-24-26Z__web-src-pages-judgepage-tsx.md`. 디자인 리뷰 서브에이전트와 Impeccable 검사기(코드 검사 0건, 브라우저 오버레이는 CSP 때문에 실행 못 함)를 합친 결과다. 필요한 내용은 이 문서의 작업 정의에 모두 옮겼다.
 - 사용자 결정(2026-10-03):
   - **우선 영역: 일치·불일치 표시.** 범위: **우선 문제 5개 전부 + 마무리.**
@@ -27,13 +27,19 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 입력 보호는 확인 창이 아닌 **되돌리기 알림**(2절 그대로).
   - ACL 점검은 **문제가 있을 때만 펼치고**, 수정 후보는 항상 접는다(4절 그대로).
   - **구현은 PR #20 병합 뒤에 시작한다.** PR #20과 `JudgePage.tsx`·`styles.css`·`HANDOFF.md`가 겹치기 때문이다.
-- 브랜치: `codex/judge-ux`, 별도 worktree `C:/gov/project/skt aleph/netproof-judge-ux`. 승인 설계 `3457154`에 origin/main `c2a998d`를 merge하고 구현·테스트를 완료했다. 원래 폴더의 다른 작업은 그대로 둔다.
+- 브랜치: 현재 문서 정리는 `codex/post-judge-handoff`(origin/main `388a9cf` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`. 기존 구현 브랜치 `codex/judge-ux`와 원래 폴더의 다른 작업은 보존한다.
 - **선행 조건 완료:** PR #19 `8be25a8`, PR #20 `c2a998d`로 병합됨. PR #20 병합은 사용자의 별도 “병합해” 지시로 수행됐으며 사용자 G2/삭제 취소 수동 QA가 끝났다는 뜻은 아니다.
-- 단계: **사용자 설계 승인 → main 최신화 → 구현·테스트 → Claude 리뷰 → R1 수정·네 명령 재실행 완료 → Claude 재리뷰 PASS → 사용자 병합 결정.**
-- 다음 차례: **사용자 — PR #21 병합 결정.** Claude 재리뷰 PASS(`79086d2`). F5·F6은 후속이다. 자동 병합하지 않는다.
-- **판정·엔진은 그대로다.** 화면 표시만 바꾼다. 엔진·서버·API 응답·저장 데이터를 바꾸지 않는다.
+- 단계: **판정기 설계 승인 → 구현·리뷰·R1 수정 → Claude 재리뷰 PASS → 사용자 지시로 PR #21 병합 완료(`388a9cf`) → 문서 정리.** [병합 확인](https://github.com/myeongjundev/netproof/pull/21#issuecomment-5971018417).
+- 다음 차례: **사용자 — 문서 PR #22 병합 결정**(Claude 리뷰 PASS). 별도로 **사용자 G2·실제 기본 확인창 삭제 취소 수동 QA 대기**. F5·F6은 비차단 후속이며 이번 문서 정리에서 해결 처리하지 않는다. 새 PR은 자동 병합하지 않는다.
+- **이번 작업은 문서만 변경한다.** 판정기 표시 코드·엔진·서버·API 응답·저장 데이터는 그대로다. 아래 원래 설계는 병합된 PR #21의 기록이다.
 
 ## 작업 정의
+- 이번 문서 정리 범위: `HANDOFF.md`, `decisions/ai-work-log.md`만 변경한다.
+- PR #21 병합 사실·로드맵 완료를 반영하고, 낡은 병합/재리뷰 대기 지시를 정리한다. 과거 설계·리뷰·실행 근거는 보존한다.
+- F5·F6 및 PR #20 G2·삭제 취소 수동 확인은 별도 대기로 유지하며 아래 확인 절차를 인계한다. 기능 설계·구현·배포·새 PR 병합은 하지 않는다.
+- 저장소 규칙의 테스트 명령을 직접 실행하고 출력을 기록한 뒤 문서 PR을 연다. 코드·엔진·서버·expect·DB는 변경하지 않는다.
+
+## 병합된 PR #21 작업 정의 (설계 기록)
 - 목표: 판정기에서 다섯 가지를 한다.
   1. 받은 답이 NetProof 계산과 같은지 다른지를 가장 먼저 보여 준다.
   2. 학생이 만든 입력을 실수로 잃지 않게 한다.
@@ -190,13 +196,17 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 가능하면 `/impeccable critique web/src/pages/JudgePage.tsx`를 다시 돌려 점수(이전 23/40)를 기록한다. 못 돌리면 "미실행"으로 적는다.
 
 ## 완료 내용 / 테스트 결과
+- **문서 인계 정리 완료(2026-10-04)**: PR #21 GitHub 상태 MERGED·병합 커밋 `388a9cf`와 Claude 병합 코멘트를 확인해 현재 상태·로드맵·다음 지시를 수정했다. HANDOFF·작업 로그 두 파일만 변경, 코드·expect·운영 DB·브랜치 삭제·배포·새 PR 병합 없음. 사용자 수동 QA 절차를 기록했으며 이번에 실행/완료한 것은 아니다.
+- 아래 네 명령은 **문서 정리 시점에 직접 재실행한 출력**이다. engine 326+2 xfail, server 91+1 skip, web 219, build 성공. UI 변경이 없어 브라우저 검사는 재실행하지 않았다. 기존 ignored 의존성과 worktree engine/src·server PYTHONPATH 사용, 서버 테스트는 임시 DB만 사용했다. 다음 차례는 문서 리뷰·사용자 병합 결정이며 사람의 G2·삭제 취소 확인은 별도 대기다.
+
+### 이미 병합된 PR #21 구현 기록 (당시 결과)
 - **PR #21 R1 반영 완료(2026-10-04, 리뷰 기록 93e7f60 이후)**: 코드 변경은 `web/src/validate.ts`·`validate.test.ts` 두 파일뿐이다. 검사 전 trim 및 공백만 있는 값 허용, 두 자리 이상 0 시작 IPv4 옥텟 거절, 접두사 `/08` 허용을 적용했다. 판정·서버·화면 컴포넌트·F5·F6은 변경하지 않았다.
 - 요청된 입력 전부와 `00`/`000` 옥텟·내부 공백을 회귀로 확인했다. 전각/아랍 숫자·5,000자리 문자열 거절은 유지된다. 주소 테스트는 29→44개, 전체 웹 테스트는 204→219개다. 회귀를 먼저 실행해 기존 코드에서 16 failed/28 passed(44)를 확인했고 수정 후 44 passed로 바뀌었다. 브라우저는 이번 R1에서 재실행하지 않았으며 아래 화면 기록은 초기 구현 시점의 결과다.
 - 구현·테스트 완료(2026-10-04). 승인 설계 `3457154`, PR #20 병합 `c2a998d` 확인 후 `git merge origin/main`. 충돌은 HANDOFF 한 파일뿐이며 이 PR의 작업 정의·승인 상태를 유지하고 이전 과제 상태는 아래 요약으로 보존했다.
 - 허용 파일만 변경: 비교 배너/짧은 상태 줄, 한 단계 되돌리기, blur IPv4/CIDR 안내, ACL 점검/수정 후보 접기·표기, h1·단축키·접근성 이름, 이전 결과·스크롤 겹침·저장 단추 위계. `result/comparison/problems/reason`은 엔진 응답 그대로 표시한다.
 - 결과에는 판정 당시 받은 답의 복사본을 연결했다. 입력에서 답을 바꾸더라도 이전 결과의 비교 배너와 대결 머리가 새 답으로 바뀌지 않는다. 되돌리기는 원래 입력·실습·제목을 복원하고 이전 결과로 표시하며, 응답 revision도 무효화한다.
 - 초기 구현에서 신규 표시·검사 모듈과 SSR 회귀 포함 웹 테스트 48개 추가(156→204), R1 회귀 반영 후 219개. 숫자 변환 없이 ASCII·길이·문자열 범위로 안내만 검사하고 판정 단추는 막지 않는다. 엔진·서버·API·기존 expect·사례 JSON·새 의존성 변경 없음(`origin/main` 대비).
-- 아래는 **R1 수정 후 최종 코드로 직접 실행한 전체 명령 출력**이다. 모두 exit 0. PowerShell에서는 각 디렉터리를 workdir로 지정해 실행했으며, 기존 ignored .venv/node_modules junction을 사용하고 worktree의 engine/src 및 server를 PYTHONPATH로 지정했다. 테스트는 임시 DB, PostgreSQL 실연결 1건은 기존 skip.
+- R1 수정 시점 출력 요약은 아래 리뷰 기록에 보존했다. 다음 전체 출력은 **이번 문서 정리 시점의 재실행**이며 모두 exit 0. PowerShell에서는 각 디렉터리를 workdir로 지정해 실행했다. PostgreSQL 실연결 1건은 기존 skip.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
@@ -206,7 +216,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ........................................................................ [ 65%]
 ........................................................................ [ 87%]
 ......................................xx                                 [100%]
-326 passed, 2 xfailed in 4.95s
+326 passed, 2 xfailed in 4.75s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
@@ -214,7 +224,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ```text
 .......................................................................s [ 78%]
 ....................                                                     [100%]
-91 passed, 1 skipped in 28.47s
+91 passed, 1 skipped in 29.72s
 ```
 
 ### `npm --prefix web test`
@@ -229,8 +239,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
  Test Files  15 passed (15)
       Tests  219 passed (219)
-   Start at  01:14:29
-   Duration  512ms (transform 63%, import 20%, tests 11%, worker 6%)
+   Start at  01:25:37
+   Duration  520ms (transform 59%, import 22%, tests 11%, worker 8%)
 ```
 
 ### `npm --prefix web run build`
@@ -340,7 +350,7 @@ dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
 dist/assets/index-CklHE7pC.css                            69.92 kB │ gzip: 20.47 kB
 dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.33 kB
 
-✓ built in 329ms
+✓ built in 378ms
 ```
 
 ### 브라우저 확인 — 임시 DB, computer-use 스킬
@@ -357,11 +367,17 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 - 캡처(로컬, Git 제외): `C:/Users/dora2/.codex/visualizations/2026/10/04/judge-ux/`의 `judge-1280-light-disagree-final.jpg`, `judge-1280-light-agree.jpg`, `judge-375-{light,dark}-{agree,disagree}.jpg`, `invalid-1280-dark.jpg`, `detail-{375,1280}-{light,dark}.jpg`, `scroll-1280-{light,dark}-{middle,end}.jpg`.
 - 정리: 테스트 계정 로그아웃·기기 테마 복원·viewport reset·QA 탭 닫음·서버 종료. 절대 경로를 검증한 temp 폴더 `netproof-judge-ux-5d7f12d4-663f-4251-8934-f7ef665f3a4d` 및 DB를 삭제(Test-Path=False), 캡처는 보존. 시작 전 연결 실패 탭은 종료 요청이 도구 정책에서 막혀 자동 임시 탭 정리에 맡겼다.
 - `/impeccable critique`: **미실행**(이 세션에 해당 도구/스킬 없음). 점수 개선을 추정해 쓰지 않는다. 전체 DOM 자동화·실장비·PostgreSQL·지연 주입은 미검증.
-- **PR #20의 사용자 G2 및 실제 기본 확인창 삭제 취소는 계속 수동 확인 대기.** 이번 결과로 PASS 처리하지 않는다. 다음 차례는 **사용자 병합 결정**(Claude 재리뷰 PASS), 배포·병합하지 않음.
+- **PR #20의 사용자 G2 및 실제 기본 확인창 삭제 취소는 계속 수동 확인 대기.** 이 브라우저 기록이나 PR #21 병합으로 PASS 처리하지 않는다. 판정기 개선 PR #21은 `388a9cf`로 병합 완료이며, 위 화면 검사는 당시 구현 시점의 근거다.
 
 구현·테스트·기록: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
+### PR #22 문서 정리 Claude 리뷰 (2026-10-04, HEAD `463ddb6`) — **PASS**
+- diff는 `HANDOFF.md`·`decisions/ai-work-log.md` 두 파일뿐이다. main 코드는 Claude가 재리뷰한 `5056cb0`과 트리가 같다(`git diff 5056cb0 origin/main` 비어 있음).
+- 직접 실행: 엔진 `326 passed, 2 xfailed in 3.32s` · 서버 `91 passed, 1 skipped in 29.89s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 235ms`.
+- 사실 대조: PR #21 MERGED·`388a9cf`, R1 코멘트 링크 유효. PR #20 G2·삭제 취소와 F5·F6을 완료로 적지 않았다. 수동 QA 절차는 실제 확인창 대체 금지·합성 데이터만 사용으로 적절하다.
+- 다음 차례: **사용자 — PR #22 병합 결정**, 그 뒤 PR #20 수동 QA.
+- 아래 기록은 **이미 병합된 PR #21**의 리뷰다.
 ### PR #21 Claude 재리뷰 (2026-10-04, HEAD `79086d2`) — **PASS**
 - 근거: `git diff 93e7f60..HEAD`. 코드 변경은 `validate.ts`(trim 2줄, 옥텟 앞자리 0 거절)와 `validate.test.ts`뿐이다. 그 밖에는 HANDOFF만 바뀌었다.
 - Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.46s` · 서버 `91 passed, 1 skipped in 29.56s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 237ms`.
@@ -369,10 +385,10 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 - R1 해소. F5(빈 템플릿에서도 알림)·F6(조사 "을")은 비차단 후속으로 남긴다.
 - PR #20의 G2 화면 확인과 삭제 "취소" 직접 확인은 여전히 사용자 몫이다(이번 PASS와 별개).
 
-### PR #21 Codex R1 반영 (2026-10-04) — Claude 재리뷰 대기
+### PR #21 Codex R1 반영 (2026-10-04) — 당시 수정 기록, 위 Claude 재리뷰에서 해소
 - `validate.ts`: 두 공개 검사 함수에서 trim 후 빈 값 허용. 옥텟은 두 자리 이상 앞자리0을 거절하며, 접두사의 앞자리0 제거/0~32 범위는 유지한다. 숫자 변환·판정 로직을 추가하지 않는다.
 - `validate.test.ts`: 사용자 지정 정상/오류 입력 전부, 공백만 있는 값, 탭·줄바꿈 trim, 00/000 옥텟 및 내부 공백 오류를 확인했다. 기존 유니코드 숫자·긴 문자열 오류도 유지한다.
-- 직접 실행: engine `326 passed, 2 xfailed in 4.95s`, server `91 passed, 1 skipped in 28.47s`, web `15 files, 219 passed`(512ms), build `✓ built in 329ms`. 전체 출력은 위 완료 내용에 붙였다. F5·F6 미수정, 새 브라우저 검사 없음, 병합하지 않음.
+- 당시 직접 실행: engine `326 passed, 2 xfailed in 4.95s`, server `91 passed, 1 skipped in 28.47s`, web `15 files, 219 passed`(512ms), build `✓ built in 329ms`. 당시 전체 출력은 [R1 수정 코멘트](https://github.com/myeongjundev/netproof/pull/21#issuecomment-5970991589)에 보존돼 있다. F5·F6 미수정, 새 브라우저 검사 없음, 당시 병합하지 않음.
 - 이 기록은 Codex 수정·실행 근거이며 Claude 재리뷰 PASS를 뜻하지 않는다.
 
 ### PR #21 Claude 독립 리뷰 (2026-10-04, HEAD `fc32549`) — 수정 요청 1건
@@ -395,6 +411,7 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
   - F6: 알림 조사 고정 "을" → "예시 02을". 설계대로 `을(를)`로 쓰거나 받침에 따라 고른다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #21 판정기 화면 개선 (병합 완료, `388a9cf`)**: 비교 배너·한 단계 되돌리기·blur 안내·결과 접기·접근성·스크롤 겹침 정리. R1(trim/옥텟 앞자리0) 수정 `79086d2` → Claude 재리뷰 PASS `5056cb0` → 사용자 지시로 병합. F5 빈 템플릿 첫 예시 알림, F6 조사 "을"은 비차단 후속. PR #20 수동 QA는 별도다.
 - **PR #20 사례 게시판 학습형 UI (사용자 지시로 병합 완료, `c2a998d`)**: 시작 안내·목록/카드·상세 구성 원문·출처 분리, 모바일 필터 F1 해결 확인, PR #19 main 최신화 포함.
   - **사용자 G2·실제 기본 확인창 삭제 취소는 수동 QA 대기 유지.** Claude 조사에서는 confirm을 false로 대체하면 페이지 유지·GET200·DELETE 없음, true면 단일 DELETE·GET404였다. 이는 실제 네이티브 취소 버튼 검증이 아니다. 자동화 timeout 원인 추정과 재현 사실을 구분한다([Claude 조사](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969258205)).
   - F2 용어 전체 통일은 후속(이번에는 승인된 judge-ux의 수정 후보 표기만 변경). F3 받은 답 종류·답 중복 정리, F4 모바일 네트워크 구성 접기도 후속 설계 대상. 금지된 상세/Badges/CaseNetwork는 이번에 바꾸지 않음.
@@ -435,7 +452,7 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
 - [x] ACL 점검(가려진 규칙·중복·열린 범위) — ③ (PR #18 병합 완료, `c19f554`)
-- [ ] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **Claude 재리뷰 PASS → 사용자 병합 결정 대기 — 브랜치 codex/judge-ux, 아직 병합 아님**
+- [x] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **PR #21 병합 완료 `388a9cf`**, F5·F6 비차단 후속 유지
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
@@ -463,16 +480,18 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- (완료: Claude 재리뷰 PASS `79086d2`, 다음은 사용자 병합 결정) ~~Claude: PR #21의 R1 수정만 재리뷰한다~~(`validate.ts`·`validate.test.ts`). 앞뒤 공백/빈 값 허용, 옥텟 앞자리0 거절과 `/08` 허용 및 유니코드/긴 문자열 회귀를 확인한다. F5·F6은 이번 변경에서 그대로다.
-- `git switch codex/judge-ux` 후 `git pull`, `AGENTS.md`와 이 문서를 읽고 main 대상 PR의 diff를 리뷰한다. 설계 `3457154` 승인 및 PR #20 `c2a998d` 병합 후 구현·검증 완료. 아래 실제 출력은 Codex 실행 근거이며 독립 리뷰 PASS를 뜻하지 않는다.
-- 리뷰어: 다음 파일과 작업 정의 1)~7)을 대조한다.
-  - `web/src/components/ResultPanel.tsx`(`RESULT_TEXT`·`COMPARISON_TEXT`·`claimLabel`·`verdict-line`)
-  - `web/src/pages/JudgePage.tsx`(`load`·`judge`·`importPasted`·`stale`·`showAcl`)
-  - `web/src/components/NetworkEditor.tsx`(삭제 단추들), `web/src/components/FlowForm.tsx`
-  - `web/src/components/{AclEvidence,AclAudit,SuggestPanel}.tsx`, `web/src/{aclAudit,suggest}.ts`
-  - `web/src/styles.css`(`.verdict*`·`.judge`·`.follow`·`.stale`)
+- 문서 PR 리뷰는 `codex/post-judge-handoff`에서 git pull 후 AGENTS.md·이 문서·main 대비 diff를 읽는다. **두 기록 파일만 변경됐는지**, PR #21 병합 커밋 `388a9cf`, 수동 QA·F5·F6이 해결로 둔갑하지 않았는지 확인한다.
+- PR #21은 병합 완료다. R1 재수정·재리뷰·병합을 다시 진행하지 않는다. 새 코드 작업은 Claude의 별도 설계와 사용자 승인 후 새 codex 브랜치에서 시작한다.
+- 다음 우선 확인은 아래 **사용자 수동 QA**다. 미확인을 PASS로 적거나 실제 결과·정답을 AI가 대신 만들지 않는다. 코드·배포·병합·다른 채팅 메시지 전송은 자동 진행하지 않는다.
 - 다음을 바꾸고 싶으면 **먼저 요청한다**: 배너 문장, 되돌리기 동작(한 단계·직접 고치면 버림), 즉시 검사가 판정을 막지 않는다는 규칙, ACL 점검 펼침 조건.
 - 화면이 판정·비교를 다시 계산하게 되면 **설계 위반이다.** 엔진이 준 값만 표시한다.
+
+## 사용자 수동 QA 대기 (PR #20 G2·삭제 취소)
+- **환경:** 병합된 main 빌드, 새 임시 SQLite·합성 계정/사례만 사용한다. 기존/운영 DB의 실제 사례를 삭제 시험에 쓰지 않는다. 실제 기본 확인창을 대체하거나 우회하지 않는다.
+- **G2 화면 확인:** 375×812·1280×800에서 라이트/다크로 목록의 필터 접기·적용 조건·검색/초기화, 사례 상세의 구성 원문·받은 답·NetProof 계산 구분을 사람이 확인한다. 초기 코드 QA와 별도의 사용자 확인이다.
+- **삭제 취소:** 합성 사례 상세에서 삭제를 누르고 실제 브라우저 확인창의 **취소**를 클릭한다. 같은 상세 URL에 머물고 새로고침 후 사례가 남는지 확인한다. 가능하면 Network에서 DELETE 요청이 없었는지도 기록한다. confirm=false 대체 검사 결과를 이 확인으로 쓰지 않는다.
+- **기록:** 실행 날짜·브라우저/버전·확인한 화면 조합·취소 후 URL/사례 존재·문제 재현 순서. 계정 비밀번호·쿠키·토큰은 문서/캡처에 포함하지 않는다. 확인한 항목만 완료로 바꾼다.
+- **F5·F6:** 이번에는 코드 그대로. 빈 템플릿 알림과 조사 표기는 후속 설계/수정 승인 시 별도 처리한다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
