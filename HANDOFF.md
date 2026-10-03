@@ -21,6 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 요청(2026-10-03): 백준/정처기 학습 사이트의 좋은 화면 구성 패턴을 NetProof에 적용. 시작 안내·사례 목록·사례 상세 개선 제안에 “진행해”.
 - 기반: origin/main `c19f554`(PR #18 병합 완료). PR #19는 OPEN/Claude 독립 리뷰 대기로, 변경하지 않는다.
 - 브랜치: `codex/case-learning-ui`. 별도 managed worktree에서 진행하며 원래 폴더는 `codex/acl-suggest` 그대로 유지한다.
+- 설계 확인 PR: https://github.com/myeongjundev/netproof/pull/20 (Draft, main 대상). 설계 기록 커밋 `183aaa2`. 문서만이며 구현·병합 승인이 아니다.
 - 단계: **Claude 설계 완료 → 사용자 설계 확인(G0, 다음 차례) → Codex 구현·테스트 → 사용자 화면 확인 → Claude 리뷰 → 사용자 병합 결정.**
 - 설계 전문: [docs/case-learning-ui.md](docs/case-learning-ui.md). 계약의 모든 표·수치·문구·금지 항목을 기준으로 한다.
 - 이 차례는 **문서만** 변경한다. 구현 코드는 승인 전 바꾸지 않으며 문서 PR은 Draft로 연다.

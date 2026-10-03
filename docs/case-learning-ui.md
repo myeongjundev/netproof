@@ -346,4 +346,3 @@ PR19 diff는 직접 확인하지 못했습니다.
 Claude 설계 세션: `605fe8ce-e740-4acb-ba1c-4560f2c6d00a`, 모델 `claude-opus-5-5`, Read/Grep/Glob만 허용. Claude는 테스트를 실행하지 않았고 Codex가 별도로 기준 테스트를 실행했다. 실 코드 변경·구현 승인 없음.
 
 설계: Claude (Claude Opus 5.5), 조사·기록: Codex (GPT-6)
-
