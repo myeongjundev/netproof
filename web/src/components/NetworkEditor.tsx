@@ -1,4 +1,6 @@
 import type { AclDraft, Device, Iface, Kind, Route } from "../types";
+import { useId, useState, type InputHTMLAttributes } from "react";
+import { cidrProblem } from "../validate";
 
 interface Props {
   devices: Device[];
@@ -6,6 +8,15 @@ interface Props {
   onDevices: (devices: Device[]) => void;
   onAcls: (acls: AclDraft[]) => void;
   aclInputRef?: (index: number, element: HTMLTextAreaElement | null) => void;
+  onBeforeRemove?: (label: string) => void;
+}
+
+function CidrInput(props: InputHTMLAttributes<HTMLInputElement> & { value: string }) {
+  const id = useId();
+  const [checked, setChecked] = useState<string>();
+  const problem = checked === props.value ? cidrProblem(props.value) : null;
+  return <><input {...props} onBlur={() => setChecked(props.value)} aria-invalid={problem ? true : undefined} aria-describedby={problem ? id : undefined} />
+    {problem && <p className="field-problem" id={id}>{problem}</p>}</>;
 }
 
 function nextName(prefix: string, taken: string[]): string {
@@ -21,7 +32,7 @@ function nextAclNumber(taken: string[]): string {
   return String(n);
 }
 
-export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }: Props) {
+export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef, onBeforeRemove }: Props) {
   const aclNames = acls.map((acl) => acl.name.trim()).filter(Boolean);
 
   const setDevice = (index: number, patch: Partial<Device>) =>
@@ -82,7 +93,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }:
                 type="button"
                 className="ghost danger"
                 aria-label={`${device.id} 장비 삭제`}
-                onClick={() => onDevices(devices.filter((_, i) => i !== d))}
+                onClick={() => { onBeforeRemove?.(`${device.id} 장비를 삭제했습니다`); onDevices(devices.filter((_, i) => i !== d)); }}
               >
                 삭제
               </button>
@@ -107,7 +118,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }:
                       <input aria-label={`${device.id} 인터페이스 이름`} value={iface.name} onChange={(e) => setIface(d, f, { name: e.target.value })} />
                     </td>
                     <td data-label="IP/접두사">
-                      <input
+                      <CidrInput
                         aria-label={`${device.id} ${iface.name} 주소`}
                         value={iface.ip}
                         placeholder="10.10.10.1/24"
@@ -136,7 +147,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }:
                         type="button"
                         className="ghost icon"
                         aria-label={`${device.id} ${iface.name} 인터페이스 삭제`}
-                        onClick={() => setDevice(d, { interfaces: device.interfaces.filter((_, i) => i !== f) })}
+                        onClick={() => { onBeforeRemove?.(`${device.id} ${iface.name} 인터페이스를 삭제했습니다`); setDevice(d, { interfaces: device.interfaces.filter((_, i) => i !== f) }); }}
                       >
                         ×
                       </button>
@@ -194,7 +205,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }:
                             type="button"
                             className="ghost icon"
                             aria-label={`${device.id} 경로 삭제`}
-                            onClick={() => setDevice(d, { routes: (device.routes ?? []).filter((_, i) => i !== r) })}
+                            onClick={() => { onBeforeRemove?.(`${device.id} ${route.prefix} 경로를 삭제했습니다`); setDevice(d, { routes: (device.routes ?? []).filter((_, i) => i !== r) }); }}
                           >
                             ×
                           </button>
@@ -241,7 +252,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef }:
               type="button"
               className="ghost danger"
               aria-label={`ACL ${acl.name} 삭제`}
-              onClick={() => onAcls(acls.filter((_, i) => i !== a))}
+              onClick={() => { onBeforeRemove?.(`ACL ${acl.name}을 삭제했습니다`); onAcls(acls.filter((_, i) => i !== a)); }}
             >
               삭제
             </button>

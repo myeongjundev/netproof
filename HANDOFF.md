@@ -27,9 +27,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 입력 보호는 확인 창이 아닌 **되돌리기 알림**(2절 그대로).
   - ACL 점검은 **문제가 있을 때만 펼치고**, 수정 후보는 항상 접는다(4절 그대로).
   - **구현은 PR #20 병합 뒤에 시작한다.** PR #20과 `JudgePage.tsx`·`styles.css`·`HANDOFF.md`가 겹치기 때문이다.
-- 브랜치: `codex/judge-ux` (origin/main `c19f554` 기반, 설계 커밋만 있음). 설계는 이 브랜치에 기록한다.
-- **선행 조건: PR #19 병합(완료, `8be25a8`)과 PR #20 병합(대기).** 이 설계는 PR #19의 `SuggestPanel`·`suggest.ts`·`JudgePage` 변경을 전제로 한다. Codex는 **PR #20까지 main에 병합된 뒤** `git merge origin/main`으로 이 브랜치를 최신화하고 구현을 시작한다. 코드가 바뀌어 위치가 어긋나면 아래 이름(함수·클래스)을 기준으로 따른다.
-- 단계: **설계 → 사용자 설계 승인(2026-10-04) → (PR #20 병합 후) Codex 구현·테스트 → 리뷰 → 사용자 병합 결정.**
+- 브랜치: `codex/judge-ux`, 별도 worktree `C:/gov/project/skt aleph/netproof-judge-ux`. 승인 설계 `3457154`에 origin/main `c2a998d`를 merge하고 구현·테스트를 완료했다. 원래 폴더의 다른 작업은 그대로 둔다.
+- **선행 조건 완료:** PR #19 `8be25a8`, PR #20 `c2a998d`로 병합됨. PR #20 병합은 사용자의 별도 “병합해” 지시로 수행됐으며 사용자 G2/삭제 취소 수동 QA가 끝났다는 뜻은 아니다.
+- 단계: **사용자 설계 승인 → main 최신화 → Codex 구현·테스트 완료 → 리뷰 → 사용자 병합 결정.**
+- 다음 차례: **리뷰(Claude)**. 승인 범위 1)~7)과 실제 diff·출력으로 검토한다. 새 PR은 main 대상이며 자동 병합하지 않는다.
 - **판정·엔진은 그대로다.** 화면 표시만 바꾼다. 엔진·서버·API 응답·저장 데이터를 바꾸지 않는다.
 
 ## 작업 정의
@@ -188,12 +189,183 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 가능하면 `/impeccable critique web/src/pages/JudgePage.tsx`를 다시 돌려 점수(이전 23/40)를 기록한다. 못 돌리면 "미실행"으로 적는다.
 
 ## 완료 내용 / 테스트 결과
-- (Codex 구현 후 채운다.)
+- 구현·테스트 완료(2026-10-04). 승인 설계 `3457154`, PR #20 병합 `c2a998d` 확인 후 `git merge origin/main`. 충돌은 HANDOFF 한 파일뿐이며 이 PR의 작업 정의·승인 상태를 유지하고 이전 과제 상태는 아래 요약으로 보존했다.
+- 허용 파일만 변경: 비교 배너/짧은 상태 줄, 한 단계 되돌리기, blur IPv4/CIDR 안내, ACL 점검/수정 후보 접기·표기, h1·단축키·접근성 이름, 이전 결과·스크롤 겹침·저장 단추 위계. `result/comparison/problems/reason`은 엔진 응답 그대로 표시한다.
+- 결과에는 판정 당시 받은 답의 복사본을 연결했다. 입력에서 답을 바꾸더라도 이전 결과의 비교 배너와 대결 머리가 새 답으로 바뀌지 않는다. 되돌리기는 원래 입력·실습·제목을 복원하고 이전 결과로 표시하며, 응답 revision도 무효화한다.
+- 신규 표시·검사 모듈과 SSR 회귀 포함 웹 테스트 48개 추가(156→204). 숫자 변환 없이 ASCII·길이·문자열 범위로 안내만 검사하고 판정 단추는 막지 않는다. 엔진·서버·API·기존 expect·사례 JSON·새 의존성 변경 없음(`origin/main` 대비).
+- 아래는 **최종 코드로 직접 실행한 전체 명령 출력**이다. 모두 exit 0. PowerShell에서는 각 디렉터리를 workdir로 지정해 실행했으며, 기존 ignored .venv/node_modules junction을 사용하고 worktree의 engine/src 및 server를 PYTHONPATH로 지정했다. 테스트는 임시 DB, PostgreSQL 실연결 1건은 기존 skip.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 4.56s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+.......................................................................s [ 78%]
+....................                                                     [100%]
+91 passed, 1 skipped in 33.51s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  15 passed (15)
+      Tests  204 passed (204)
+   Start at  00:57:39
+   Duration  531ms (transform 61%, import 22%, tests 11%, worker 5%)
+```
+
+### `npm --prefix web run build`
+
+```text
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 47 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:  0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CklHE7pC.css                            69.92 kB │ gzip: 20.47 kB
+dist/assets/index-CdgSBJvV.js                            317.69 kB │ gzip: 96.33 kB
+
+✓ built in 268ms
+```
+
+### 브라우저 확인 — 임시 DB, computer-use 스킬
+
+- Codex IAB(localhost:5184), 실제 viewport **375×812·1280×800 × 라이트·다크**. build 산출물을 제공하는 Flask 서버와 무작위 temp 경로의 SQLite만 사용했다. 합성 계정·합성 사례 1건(예시01 구성, AI PASS 주장)을 만들었으며 운영 DB/기존 사례/expect에는 접근·변경하지 않았다.
+- 네 화면 조합에서 일치 ✓ / 불일치 ✕ 배너·중립 결과 상자 확인. 받은 답 없음에서는 배너 없음. AI/종류 없음 배너 확인; 내 예상 및 누락 comparison 등은 순수 테스트로 확인. 실제 기기/타 브라우저 전수 검사는 아니다.
+- 배너의 computed RGB로 WCAG 글자 대비 계산: 라이트 불일치 **7.26:1**, 라이트 일치 **5.71:1**, 다크 불일치 **8.39:1**, 다크 일치 **7.62:1**. 기호·문장도 함께 표시.
+- 장비 이름 수정→예시 교체→되돌리기로 기존 이름 복원. 예시·처음 구성·JSON(포트443↔444)·실습 시작 덮어쓰기 복원, 같은 입력 재불러오기는 알림 없음. 알림 후 직접 입력 수정 시 되돌리기 사라짐. 장비·인터페이스·정적 경로·ACL 삭제 모두 복원 확인. 시간 자동 소멸은 없으며 × 닫기 제공. 공유 초기 진입의 되돌리기 제외는 코드 확인(별도 공유 링크 브라우저 재진입 미실행).
+- 출발지 `10.10.10.300` 및 인터페이스 길이33에서 blur 후 오류 문구·aria-invalid·aria-describedby 확인. 여전히 판정 가능; INVALID 결과는 대결 머리/배너 없이 원인 목록이 엔진 reason 앞에 표시됨. 정상 라벨 이름이 안내 문구와 섞이지 않도록 IP 입력에 명시적 접근성 이름을 유지.
+- 정상 ACL(열린 범위 사실만)은 기본 접힘, 합성 중복 permit 줄은 **가려짐1·중복1·열린 범위2줄**로 기본 펼침. 수정 후보는 기본 접힘. 후보 목표 통과/막힘, c1 가는 길·다시 판정 통과를 확인했고 엔진 이유 `정방향 · 복귀 방향 모두 통과`는 그대로였다. 점검 못 함/INVALID 펼침 조건은 SSR·순수 테스트, 모든 한도/서버 오류의 브라우저 지연 주입은 미실행.
+- Ctrl+Enter와 Meta+Enter로 판정 확인. h1 판정기 및 ACL 이름·줄 번호 포함 버튼 이름을 접근성 트리로 확인. 결과 전체 live 대신 짧은 status 한 줄만 SSR/트리 확인. 물리 스크린리더 낭독·로딩 중 연타 지연 주입은 미실행.
+- 입력 변경·복원 뒤 “이전 결과”와 opacity0.55, 판정 당시 답 유지 확인. 1280 두 테마에서 중간/끝 스크롤 캡처: 단추/결과는 본문 흐름, 간격16px(라이트 중간 judge.bottom32.78125/follow.top48.78125, 다크 중간 -393.21875/-377.21875), 겹침 없음. 모바일 고정 판정 단추 및 숨긴 단축키 안내, 저장 단추 secondary 위계 확인.
+- **사례 상세** `#/cases/1`도 두 크기·두 테마에서 원문 구성→AI 받은 답→AI 비교 배너→실제 결과 미정 표시를 확인했다. 기존 상세 파일은 수정하지 않았다. body.scrollWidth ≤ viewport(판정 1265≤1280·360≤375, 상세1280/375), console error/warn=[].
+- 캡처(로컬, Git 제외): `C:/Users/dora2/.codex/visualizations/2026/10/04/judge-ux/`의 `judge-1280-light-disagree-final.jpg`, `judge-1280-light-agree.jpg`, `judge-375-{light,dark}-{agree,disagree}.jpg`, `invalid-1280-dark.jpg`, `detail-{375,1280}-{light,dark}.jpg`, `scroll-1280-{light,dark}-{middle,end}.jpg`.
+- 정리: 테스트 계정 로그아웃·기기 테마 복원·viewport reset·QA 탭 닫음·서버 종료. 절대 경로를 검증한 temp 폴더 `netproof-judge-ux-5d7f12d4-663f-4251-8934-f7ef665f3a4d` 및 DB를 삭제(Test-Path=False), 캡처는 보존. 시작 전 연결 실패 탭은 종료 요청이 도구 정책에서 막혀 자동 임시 탭 정리에 맡겼다.
+- `/impeccable critique`: **미실행**(이 세션에 해당 도구/스킬 없음). 점수 개선을 추정해 쓰지 않는다. 전체 DOM 자동화·실장비·PostgreSQL·지연 주입은 미검증.
+- **PR #20의 사용자 G2 및 실제 기본 확인창 삭제 취소는 계속 수동 확인 대기.** 이번 결과로 PASS 처리하지 않는다. 다음 차례는 이 PR **리뷰(Claude)**, 배포·병합하지 않음.
+
+구현·테스트·기록: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
 - (리뷰 후 채운다.)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #20 사례 게시판 학습형 UI (사용자 지시로 병합 완료, `c2a998d`)**: 시작 안내·목록/카드·상세 구성 원문·출처 분리, 모바일 필터 F1 해결 확인, PR #19 main 최신화 포함.
+  - **사용자 G2·실제 기본 확인창 삭제 취소는 수동 QA 대기 유지.** Claude 조사에서는 confirm을 false로 대체하면 페이지 유지·GET200·DELETE 없음, true면 단일 DELETE·GET404였다. 이는 실제 네이티브 취소 버튼 검증이 아니다. 자동화 timeout 원인 추정과 재현 사실을 구분한다([Claude 조사](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969258205)).
+  - F2 용어 전체 통일은 후속(이번에는 승인된 judge-ux의 수정 후보 표기만 변경). F3 받은 답 종류·답 중복 정리, F4 모바일 네트워크 구성 접기도 후속 설계 대상. 금지된 상세/Badges/CaseNetwork는 이번에 바꾸지 않음.
+- **PR #19 수정 후보 (병합 완료, `8be25a8`)**: 엔진 재판정으로 확인한 ACL 삽입 후보·직접 목표 선택. 후보 ≠ 판정·정답·안전 보장, 다른 통신 영향은 미확인. Claude 독립 리뷰 PASS, 6,000회 무작위 probe 불일치0; 기존 엔진/API는 이번에 변경하지 않음.
 - **PR #18 ACL 점검 (병합 완료, `c19f554`)**: 엔진 `acl_audit`(정확 상자 합집합 계산)으로 가려짐·중복·일치 불가·점검 못 함과 permit 열린 범위를 계산, `POST /api/acl-audit`, 판정기 "ACL 점검" 섹션. Claude 독립 리뷰 PASS → 재확인 R1(전체 연산 한도 100k→300k 재측정)·R2 → 재리뷰 PASS(`cc5cf96`) → 사용자 병합.
   - 유지되는 합의: **점검 ≠ 판정.** 결론을 못 내면 "점검 못 함"(추측 금지). **과도함은 경고하지 않고 열린 범위를 사실로만 적는다**(사용자 결정).
 - **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
@@ -230,12 +402,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
 - [x] ACL 점검(가려진 규칙·중복·열린 범위) — ③ (PR #18 병합 완료, `c19f554`)
-- [ ] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **설계 승인 완료(2026-10-04) → PR #20 병합 후 Codex 구현 — 브랜치 codex/judge-ux**
+- [ ] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **구현·네 명령·임시 DB UI 검증 완료 → 리뷰 대기 — 브랜치 codex/judge-ux, 아직 병합 아님**
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
 **4주차 (10-19~10-25) — 사용자 테스트 주간, 기능은 병행**
-- [ ] 수정 후보 제안("무엇을 바꾸면 통하나") — ② 엔진 계산
+- [x] 수정 후보 제안("무엇을 바꾸면 통하나") — ② **PR #19 병합 완료, 8be25a8**
 - [ ] 변경 전/후 판정 비교 — ②
 - [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤
 
@@ -255,9 +427,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
+- [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
+
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/judge-ux`, `git log -3` 후 이 문서의 작업 정의를 읽는다. 설계는 **사용자 승인 완료(2026-10-04)**다. **PR #20(사례 게시판 학습형 UI)이 main에 병합된 다음** `git merge origin/main`으로 최신화하고 구현을 시작한다(PR #19는 `8be25a8`로 병합 완료). PR #20이 아직 병합되지 않았으면 기다린다.
-- Codex: 구현 전에 다음 파일을 읽는다.
+- `git switch codex/judge-ux` 후 `git pull`, `AGENTS.md`와 이 문서를 읽고 main 대상 PR의 diff를 리뷰한다. 설계 `3457154` 승인 및 PR #20 `c2a998d` 병합 후 구현·검증 완료. 아래 실제 출력은 Codex 실행 근거이며 독립 리뷰 PASS를 뜻하지 않는다.
+- 리뷰어: 다음 파일과 작업 정의 1)~7)을 대조한다.
   - `web/src/components/ResultPanel.tsx`(`RESULT_TEXT`·`COMPARISON_TEXT`·`claimLabel`·`verdict-line`)
   - `web/src/pages/JudgePage.tsx`(`load`·`judge`·`importPasted`·`stale`·`showAcl`)
   - `web/src/components/NetworkEditor.tsx`(삭제 단추들), `web/src/components/FlowForm.tsx`
@@ -280,4 +454,4 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-설계: Claude (Claude Opus 5.5)
+설계: Claude (Claude Opus 5.5), 구현·테스트·기록: Codex (GPT-6)

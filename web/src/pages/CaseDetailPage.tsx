@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { api, message } from "../api";
 import { ActualBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
+import { CaseNetwork } from "../components/CaseNetwork";
+import { claimKindText } from "../caseView";
 import { EMPTY_CLAIM, fromCase } from "../draft";
 import { cloneTitle } from "../practice";
 import { applyObservation } from "../observe";
@@ -63,7 +65,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
     return () => { active = false; };
   }, [id]);
 
-  if (error) return <p className="error">{error}</p>;
+  if (error) return <div><p className="error">{error}</p><a href="#/cases">사례 게시판으로</a></div>;
   if (!item) return <p className="hint">불러오는 중…</p>;
 
   const isOwner = item.owner_id === user.id;
@@ -123,15 +125,29 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
         <p className="hint below">복제는 받은 답을 비운 새 초안입니다. 다시 판정해 저장하면 실제 결과·확인 상태를 물려받지 않는 별개 사례가 됩니다.</p>
       </section>
 
+      <CaseNetwork network={item.network} flow={item.flow} />
+
       <div className="layout detail-grid">
-        <ResultPanel
-          verdict={{ ...item.verdict, comparison: item.comparison }}
-          claim={item.claim ?? EMPTY_CLAIM}
-          stale={false}
-          error={null}
-          loading={false}
-          network={item.network}
-        />
+        <div className="case-calculation">
+          <section className="panel case-claim" aria-labelledby="claim-title">
+            <h2 id="claim-title">받은 답</h2>
+            {!item.claim || item.claim.expected === null ? <p className="hint">이 사례에는 받은 답이 없습니다.</p> : <dl className="facts">
+              <dt>종류</dt><dd>{claimKindText(item.claim.kind)}</dd>
+              <dt>답</dt><dd>{item.claim.expected === "PASS" ? "된다(PASS)" : "안 된다(DENY)"}</dd>
+              <dt>받은 답 출처</dt><dd>{item.claim.source || "적지 않음"}</dd>
+              <dt>내용</dt><dd className="case-claim-text">{item.claim.text || "적지 않음"}</dd>
+            </dl>}
+            <p className="hint below">받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.</p>
+          </section>
+          <ResultPanel
+            verdict={{ ...item.verdict, comparison: item.comparison }}
+            claim={item.claim ?? EMPTY_CLAIM}
+            stale={false}
+            error={null}
+            loading={false}
+            network={item.network}
+          />
+        </div>
 
         <section className="panel" aria-labelledby="actual-title">
           <h2 id="actual-title">실제 결과</h2>
@@ -223,7 +239,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
             <dl className="facts">
               <dt>실제로</dt>
               <dd>{item.actual.result ?? "아직 모름"}</dd>
-              <dt>확인 방법</dt>
+              <dt>확인 방법(실제 결과 출처)</dt>
               <dd>{item.actual.source ? SOURCES[item.actual.source] : "없음"}</dd>
               <dt>메모</dt>
               <dd>{item.actual.note || "없음"}</dd>

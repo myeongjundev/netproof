@@ -84,7 +84,9 @@ export function AclEvidence({ verdict, acls, stale, onShow }: {
         </li>)}
         {block.implicitDeny && <li className="acl-hit-deny">암묵적 deny — 일치하는 규칙 없음</li>}
       </ol>
-      {onShow && <button type="button" className="ghost small" disabled={stale}
+      {onShow && <button type="button" className="ghost small"
+        aria-label={`ACL ${block.acl} ${block.ruleLine === null ? "전체" : `${block.ruleLine}번 줄`} 입력에서 보기`}
+        disabled={stale}
         onClick={() => onShow(block.acl, block.ruleLine)}>입력에서 보기</button>}
     </section>)}
   </section>;

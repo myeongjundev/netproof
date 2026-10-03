@@ -1,5 +1,6 @@
 import type { Claim, Hop, Network, Trace, Verdict } from "../types";
 import { AclEvidence } from "./AclEvidence";
+import { comparisonBanner, statusLine } from "../verdictView";
 
 const RESULT_TEXT = {
   PASS: { title: "통과", note: "모델 안에서 계산한 결과, 이 통신은 됩니다." },
@@ -132,16 +133,20 @@ interface Props {
 }
 
 export function ResultPanel({ verdict, claim, stale, error, loading, network, onShowAcl }: Props) {
+  const banner = comparisonBanner(verdict, claim);
+  const cannotCompare = verdict?.result === "INVALID" || verdict?.result === "UNSUPPORTED";
   return (
-    <section className="panel result" aria-labelledby="result-title" aria-live="polite" aria-busy={loading}>
+    <section className="panel result" aria-labelledby="result-title" aria-busy={loading}>
+      <p className="sr-only" role="status">{statusLine(verdict, claim, loading)}</p>
       <h2 id="result-title">판정</h2>
       {error && <p className="error">{error}</p>}
       {!verdict && !error && <p className="hint">구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다.</p>}
       {verdict && (
         <>
-          {stale && <p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p>}
-          <div className={`verdict ${verdict.result.toLowerCase()}`}>
-            {verdict.comparison === "NO_CLAIM" || !claim.expected ? (
+          {stale && <><p className="previous-result">이전 결과</p><p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p></>}
+          <div className={`verdict ${verdict.result.toLowerCase()}${banner ? " compared" : ""}${stale ? " outdated" : ""}`}>
+            {banner && <p className={`comparison-banner ${banner.tone}`}>{banner.text}</p>}
+            {cannotCompare || verdict.comparison === "NO_CLAIM" || !verdict.comparison || !claim.expected ? (
               <p className="verdict-title">{RESULT_TEXT[verdict.result].title}</p>
             ) : (
               <>
@@ -153,7 +158,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, on
                   <span className="vs-mark" aria-hidden="true">
                     {COMPARISON_TEXT[verdict.comparison].mark}
                   </span>
-                  <p className="side">
+                  <p className={`side calculated ${verdict.result.toLowerCase()}`}>
                     <span className="side-label">NetProof 계산</span>
                     <strong>{RESULT_TEXT[verdict.result].title}</strong>
                   </p>
@@ -161,10 +166,14 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, on
                 <p className={`verdict-line ${verdict.comparison.toLowerCase()}`}>{COMPARISON_TEXT[verdict.comparison].line}</p>
               </>
             )}
+            {cannotCompare && <>
+              <p>{verdict.result === "INVALID" ? "입력을 고쳐야 계산할 수 있습니다. 받은 답과는 비교하지 않았습니다." : "지원 범위 밖이라 계산을 멈췄습니다. 받은 답과는 비교하지 않았습니다."}</p>
+              {verdict.problems.length > 0 && <ul className="problems">{verdict.problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>}
+            </>}
             <p>{verdict.reason}</p>
             <p className="verdict-note">{RESULT_TEXT[verdict.result].note}</p>
           </div>
-          {verdict.problems.length > 0 && (
+          {!cannotCompare && verdict.problems.length > 0 && (
             <ul className="problems">
               {verdict.problems.map((problem) => (
                 <li key={problem}>{problem}</li>
