@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
 - 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
 - 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → 사용자 최종 확인·병합 결정(다음 차례).**
+- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인·병합 전 수정 요청 1건(2026-10-03) → Codex 한도 재측정(다음 차례) → Claude 재리뷰 → 사용자 병합 결정.**
 - 사용자 결정(2026-10-03):
   - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
   - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
@@ -339,9 +339,29 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 - Claude의 파일 비쓰기 독립 probe: ACL 600개(remark·빈 줄·unread 포함), 규칙 1,522줄, 경계±1 전수 패킷에 대해 감사 코드 아닌 Rule.matches 첫 일치 오라클로 finding/by/implicit_deny/reason/kind 비교 → **mismatches 0, 2.2s**. Codex는 보고서뿐 아니라 실제 도구 출력도 확인했다. 요청 전체 한도가 다른 ACL까지 이어짐·unread 줄 번호·형태 오류·토폴로지 독립성도 probe 확인.
 - 비차단 참고: (1) 서로 겹치지 않는 ip host 120줄도 한도 때문에 27줄 미판단(0.076s), tcp host 500줄은 300줄 미판단(0.216s) — 보수적 설계대로이며 이번에는 한도 변경 없음. (2) verify 요청 실패 시 이전 판정이 사라지는 기존 동작 차이 — 코드상 확인만, 더 정확한 표시로 판단. (3) __all__에 acl_audit 없음 — 명시적 import 정상이며 승인된 import 한 줄 범위를 유지.
 - Claude는 브라우저·지연 주입·PostgreSQL 실연결을 직접 확인하지 않았다. git fetch는 권한 검사로 실행하지 못하고 로컬 origin/main `6c7c9b1` 기준으로 리뷰했다. 일부 probe 명령도 초기 권한 검사에 막혔지만 다른 허용된 호출로 실행 완료했다. 리뷰가 실제 네트워크 보안의 안전성 보증이라는 뜻은 아니다.
-- 다음 차례: **사용자 최종 확인·병합 결정**. PR #18은 OPEN, 자동 병합하지 않는다.
+- 리뷰: Claude (Claude Opus 5.5), 게시·인계: Codex (GPT-6)
 
-리뷰: Claude (Claude Opus 5.5), 게시·인계: Codex (GPT-6)
+### 2026-10-03 Claude 재확인 · 병합 전 수정 요청 1건
+- Claude Code(Claude Opus 5.5, 이 리뷰를 쓴 세션과 다른 세션)가 HEAD `b3faee4`에서 다시 확인했다. `c3507bf..b3faee4`는 `HANDOFF.md`·`decisions/ai-work-log.md`만 바뀌어 코드는 리뷰한 그대로다.
+- 직접 실행: engine **293 passed, 2 xfailed** / server **88 passed, 1 skipped** / web **114 passed** / build 성공. 기존 리뷰 기록과 같다. 겹치지 않는 host 120줄 probe도 **0.077초, undetermined 27** — 같다.
+- **기존 PASS는 유지한다.** 판정이 틀린 곳은 없고 차단 지적도 없다. 다만 사용자가 다음 작업을 Codex에 넘기기로 해서, 비차단 (1)을 **병합 전에 고칠 항목**으로 올린다.
+- **수정 요청 R1 — 전체 연산 한도 재측정** (`engine/src/netproof_engine/audit.py:11`의 `MAX_INTERSECTIONS = 100_000`)
+  - 문제: 설계 4절은 "500줄 합성 최악 사례의 시간을 재서 한도를 정한다, 목표 2초 이하"였다. 그런데 기록된 측정(0.204629s)은 **500줄 중 499줄이 `undetermined`인 상태**의 시간이다. 한도에 걸려 일찍 멈춘 시간이라 한도를 정하는 근거가 되지 않는다. 그 결과 겹치지 않는 단순한 120줄도 27줄이 "점검 못 함"이고(0.077초), 목표 시간의 약 4%만 쓴다.
+  - 재현: `cd engine && ../.venv/Scripts/python -c "import time;from netproof_engine import acl_audit as a;t=time.perf_counter();r=a({'acls':{'a':['permit ip host 10.0.0.%d any'%i for i in range(120)]}});print(round(time.perf_counter()-t,3),r['totals'])"`
+  - 고칠 것:
+    1. semantics 11절의 500줄 최악 사례로 한도를 여러 값(예: 100k·300k·1M·3M)으로 바꿔 가며 `perf_counter` 시간과 `undetermined` 수를 잰다. **이 PC에서 최악 사례가 1.5초 이하(2초 목표에 여유)인 가장 큰 값**을 고른다.
+    2. `MAX_INTERSECTIONS` 값만 바꾼다. `MAX_BOXES`·분류 로직·응답 형식은 바꾸지 않는다.
+    3. 회귀 테스트 1개 추가(`engine/tests/test_acl_audit.py`): 위 재현의 겹치지 않는 host 120줄은 `undetermined` 0이다.
+    4. `docs/semantics.md` **11절 안에서만** 측정 표(한도 값별 시간·`undetermined` 수)와 고른 값을 갱신한다. "모든 구성의 시간 상한을 보장하지 않음" 문구는 유지한다.
+  - 완료 조건: 위 재현 → `undetermined` 0 / 아래 tcp 500줄의 시간·`undetermined` 수 기록 / 500줄 최악 사례 1.5초 이하 / 기존 테스트 전부 통과.
+    - tcp 500줄: `['permit tcp host 10.0.%d.%d any eq 80' % (i // 256, i % 256) for i in range(500)]`
+- **기록 요청 R2 — 코드 변경 없음**: 비차단 (2) "verify 실패 시 이전 판정을 지우고 오류만 보임"은 **의도한 동작 변경으로 받아들인다.** `완료 내용`에 한 줄로 적는다.
+- 비차단 (3) `__all__`은 그대로 둔다(승인 범위 유지).
+- 허용 파일: `engine/src/netproof_engine/audit.py`(한도 상수 한 줄), `engine/tests/test_acl_audit.py`, `docs/semantics.md`(11절만), `HANDOFF.md`, `decisions/ai-work-log.md`. 그 밖은 건드리지 않는다.
+- Codex는 네 명령(engine·server pytest, web test, build)을 직접 실행해 출력을 붙이고, PR 코멘트 `[Codex]`로 R1·R2 결과를 남긴 뒤 다음 차례를 **Claude 재리뷰**로 바꾼다. 병합하지 않는다.
+- 다음 차례: **Codex — R1 한도 재측정·R2 기록.** PR #18은 OPEN, 자동 병합하지 않는다.
+
+재확인: Claude (Claude Opus 5.5)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
@@ -403,7 +423,7 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 사용자 최종 확인·병합 결정**이다. PR #18과 Claude 리뷰 원문을 확인하고, 사용자가 완료 조건을 직접 검증한다. 새 브랜치를 만들거나 사용자 요청 없이 병합하지 않는다.
+- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 Codex — 리뷰 기록의 "2026-10-03 Claude 재확인" 절 R1(한도 재측정)·R2(동작 변경 기록)**다. 같은 `codex/acl-audit` 브랜치에서 허용 파일만 고친다. 그 뒤 Claude 재리뷰 → 사용자 병합 결정. 새 브랜치를 만들거나 병합하지 않는다.
 - Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
 - 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
 - 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.
