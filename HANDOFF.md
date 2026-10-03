@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
 - 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
 - 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → Codex 구현·테스트 완료 → 리뷰(다음 차례) → 사용자 병합 결정.**
+- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → 사용자 최종 확인·병합 결정(다음 차례).**
 - 사용자 결정(2026-10-03):
   - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
   - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
@@ -320,7 +320,28 @@ dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.
 구현: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
-- (리뷰 후 채운다.)
+- 2026-10-03 Claude Code의 **Claude Opus 5.5 (`claude-opus-5-5`)**가 구현 `c3507bf`를 독립 리뷰: **PASS, 차단 0건·비차단 P3 참고 3건**. 세션 `b855d3d6-69de-4e55-b128-2d17a0b7904b`. [리뷰 원문과 재현 근거](https://github.com/myeongjundev/netproof/pull/18#issuecomment-5965426484)는 Codex가 출처를 명시해 대신 게시했다. 코드 수정 없음.
+- Claude 직접 실행 출력(구현 기록과 테스트 수·빌드 해시 일치):
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+293 passed, 2 xfailed in 4.18s
+cd server && ../.venv/Scripts/python -m pytest -q
+88 passed, 1 skipped in 29.59s
+npm --prefix web test
+Test Files 11 passed (11); Tests 114 passed (114); Duration 905ms
+npm --prefix web run build
+tsc --noEmit && vite build
+41 modules transformed; built in 956ms
+index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
+```
+
+- Claude의 파일 비쓰기 독립 probe: ACL 600개(remark·빈 줄·unread 포함), 규칙 1,522줄, 경계±1 전수 패킷에 대해 감사 코드 아닌 Rule.matches 첫 일치 오라클로 finding/by/implicit_deny/reason/kind 비교 → **mismatches 0, 2.2s**. Codex는 보고서뿐 아니라 실제 도구 출력도 확인했다. 요청 전체 한도가 다른 ACL까지 이어짐·unread 줄 번호·형태 오류·토폴로지 독립성도 probe 확인.
+- 비차단 참고: (1) 서로 겹치지 않는 ip host 120줄도 한도 때문에 27줄 미판단(0.076s), tcp host 500줄은 300줄 미판단(0.216s) — 보수적 설계대로이며 이번에는 한도 변경 없음. (2) verify 요청 실패 시 이전 판정이 사라지는 기존 동작 차이 — 코드상 확인만, 더 정확한 표시로 판단. (3) __all__에 acl_audit 없음 — 명시적 import 정상이며 승인된 import 한 줄 범위를 유지.
+- Claude는 브라우저·지연 주입·PostgreSQL 실연결을 직접 확인하지 않았다. git fetch는 권한 검사로 실행하지 못하고 로컬 origin/main `6c7c9b1` 기준으로 리뷰했다. 일부 probe 명령도 초기 권한 검사에 막혔지만 다른 허용된 호출로 실행 완료했다. 리뷰가 실제 네트워크 보안의 안전성 보증이라는 뜻은 아니다.
+- 다음 차례: **사용자 최종 확인·병합 결정**. PR #18은 OPEN, 자동 병합하지 않는다.
+
+리뷰: Claude (Claude Opus 5.5), 게시·인계: Codex (GPT-6)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
@@ -356,7 +377,7 @@ dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
-- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **구현·검증 완료 → 리뷰 차례 — 브랜치 codex/acl-audit, 병합 대기**
+- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **PR #18 구현·Claude 독립 리뷰 PASS → 사용자 최종 확인·병합 대기**
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
@@ -382,7 +403,7 @@ dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 이 문서의 작업 정의를 읽는다. 설계는 사용자 승인 완료(`5213adb`)이고 **다음 차례는 리뷰**다. 기존 `codex/acl-audit`의 diff와 교차 확인 테스트를 독립 검증하고 PR 코멘트에 파일:줄·재현 명령을 남긴다. 새 브랜치를 만들거나 병합하지 않는다.
+- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 사용자 최종 확인·병합 결정**이다. PR #18과 Claude 리뷰 원문을 확인하고, 사용자가 완료 조건을 직접 검증한다. 새 브랜치를 만들거나 사용자 요청 없이 병합하지 않는다.
 - Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
 - 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
 - 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.
