@@ -30,7 +30,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: 현재 문서 정리는 `codex/post-judge-handoff`(origin/main `388a9cf` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`. 기존 구현 브랜치 `codex/judge-ux`와 원래 폴더의 다른 작업은 보존한다.
 - **선행 조건 완료:** PR #19 `8be25a8`, PR #20 `c2a998d`로 병합됨. PR #20 병합은 사용자의 별도 “병합해” 지시로 수행됐으며 사용자 G2/삭제 취소 수동 QA가 끝났다는 뜻은 아니다.
 - 단계: **판정기 설계 승인 → 구현·리뷰·R1 수정 → Claude 재리뷰 PASS → 사용자 지시로 PR #21 병합 완료(`388a9cf`) → 문서 정리.** [병합 확인](https://github.com/myeongjundev/netproof/pull/21#issuecomment-5971018417).
-- 다음 차례: **문서 변경 리뷰 → 사용자 문서 PR 병합 결정**. 별도로 **사용자 G2·실제 기본 확인창 삭제 취소 수동 QA 대기**. F5·F6은 비차단 후속이며 이번 문서 정리에서 해결 처리하지 않는다. 새 PR은 자동 병합하지 않는다.
+- 다음 차례: **사용자 — 문서 PR #22 병합 결정**(Claude 리뷰 PASS). 별도로 **사용자 G2·실제 기본 확인창 삭제 취소 수동 QA 대기**. F5·F6은 비차단 후속이며 이번 문서 정리에서 해결 처리하지 않는다. 새 PR은 자동 병합하지 않는다.
 - **이번 작업은 문서만 변경한다.** 판정기 표시 코드·엔진·서버·API 응답·저장 데이터는 그대로다. 아래 원래 설계는 병합된 PR #21의 기록이다.
 
 ## 작업 정의
@@ -372,7 +372,12 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 구현·테스트·기록: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
-- 이번 문서 PR의 독립 리뷰는 아직 미실행. 아래 기록은 **이미 병합된 PR #21**의 리뷰이며 문서 PR의 PASS를 뜻하지 않는다.
+### PR #22 문서 정리 Claude 리뷰 (2026-10-04, HEAD `463ddb6`) — **PASS**
+- diff는 `HANDOFF.md`·`decisions/ai-work-log.md` 두 파일뿐이다. main 코드는 Claude가 재리뷰한 `5056cb0`과 트리가 같다(`git diff 5056cb0 origin/main` 비어 있음).
+- 직접 실행: 엔진 `326 passed, 2 xfailed in 3.32s` · 서버 `91 passed, 1 skipped in 29.89s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 235ms`.
+- 사실 대조: PR #21 MERGED·`388a9cf`, R1 코멘트 링크 유효. PR #20 G2·삭제 취소와 F5·F6을 완료로 적지 않았다. 수동 QA 절차는 실제 확인창 대체 금지·합성 데이터만 사용으로 적절하다.
+- 다음 차례: **사용자 — PR #22 병합 결정**, 그 뒤 PR #20 수동 QA.
+- 아래 기록은 **이미 병합된 PR #21**의 리뷰다.
 ### PR #21 Claude 재리뷰 (2026-10-04, HEAD `79086d2`) — **PASS**
 - 근거: `git diff 93e7f60..HEAD`. 코드 변경은 `validate.ts`(trim 2줄, 옥텟 앞자리 0 거절)와 `validate.test.ts`뿐이다. 그 밖에는 HANDOFF만 바뀌었다.
 - Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.46s` · 서버 `91 passed, 1 skipped in 29.56s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 237ms`.
