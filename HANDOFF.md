@@ -24,7 +24,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 기반: origin/main `c19f554`(PR #18 ACL 점검 병합 완료, 사용자 확인).
 - 브랜치: `codex/acl-suggest`.
 - PR: https://github.com/myeongjundev/netproof/pull/19 (main 대상, OPEN, 구현 `a1f39dd`). 네 명령 전체 출력과 브라우저 확인을 [Codex] 코멘트에 남김.
-- 단계: 설계 확정 → Codex 구현·테스트 완료 → **Claude 리뷰(다음 차례)** → 사용자 병합 결정.
+- 단계: 설계 확정 → Codex 구현·테스트 완료 → Claude 리뷰 PASS(2026-10-04) → **사용자 최종 확인·병합 결정(다음 차례).**
 - 보류(사람 트랙): Cisco 설정 붙여넣기 선행 확인, 배포.
 
 ## 작업 정의
@@ -457,7 +457,25 @@ dist/assets/index-B-9kSOJh.js                            306.50 kB │ gzip: 93.
 구현·실행: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
-- (리뷰 후 채운다.)
+- 2026-10-04 Claude Code(Claude Opus 5.5)가 HEAD `b65a28b`(구현 `a1f39dd`)를 독립 리뷰했다: **PASS, 차단 0건.** 코드는 고치지 않았다.
+- 직접 실행(별도 worktree, `PYTHONPATH`=worktree `engine/src`·`server`): engine **326 passed, 2 xfailed** / server **91 passed, 1 skipped** / web **128 passed** / build 성공. 구현 기록과 테스트 수가 같다.
+- 범위: `origin/main...b65a28b`의 15개 파일이 모두 허용 목록 안에 있다. 금지 파일(엔진 판정 코드·`ResultPanel` 등)은 바뀌지 않았다. `docs/semantics.md`는 줄 추가만 있고(삭제 0줄), `__init__.py`는 import 한 줄만 바뀌었다.
+- 코드 검토 결과:
+  - `suggest.py`의 처리 순서·한도·정규 적용 규칙(`_apply`)·넣는 줄 문법(`_raw`)이 설계 1~4절과 같다.
+  - 모든 후보를 `verify`로 다시 확인하고, 원래 입력은 깊은 복사본으로만 다룬다.
+  - 테스트는 `importlib.import_module("netproof_engine.suggest")`로 실제 모듈을 패치하므로 한도 상수 변경이 실제로 반영된다.
+- Claude 독립 probe(저장소 밖 스크립트, 설계 2절 적용 규칙을 따로 구현):
+  - 직선 토폴로지 h1–R1–R2–h2에 무작위 ACL·연결·흐름·모드를 넣고, 두 목표로 각 1,500건씩 두 번(permit 비중을 바꿔) 돌렸다. **총 6,000번 호출에서 불일치 0건.**
+  - 확인한 것: 입력 불변, 응답 키, `verify` 호출 수(PASS ≤ 5, DENY ≤ 9), `insert_at` 줄 = `raw`, 삽입 줄을 빼면 원래 목록, `verify(적용본) == after`이고 결과가 목표, DENY 후보의 기준 줄이 정방향 permit 홉.
+  - 경계 사례: 빈 줄·remark 뒤의 결정 줄(원래 번호 4 유지), 복귀 경로 막힘(`established` 줄), 같은 ACL을 in·out에 붙였을 때 `shared_by` 2곳, one-way ICMP 숫자 종류, 500줄 `line_limit`, 게이트웨이 없음 `not_acl_cause`, 잘못된 목표 4종 `INVALID`.
+- 브라우저(임시 SQLite, localhost:4840): 예시 01 판정(막힘) → 목표를 고르기 전 계산 단추 비활성 → PASS 선택·계산 → 후보 c1 `permit tcp host 10.10.10.10 host 10.20.20.5 eq 443`, "다시 판정: PASS" → 포트를 바꾸면 "이전 결과" 표시, 목표 선택·계산·원래 줄 보기 모두 비활성. console error 0.
+- 비차단 참고(이 PR에서 조치 불필요):
+  - 목표 라벨 `PASS`/`DENY`와 `정방향`/`복귀 방향` 표기는 판정기 개선 설계(`codex/judge-ux` 4절)에서 통과/막힘·가는 길/돌아오는 길로 통일한다.
+  - 막히게 만들기(DENY) 후보는 정방향만 본다. 설계대로이며, 복귀 방향은 1차 범위 밖이다.
+- 검증 한계: PostgreSQL 실연결, 실제 장비, 여러 탭·지연 주입은 확인하지 않았다.
+- 다음 차례: **사용자 최종 확인·병합 결정.** 병합 순서는 충돌이 가장 적은 #19 → #20 → judge-ux를 권한다.
+
+리뷰: Claude (Claude Opus 5.5)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #18 ACL 점검 (병합 완료, c19f554)**: 정확 상자 합집합 차집합·unread 중단·열린 범위 사실·판정기만 점검. Claude 독립 리뷰 및 R1·R2 재리뷰 PASS. 전체 한도 300,000회, 최악 사례 약0.59초. 마지막 엔진294+2 xfail/서버88+1 skip/웹114/build 성공. __all__·지연주입·PG 실연결 한계 유지.
@@ -520,7 +538,7 @@ dist/assets/index-B-9kSOJh.js                            306.50 kB │ gzip: 93.
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git switch codex/acl-suggest`, `git pull` 후 이 문서의 작업 정의와 완료 내용을 기준으로 독립 리뷰한다. 다음 차례는 Claude 리뷰다. 지적에는 파일:줄·재현 명령을 붙이고 PR 코멘트 첫 줄을 [Claude]로 쓴다.
+- `git switch codex/acl-suggest`, `git pull` 후 이 문서의 리뷰 기록을 읽는다. Claude 리뷰는 PASS(차단 0건)이고 **다음 차례는 사용자 최종 확인·병합 결정**이다. 사용자 요청 없이 병합하지 않는다.
 - 승인한 목표 직접 선택·삽입만·자동 적용 없음 범위를 지킨다. 기존 판정 파일·expect는 고치지 않는다. 병합은 사용자 결정이다.
 
 설계: Claude (Claude Opus 5.5), 기록: Codex (GPT-6)
