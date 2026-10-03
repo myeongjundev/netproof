@@ -22,6 +22,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - PR #22 MERGED·`b3f145b` 확인 후 같은 worktree `C:/gov/project/skt aleph/netproof-judge-ux`에서 origin/main 기반 `codex/home-learning-ui`를 생성했다. 원래 `codex/acl-suggest` 폴더와 이전 브랜치는 보존한다.
 - 목표: 공개 홈·고정 배너·학습실 3주제·모바일 헤더·현재 입력으로 돌아가기·명시적 실습 불러오기. 첫 방문(빈 해시)은 홈, 기존 `#/`·공유 주소는 판정기로 유지한다.
 - 다음 차례: **리뷰(Claude) → 사용자 병합 결정**. 구현·테스트·브라우저 확인 완료(실제 200% 확대는 미확인). 병합하지 않는다.
+- PR: [#23 홈·학습실·헤더 MVP](https://github.com/myeongjundev/netproof/pull/23), main 대상 OPEN. 설계 `320d97e`·구현 `b000064` 커밋·푸시 완료, [Codex 검증 출력 코멘트](https://github.com/myeongjundev/netproof/pull/23#issuecomment-5971715859). 리뷰어는 아래 현재 완료 절을 기준으로 재확인한다.
 - 자동 저장·내 실습·점수·뉴스·사례 공개 피드는 제외. F5·F6, PR #20 G2/실제 삭제 취소 수동 QA는 별도 대기 유지.
 
 ### 이전: PR #22 문서 정리 (병합 완료 — 아래는 당시 기록)
