@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
 - 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
 - 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인 R1·R2 → Codex 한도 재측정·기록 완료 → Claude 재리뷰(다음 차례) → 사용자 병합 결정.**
+- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인 R1·R2 → Codex 한도 재측정·기록 완료(`cc5cf96`) → Claude 재리뷰 PASS → 사용자 최종 확인·병합 결정(다음 차례).**
 - 사용자 결정(2026-10-03):
   - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
   - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
@@ -512,9 +512,26 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 - 비차단 (3) `__all__`은 그대로 둔다(승인 범위 유지).
 - 허용 파일: `engine/src/netproof_engine/audit.py`(한도 상수 한 줄), `engine/tests/test_acl_audit.py`, `docs/semantics.md`(11절만), `HANDOFF.md`, `decisions/ai-work-log.md`. 그 밖은 건드리지 않는다.
 - Codex는 네 명령(engine·server pytest, web test, build)을 직접 실행해 출력을 붙이고, PR 코멘트 `[Codex]`로 R1·R2 결과를 남긴 뒤 다음 차례를 **Claude 재리뷰**로 바꾼다. 병합하지 않는다.
-- R1·R2 Codex 처리 완료(위 완료 내용과 재실행 참조). 다음 차례: **Claude 재리뷰**. PR #18은 OPEN, 자동 병합하지 않는다.
+- R1·R2 Codex 처리 완료(위 완료 내용과 재실행 참조).
 
-재확인: Claude (Claude Opus 5.5)
+### 2026-10-03 Claude 재리뷰 (`cc5cf96`) — PASS
+- **결론: PASS. 차단 0건, R1·R2 모두 해결.** 코드 수정·병합 없음.
+- 범위: `d76e6db..cc5cf96`의 코드 변경은 `audit.py:11` 상수 한 줄(`100_000 → 300_000`)과 회귀 테스트 1개뿐이다. `MAX_BOXES`·분류·응답·`__all__`·서버·웹은 그대로이고, `docs/semantics.md`는 11절 안만 바뀌었다. 나머지는 `HANDOFF.md`·작업 로그다.
+- 직접 실행: engine **294 passed, 2 xfailed** / server **88 passed, 1 skipped** / web **114 passed** / build 성공. Codex 기록과 테스트 수가 같다.
+- R1 측정 직접 재현(한도 300,000):
+
+| 입력 | Claude 측정 | Codex 기록 |
+|---|---|---|
+| 겹치지 않는 `ip host` 120줄 | 0.096초 · undetermined 0 | 0.096953초 · 0 |
+| `tcp host … eq 80` 500줄 | 0.542초 · undetermined 0 | 0.508682초 · 0 |
+| 500줄 합성 최악 사례 3회 | 0.582 / 0.572 / 0.576초 · undetermined 486 | 0.576~0.590초 · 486 |
+
+- R2: verify 실패 시 이전 판정을 지우는 동작이 `완료 내용`에 의도한 변경으로 기록됐다.
+- 비차단 참고(조치 불필요): 후보 사이 간격이 300k → 500k라 그 사이 값(예: 400k)은 재지 않았다. 300k~500k에서 시간이 연산 수보다 빠르게 늘어나는(0.58초 → 약 2.1초) 점을 보면, 배포 서버가 이 PC보다 느릴 때를 대비한 여유로 300k가 적절하다. 실제 수업 ACL(20줄 안팎)은 한도에 닿지 않는다.
+- 이번에도 Claude는 브라우저·지연 주입·PostgreSQL 실연결을 직접 확인하지 않았다.
+- 다음 차례: **사용자 최종 확인·병합 결정**(PROMPTS.md 5단계). PR #18은 OPEN, 자동 병합하지 않는다.
+
+재리뷰: Claude (Claude Opus 5.5)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
@@ -576,7 +593,7 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 Claude 재리뷰**다. R1의 후보별 시간/한도·120줄 회귀·TCP 500줄 결과, R2 수용 기록과 허용 파일만 바뀌었는지 독립 확인한다. 새 브랜치를 만들거나 병합하지 않는다.
+- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 사용자 최종 확인·병합 결정**이다(Claude 재리뷰 PASS, `cc5cf96`). 사용자가 PROMPTS.md 5단계대로 직접 확인한다. 새 브랜치를 만들거나 사용자 요청 없이 병합하지 않는다.
 - Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
 - 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
 - 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.
