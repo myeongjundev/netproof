@@ -23,7 +23,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 편집은 **ACL 줄 삽입만** 한다.
 - 기반: origin/main `c19f554`(PR #18 ACL 점검 병합 완료, 사용자 확인).
 - 브랜치: `codex/acl-suggest`.
-- 단계: 설계 확정 → **Codex 구현(다음 차례)** → 리뷰 → 사용자 병합 결정.
+- 단계: 설계 확정 → Codex 구현·테스트 완료 → **Claude 리뷰(다음 차례)** → 사용자 병합 결정.
 - 보류(사람 트랙): Cisco 설정 붙여넣기 선행 확인, 배포.
 
 ## 작업 정의
@@ -294,7 +294,166 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 설계: Claude (Claude Opus 5.5, `claude-opus-5-5`)
 
 ## 완료 내용 / 테스트 결과
-- (Codex 구현 후 채운다.)
+- 설계 커밋 `9de253c` 뒤 삽입 전용 엔진·상태 없는 API·판정기 후보 패널 구현. 목표 기본값·자동 적용·입력 덮어쓰기·DB 쓰기 없음. 후보는 기존 verify 재판정으로만 확인하며 다른 흐름 영향은 계산하지 않는다.
+- 독립 적용·삭제 복원·after=verify 교차 확인: 기존 사례 모두/두 목표, Hypothesis 고정 시드 30개 직선 토폴로지, 같은 ACL 정방향/복귀·나중 편집에 따른 insert_at 이동, tcp 출발지 포트 변화·ACK, udp/icmp 숫자 종류, 정확 host/포트 ±1, 여섯 사유, 실제 500줄 한도, 실제 10개 ACL 경로의 PASS 5회·DENY 9회 상한. 새 엔진 테스트 32개. 전체 3.50초로 이전 과제 마지막 3.87초 대비 +10초 조건 충족(환경 의존).
+- 서버 임시 DB 테스트: 익명 응답=엔진, SQL 0건, no-store, 잘못된 목표 200 INVALID, 501줄·41장비 422, CSRF 403, 전역 64KB 413. 기존 엔드포인트 변경 없음.
+- 범위 확인: 판정 파일·expect·사례·DB 모델·허용 밖 화면 불변. engine/__init__.py는 import 한 줄만 추가. docs/semantics.md 1~11절 불변, 12절만 추가. git diff --check 성공.
+- 화면 계약의 조건을 함께 적용: 최초 패널은 !stale인 PASS/DENY에서만 보이되, 이미 받은 후보가 있는 채 입력만 바뀌면 패널을 남겨 이전 결과와 비활성 원래 줄 버튼을 표시한다. 목표 변경·재판정·load는 결과를 지운다. 입력 변경 뒤 되돌림도 진행 중 응답을 무효화한다.
+
+### 브라우저 직접 확인
+
+- 로컬 127.0.0.1:5184, 임시 SQLite만 사용(운영 DB 접근 없음). 검증 후 서버·탭을 닫고 viewport override 복원.
+- 375×812와 1280×900 각각: 예시01 DENY → 목표 미선택/계산 비활성 → PASS 선택/후보 c1 및 고정 문구·raw 확인 → 원래 줄 보기에서 원래 deny 줄 선택 → 목표 DENY로 변경 시 후보 삭제/계산 시 ALREADY → 입력 수정 시 이전 결과/원래 줄 보기 비활성 → 예시02 load 시 패널 초기화 → 후보 permit 줄을 직접 입력하고 재판정 PASS(후보 after와 같은 "정방향 · 복귀 방향 모두 통과").
+- body scrollWidth: 360 ≤ 375, 1265 ≤ 1280. console error 0, 가로 넘침 없음.
+- 캡처는 로컬 임시 파일 netproof-suggest-375.png / netproof-suggest-1280.png에 보관하며 저장소에는 넣지 않음. 스킬을 이용해 실제 브라우저 조작·관찰로 확인함.
+- 미검증: 인위적 네트워크 지연 주입·전체 DOM 자동 회귀·PostgreSQL 실연결. 기존 __all__은 설계 지시대로 변경하지 않음.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 3.50s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+.......................................................................s [ 78%]
+....................                                                     [100%]
+91 passed, 1 skipped in 24.70s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
+
+
+ Test Files  12 passed (12)
+      Tests  128 passed (128)
+   Start at  14:07:03
+   Duration  589ms (transform 56%, import 23%, tests 13%, worker 7%)
+```
+
+### `npm --prefix web run build`
+
+```text
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 43 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.60 kB │ gzip:  0.44 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-DNRzcA91.css                            66.68 kB │ gzip: 19.81 kB
+dist/assets/index-B-9kSOJh.js                            306.50 kB │ gzip: 93.30 kB
+
+✓ built in 416ms
+```
+
+구현·실행: Codex (GPT-6)
 
 ## 현재 과제 리뷰 기록
 - (리뷰 후 채운다.)
@@ -360,7 +519,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git switch codex/acl-suggest`, `git pull` 후 이 문서의 작업 정의를 기준으로 진행한다. 다음 차례는 Codex 구현이다.
+- `git switch codex/acl-suggest`, `git pull` 후 이 문서의 작업 정의와 완료 내용을 기준으로 독립 리뷰한다. 다음 차례는 Claude 리뷰다. 지적에는 파일:줄·재현 명령을 붙이고 PR 코멘트 첫 줄을 [Claude]로 쓴다.
 - 승인한 목표 직접 선택·삽입만·자동 적용 없음 범위를 지킨다. 기존 판정 파일·expect는 고치지 않는다. 병합은 사용자 결정이다.
 
 설계: Claude (Claude Opus 5.5), 기록: Codex (GPT-6)
