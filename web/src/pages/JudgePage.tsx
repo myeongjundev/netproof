@@ -178,6 +178,12 @@ export function JudgePage({ user, draft, setDraft, share, titleHint }: Props) {
     <>
       <div className="page-head">
         <p>AI나 내가 예상한 “이 통신은 된다/안 된다”를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 줍니다. 판정은 로그인 없이 됩니다.</p>
+        <ol className="case-start" aria-label="시작 안내">
+          <li>예시를 불러오거나 처음 구성에서 장비·ACL을 적습니다.</li>
+          <li>확인할 통신과 받은 답(AI 답이나 내 예상)을 적습니다.</li>
+          <li>판정하기를 누르면 경로와 막힌 규칙을 근거로 보여 줍니다.</li>
+        </ol>
+        {examples.length > 0 && <p className="case-example-caption">예시 불러오기</p>}
         <div className="examples" aria-label="예시 불러오기">
           {examples.map((item) => (
             <button key={item.id} type="button" className="ghost small" onClick={() => load(fromCase(item))}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, message } from "../api";
 import { ActualBadge, ComparisonBadge, ResultBadge } from "../components/Badges";
 import { emptyCaseFilters, loadCasePage, parseCaseFilters } from "../caseSearch";
+import { appliedFilterText, comparisonCaption } from "../caseView";
 import { useRoute } from "../router";
 import type { CaseFilters, CasePage } from "../types";
 
@@ -91,13 +92,7 @@ export function CasesPage() {
       <div aria-live="polite">
         {loading && <p className="hint">불러오는 중…</p>}
         {filters.q && <p className="hint">적용한 검색어: {filters.q}</p>}
-        {(filters.actual || filters.claim_kind || filters.claim_expected) && <p className="hint">
-          적용한 조건: {filters.confirmed === "1" ? "검토 확인됨 · " : ""}
-          {filters.result && `NetProof 판정 ${filters.result} · `}
-          {filters.actual && `실제 ${filters.actual === "none" ? "미정" : filters.actual} · `}
-          {filters.claim_kind && `${filters.claim_kind === "ai" ? "AI 답" : filters.claim_kind === "self" ? "사람 예상" : "답 종류 없음"} · `}
-          {filters.claim_expected && `받은 답 ${filters.claim_expected}`}
-        </p>}
+        {appliedFilterText(filters).length > 0 && <p className="hint">적용한 조건: {appliedFilterText(filters).join(" · ")}</p>}
         {data && (loading || error) && <p className="hint">아래는 이전 조회 결과입니다.</p>}
         {data && <p className="hint">검색 결과 {data.total}개 · 페이지당 {data.per_page}개</p>}
         {data?.items.length === 0 && <p className="hint">조건에 맞는 사례가 없습니다. 검색 조건을 바꾸거나 판정기에서 사례를 저장해 보세요.</p>}
@@ -107,9 +102,9 @@ export function CasesPage() {
           <thead>
             <tr>
               <th scope="col">사례</th>
-              <th scope="col">판정</th>
-              <th scope="col">받은 답과 판정</th>
-              <th scope="col">실제 결과</th>
+              <th scope="col">NetProof 계산</th>
+              <th scope="col">받은 답 비교</th>
+              <th scope="col">실제 결과·확인</th>
             </tr>
           </thead>
           <tbody>
@@ -118,16 +113,17 @@ export function CasesPage() {
                 <td>
                   <a href={`#/cases/${item.id}`}>{item.title}</a>
                   <span className="meta">
-                    {item.author} · {new Date(item.created_at).toLocaleDateString("ko-KR")}
+                    #{item.id} · {item.author} · {new Date(item.created_at).toLocaleDateString("ko-KR")}
                   </span>
                 </td>
-                <td data-label="판정">
+                <td data-label="NetProof 계산">
                   <ResultBadge result={item.result} />
                 </td>
-                <td data-label="받은 답과 판정">
+                <td data-label="받은 답 비교">
+                  <span className="meta">{comparisonCaption(item)}</span>
                   <ComparisonBadge comparison={item.comparison} />
                 </td>
-                <td data-label="실제 결과">
+                <td data-label="실제 결과·확인">
                   <ActualBadge item={item} />
                 </td>
               </tr>
