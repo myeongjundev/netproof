@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
 import { blankDraft } from "./draft";
+import { AppHeader } from "./components/AppHeader";
+import { HomePage } from "./pages/HomePage";
+import { LearningPage } from "./pages/LearningPage";
 import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -19,10 +22,10 @@ export function App() {
   const [draft, setDraft] = useState<Draft>(blankDraft);
   const [titleHint, setTitleHint] = useState("");
   // 로그인 화면으로 오기 직전에 보던 화면. 로그인한 뒤 그리로 돌려보낸다.
-  const [back, setBack] = useState("/");
+  const [back, setBack] = useState("/home");
 
   useEffect(() => {
-    if (route.page !== "login") setBack(window.location.hash.replace(/^#/, "") || "/");
+    if (route.page !== "login") setBack(window.location.hash.replace(/^#/, "") || "/home");
     if (route.page !== "judge") setTitleHint("");
   }, [route]);
 
@@ -35,7 +38,7 @@ export function App() {
 
   const signedOut = () => {
     setUser(null);
-    go("/");
+    go("/home");
   };
 
   const logout = async () => {
@@ -56,8 +59,11 @@ export function App() {
   );
 
   let page;
-  if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} titleHint={titleHint} />;
+  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} />;
+  else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} />;
+  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} titleHint={titleHint} />;
   else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
+  else if (route.page === "missing") page = <p className="hint">없는 화면입니다. <a href="#/home">홈으로</a></p>;
   else if (!checked) page = <p className="hint">확인 중…</p>;
   else if (route.page === "login")
     page = user ? (
@@ -87,41 +93,9 @@ export function App() {
       );
   else page = <p className="hint">없는 화면입니다. <a href="#/">판정기로</a></p>;
 
-  const tab = (name: string, href: string, active: boolean) => (
-    <a href={href} className={active ? "tab on" : "tab"} aria-current={active ? "page" : undefined}>
-      {name}
-    </a>
-  );
-
   return (
     <>
-      <header className="top">
-        <a href="#/" className="brand">
-          NetProof <span>Verify before you trust.</span>
-        </a>
-        <nav className="tabs" aria-label="주요 화면">
-          {tab("판정기", "#/", route.page === "judge")}
-          {tab("정책 검증", "#/matrix", route.page === "matrix")}
-          {tab("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}
-          {user?.role === "reviewer" && tab("대시보드", "#/dashboard", route.page === "dashboard")}
-          {tab("설정", "#/settings", route.page === "settings")}
-        </nav>
-        <div className="who">
-          {!checked ? null : user ? (
-            <>
-              <span>{user.nickname}</span>
-              <span className={`badge ${user.role === "reviewer" ? "accent" : "plain"}`}>{user.role_name}</span>
-              <button type="button" className="ghost small" onClick={logout}>
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <a href="#/login" className="ghost-link">
-              로그인
-            </a>
-          )}
-        </div>
-      </header>
+      <AppHeader route={route} user={user} checked={checked} onLogout={logout} />
 
       <main className="main">{page}</main>
 
