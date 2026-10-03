@@ -47,4 +47,11 @@ describe("ACL audit presentation", () => {
   it("has no blocks for an empty ACL list", () => {
     expect(auditBlocks({ ...result([]), acls: [] })).toEqual([]);
   });
+  it("omits zero counts without treating unknown lines as clean", () => {
+    expect(auditBlocks(result([line()]))[0].summary).toBe("문제 없음");
+    expect(auditBlocks(result([line({ catch_all: true })]))[0].summary).toBe("문제 없음 · 열린 범위 1줄");
+    expect(auditBlocks(result([line({ finding: "shadowed" })]))[0].summary).toBe("가려짐 1");
+    expect(auditBlocks(result([line({ kind: "unread" }), line({ kind: "unchecked" })], 3))[0].summary).toBe("점검 못 함 2");
+    expect(auditBlocks(result([line({ finding: "undetermined", catch_all: true })]))[0].summary).toBe("점검 못 함 1 · 열린 범위 1줄");
+  });
 });

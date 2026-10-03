@@ -36,6 +36,11 @@ export function auditBlocks(result: AclAudit) {
     if (acl.unchecked_from !== null) issues.push({ line: acl.unchecked_from, text: `${acl.unchecked_from}번 줄부터 점검하지 않았습니다 — 해석하지 못한 줄이 있습니다.` });
     issues.sort((a, b) => a.line - b.line);
     return { name: acl.name, issues, opened, counts,
-      summary: `가려짐 ${counts.shadowed} · 중복 ${counts.redundant} · 일치 불가 ${counts.never} · 점검 못 함 ${counts.unknown}` };
+      summary: [
+        ...([["가려짐", counts.shadowed], ["중복", counts.redundant], ["일치 불가", counts.never], ["점검 못 함", counts.unknown]] as const)
+          .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}`),
+        ...(counts.shadowed + counts.redundant + counts.never + counts.unknown === 0 ? ["문제 없음"] : []),
+        ...(opened.length ? [`열린 범위 ${opened.length}줄`] : []),
+      ].join(" · ") };
   });
 }

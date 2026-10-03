@@ -1,4 +1,6 @@
 import type { Claim, Flow, Mode, Proto } from "../types";
+import { useId, useState } from "react";
+import { ipv4Problem } from "../validate";
 
 interface Props {
   flow: Flow;
@@ -11,6 +13,10 @@ interface Props {
 /** 판정기 맨 위의 질문 줄: 어떤 통신을 확인할지, 받은 답이 무엇인지. */
 export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
   const usesPort = flow.proto !== "icmp";
+  const id = useId();
+  const [checked, setChecked] = useState<{ src?: string; dst?: string }>({});
+  const srcProblem = checked.src === flow.src ? ipv4Problem(flow.src) : null;
+  const dstProblem = checked.dst === flow.dst ? ipv4Problem(flow.dst) : null;
   return (
     <section className="question" aria-labelledby="flow-title">
       <h2 id="flow-title" className="sr-only">
@@ -26,14 +32,18 @@ export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
       <div className="q-flow">
         <label className="q-ip">
           <span>출발지 IP</span>
-          <input list="endpoints" value={flow.src} onChange={(e) => onFlow({ ...flow, src: e.target.value.trim() })} />
+          <input aria-label="출발지 IP" list="endpoints" value={flow.src} onChange={(e) => onFlow({ ...flow, src: e.target.value })}
+            onBlur={() => setChecked((current) => ({ ...current, src: flow.src }))} aria-invalid={srcProblem ? true : undefined} aria-describedby={srcProblem ? `${id}-src` : undefined} />
+          {srcProblem && <span className="field-problem" id={`${id}-src`}>{srcProblem}</span>}
         </label>
         <span className="q-arrow" aria-hidden="true">
           →
         </span>
         <label className="q-ip">
           <span>목적지 IP</span>
-          <input list="endpoints" value={flow.dst} onChange={(e) => onFlow({ ...flow, dst: e.target.value.trim() })} />
+          <input aria-label="목적지 IP" list="endpoints" value={flow.dst} onChange={(e) => onFlow({ ...flow, dst: e.target.value })}
+            onBlur={() => setChecked((current) => ({ ...current, dst: flow.dst }))} aria-invalid={dstProblem ? true : undefined} aria-describedby={dstProblem ? `${id}-dst` : undefined} />
+          {dstProblem && <span className="field-problem" id={`${id}-dst`}>{dstProblem}</span>}
         </label>
         <label>
           <span>프로토콜</span>
