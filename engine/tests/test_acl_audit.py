@@ -188,6 +188,15 @@ def worst_case_lines():
             for i in range(500)]
 
 
+def test_disjoint_120_hosts_complete_under_request_budget():
+    raw = ["permit ip host 10.0.0.%d any" % i for i in range(120)]
+    result = acl_audit({"acls": {"a": raw}})
+    assert result["status"] == "OK"
+    assert result["totals"]["undetermined"] == 0
+    assert len(result["acls"][0]["lines"]) == 120
+    assert all(line["finding"] is None for line in result["acls"][0]["lines"])
+
+
 def test_500_line_bounded_measurement():
     start = perf_counter()
     result = acl_audit({"acls": {"worst": worst_case_lines()}})

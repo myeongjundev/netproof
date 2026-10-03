@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 승인(2026-10-03): PR #17을 `6c7c9b1`로 main 병합 완료 → 다음 과제로 진행. 설계 방식 A(정확 집합 계산)·아래 정의·API·화면 설계를 사용자가 대화에서 승인했다.
 - 기반: 최신 origin/main `6c7c9b1`(**PR #17 오탐·미탐 대시보드 병합 완료**).
 - 브랜치: `codex/acl-audit` (origin/main `6c7c9b1` 기반). 설계는 main이 아니라 이 브랜치에 기록한다.
-- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인·병합 전 수정 요청 1건(2026-10-03) → Codex 한도 재측정(다음 차례) → Claude 재리뷰 → 사용자 병합 결정.**
+- 단계: **설계 `62ec0a6` → 사용자 승인 `5213adb` → 구현 `c3507bf` → Claude 독립 리뷰 PASS → Claude 재확인 R1·R2 → Codex 한도 재측정·기록 완료 → Claude 재리뷰(다음 차례) → 사용자 병합 결정.**
 - 사용자 결정(2026-10-03):
   - **과도한 permit은 경고·점수 없이 "열린 범위 사실"만 표시한다.** 수업 ACL 대부분이 "특정 deny 뒤 `permit ip any any`" 모양이라 any-any 경고는 거의 모든 사례에 뜬다. 판단은 사람이 한다.
   - **보이는 곳: 판정기에서 판정 단추를 누를 때 함께.** 사례 상세에는 넣지 않는다.
@@ -171,7 +171,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 정확 상자 차집합으로 앞·뒤 줄 합집합을 계산하는 `acl_audit`와 상태 없는 API, 판정기의 독립 점검 섹션을 구현했다. unread·unchecked·unread_below 및 한도 초과를 문제 없음으로 바꾸지 않는다. 열린 범위는 사실만 표시한다.
 - 기존 엔진 판정 파일·ResultPanel·사례 정답·DB 구조는 변경하지 않았다. `__init__.py`는 import 한 줄만 추가했다. semantics는 11절만 추가했다.
 - Hypothesis 20개 고정 시드 예제 + 고정 회귀 + 모든 포트 조건 양 차원 회귀에서 규칙 경계값 ±1 전수 패킷의 Rule.matches/상자 소속과 줄 삭제 전후 Acl.evaluate를 교차 확인했다. 엔진 신규 테스트 30개, 서버 3개, 웹 9개.
-- 500줄 겹치는 접두사/양쪽 neq 합성 측정: `0.204629s`, 전체 교차 시도 상한 100,000, 중복 1·undetermined 499. 한 줄 상자 2,000. 측정 조건·한계·재현 명령은 semantics 11절. 모든 구성의 시간 상한을 보장하지 않는다.
+- 최초 500줄 측정 `0.204629s`/100,000회는 한도에 조기 중단한 값이므로 R1에서 근거를 대체했다. 현재 한도 **300,000회**, 후보별 순차 3회 측정의 최댓값 **0.589586s**, 선택값 별도 최악 사례 **0.590387s·undetermined 486**. 한 줄 상자 2,000·분류 로직은 불변. 측정 표와 재현은 semantics 11절. 모든 구성의 시간 상한을 보장하지 않는다.
+- R2: verify 요청 실패 시 이전 판정을 지우고 오류만 표시하는 것은 **의도한 동작 변경으로 받아들인다**. 이번에는 화면 코드를 변경하지 않았다.
 - computer-use 스킬로 임시 SQLite `C:\Users\dora2\AppData\Local\Temp\netproof-acl-audit-a1fqeaxd\qa.db`와 로컬 5183 포트만 사용해 브라우저를 확인했다(기존 DB 미사용). 375×812·1280×900에서 예시01에 catch-all 뒤 deny tcp eq80을 추가: 점검 고정 문구·가려짐1/by2·열린 범위, 입력에서 보기의 정확한 3번 줄 선택, 수정 후 이전 결과/버튼 비활성, ACL 전부 삭제 시 섹션 숨김, 출발지 bad-ip의 INVALID 판정과 독립 점검 표시 확인. body scrollWidth 각각 360≤375, 1265≤1280; console error 0. 임시 탭 종료·viewport 복원. 지연 주입·전체 DOM 자동화·PostgreSQL 실연결은 미검증.
 - 기존 64KB 전역 요청 상한은 HTTP **413**이다. 이 엔드포인트도 기존 동작을 유지했다(작업 정의의 422 문구와 차이). ACL 501줄 등 `_limit_problem`은 422이다. 상한 초과·CSRF·비로그인·SQL 미접근 테스트를 실행했다.
 - 아래는 완료 조건 네 명령의 직접 실행 출력이다(PowerShell에서는 해당 디렉터리의 workdir로 실행).
@@ -319,6 +320,158 @@ dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.
 
 구현: Codex (GPT-6)
 
+### 2026-10-03 R1·R2 처리 / 재실행
+
+- 대상: [최신 Claude 요청](https://github.com/myeongjundev/netproof/pull/18#issuecomment-5965475950), 설계/분류 변경 없이 한도 상수 한 줄과 요청된 120줄 회귀 테스트 1개만 코드 변경.
+- R1 후보별 순차 3회 측정(초 / undetermined): 100k `0.199369·0.203259·0.200970 / 499`, 300k `0.576441·0.588693·0.589586 / 486`, 500k `1.888684·2.279005·2.242028 / 472`, 600k `2.705693·2.600109·2.558699 / 464`, 1M `4.391783·4.471092·4.344047 / 445`, 3M `13.548361·13.049480·13.339442 / 320`。측정 후보 중 세 번 모두 1.5초 이하인 최대값 300k를 선택했다. 이는 제한된 요청의 시간이며 완전 계산 시간은 아니다.
+- 선택값 재현: ip host 120줄 **0.096953s·undetermined 0**; tcp host 500줄 **0.508682s·undetermined 0**. `test_disjoint_120_hosts_complete_under_request_budget`로 120줄 결과를 고정했다.
+- 직접 실행: `cd engine && ../.venv/Scripts/python -m pytest -q -s tests/test_acl_audit.py::test_disjoint_120_hosts_complete_under_request_budget tests/test_acl_audit.py::test_500_line_bounded_measurement` → `500-line mixed-prefix/neq: 0.590387s; operations limit=300000; totals={'shadowed': 0, 'redundant_earlier': 0, 'redundant_later': 10, 'never_matches': 0, 'undetermined': 486}` / **2 passed in 0.95s**.
+- R2는 위 완료 내용에 수용 기록만 추가했다. 화면·서버·기존 판정 파일·__all__·expect·DB 변경 없음. docs는 11절 안에서만 변경.
+- 네 완료 조건 명령의 직접 실행 출력:
+
+```text
+$ cd engine && ../.venv/Scripts/python -m pytest -q
+........................................................................ [ 24%]
+........................................................................ [ 48%]
+........................................................................ [ 72%]
+........................................................................ [ 97%]
+......xx                                                                 [100%]
+294 passed, 2 xfailed in 3.87s
+```
+
+```text
+$ cd server && ../.venv/Scripts/python -m pytest -q
+.......................................................................s [ 80%]
+.................                                                        [100%]
+88 passed, 1 skipped in 29.88s
+```
+
+```text
+$ npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
+
+
+ Test Files  11 passed (11)
+      Tests  114 passed (114)
+   Start at  13:26:04
+   Duration  530ms (transform 59%, import 21%, tests 13%, worker 6%)
+```
+
+```text
+$ npm --prefix web run build
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 41 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.60 kB │ gzip:  0.44 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-LH15JoJ2.css                            66.36 kB │ gzip: 19.73 kB
+dist/assets/index-Cr6SzuWs.js                            302.38 kB │ gzip: 92.10 kB
+
+✓ built in 289ms
+```
+
+Codex (GPT-6)
+
 ## 현재 과제 리뷰 기록
 - 2026-10-03 Claude Code의 **Claude Opus 5.5 (`claude-opus-5-5`)**가 구현 `c3507bf`를 독립 리뷰: **PASS, 차단 0건·비차단 P3 참고 3건**. 세션 `b855d3d6-69de-4e55-b128-2d17a0b7904b`. [리뷰 원문과 재현 근거](https://github.com/myeongjundev/netproof/pull/18#issuecomment-5965426484)는 Codex가 출처를 명시해 대신 게시했다. 코드 수정 없음.
 - Claude 직접 실행 출력(구현 기록과 테스트 수·빌드 해시 일치):
@@ -359,7 +512,7 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 - 비차단 (3) `__all__`은 그대로 둔다(승인 범위 유지).
 - 허용 파일: `engine/src/netproof_engine/audit.py`(한도 상수 한 줄), `engine/tests/test_acl_audit.py`, `docs/semantics.md`(11절만), `HANDOFF.md`, `decisions/ai-work-log.md`. 그 밖은 건드리지 않는다.
 - Codex는 네 명령(engine·server pytest, web test, build)을 직접 실행해 출력을 붙이고, PR 코멘트 `[Codex]`로 R1·R2 결과를 남긴 뒤 다음 차례를 **Claude 재리뷰**로 바꾼다. 병합하지 않는다.
-- 다음 차례: **Codex — R1 한도 재측정·R2 기록.** PR #18은 OPEN, 자동 병합하지 않는다.
+- R1·R2 Codex 처리 완료(위 완료 내용과 재실행 참조). 다음 차례: **Claude 재리뷰**. PR #18은 OPEN, 자동 병합하지 않는다.
 
 재확인: Claude (Claude Opus 5.5)
 
@@ -397,7 +550,7 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
 - [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
 - [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
-- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **PR #18 구현·Claude 독립 리뷰 PASS → 사용자 최종 확인·병합 대기**
+- [ ] ACL 점검(가려진 규칙·중복·열린 범위) — ③ **PR #18 R1·R2 처리 완료 → Claude 재리뷰 대기**
 - [ ] Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`
 - [ ] **배포**(사람 트랙과 함께) — 4주차 테스트 전에 공개 URL
 
@@ -423,7 +576,7 @@ index-LH15JoJ2.css 66.36 kB; index-Cr6SzuWs.js 302.38 kB
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 ## 다음 LLM이 확인할 내용
-- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 Codex — 리뷰 기록의 "2026-10-03 Claude 재확인" 절 R1(한도 재측정)·R2(동작 변경 기록)**다. 같은 `codex/acl-audit` 브랜치에서 허용 파일만 고친다. 그 뒤 Claude 재리뷰 → 사용자 병합 결정. 새 브랜치를 만들거나 병합하지 않는다.
+- `git pull`, `git switch codex/acl-audit`, `git log -3` 후 작업 정의와 리뷰 기록을 읽는다. **다음 차례는 Claude 재리뷰**다. R1의 후보별 시간/한도·120줄 회귀·TCP 500줄 결과, R2 수용 기록과 허용 파일만 바뀌었는지 독립 확인한다. 새 브랜치를 만들거나 병합하지 않는다.
 - Codex: 구현 전에 `engine/src/netproof_engine/acl.py`(`Rule.matches`·`PortMatch.matches`·`parse_acl`·`UnreadLine`·`Acl.evaluate` — **읽기만 한다**), `engine/src/netproof_engine/model.py`(`_check_shape`), `engine/src/netproof_engine/matrix.py`(새 엔진 API 경계의 오류 처리 관례), `server/netproof_api/cases.py`(`verify_endpoint`·`matrix_endpoint`·`_limit_problem`), `web/src/pages/JudgePage.tsx`(`judge`·`revision`·`showAcl`), `web/src/components/AclEvidence.tsx`(줄 번호 기준)를 읽는다.
 - 다섯 `finding`의 정의·우선 순서, 패킷 공간, 해석 못 한 줄에서 멈추는 규칙, "열린 범위는 사실만"을 바꾸고 싶으면 **먼저 요청한다.** 점검의 뜻이 바뀌는 변경이다.
 - 교차 확인 테스트가 실패하면 **점검 구현 쪽 버그다.** 테스트를 맞추려고 엔진 `acl.py`를 고치지 않는다.

@@ -8,7 +8,7 @@ from .errors import Invalid
 from .model import _check_shape
 
 MAX_BOXES = 2000
-MAX_INTERSECTIONS = 100_000
+MAX_INTERSECTIONS = 300_000
 FINDINGS = ("shadowed", "redundant_earlier", "redundant_later", "never_matches", "undetermined")
 # A box is (protocol, closed intervals). Different protocols never intersect.
 
