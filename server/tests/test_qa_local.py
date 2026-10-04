@@ -1,10 +1,15 @@
-"""실제 서버 없이 임시 QA 환경의 격리·합성 자료·정리를 검사한다."""
+"""임시 QA 환경의 격리·정리와 loopback 서버 동시 연결을 검사한다."""
+import http.client
 import importlib.util
+import json
 from pathlib import Path
+import socket
 import sys
+import threading
 
 import pytest
 from netproof_api.models import Case, User, db
+from werkzeug.serving import WSGIRequestHandler
 
 spec = importlib.util.spec_from_file_location("qa_local", Path(__file__).resolve().parents[2] / "scripts" / "qa_local.py")
 qa = importlib.util.module_from_spec(spec)
@@ -110,8 +115,9 @@ def test_cli_loopback_only_and_cleans_up_without_recording_passwords(monkeypatch
                 raise KeyboardInterrupt
         def server_close(self):
             state["closed"] = True
-    def server(host, port, app):
+    def server(host, port, app, *, threaded):
         assert host == "127.0.0.1" and port == 4861
+        assert threaded is True
         state["directory"] = Path(app.config["SQLALCHEMY_DATABASE_URI"].removeprefix("sqlite:///" )).parent
         return Server()
     monkeypatch.setattr(qa, "make_server", server)
@@ -124,3 +130,58 @@ def test_cli_loopback_only_and_cleans_up_without_recording_passwords(monkeypatch
 def test_invalid_port_does_not_start(port):
     with pytest.raises(SystemExit):
         qa.main(["--port", port])
+
+
+def test_cli_serves_second_request_while_first_connection_stays_open(monkeypatch, tmp_path):
+    (tmp_path / "web" / "dist").mkdir(parents=True)
+    (tmp_path / "web" / "dist" / "index.html").touch()
+    original_root, original_seed, original_server = qa.ROOT, qa.seeded_qa, qa.make_server
+    accepted = threading.Event()
+
+    def seed():
+        monkeypatch.setattr(qa, "ROOT", original_root)
+        return original_seed()
+
+    class AcceptedHandler(WSGIRequestHandler):
+        def setup(self):
+            super().setup()
+            # 첫 TCP 연결이 backlog에만 대기하는 거짓 양성을 막는다.
+            accepted.set()
+
+    def server(host, port, app, **kwargs):
+        assert host == "127.0.0.1" and port == 4861
+        # QA main이 전달하는 threaded 옵션을 그대로 쓰고, 테스트 포트만 OS에 맡긴다.
+        actual = original_server(host, 0, app, request_handler=AcceptedHandler, **kwargs)
+        serve_forever = actual.serve_forever
+
+        def concurrent_requests():
+            worker = threading.Thread(target=serve_forever, daemon=True)
+            worker.start()
+            first = None
+            second = http.client.HTTPConnection(host, actual.server_port, timeout=3)
+            try:
+                first = socket.create_connection((host, actual.server_port), timeout=3)
+                assert accepted.wait(3), "첫 빈 연결이 서버에서 수락되어야 한다"
+                # 첫 연결에는 HTTP 바이트를 보내지 않고 끝까지 열어 둔다.
+                second.request("GET", "/api/examples")
+                response = second.getresponse()
+                assert response.status == 200
+                assert len(json.loads(response.read())) == 3
+                assert first.fileno() != -1
+            finally:
+                second.close()
+                if first is not None:
+                    first.close()
+                actual.shutdown()
+                worker.join(timeout=3)
+                assert not worker.is_alive(), "테스트 서버가 종료되어야 한다"
+
+        actual.serve_forever = concurrent_requests
+        return actual
+
+    monkeypatch.setattr(qa, "ROOT", tmp_path)
+    monkeypatch.setattr(qa, "seeded_qa", seed)
+    monkeypatch.setattr(qa, "make_server", server)
+    # 실제 무작위 비밀번호가 pytest 캡처나 파일에 남지 않게 콘솔 출력을 버린다.
+    monkeypatch.setattr(qa, "print", lambda *args, **kwargs: None, raising=False)
+    assert qa.main(["--port", "4861"]) == 0

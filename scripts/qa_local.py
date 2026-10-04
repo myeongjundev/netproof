@@ -115,7 +115,7 @@ def main(argv=None):
     previous = signal.signal(break_signal, _interrupt) if break_signal is not None else None
     try:
         with seeded_qa() as environment:
-            server = make_server("127.0.0.1", args.port, environment.app)
+            server = make_server("127.0.0.1", args.port, environment.app, threaded=True)
             try:
                 print(f"QA 주소: http://127.0.0.1:{server.server_port}/", flush=True)
                 print(f"임시 폴더: {environment.directory}", flush=True)
