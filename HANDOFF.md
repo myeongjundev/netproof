@@ -24,6 +24,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - **이어서 하기: 실습 이름 + 다음 실습.** 판정 여부·결과는 보이지 않는다(기존 약속 유지).
   - 함께 넣을 것: **예상 이름 잇기(F13 포함), 퍼즐 질문 강조, 후속 F12·F14.**
 - 브랜치: `codex/home-ux3`(origin/main `397ee0d` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- PR: [#26 비교 배너 중립 톤과 실습 흐름 다듬기](https://github.com/myeongjundev/netproof/pull/26) → main, 리뷰 대기. 구현 커밋 `72e2cbf`.
 - 설계 승인: 사용자 승인 완료(`37e66cf`).
 - 단계: **Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
 - 다음 차례: **리뷰(Claude).** 병합하지 않는다.
