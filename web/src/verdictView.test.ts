@@ -14,13 +14,18 @@ describe("engine comparison presentation", () => {
   describe.each(["ai", "self", null, undefined] as const)("kind=%s", kind => {
     it.each(["PASS", "DENY"] as const)("uses the engine comparison, expected=%s", expected => {
       const who = kind === "ai" ? "AI 답" : kind === "self" ? "내 예상" : "받은 답";
-      const answer = `${who}(${expected === "PASS" ? "통과" : "막힘"})${expected === "PASS" ? "와" : "과"}`;
+      const answer = `${who}(${expected === "PASS" ? "통과" : "막힘"})과`;
       for (const result of ["PASS", "DENY"] as const) {
         // Deliberately includes PASS/PASS/DISAGREE and PASS/DENY/AGREE.
         expect(comparisonBanner({ ...verdict, result, comparison: "AGREE" }, { ...claim, kind, expected })).toEqual({ tone: "agree", text: `= ${answer} NetProof 계산이 같습니다` });
         const banner = comparisonBanner({ ...verdict, result, comparison: "DISAGREE" }, { ...claim, kind, expected });
         expect(banner).toEqual({ tone: "disagree", text: `≠ ${answer} NetProof 계산(${result === "PASS" ? "통과" : "막힘"})이 다릅니다`, hint: "아래 경로와 ACL 근거에서 이유를 확인해 보세요." });
         expect(banner!.text).not.toMatch(/✓|✕|틀렸습니다|맞았습니다/);
+        for (const comparison of ["AGREE", "DISAGREE"] as const) {
+          const state = statusLine({ ...verdict, result, comparison }, { ...claim, kind, expected }, false);
+          expect(state).toContain(`${answer} NetProof 계산`);
+          expect(state).not.toContain(")와");
+        }
       }
     });
   });
@@ -36,8 +41,8 @@ describe("engine comparison presentation", () => {
   });
   it("announces only the short state", () => {
     expect(statusLine(verdict, claim, true)).toBe("계산 중…");
-    expect(statusLine(verdict, claim, false)).toBe("= 받은 답(통과)와 NetProof 계산이 같습니다 · NetProof 계산 막힘");
-    expect(statusLine({ ...verdict, comparison: "DISAGREE" }, claim, false)).toBe("≠ 받은 답(통과)와 NetProof 계산(막힘)이 다릅니다 · NetProof 계산 막힘");
+    expect(statusLine(verdict, claim, false)).toBe("= 받은 답(통과)과 NetProof 계산이 같습니다 · NetProof 계산 막힘");
+    expect(statusLine({ ...verdict, comparison: "DISAGREE" }, claim, false)).toBe("≠ 받은 답(통과)과 NetProof 계산(막힘)이 다릅니다 · NetProof 계산 막힘");
     expect(statusLine({ ...verdict, comparison: "NO_CLAIM" }, claim, false)).toBe("NetProof 계산 막힘");
     expect(statusLine({ ...verdict, result: "INVALID" }, claim, false)).toBe("NetProof 계산 입력 오류");
     expect(statusLine({ ...verdict, result: "UNSUPPORTED" }, claim, false)).toBe("NetProof 계산 판정 불가");

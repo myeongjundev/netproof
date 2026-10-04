@@ -9,6 +9,7 @@ import type { Suggestion, SuggestionTarget } from "../types";
 import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
 import { LESSONS, lessonByCaseId } from "../learning";
+import { hasCurrentInput } from "../homeView";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import { scrollTo } from "../motion";
@@ -131,7 +132,7 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
   const load = useCallback((next: Draft, label?: string) => {
     const current = draftNow.current;
     const input = (item: Draft) => JSON.stringify({ network: toNetwork(item), flow: item.flow, claim: item.claim });
-    const hasInput = current.devices.length > 0 || current.acls.length > 0 || !!current.flow.src || !!current.flow.dst || !!current.claim.expected;
+    const hasInput = hasCurrentInput(current);
     setUndo(label && hasInput && input(current) !== input(next) ? { draft: structuredClone(current), label, ...contextNow.current } : null);
     revision.current += 1;
     suggestRevision.current += 1;
@@ -313,7 +314,7 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
         {examples.length > 0 && <p className="case-example-caption">예시 불러오기</p>}
         <div className="examples" aria-label="예시 불러오기">
           {examples.map((item) => (
-            <button key={item.id} type="button" className="ghost small" onClick={() => load(fromCase(item), `예시 ${item.id.replace("synthetic-", "")}을 불러왔습니다`)}>
+            <button key={item.id} type="button" className="ghost small" onClick={() => load(fromCase(item), lessonByCaseId(item.id)?.title ? `${lessonByCaseId(item.id)!.title} 예시를 불러왔습니다` : `예시(${item.id.replace("synthetic-", "")})를 불러왔습니다`)}>
               예시 {item.id.replace("synthetic-", "")}
               {lessonByCaseId(item.id)?.title ? ` · ${lessonByCaseId(item.id)?.title}` : ""}
             </button>

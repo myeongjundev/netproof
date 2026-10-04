@@ -23,8 +23,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - **F6**: `예시 02을`처럼 숫자·이름 뒤의 조사가 틀린다. 코드 전체를 찾아보니 같은 종류가 6곳 더 있어 함께 고친다(아래 2절 표).
 - 사용자 결정(2026-10-05): F5·F6을 다음 과제로 한다.
 - 브랜치: `codex/judge-notice`(origin/main `63515a6` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
-- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- 단계: **Claude 설계 → 사용자 승인(9920378) → Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
+- 다음 차례: **리뷰(Claude)**. 승인된 F5·F6 구현과 아래 실행 근거를 독립 확인한다. 병합하지 않는다.
 - **판정·엔진은 그대로다.** 문장과 알림 조건만 바꾼다. 엔진·서버·API·DB·cases JSON·expect를 바꾸지 않는다.
 
 ## 작업 정의
@@ -92,6 +92,201 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 로그인한 채 `#/login`의 안내, 설정의 계정 삭제 문장(합성 계정).
   - console error 0.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
+
+## 완료 내용 / 테스트 결과 (2026-10-05 Codex)
+
+- 사용자 승인 `9920378`, 작업 정의 1)~5)만 구현했다. F5는 JudgePage load의 hasInput을 **기존 hasCurrentInput(current)**로 교체했다. 같은 입력 비교·한 단계 되돌리기·직접 편집 알림 닫기·요청 무효화 규칙은 그대로다.
+- F6은 2절 표의 일곱 문장만 바꿨다: 예시 주제/번호 알림, 이름 있음/없음 ACL 삭제, 점검 가려짐/뒤쪽 중복, 로그인 안내, 계정 삭제, 비교 배너·상태 줄의 고정 `과`. 자동 조사 판별 함수·라이브러리는 만들지 않았다.
+- 소스6파일·테스트3파일·기록2파일만 변경했다. 엔진·서버 메시지·API·DB 코드·cases JSON·expect·의존성·CSS·ResultPanel 및 다른 문구는 불변이다. 서버와 엔진은 읽기만 했다.
+- 새 회귀22개(기존342 → 364): 빈 템플릿의 예시/처음 구성/JSON/실습 가져오기4, 포트/받은 답만 편집 및 되돌리기2, 같은 입력1, 세 주제/주제 없는 예시4, ACL 이름/빈 이름/공백3, Settings SSR 미확인/0/4건3, 점검 permit/deny/뒤쪽 줄/암묵적 deny/둘 다5. 기존 verdictView 전수 테스트는 고정 `과`와 statusLine 검사로 보강했다. 훅 하네스/SSR은 실제 DOM 통합 검증이 아니므로 아래 별도 브라우저 기록과 구분한다.
+- 실행 중 최초 빌드는 새 테스트 fixture의 역할 `student`가 실제 User 타입 `user | reviewer`와 달라 TS2769로 실패했다. fixture를 `user`로 바로잡고 웹 테스트·빌드를 다시 직접 실행해 아래 성공 출력을 얻었다. 앱 동작을 테스트에 맞춰 바꾸지 않았다.
+
+### 실제 브라우저 확인
+
+- computer-use 스킬로 실제 Windows Chrome에서 앱의 이번 빌드를 검사했다. `scripts/qa_local.py`를 저장소 밖 RAM 전달 헬퍼로 실행, **임시 SQLite·127.0.0.1:4869/4870만** 사용했다. DATABASE_URL에 가짜 URL을 줬지만 QA 도구가 무시했다. 비밀번호는 subprocess pipe·일회성 로컬 IPC·브라우저 입력의 RAM에서만 사용하고 파일/콘솔/캡처/PR에 남기지 않았다.
+- 뷰포트 375×812·1280×800, 라이트에서 확인했다. 375의 clientWidth=360, 1280의 clientWidth=1265(일반 데스크톱 스크롤바15px)다. 이번은 문구·동작 QA이며 휴대폰 첫 화면 배치 합격 주장이나 실제 기기 에뮬레이션이 아니다. 가로 넘침0.
+- **새로고침 직후 예시:** 빈 템플릿에서 예시01 클릭 → `.undo-notice` 0개(1280 비로그인/로그인, 375 로그인). 예시 입력은 정상으로 불러와졌다.
+- **편집 뒤 예시:** 목적지 포트8443 편집 → 예시02 → `왕복 경로 예시를 불러왔습니다.` + `되돌리기`(두 폭). 375 새로고침 후 받은 답만 `된다` → 예시03 → `출력 ACL 예시를 불러왔습니다.` + 되돌리기. 같은 예시03 재클릭 → 알림0. 예시01 주제 문구도 `HTTPS와 입력 ACL 예시를 불러왔습니다.`로 확인했다. 주제 없는 예시는 하네스 테스트만 확인(공개 예시는 세 개).
+- **ACL 삭제:** 두 폭에서 `101 ACL을 삭제했습니다.` + 되돌리기. 복구 후 이름을 지우고 삭제 → `ACL을 삭제했습니다.` + 되돌리기. 이는 로컬 입력 편집이며 계정/사례 삭제는 하지 않았다.
+- **ACL 점검:** 예시01의 ACL 입력을 아래처럼 직접 바꾸고 실제 verify/acl-audit 요청으로 재판정했다. 엔진 응답을 화면에서 재계산하거나 주입하지 않았다.
+
+  ```text
+  deny tcp any any eq 443
+  permit tcp any any eq 443
+  deny tcp any any eq 80
+  deny tcp any any eq 80
+  ```
+
+  두 폭에서 `2번 줄 · 가려짐 — 1번 줄이 먼저 잡고, 그중 동작이 반대인 줄이 있어 이 줄의 동작(permit)은 적용되지 않습니다.` 및 `3번 줄 · 중복 — 지워도 4번 줄에서 같은 동작이 적용됩니다.`를 확인했다. 앞 두 줄의 permit/deny 순서를 바꾸면 `동작(deny)은 적용되지 않습니다.`다. 375에서 마지막 중복 deny를 뺀 입력도 판정하여 `3번 줄 · 중복 — 지워도 암묵적 deny에서 같은 동작이 적용됩니다.`를 확인했다. `이(가)`·`permit는` 문구 없음.
+- **비교 배너:** 두 폭에서 판정기의 예시01 받은 답 종류를 `내 예상`으로 고르고 판정 → `≠ 내 예상(통과)과 NetProof 계산(막힘)이 다릅니다`. 전용 실습01에서도 통과 예상 선택·판정 후 같은 배너. 판정기 결과를 임시 사례 `QA F6 내 예상 통과 배너`(#5)로 저장해 상세에서도 같은 문구를 확인했다. 기존 합성 사례#1은 `≠ AI 답(통과)과 …`(두 폭), 종류 미선택은 `≠ 받은 답(통과)과 …`(375). 상태 줄도 공용 verdictView 테스트로 AI/내 예상/받은 답 × 통과/막힘 × 엔진 AGREE/DISAGREE 전수 확인했다.
+- **로그인 안내:** 합성 qa_author로 실제 로그인 폼 제출. 두 폭에서 `#/login` → `qa_author 계정으로 로그인돼 있습니다`.
+- **계정 삭제 안내:** 1280에서 `계정과 내가 저장한 사례 4건이 함께 지워지고 되돌릴 수 없습니다.`; 임시 사례를 한 건 추가한 후 375에서 `사례 5건이`를 확인했다. 실제 계정 삭제·비밀번호 변경은 실행하지 않았다. 개수 미확인 `사례가`와 0/4건은 SSR 테스트로만 검증했으며 브라우저 오류 주입 검증으로 주장하지 않는다.
+- 검증 탭의 console error0. RAM 전달 헬퍼의 첫 연결 시도는 실패/timeout으로 중단돼 해당 임시 서버를 정상 종료한 뒤 새 환경에서 로그인 QA를 끝냈다(앱 오류가 아님).
+- 저장소 밖 캡처: `C:/Users/dora2/.codex/visualizations/judge-notice-1280.png`, `judge-notice-375.png`(비밀값 없음). 탭 닫음·viewport reset·RAM 자격 참조 폐기. 두 서버 정상 종료·임시 폴더 removed=True·4869/4870 listen0 확인. 초기 브라우저 탭은 연결 복구 시 이미 닫혀 있었다. 기존 사용자 탭·DB는 변경하지 않았다.
+- 실제 휴대폰·스크린리더·PostgreSQL 실연결·다크는 이번 범위에서 미검증. 사용자 수동 QA A/B/C는 완료로 표시하지 않고 대기를 유지한다.
+
+### 네 명령 실제 전체 출력
+
+- 서버 테스트 프로세스에서 DATABASE_URL·NETPROOF_TEST_DATABASE_URL을 제거하고 fixture의 임시 SQLite만 사용했다. 값은 출력하지 않았다.
+
+### engine
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 3.34s
+```
+
+### server
+
+```text
+cd server && ../.venv/Scripts/python -m pytest -q
+.......................................................................s [ 69%]
+...............................                                          [100%]
+102 passed, 1 skipped in 20.96s
+```
+
+### web
+
+```text
+npm --prefix web test
+
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  27 passed (27)
+      Tests  364 passed (364)
+   Start at  02:35:36
+   Duration  810ms (transform 67%, import 22%, tests 8%, worker 4%)
+
+  Transform  transforming modules took 5.00s · 67% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### build
+
+```text
+npm --prefix web run build
+
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 56 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-DXu01Xp7.css                            80.45 kB │ gzip:  22.44 kB
+dist/assets/index-DCgNaWia.js                            340.20 kB │ gzip: 102.55 kB
+
+✓ built in 313ms
+```
+
+- 다음 차례: **리뷰(Claude)**. 승인 문구·hasCurrentInput 사용·새 테스트와 실제 브라우저 근거를 독립 확인한다. 사용자 병합 결정 전이며 병합하지 않는다.
+
+Codex (GPT-5)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #30 휴대폰 구성 접기 + 실습 후속 (병합 완료, `63515a6`)**: 900px 이하에서 실습 ②와 사례 상세 네트워크 구성을 CSS 접기(`.mobile-fold`, 넓은 화면은 요약 줄 숨김·펼침), `입력에서 보기`는 접기를 먼저 엶. F19 안내 뒤 ② 제목 포커스, F20 바뀐 것 없는 처음 상태로 무시, F21 실습 삭제 되돌리기, F22 홈 문구, F23 옛 문서 정리. R1(사용자 결정)으로 폭 360 대응: 요약 줄에서 확인할 것 개수 뺌, ③ 안내 `예상은 계산에 쓰지 않고 비교만 합니다.`, 휴대폰 실습 간격. Claude 재리뷰 PASS(360×800·375×812 실습 01·02·03의 ③ 제목·라디오·안내가 고정 줄 위, 1280 무변화).
@@ -179,11 +374,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② PR #27 `2ad04a0`, QA 서버 동시 연결 PR #28 `8268789`. 수동 QA는 사람 대기.
 - [x] **실습 화면 + 라이트 기본(프로그래머스 벤치마크, 2차 설계)** — ①② PR #29 병합(`f034bff`).
 - [x] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② PR #30 병합(`63515a6`).
-- [ ] **판정기 알림·조사 정리(F5·F6)** — ② **설계 완료, 사용자 승인 대기 — 브랜치 codex/judge-notice**
+- [ ] **판정기 알림·조사 정리(F5·F6)** — ② **승인9920378 구현·테스트 완료 → 리뷰(Claude) — 브랜치 codex/judge-notice, 병합 전**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex(사용자 승인 뒤):** `codex/judge-notice`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~5) 범위 안에서만 구현·테스트한다. 조사 자동 판별 함수는 만들지 않고 2절 표의 문장대로 바꾼다. 승인 전이면 멈춘다.
+- **Claude(리뷰):** `codex/judge-notice`의 작업 정의1)~5) diff·실제 출력·브라우저 기록을 독립 확인한다. F5 hasCurrentInput 기준·되돌리기 경계, F6 표의 문장만 변경·비교는 엔진 응답만 사용, 자동 조사 함수 없음, 엔진·서버 메시지 불변을 확인한다. 병합은 사용자 결정이다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 화면은 verify만 부르고 비교를 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.

@@ -111,7 +111,7 @@ export function App() {
   else if (route.page === "login")
     page = user ? (
       <section className="panel narrow">
-        <h2>{user.nickname}으로 로그인돼 있습니다</h2>
+        <h2>{user.nickname} 계정으로 로그인돼 있습니다</h2>
         <p className="hint">
           <a href="#/cases">사례 게시판</a>으로 가거나 <a href="#/">판정기</a>로 돌아가세요.
         </p>

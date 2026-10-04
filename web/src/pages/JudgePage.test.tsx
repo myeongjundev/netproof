@@ -2,19 +2,21 @@ import { createElement, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { JudgePage, acceptJudgeImport, focusJudgeResult } from "./JudgePage";
 import { FlowForm } from "../components/FlowForm";
-import { blankDraft, toNetwork } from "../draft";
+import { NetworkEditor } from "../components/NetworkEditor";
+import { SettingsPage } from "./SettingsPage";
+import { blankDraft, fromCase, toNetwork } from "../draft";
 import { api } from "../api";
 import type { CaseItem, Draft } from "../types";
 
 // SSR는 문구를, 훅 단위 하네스는 실제 load/restore 콜백을 검사한다.
 // DOM·포커스·React 생명주기 통합 검증은 별도 실제 브라우저 QA에서 한다.
-const fixture = vi.hoisted(() => ({ items: null as CaseItem[] | null, controller: false,
+const fixture = vi.hoisted(() => ({ items: null as CaseItem[] | null, controller: false, caseCount: undefined as number | undefined,
   states: [] as unknown[], refs: [] as { current: unknown }[], effects: [] as (() => unknown)[], stateIndex: 0, refIndex: 0 }));
 vi.mock("react", async () => {
   const actual = await vi.importActual<typeof import("react")>("react");
   return { ...actual,
     useState: (initial: unknown) => {
-      if (!fixture.controller) return actual.useState(Array.isArray(initial) && initial.length === 0 && fixture.items ? fixture.items : initial);
+      if (!fixture.controller) return actual.useState(initial === null && fixture.caseCount !== undefined ? fixture.caseCount : Array.isArray(initial) && initial.length === 0 && fixture.items ? fixture.items : initial);
       const index = fixture.stateIndex++;
       if (!(index in fixture.states)) fixture.states[index] = typeof initial === "function" ? initial() : initial;
       return [fixture.states[index], (value: unknown) => { fixture.states[index] = typeof value === "function" ? value(fixture.states[index]) : value; }];
@@ -26,7 +28,7 @@ vi.mock("react", async () => {
   };
 });
 afterEach(() => {
-  fixture.items = null; fixture.controller = false; fixture.states = []; fixture.refs = []; fixture.effects = [];
+  fixture.items = null; fixture.controller = false; fixture.caseCount = undefined; fixture.states = []; fixture.refs = []; fixture.effects = [];
   vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
@@ -35,6 +37,87 @@ function find(node: unknown, test: (item: ReactElement<Record<string, any>>) => 
   if (!isValidElement<Record<string, any>>(node)) return;
   return test(node) ? node : find(node.props.children, test);
 }
+
+// 실제 컴포넌트의 load 콜백을 재호출한다. DOM 생명주기는 브라우저 QA가 맡는다.
+function judgeHarness(initial: Draft, items: CaseItem[]) {
+  fixture.controller = true; fixture.states = [items];
+  let draft = structuredClone(initial);
+  const render = (pendingImport?: { draft: Draft; label: string }) => {
+    fixture.stateIndex = 0; fixture.refIndex = 0; fixture.effects = [];
+    return JudgePage({ user: null, draft, setDraft: update => { draft = update(draft); }, pendingImport });
+  };
+  return { render, current: () => draft };
+}
+function example(id = "synthetic-01"): CaseItem {
+  const draft = blankDraft(); draft.flow.dst_port = 22;
+  return { id, title: "풀이 제목은 알림에 쓰지 않음", source: "test", network: toNetwork(draft), flow: draft.flow };
+}
+function exampleButton(tree: unknown, number = "01") {
+  return find(tree, item => item.type === "button" && Array.isArray(item.props.children) && item.props.children[1] === number)!;
+}
+
+it.each([[undefined, "사례가"], [0, "사례 0건이"], [4, "사례 4건이"]] as const)("계정 삭제 안내는 사례 개수 %s에 맞는 고정 조사다", (count, words) => {
+  fixture.caseCount = count;
+  const html = renderToStaticMarkup(createElement(SettingsPage, { user: { id: 1, nickname: "qa_author", role: "user", role_name: "동기" }, onUser: () => {}, onSignedOut: () => {} }));
+  expect(html).toContain(`계정과 내가 저장한 ${words} 함께 지워지고 되돌릴 수 없습니다.`);
+  expect(html).not.toContain("사례이 함께");
+});
+
+it.each(["예시", "처음 구성", "JSON", "가져오기"])("손대지 않은 빈 템플릿의 %s 불러오기는 되돌리기 알림이 없다", channel => {
+  const item = example(); const harness = judgeHarness(blankDraft(), [item]);
+  let tree = harness.render();
+  if (channel === "예시") exampleButton(tree).props.onClick();
+  else if (channel === "처음 구성") find(tree, node => node.type === "button" && node.props.children === "처음 구성")!.props.onClick();
+  else if (channel === "JSON") {
+    find(tree, node => node.type === "textarea" && !node.props.readOnly)!.props.onChange({ target: { value: JSON.stringify(item) } });
+    tree = harness.render();
+    find(tree, node => node.type === "button" && node.props.children === "불러오기")!.props.onClick();
+  } else {
+    const pendingImport = { draft: fromCase(item), label: "실습 구성" };
+    vi.spyOn(api, "examples").mockResolvedValue([item]);
+    harness.render(pendingImport);
+    fixture.effects.forEach(effect => effect());
+  }
+  expect(find(harness.render(), node => node.props.className === "undo-notice")).toBeUndefined();
+  if (channel !== "처음 구성") expect(harness.current().flow.dst_port).toBe(22);
+});
+
+it.each(["포트", "받은 답"])("%s만 바꿔도 불러오기 알림이 뜨고 되돌리기는 원래 입력을 복구한다", change => {
+  const draft = blankDraft();
+  if (change === "포트") draft.flow.dst_port = 8443;
+  else draft.claim.expected = "PASS";
+  const harness = judgeHarness(draft, [example()]);
+  exampleButton(harness.render()).props.onClick();
+  const tree = harness.render();
+  expect(find(tree, node => node.props.className === "undo-notice")).toBeDefined();
+  find(tree, node => node.type === "button" && node.props.children === "되돌리기")!.props.onClick();
+  expect(harness.current()).toEqual(draft);
+});
+
+it("입력이 있어도 같은 예시를 다시 불러오면 알림이 없다", () => {
+  const item = example(); const harness = judgeHarness(fromCase(item), [item]);
+  exampleButton(harness.render()).props.onClick();
+  expect(find(harness.render(), node => node.props.className === "undo-notice")).toBeUndefined();
+});
+
+it.each([
+  ["01", "HTTPS와 입력 ACL 예시를 불러왔습니다"],
+  ["02", "왕복 경로 예시를 불러왔습니다"],
+  ["03", "출력 ACL 예시를 불러왔습니다"],
+  ["04", "예시(04)를 불러왔습니다"],
+])("예시 %s 알림은 승인된 주제/번호 문구다", (number, label) => {
+  const draft = blankDraft(); draft.flow.dst_port = 8443;
+  const harness = judgeHarness(draft, [example(`synthetic-${number}`)]);
+  exampleButton(harness.render(), number).props.onClick();
+  expect(find(harness.render(), node => node.type === "span" && Array.isArray(node.props.children) && node.props.children.join("") === `${label}.`)).toBeDefined();
+});
+
+it.each([["102", "102 ACL을 삭제했습니다"], ["", "ACL을 삭제했습니다"], ["   ", "ACL을 삭제했습니다"]])("ACL 이름 %s 삭제 문구", (name, label) => {
+  const onBeforeRemove = vi.fn(); const onAcls = vi.fn();
+  const tree = NetworkEditor({ devices: [], acls: [{ name, text: "" }], onDevices: () => {}, onAcls, onBeforeRemove });
+  find(tree, node => node.type === "button" && node.props["aria-label"] === `ACL ${name} 삭제`)!.props.onClick();
+  expect(onBeforeRemove).toHaveBeenCalledWith(label); expect(onAcls).toHaveBeenCalledWith([]);
+});
 
 it("예시 조회 상태를 넣은 SSR 단추는 결론 대신 주제 이름만 쓴다", () => {
   const draft = blankDraft();

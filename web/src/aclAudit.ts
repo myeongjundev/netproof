@@ -4,9 +4,9 @@ export function auditLineText(line: AuditLine): string | null {
   const prefix = `${line.line}번 줄`;
   const by = line.by.map((n) => `${n}번`).join(" · ");
   switch (line.finding) {
-    case "shadowed": return `${prefix} · 가려짐 — ${by} 줄이 먼저 잡고, 그중 동작이 반대인 줄이 있어 이 줄의 ${line.action}는 적용되지 않습니다.`;
+    case "shadowed": return `${prefix} · 가려짐 — ${by} 줄이 먼저 잡고, 그중 동작이 반대인 줄이 있어 이 줄의 동작(${line.action})은 적용되지 않습니다.`;
     case "redundant_earlier": return `${prefix} · 중복 — ${by} 줄이 같은 동작으로 먼저 잡습니다. 지워도 결과가 같습니다.`;
-    case "redundant_later": return `${prefix} · 중복 — 지워도 ${[by ? `${by} 줄` : "", line.implicit_deny ? "암묵적 deny" : ""].filter(Boolean).join(" · ")}이(가) 같은 동작을 합니다.`;
+    case "redundant_later": return `${prefix} · 중복 — 지워도 ${[by ? `${by} 줄` : "", line.implicit_deny ? "암묵적 deny" : ""].filter(Boolean).join(" · ")}에서 같은 동작이 적용됩니다.`;
     case "never_matches": return `${prefix} · 일치 불가 — 이 줄에 맞는 패킷이 없습니다(포트 1~65535, ICMP 종류 0~255 기준).`;
     case "undetermined": return `${prefix} · 점검 못 함 — ${line.undetermined_reason === "unread_below" ? "아래 해석하지 못한 줄 때문에 판단할 수 없습니다." : "계산 한도를 넘었습니다."}`;
     default: return null;

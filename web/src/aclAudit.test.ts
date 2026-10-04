@@ -12,6 +12,19 @@ function result(lines: AuditLine[], unchecked: number | null = null): AclAudit {
 }
 
 describe("ACL audit presentation", () => {
+  it.each(["permit", "deny"] as const)("가려짐 동작 %s는 고정 조사로 표시한다", action => {
+    expect(auditLineText(line({ finding: "shadowed", action, by: [1, 2] }))).toBe(
+      `3번 줄 · 가려짐 — 1번 · 2번 줄이 먼저 잡고, 그중 동작이 반대인 줄이 있어 이 줄의 동작(${action})은 적용되지 않습니다.`);
+  });
+  it.each([
+    [[4, 5], false, "4번 · 5번 줄"],
+    [[], true, "암묵적 deny"],
+    [[4], true, "4번 줄 · 암묵적 deny"],
+  ] as const)("뒤쪽 중복 %s / implicit=%s는 적용되는 곳을 표시한다", (by, implicit_deny, where) => {
+    const text = auditLineText(line({ finding: "redundant_later", by: [...by], implicit_deny }));
+    expect(text).toBe(`3번 줄 · 중복 — 지워도 ${where}에서 같은 동작이 적용됩니다.`);
+    expect(text).not.toContain("이(가)");
+  });
   it.each([
     ["shadowed", "가려짐"], ["redundant_earlier", "같은 동작으로 먼저"],
     ["redundant_later", "지워도"], ["never_matches", "포트 1~65535"], ["undetermined", "계산 한도"],

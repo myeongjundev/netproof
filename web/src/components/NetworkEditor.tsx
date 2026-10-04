@@ -252,7 +252,7 @@ export function NetworkEditor({ devices, acls, onDevices, onAcls, aclInputRef, o
               type="button"
               className="ghost danger"
               aria-label={`ACL ${acl.name} 삭제`}
-              onClick={() => { onBeforeRemove?.(`ACL ${acl.name}을 삭제했습니다`); onAcls(acls.filter((_, i) => i !== a)); }}
+              onClick={() => { onBeforeRemove?.(`${acl.name.trim() ? `${acl.name.trim()} ` : ""}ACL을 삭제했습니다`); onAcls(acls.filter((_, i) => i !== a)); }}
             >
               삭제
             </button>
