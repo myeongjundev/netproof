@@ -296,11 +296,6 @@ p .meta { display: inline; }
 .mismatch-link { margin-left: 8px; }
 .save-row { display: flex; gap: 8px; }
 .save-row label { flex: 1; }
-.practice-list { margin-top: 12px; }
-.practice-list summary { cursor: pointer; padding: 12px 0; }
-.practice-guide { margin-bottom: 16px; overflow-wrap: anywhere; }
-.practice-guide ul { padding-left: 20px; }
-.practice-list button { white-space: normal; text-align: left; }
 .observation { min-width: 0; }
 .observation summary { cursor: pointer; padding: 12px 0; }
 .observation textarea { max-width: 100%; }
@@ -454,14 +449,34 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .path-strip-small .path-node { font-size: 12px; }
 .path-strip-small .path-acl { font-size: 11px; padding: 3px; }
 .path-strip-small .path-roundtrip { font-size: 12px; }
-.practice-entry { display: grid; gap: 10px; }
-.practice-entry .hint { margin: 0; }
-.practice-entry .practice-guess { display: flex; flex-wrap: wrap; gap: 4px 12px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px 8px; min-width: 0; }
+.practice-page { display: grid; gap: 16px; min-width: 0; }
+.practice-breadcrumb { font-size: 13px; color: var(--muted); }
+.practice-problem { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+.practice-problem h1 { font-size: 25px; line-height: 1.3; margin: 4px 0 8px; }
+.practice-question { font-size: 16px; font-weight: 600; }
+.practice-problem .hint { margin-top: 6px; }
+.practice-problem .path-strip { min-width: 0; }
+.practice-intro { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--gray-bg); border-radius: 8px; font-size: 13px; }
+.practice-intro p { flex: 1; }
+.practice-intro button { flex: 0 0 auto; min-height: 44px; }
+.practice-config { min-width: 0; }
+.practice-config h2 { font-size: 18px; }
+.practice-check-title { font-size: 14px; margin-top: 8px; }
+.practice-checkpoints { margin: 4px 0 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
+.practice-prediction { padding: 14px 16px; }
+.practice-guess { display: flex; flex-wrap: wrap; gap: 4px 12px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .practice-guess legend { padding: 0 4px; font-size: 14px; }
 .practice-guess label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; font-size: 14px; }
 .practice-guess input { width: auto; margin: 0; }
-.practice-entry button, .practice-entry > a { justify-self: start; min-height: 44px; }
-.home-page a:focus-visible, .learning-page a:focus-visible, .app-header a:focus-visible, .practice-entry a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.practice-import button { min-height: 44px; }
+.home-page a:focus-visible, .learning-page a:focus-visible, .app-header a:focus-visible, .practice-page a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 900px) {
+  .practice-problem { grid-template-columns: 1fr; gap: 10px; }
+  .practice-problem h1 { font-size: 23px; }
+  .practice-intro { align-items: flex-start; flex-wrap: wrap; }
+  .practice-intro p { flex-basis: 100%; }
+  .main:has(.practice-page) { padding-left: 16px; padding-right: 16px; }
+}
 @media (max-width: 1100px) { .app-header .brand span { display: none; } }
 @media (max-width: 960px) {
   .app-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }

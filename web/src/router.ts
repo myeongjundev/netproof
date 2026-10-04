@@ -4,7 +4,8 @@ import { lessonById, lessonByCaseId } from "./learning";
 export type Route =
   | { page: "home" }
   | { page: "learn"; lessonId?: string }
-  | { page: "judge"; share?: string; practiceId?: string }
+  | { page: "judge"; share?: string }
+  | { page: "practice"; caseId: string }
   | { page: "matrix" }
   | { page: "login" }
   | { page: "cases"; query?: string }
@@ -20,7 +21,7 @@ export function parseRoute(hash: string): Route {
   if (path === "/home") return { page: "home" };
   if (path === "/learn") return { page: "learn" };
   if (path.startsWith("/learn/") && lessonById(path.slice(7))) return { page: "learn", lessonId: path.slice(7) };
-  if (path.startsWith("/practice/") && lessonByCaseId(path.slice(10))) return { page: "judge", practiceId: path.slice(10) };
+  if (path.startsWith("/practice/") && lessonByCaseId(path.slice(10))) return { page: "practice", caseId: path.slice(10) };
   if (path === "/") return { page: "judge" };
   if (path === "/matrix") return { page: "matrix" };
   if (path.startsWith("/s/") && path.length > 3) return { page: "judge", share: path.slice(3) };

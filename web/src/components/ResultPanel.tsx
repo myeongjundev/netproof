@@ -130,17 +130,19 @@ interface Props {
   loading: boolean;
   network?: Network | null;
   onShowAcl?: (acl: string, line: number | null) => void;
+  title?: string;
+  emptyHint?: string;
 }
 
-export function ResultPanel({ verdict, claim, stale, error, loading, network, onShowAcl }: Props) {
+export function ResultPanel({ verdict, claim, stale, error, loading, network, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
   const banner = comparisonBanner(verdict, claim);
   const cannotCompare = verdict?.result === "INVALID" || verdict?.result === "UNSUPPORTED";
   return (
     <section className="panel result" aria-labelledby="result-title" aria-busy={loading}>
       <p className="sr-only" role="status">{statusLine(verdict, claim, loading)}</p>
-      <h2 id="result-title">판정</h2>
+      <h2 id="result-title">{title}</h2>
       {error && <p className="error">{error}</p>}
-      {!verdict && !error && <p className="hint">구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다.</p>}
+      {!verdict && !error && <p className="hint">{emptyHint}</p>}
       {verdict && (
         <>
           {stale && <><p className="previous-result">이전 결과</p><p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p></>}

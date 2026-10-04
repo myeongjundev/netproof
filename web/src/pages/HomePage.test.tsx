@@ -60,10 +60,28 @@ it.each([
   const draft = blankDraft(); draft.flow.dst_port = 444;
   const before = JSON.stringify(draft);
   const html = renderToStaticMarkup(createElement(HomePage, { draft, user: null, checked: true, onGuess: () => {}, practiceCaseId }));
-  expect(html).toContain(started ? `${started} 실습에서 시작한 입력` : "네트워크 설정 검증 실습실");
+  expect(html).toContain(started ? `${started} 실습` : "네트워크 설정 검증 실습실");
   expect(html).toContain(`다음 실습: ${next}</h2>`);
   expect(html).not.toMatch(/expect|정답|NetProof 계산 통과|NetProof 계산 막힘/);
   expect(JSON.stringify(draft)).toBe(before);
+});
+it.each(["practice-only", "judge-only", "both"])("이어서 하기 입력·주소는 실습과 판정기를 구분한다: %s", mode => {
+  const draft = blankDraft();
+  if (mode !== "practice-only") draft.flow.dst_port = 8443;
+  const practiceDraft = blankDraft(); practiceDraft.flow.dst_port = 22;
+  const practiceCaseId = mode === "judge-only" ? null : "synthetic-03";
+  const html = renderToStaticMarkup(createElement(HomePage, { draft, practiceDraft, practiceCaseId, user: null, checked: true, onGuess: () => {} }));
+  const hero = html.split("</section>")[0];
+  if (practiceCaseId) {
+    expect(hero).toContain("하던 실습이 있어요");
+    expect(hero).toContain('href="#/practice/synthetic-03">실습 이어서 하기');
+    expect(hero).toContain("TCP 22"); expect(hero).not.toContain("TCP 8443");
+    expect(hero.includes("판정기 입력 이어서 하기")).toBe(mode === "both");
+  } else {
+    expect(hero).toContain("작성하던 입력이 있어요");
+    expect(hero).toContain('href="#/">이어서 하기');
+    expect(hero).toContain("TCP 8443"); expect(hero).not.toContain("TCP 22");
+  }
 });
 it("홈은 계정명이나 사례 내용을 싣지 않고 주제별 구성도와 같은 동작명을 쓴다", () => {
   const user: User = { id: 1, nickname: "private-nickname", role: "user", role_name: "사용자" };

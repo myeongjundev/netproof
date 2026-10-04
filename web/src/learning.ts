@@ -1,5 +1,5 @@
 import { EMPTY_CLAIM, fromCase } from "./draft";
-import { PRACTICE, type PracticeTask } from "./practice";
+import { PRACTICE } from "./practice";
 import type { CaseItem, Draft } from "./types";
 
 export type PracticeGuess = "PASS" | "DENY";
@@ -66,8 +66,4 @@ export function practiceEntry(id: string, examples: CaseItem[], status: ExampleS
 /** 명시적으로 실습을 시작할 때만 호출한다. 예시의 답과 expect는 입력으로 옮기지 않는다. */
 export function practiceDraft(example: CaseItem, guess?: PracticeGuess): Draft {
   return { ...fromCase(example), claim: guess ? { expected: guess, kind: "self", source: "", text: "" } : { ...EMPTY_CLAIM } };
-}
-
-export function practiceStartLabel(task: PracticeTask): string {
-  return `${task.title.replace(/^실습 · /, "")} 실습을 시작했습니다`;
 }

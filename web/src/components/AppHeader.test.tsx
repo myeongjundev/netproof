@@ -4,6 +4,11 @@ import { AppHeader } from "./AppHeader";
 import type { User } from "../types";
 
 const user: User = { id: 1, nickname: "동기", role: "user", role_name: "사용자" };
+it("실습 화면은 학습실 탭만 현재 화면으로 표시한다", () => {
+  const html = renderToStaticMarkup(createElement(AppHeader, { route: { page: "practice", caseId: "synthetic-01" }, user: null, checked: true, onLogout: () => {} }));
+  expect(html).toContain('href="#/learn" class="tab on" aria-current="page"');
+  expect(html).not.toContain('href="#/" class="tab on"');
+});
 it("첫 헤더는 홈 로고·학습실·기존 판정기와 접힌 메뉴를 제공한다", () => {
   const html = renderToStaticMarkup(createElement(AppHeader, { route: { page: "home" }, user: null, checked: true, onLogout: () => {} }));
   expect(html).toContain('href="#/home"');

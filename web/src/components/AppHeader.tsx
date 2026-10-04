@@ -14,7 +14,7 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
     <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}>NetProof <span>Verify before you trust.</span></a>
     <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}>메뉴</button>
     <nav id={menuId} className={`tabs header-nav${open ? " is-open" : ""}`} aria-label="주요 화면">
-      {tab("학습실", "#/learn", route.page === "learn")}
+      {tab("학습실", "#/learn", route.page === "learn" || route.page === "practice")}
       {tab("판정기", "#/", route.page === "judge")}
       {tab("정책 검증", "#/matrix", route.page === "matrix")}
       {tab("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}
