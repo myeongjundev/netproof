@@ -8,7 +8,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
   if (lesson) return <div className="learning-page">
     <article className="panel learning-detail" aria-labelledby="lesson-title">
       <div className="home-section-head"><div><p className="home-eyebrow">학습실 · 연습용 네트워크</p><h1 id="lesson-title">{lesson.title}</h1></div><a href="#/home">홈으로</a></div>
-      <p className="learning-question">{lesson.task.question}</p><PathStrip {...lesson.path} outside />
+      <p className="learning-question">이 실습에서 볼 것: {lesson.focus}</p><PathStrip {...lesson.path} outside />
       <GuessPuzzle lesson={lesson} heading="h2" onGuess={onGuess} primary />
       <div className="home-actions"><a href={`#/practice/${lesson.caseId}`}>예상 없이 판정기에서 열기</a></div>
       <p className="home-caption">이동만으로는 지금 입력이 바뀌지 않습니다.</p>

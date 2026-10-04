@@ -9,7 +9,7 @@ it("목록의 세 연습 주제는 축소 구성도와 상세 링크를 보인�
   expect(html.match(/path-strip-small/g)).toHaveLength(3);
   for (const lesson of LESSONS) expect(html).toContain(lesson.title);
 });
-it.each(LESSONS)("$id는 제목→질문→구성도→판정기 링크→설명→다른 주제다", lesson => {
+it.each(LESSONS)("$id는 제목→부제→구성도→예상 질문→판정기 링크→설명→다른 주제다", lesson => {
   const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: lesson.id, onGuess: () => {} }));
   expect(html).toContain(`<h1 id="lesson-title">${lesson.title}</h1>`); expect(html.match(/<h1\b/g)).toHaveLength(1);
   expect(html).toContain(`href="#/practice/${lesson.caseId}"`); expect(html).toContain("판정기에서 열기");
@@ -18,6 +18,10 @@ it.each(LESSONS)("$id는 제목→질문→구성도→판정기 링크→설명
   expect(html.indexOf('class="path-strip path-strip-bounded"')).toBeLessThan(html.indexOf("먼저 예상해 보세요"));
   expect(html.indexOf("막힐 것 같다")).toBeLessThan(html.indexOf("예상 없이 판정기에서 열기"));
   expect(html).toContain(lesson.guessPrompt); expect(html).toContain("NetProof 계산 범위");
+  expect(html).toContain(`이 실습에서 볼 것: ${lesson.focus}`);
+  expect(html).not.toContain(lesson.task.question);
+  expect(html.split(lesson.guessPrompt)).toHaveLength(2);
+  expect(html.match(/\?/g)).toHaveLength(1);
   expect(html.indexOf("판정기에서 열기")).toBeLessThan(html.indexOf("개념</h2>"));
   expect(html.indexOf("개념</h2>")).toBeLessThan(html.indexOf("쉬운 비유</h2>"));
   const headings = [...html.matchAll(/<h([1-6])\b[^>]*>(.*?)<\/h\1>/g)].map(([, level, title]) => [level, title]);

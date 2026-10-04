@@ -9,6 +9,15 @@ import learningSource from "./learning.ts?raw";
 
 const example: CaseItem = { id: "synthetic-01", source: "synthetic", network: toNetwork(blankDraft()), flow: blankDraft().flow, claim: { expected: "DENY", text: "not an answer to copy", source: "test", kind: "ai" }, expect: { result: "DENY" } } as CaseItem;
 
+it("세 부제는 질문·정답 없이 볼 범위만 적는다", () => {
+  expect(LESSONS.map(lesson => lesson.focus)).toEqual([
+    "입력 ACL이 HTTPS 통신에 어떻게 적용되는지",
+    "가는 길과 돌아오는 길이 모두 있는지",
+    "출력 ACL이 나가는 패킷에 어떻게 적용되는지",
+  ]);
+  for (const lesson of LESSONS) expect(lesson.focus).not.toMatch(/\?|PASS|DENY|정답/);
+});
+
 it("다음 실습은 01→02→03→01로 순환하고 없는 맥락은 01이다", () => {
   expect(LESSONS.map(lesson => nextLesson(lesson.caseId).caseId)).toEqual(["synthetic-02", "synthetic-03", "synthetic-01"]);
   for (const id of [null, undefined, "unknown"]) expect(nextLesson(id)).toBe(LESSONS[0]);

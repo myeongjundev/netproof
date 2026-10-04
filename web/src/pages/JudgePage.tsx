@@ -12,6 +12,7 @@ import { practiceTasks, type PracticeTask } from "../practice";
 import { lessonByCaseId, practiceDraft, practiceEntry, practiceStartLabel, type ExampleStatus, type PracticeGuess } from "../learning";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
+import { scrollTo } from "../motion";
 import type { CaseItem, Claim, Draft, Network, User, Verdict } from "../types";
 import type { AclAudit as AuditResult } from "../types";
 
@@ -43,8 +44,26 @@ export function focusJudgeResult(isCurrent: () => boolean) {
     if (!heading) return;
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });
-    if (window.matchMedia("(max-width: 900px)").matches) heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (window.matchMedia("(max-width: 900px)").matches) scrollTo(heading);
   });
+}
+
+/** 불러오기 후 카드가 사라져도 초점은 실습 안내 제목에 남긴다. */
+export function focusPractice(isCurrent: () => boolean) {
+  requestAnimationFrame(() => {
+    if (!isCurrent()) return;
+    const heading = document.getElementById("practice-title");
+    if (!heading) return;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+    if (window.matchMedia("(max-width: 900px)").matches) scrollTo(heading);
+  });
+}
+
+export function practiceHint(claim: Claim) {
+  return claim.expected
+    ? "정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다."
+    : "정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.";
 }
 
 export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeGuessChange, onPracticeLoaded, onPracticeContextChange, titleHint }: Props) {
@@ -179,6 +198,8 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
       window.history.replaceState(null, "", "#/");
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     }
+    const loaded = revision.current;
+    focusPractice(() => loaded === revision.current);
   };
 
   useEffect(() => {
@@ -290,7 +311,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     if (!range) return;
     element.focus({ preventScroll: true });
     element.setSelectionRange(range.start, range.end);
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollTo(element, "center");
   };
 
   const save = async () => {
@@ -382,7 +403,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
           <p>{task.question}</p>
           <h3>확인할 점</h3>
           <ul>{task.checkpoints.map((point) => <li key={point}>{point}</li>)}</ul>
-          <p className="hint">정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.</p>
+          <p className="hint">{practiceHint(draft.claim)}</p>
         </section>
       )}
 

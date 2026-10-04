@@ -22,8 +22,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - **수동 QA: QA 준비 도구 + 체크리스트.** 클릭과 판단은 사람이 한다. 도구는 임시 DB·합성 계정·합성 사례·로컬 서버만 준비한다. PR #20 항목에 최근 홈·실습 흐름을 더한다.
   - **F17: 학습 상세의 개념 질문은 부제로.** 질문 문장은 예상 질문 하나만 남긴다.
 - 브랜치: `codex/followup-qa`(origin/main `11c6ac2` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 → 사용자 수동 QA.**
-- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- 설계 승인: **사용자 승인 완료(`231b943`).**
+- 단계: **Codex 구현·자동 테스트 및 도구 실행 확인 → Claude 리뷰 → 사용자 병합 → 사용자 수동 QA.** reduced-motion 브라우저 에뮬레이션은 도구 지원 부재로 미확인(아래 기록).
+- 다음 차례: **리뷰(Claude).** 수동 QA A·B·C는 사람이 확인하기 전까지 대기다.
 - **판정·엔진은 그대로다.** 엔진·서버 API·저장 데이터·cases JSON·expect를 바꾸지 않는다. QA 도구는 로컬 전용 개발 도구이며 배포물(`api/`, `vercel.json`, 서버 앱)에 연결하지 않는다.
 
 ## 작업 정의
@@ -99,6 +100,198 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - QA 도구 실제 실행 확인: 실행 → 주소 접속 → 두 계정 로그인 가능 → 사례 4건 보임 → 종료 뒤 임시 폴더 없음. **비밀번호는 기록하지 않는다.** 이 확인은 도구 동작 확인이며 사용자 수동 QA(A·B)를 대신하지 않는다.
 - 브라우저 확인(375·1280): 구성 불러오기 뒤 `activeElement`가 `#practice-title`, 학습 상세 부제, reduced-motion 에뮬레이션에서 스크롤이 즉시 이동.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
+
+## 완료 내용 / 테스트 결과 (2026-10-04 Codex)
+
+- 승인 `231b943`의 작업 정의 1)~8)만 구현. F15 진입 카드·내부 실습 시작 후 실습 제목 포커스(늦은 예약 폐기), F16 공용 reduced-motion 스크롤, F17 부제 세 문장·받은 답 상태별 안내 문구.
+- QA 준비: 항상 새 OS 임시 SQLite, DATABASE_URL·PostgreSQL engine options 무시, SECURE_COOKIES=False, 127.0.0.1 고정, debug/reloader 없음. 두 계정·합성 사례 4건은 기존 API로 생성하고 판정은 기존 엔진에 맡김. 배포 앱·설정과 연결하지 않음.
+- 자동 회귀: 웹 10건·QA 도구 10건 추가. 원래 테스트/엔진/서버 앱/cases JSON/expect/의존성 불변. `git diff --check` 오류 없음.
+- **사용자 수동 QA A·B·C는 대기 유지.** AI는 목록 필터 G2·삭제 기본 확인창 취소를 수행하거나 통과로 표시하지 않았음. computer-use는 아래 F15/F17 구현 화면 확인에만 사용.
+
+### QA 도구 실제 실행 (비밀번호 제외)
+
+- 명령: `.venv/Scripts/python scripts/qa_local.py --port 4860`.
+- 저장소 밖 검증 프로세스가 자식 콘솔의 비밀번호를 메모리에서만 받아 두 계정의 loopback 로그인에 사용. 비밀번호 줄·쿠키·CSRF·응답 본문은 출력·파일·저장소·캡처에 남기지 않음. 아래에는 비밀값 없는 상태 출력만 기록.
+- 가짜 PostgreSQL DATABASE_URL을 설정한 상태에서 실행. HTTP 접속·두 계정 로그인·사례 네 건 조회만 확인(수동 QA 아님). 실제 CLI 정상 종료·임시 폴더 삭제·포트 listen 없음 확인. Windows Ctrl+Break와 Ctrl+C는 같은 정리 경로이며, 단위 테스트에서 KeyboardInterrupt 정리도 확인.
+
+```text
+GET /: 200
+qa_author: login 200, role=user
+qa_author: cases=4, QA prefix=True
+qa_reviewer: login 200, role=reviewer
+qa_reviewer: cases=4, QA prefix=True
+DATABASE_URL fake PostgreSQL ignored; temporary SQLite exists=True
+Credentials: console pipe/RAM only; omitted from this verification output.
+READY FOR UI CHECKS; manual A/B remain pending.
+Exit code=0; temporary directory removed=True
+QA listen count after shutdown: 0
+```
+
+### 브라우저 확인 — 구현 변경만 (375×812·1280×800)
+
+- Codex in-app browser, `http://127.0.0.1:4860/`, 라이트. A·B 체크리스트 미실행, 기본 확인창 대체/우회 없음.
+- 375: 학습01 부제 `이 실습에서 볼 것: 입력 ACL이 HTTPS 통신에 어떻게 적용되는지` 표시, 예상 질문 하나. 예상 선택→진입 카드→구성 불러오기 후 `document.activeElement.id=practice-title`. 제목으로 스크롤하여 보임. 페이지 내부 `실습 · 왕복 경로 · 시작`도 activeElement=practice-title.
+- 1280: 동일 부제·질문 하나. 예상 없이 진입→직접 불러오기 후 activeElement=practice-title, scrollY 불러오기 전후 0→0(넓은 화면 preventScroll). 페이지 내부 `실습 · 출력 ACL · 시작`도 activeElement=practice-title, scrollY=0. 받은 답 있음/없음 두 안내 문구 확인.
+- **reduced-motion 에뮬레이션 브라우저 검증 미확인:** 현재 브라우저가 제공하는 capability는 visibility·viewport뿐이며 탭도 pageAssets·webmcp만 제공. 미디어 에뮬레이션 API 없음. 실제 matchMedia(reduce)=false를 확인했으므로 즉시 스크롤 PASS로 주장하지 않음. 단위 테스트는 reduce=true→auto, false→smooth 및 ACL center 보존을 확인. Claude 리뷰에서 지원되는 브라우저로 에뮬레이션 재확인이 필요함.
+- 캡처는 저장소 밖 `C:/Users/dora2/.codex/visualizations/followup-qa-2026-10-04/`의 learning-375/1280·practice-focus-375/1280.png. 비밀번호 화면 캡처 없음. 검증 탭 닫음·viewport reset, QA 서버 종료·임시 DB 삭제(재실행하면 새 합성 데이터가 생김).
+
+### 네 명령의 실제 전체 출력
+
+서버 명령은 실행 전 `NETPROOF_TEST_DATABASE_URL`을 프로세스 환경에서 제거해 기존 PostgreSQL 테스트 DB를 건드리지 않음. 모든 exit code 0. skip/xfail은 기존 항목이며 이번에 통과로 바꾸지 않음.
+
+### cd engine && ../.venv/Scripts/python -m pytest -q
+
+```text
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 6.00s
+```
+
+### cd server && ../.venv/Scripts/python -m pytest -q
+
+```text
+.......................................................................s [ 70%]
+..............................                                           [100%]
+101 passed, 1 skipped in 19.19s
+```
+
+### npm --prefix web test
+
+```text
+
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  24 passed (24)
+      Tests  316 passed (316)
+   Start at  19:52:15
+   Duration  1.12s (transform 53%, import 28%, worker 13%, tests 6%)
+
+  Transform  transforming modules took 4.54s · 53% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### npm --prefix web run build
+
+```text
+
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 55 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CThyBs7X.css                            78.95 kB │ gzip:  22.20 kB
+dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101.41 kB
+
+✓ built in 925ms
+```
+
+구현·테스트: Codex (GPT-5).
+
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
@@ -176,18 +369,19 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
 - [x] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② PR #25 병합(`397ee0d`).
 - [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
-- [ ] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **설계 완료, 사용자 승인 대기 — 브랜치 codex/followup-qa**
+- [ ] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **승인231b943 구현·테스트, 리뷰(Claude) 대기 — 브랜치 codex/followup-qa**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex(사용자 승인 뒤):** `codex/followup-qa`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~8) 범위 안에서만 구현·테스트한다. 승인 전이면 멈춘다.
+- **Claude:** `codex/followup-qa`의 작업 정의 1)~8)와 diff·실제 테스트 출력을 독립 리뷰한다. reduced-motion 브라우저 에뮬레이션 미확인 항목도 확인한다. 병합 결정은 사용자다.
 - QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
 - 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
 - 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
 - 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.
 
 ## 사용자 수동 QA 대기 (PR #20 G2·삭제 취소 + 홈·실습 흐름)
-- 이번 과제(`codex/followup-qa`)가 병합되면 `docs/qa-manual.md` 체크리스트와 `scripts/qa_local.py`로 사람이 직접 확인한다. 결과는 사람이 PR 코멘트나 이 절에 적는다.
+- **A(PR #20 G2)·B(실제 기본 확인창 삭제 취소)·C(홈·실습 흐름): 사용자 수동 확인 대기.** 도구 실행 확인과 F15·F17 구현 검증은 수동 QA 통과가 아니다.
+- 병합 뒤 [체크리스트](docs/qa-manual.md)와 `scripts/qa_local.py`로 사람이 직접 확인한다. 결과는 사람이 PR 코멘트나 이 절에 적는다. 비밀번호·쿠키·토큰은 기록하지 않는다.
 - 원칙: 임시 DB·합성 계정/사례만 쓴다. 실제 기본 확인창을 대체·우회하지 않는다. 비밀번호·쿠키·토큰을 기록하지 않는다. 확인한 항목만 완료로 바꾼다.
 - F5·F6(판정기 빈 템플릿 알림, 조사)은 별도 후속이다.
 
@@ -205,4 +399,4 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 후속·수동 QA 준비 설계: Claude (Claude Opus 5.5).
+현재 후속·수동 QA 준비 설계: Claude (Claude Opus 5.5). 구현·테스트: Codex (GPT-5).
