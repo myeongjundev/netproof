@@ -90,3 +90,8 @@ it("홈은 계정명이나 사례 내용을 싣지 않고 주제별 구성도와
   expect(html.match(/path-strip-small/g)).toHaveLength(3); expect(html).toContain("실습 열기");
   expect(html).not.toContain("살펴보기");
 });
+it("하던 실습의 입력이 없으면 준비 중이 아닌 미불러오기 사실을 쓴다", () => {
+  const html = renderToStaticMarkup(createElement(HomePage, { draft: blankDraft(), practiceCaseId: "synthetic-01", user: null, checked: true, onGuess: () => {} }));
+  expect(html).toContain("실습 구성을 아직 불러오지 않았습니다.");
+  expect(html).not.toContain("실습 입력을 준비하고 있습니다.");
+});

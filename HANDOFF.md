@@ -28,8 +28,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 넓은 화면: 닫힌 `<details>`라도 내용이 보이고 입력·포커스가 된다.
   - 휴대폰: 닫혀 있으면 포커스가 안 되고, 연 뒤에는 포커스와 줄 선택이 된다.
 - 브랜치: `codex/mobile-config`(origin/main `f034bff` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
-- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- 단계: **사용자 승인(1a1d610) → Codex 구현·테스트 완료 → Claude 리뷰 대기 → 사용자 병합 결정.**
+- 다음 차례: **리뷰(Claude).** 첫 화면 목표 미달 수치는 숨기지 않고 리뷰에 넘기기로 사용자가 결정했다(2026-10-05).
 - **판정·엔진은 그대로다.** 엔진·서버·API·DB·cases JSON·expect를 바꾸지 않는다. 정답·채점 표시를 만들지 않는다.
 
 ## 작업 정의
@@ -126,6 +126,208 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 가로 넘침 0, console error 0.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
+## 완료 내용 / 테스트 결과 (2026-10-05 Codex)
+
+- 사용자 승인 설계 `1a1d610`, 작업 정의 1)~8)만 구현. 실습 ②와 CaseNetwork에 네이티브 닫힌 `.mobile-fold`; 요약은 toNetwork/저장된 network의 장비·ACL 개수만 표시. React open 제어 없음. showAcl만 DOM open=true 후 기존 줄 선택·스크롤. 901px 이상 CSS ::details-content로 summary 숨김·내용 표시, 판정기 구성은 접지 않음.
+- F19 안내 닫기 → ② 제목 preventScroll 포커스; F20 같으면 즉시 return(요청·결과·알림 불변); F21 판정기와 같은 removing 플래그/삭제 전 복사본으로 장비·인터페이스·경로·ACL 한 단계 되돌리기; F22 홈 미불러오기 사실 문구. F23 지정된 옛 실습 흐름만 정리. QA 문서 A·C의 접기 확인 항목만 추가, 사람 체크박스는 그대로.
+- 신규 회귀 11개: Practice 8(SSR 경계/빈·중복 ACL 개수, 펼친 뒤 선택 순서, 안내 포커스, 무변경 초기화/진행 중 요청 보존, 네 삭제 유형 복구·직접 편집 시 알림 취소), CaseNetwork SSR 2, Home 문구 1. 하네스/SSR은 실제 DOM 검증이 아님; 아래 별도 브라우저 확인과 구분.
+- 엔진·서버·API·cases JSON·expect·의존성 불변. cases JSON import는 테스트에만 추가. F5·F6 및 수동 QA A/B/C는 대기 유지.
+
+### 중요: 첫 화면 목표 미달 — 사용자 결정으로 리뷰에 넘김
+
+- **실습 375×812에서 안내를 닫아도 ③ 전체가 고정 판정 줄 위에 들어오는 목표는 미달이다. 통과로 표시하지 않는다.** 실습 01 아래 끝 823.69, 02 783.59 > 고정 줄 위 746.20. Windows IAB의 innerWidth=375, clientWidth=360(15px 스크롤바), 비로그인 상태 실측이다. 로그인하면 헤더 줄로 01 아래 끝 854.28까지 내려간다.
+- 2026-10-05 사용자에게 수치를 보고하고 범위 밖 압축 대신 처리 방향을 물었다. 사용자는 **“미달 수치를 HANDOFF·PR에 명시하고 Claude 리뷰로 넘긴다”**를 선택했다. 목표를 달성했다고 바꾸거나 ① 문제·안내 줄/구성도 높이, 예상 위치·라디오, 고정 판정 줄을 추가로 변경하지 않았다. Claude가 미달과 후속 설계 필요를 확인할 차례다.
+
+### 실제 브라우저 기록
+
+- Windows Codex IAB(Chromium), 실제 앱 빌드·`scripts/qa_local.py`, 127.0.0.1:4865/4866, 각각 새 임시 SQLite·합성 사례/qa_author만 사용. DATABASE_URL 가짜 값을 무시함. 비밀번호는 RAM·일회성 IPC로만 전달, 콘솔 출력/기록/캡처에 포함하지 않음. 개발자 DOM 읽기로 문서 좌표(y + scrollY)를 측정; 실제 휴대폰/스크린리더 검증은 아님.
+- 실습 01·02 × 375×812/1280×800/320×812 × 라이트·다크: 휴대폰 summary 표시·닫힘, 1280 summary display:none이고 닫힌 details 내용/입력 표시, 가로 넘침 0. 안내 열림도 375·1280 두 테마 확인. 아래 375 좌표는 두 테마 동일, 비로그인·닫힌 구성이다.
+
+| 실습 | 안내 | ③ 위 | ③ 아래 | 고정 판정 줄 위 |
+| --- | --- | ---: | ---: | ---: |
+| 01 | 닫힘 | 667.06 | 823.69 | 746.20 |
+| 02 | 닫힘 | 626.97 | 783.59 | 746.20 |
+| 01 | 열림 | 819.48 | 976.11 | 746.20 |
+| 02 | 열림 | 779.39 | 936.02 | 746.20 |
+
+- 320 보조(안내 닫힘, 두 테마 동일): 01 ③=667.06~871.69, 02=647.11~851.73, 고정 줄=746.20, 넘침0. 이 폭에서도 첫 화면 목표를 통과 처리하지 않는다.
+- 1280 실습 01 안내 닫힘: 수정 전/후 ② 제목291.52, 확인할 것329.47, 통신 제목446.58(sr-only), NetworkEditor 제목611.23, ③=289.47~425.95, 결과 제목548.34~574.69 **모두 동일**. 내 예상=막힘·엔진 DENY/AGREE인 기존 같은 조건에서 배너 아래651.94, scrollY=0, 라이트·다크 동일(PR29 548/652 기준 일치). 통과 예상·DENY/DISAGREE의 긴 근거 안내가 있는 배너는 아래679.63으로 문구 길이에 따른 기존 높이 차이이며 첫 화면 안이다. 안내 열림 결과 제목616.34, 기존 PR29 기준 일치. 실습 02 결과 제목524.84(안내 닫힘)/592.84(열림).
+- 실습 375: 접힌 상태 판정 → result-title 포커스 → `ACL 101 1번 줄 입력에서 보기` → details.open=true → textarea focus/첫 규칙 전체 선택 확인. 펼친 뒤 포트443→80 편집해도 open 유지, 이전 결과 표시→다시 판정. PC1 장비 삭제→알림→되돌리기→복구. 초기화 후 재판정→변경 없는 초기화는 stale=false/undo 없음. 닫힌 구성의 src=not-an-ip 판정은 결과 칸에 입력 오류와 src 문제를 표시(숨겨진 입력 오류를 놓치지 않음).
+- F19 실제 키보드: 알겠어요 Enter 후 activeElement=practice-config-title, 다음 Tab=처음 상태로. F22 조회 실패 브라우저 주입은 미실행; HomePage SSR의 practiceCaseId 있음/draft 없음 문구 검사로만 확인했다.
+- 사례 상세 합성 #1(AI 답), 두 테마 동일. 아래 h2는 네트워크 구성/받은 답/판정/실제 결과 순서다.
+
+| 폭 | 상태 | 네트워크 | 받은 답 | 판정 | 실제 결과 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 375 | 수정 전 | 396.95 | 1101.38 | 1351.00 | 2507.88 |
+| 375 | 수정 후 접힘 | 396.95 | 674.58 | 924.20 | 2081.08 |
+| 375 | 수정 후 펼침 | 396.95 | 1148.63 | 1398.25 | 2555.13 |
+| 1280 | 수정 전/후 동일 | 294.22 | 711.28 | 940.77 | 711.28 |
+| 320 | 수정 후 접힘 | 481.42 | 759.05 | 1008.67 | 2294.17 |
+| 320 | 수정 후 펼침 | 481.42 | 1253.23 | 1502.86 | 2788.36 |
+
+- 사례 받은 답 h2는 접힌 375에서812 안에 들어옴. 1280 장비 카드3개의 y427.20/높이139.69도 수정 전/후 동일. 휴대폰에서 외부 접기를 연 뒤 ACL별 기존 details를 다시 열어 원문 표시 확인. 판정기에는 .mobile-fold 0개, 375·1280에서 기존 구성 입력이 그대로 표시됨.
+- 전체 확인 콘솔 error 0, 가로 넘침 0. ::details-content 지원=true인 이 Chromium에서 검사. 미지원 브라우저는 넓은 화면에서도 요약 줄/접기로 접근하는 승인된 fallback이며 실브라우저 미지원 환경은 미검증.
+- 저장소 밖 캡처: `C:/Users/dora2/.codex/visualizations/mobile-config-1280-light.png`, `mobile-config-1280-dark.png`, `mobile-config-375-light.png`, `mobile-config-375-dark.png`, `mobile-config-case-375-light.png`. 비밀번호/쿠키/토큰 없음. 검증 탭 닫음·viewport reset. 두 QA 서버 중지 후 removed=True(임시 폴더 두 개 삭제 확인), 4865/4866 listen 없음. 기존 사용자 탭·DB를 변경하지 않음.
+
+### 네 명령 실제 전체 출력
+
+- 엔진326 passed/기존2 xfailed, 서버102 passed/1 skipped, 웹342 passed(27 files), 빌드 성공. 서버 명령 프로세스에서 DATABASE_URL·NETPROOF_TEST_DATABASE_URL을 제거하고 fixture의 임시 SQLite만 사용했다. 값은 출력하지 않았다. PostgreSQL 실연결은 미검증이다.
+
+### engine
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 5.62s
+```
+
+### server
+
+```text
+cd server && ../.venv/Scripts/python -m pytest -q
+.......................................................................s [ 69%]
+...............................                                          [100%]
+102 passed, 1 skipped in 34.64s
+```
+
+### web
+
+```text
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  27 passed (27)
+      Tests  342 passed (342)
+   Start at  01:34:15
+   Duration  1.02s (transform 68%, import 21%, tests 7%, worker 3%)
+
+  Transform  transforming modules took 6.28s · 68% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### build
+
+```text
+npm --prefix web run build
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 56 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CmmtM-hw.css                            80.25 kB │ gzip:  22.40 kB
+dist/assets/index-BK6U5szA.js                            340.26 kB │ gzip: 102.59 kB
+
+✓ built in 289ms
+```
+
+구현·검증: Codex (GPT-5).
+
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #29 실습 화면 + 라이트 기본 (병합 완료, `f034bff`)**: 전용 `#/practice/:caseId`(구성 왼쪽·예상과 결과 오른쪽, 칸 번호 ①~④, 첫 방문 안내 줄), 실습 입력 분리(`practiceDrafts`), `판정기로 가져가기`(기존 load·되돌리기), 판정기 실습 기능 제거, 홈 이어서 하기 실습 우선, 라이트 기본(설정에서 다크·기기 설정 따르기). Claude 독립 리뷰 PASS(OS 다크 + 빈 저장소 → 라이트를 리뷰에서 실브라우저로 확인). 후속 F18~F23은 이번 과제.
 - **PR #28 QA 서버 동시 연결 (병합 완료, `8268789`)**: `scripts/qa_local.py`의 `threaded=True`, 빈 연결을 유지한 채 두 번째 요청을 확인하는 회귀 테스트, 강제 종료 안내. PR #27 리뷰가 순차 요청만 확인해 놓친 결함(병합 후 실제 브라우저로 발견).
@@ -207,11 +409,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
 - [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② PR #27 `2ad04a0`, QA 서버 동시 연결 PR #28 `8268789`. 수동 QA는 사람 대기.
 - [x] **실습 화면 + 라이트 기본(프로그래머스 벤치마크, 2차 설계)** — ①② PR #29 병합(`f034bff`).
-- [ ] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② **설계 완료, 사용자 승인 대기 — 브랜치 codex/mobile-config**
+- [ ] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② **구현·테스트 완료, 리뷰(Claude) 대기 — 375 실습 첫 화면 목표 미달 명시, 사용자 결정으로 리뷰에 넘김; codex/mobile-config. 병합 전**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex(사용자 승인 뒤):** `codex/mobile-config`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~8) 범위 안에서만 구현·테스트한다. 승인 전이면 멈춘다.
+- **Claude(리뷰):** `codex/mobile-config`에서 `git pull`, 이 문서와 PR diff·전체 테스트 출력을 읽고 작업 정의 1)~8)을 독립 검증한다. 375 첫 화면 목표 미달을 통과로 바꾸지 말고 사용자 결정(미달 명시 후 리뷰)의 후속 판단을 적는다. 병합은 사용자 결정이다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 화면은 verify만 부르고 비교를 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.

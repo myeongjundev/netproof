@@ -58,12 +58,16 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const [needsJudge, setNeedsJudge] = useState(false);
   const revision = useRef(0);
   const aclInputs = useRef(new Map<number, HTMLTextAreaElement>());
+  const configFold = useRef<HTMLDetailsElement>(null);
+  const configTitle = useRef<HTMLHeadingElement>(null);
+  const removing = useRef(false);
   const entry = practiceEntry(caseId, examples, status);
   const example = entry.kind === "ready" ? entry.example : undefined;
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const latestSnapshot = useRef(snapshot);
   latestSnapshot.current = snapshot;
   const stale = judged !== null && (needsJudge || judged !== snapshot);
+  const network = draft ? toNetwork(draft) : undefined;
 
   useEffect(() => () => { revision.current += 1; }, []);
   useEffect(() => {
@@ -80,7 +84,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const update = (patch: Partial<Draft>) => {
     revision.current += 1;
     setLoading(false);
-    setUndo(null);
+    if (!removing.current) setUndo(null);
+    removing.current = false;
     setDraft(current => ({ ...current, ...patch }));
   };
   const restore = () => {
@@ -94,7 +99,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const reset = () => {
     if (!draft || !example) return;
     const next = { ...practiceDraft(example), claim: structuredClone(draft.claim) };
-    setUndo(JSON.stringify(next) !== snapshot ? { draft: structuredClone(draft), label: "처음 상태로 돌아갔습니다" } : null);
+    if (JSON.stringify(next) === snapshot) return;
+    setUndo({ draft: structuredClone(draft), label: "처음 상태로 돌아갔습니다" });
     revision.current += 1;
     setLoading(false);
     setError(null);
@@ -134,6 +140,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
     if (!element) return;
     const range = aclSelection(element.value, line);
     if (!range) return;
+    if (configFold.current) configFold.current.open = true;
     element.focus({ preventScroll: true });
     element.setSelectionRange(range.start, range.end);
     scrollTo(element, "center");
@@ -151,16 +158,20 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
         <p className="practice-question">{lesson.guessPrompt}</p><p className="hint below">이 실습에서 볼 것: {lesson.focus}</p></div>
       <PathStrip {...lesson.path} outside />
     </section>
-    {!introSeen && <div className="practice-intro"><p>처음이라면: ① 문제를 읽고 ② 구성을 살펴본 뒤 ③ 예상을 고르고 ④ 판정하기로 NetProof 계산과 비교하세요. 정답은 들어 있지 않습니다.</p><button type="button" className="ghost small" onClick={() => { setIntroSeen(true); rememberPracticeIntro(); }}>알겠어요</button></div>}
+    {!introSeen && <div className="practice-intro"><p>처음이라면: ① 문제를 읽고 ② 구성을 살펴본 뒤 ③ 예상을 고르고 ④ 판정하기로 NetProof 계산과 비교하세요. 정답은 들어 있지 않습니다.</p><button type="button" className="ghost small" onClick={() => { setIntroSeen(true); rememberPracticeIntro(); configTitle.current?.focus({ preventScroll: true }); }}>알겠어요</button></div>}
     {entry.kind === "loading" || (entry.kind === "ready" && !draft) ? <p role="status">실습 구성을 불러오는 중…</p> : entry.kind === "error" ? <div><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setRequest(value => value + 1)}>다시 시도</button></div> : entry.kind === "missing" ? <p role="status">이 실습 구성은 현재 제공되지 않습니다.</p> : draft && <>
       {undo && <div className="undo-notice" role="status"><span>{undo.label}.</span><button type="button" className="ghost small" onClick={restore}>되돌리기</button><button type="button" className="ghost icon" aria-label="되돌리기 알림 닫기" onClick={() => setUndo(null)}>×</button></div>}
       <div className="layout">
         <section className="inputs practice-config" aria-labelledby="practice-config-title">
-          <div><div className="panel-head"><h2 id="practice-config-title">② 구성 살펴보기</h2><button type="button" className="ghost small" onClick={reset}>처음 상태로</button></div>
-            <h3 className="practice-check-title">확인할 것</h3><ul className="practice-checkpoints">{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul></div>
+          <div className="panel-head"><h2 id="practice-config-title" tabIndex={-1} ref={configTitle}>② 구성 살펴보기</h2><button type="button" className="ghost small" onClick={reset}>처음 상태로</button></div>
+          <details className="mobile-fold practice-config-fold" ref={configFold}>
+            <summary>구성 펼쳐 보기 · 장비 {network!.devices.length}대 · ACL {Object.keys(network!.acls).length}개 · 확인할 것 {lesson.task.checkpoints.length}가지</summary>
+            <div><h3 className="practice-check-title">확인할 것</h3><ul className="practice-checkpoints">{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul></div>
           <FlowForm flow={draft.flow} claim={draft.claim} endpoints={endpoints(draft)} hideClaim onFlow={flow => update({ flow })} onClaim={claim => update({ claim })} />
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={devices => update({ devices })} onAcls={acls => update({ acls })}
+            onBeforeRemove={label => { setUndo({ draft: structuredClone(draft), label }); removing.current = true; }}
             aclInputRef={(index, element) => { if (element) aclInputs.current.set(index, element); else aclInputs.current.delete(index); }} />
+          </details>
         </section>
         <div className="output">
           <section className="panel practice-prediction" aria-labelledby="practice-guess-title"><h2 id="practice-guess-title">③ 내 예상</h2>
