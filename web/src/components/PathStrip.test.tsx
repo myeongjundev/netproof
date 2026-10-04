@@ -16,12 +16,20 @@ it.each(LESSONS)("$id는 구성 순서와 ACL 위치만 그린다", lesson => {
   }
   expect(html).not.toMatch(/PASS|DENY|통과|막힘|drop|deny|permit/);
 });
-it("왕복 표시와 모델 밖 점선은 설명일 뿐 계산 결과가 아니다", () => {
-  const html = renderToStaticMarkup(createElement(PathStrip, { ...LESSONS[1].path, outside: true, size: "small" }));
+it("왕복 표시와 계산 범위 띠는 설명일 뿐 계산 결과가 아니다", () => {
+  const html = renderToStaticMarkup(createElement(PathStrip, { ...LESSONS[1].path, outside: true }));
   expect(html).toContain("⇄");
   expect(html).toContain("돌아오는 길도 계산합니다");
   expect(html).toContain("path-outside");
-  expect(html).toContain("실제 장비 · NetProof 밖");
-  expect(html).toContain("path-strip-small");
+  expect(html).toContain("NetProof 계산 범위");
+  expect(html).toContain("실제 장비"); expect(html).toContain("결과는 장비에서 따로 확인");
+  expect(html).toContain("NetProof는 이 구성 안에서 계산하고, 실제 장비 결과는 따로 확인합니다.");
+  expect(html).not.toContain("실제 장비 · NetProof 밖");
+  expect(html).toContain('class="path-outside" aria-hidden="true"');
   expect(html).not.toMatch(/PASS|DENY|정답/);
+});
+it.each([false, true])("축소 구성도는 outside=%s여도 띠와 실제 장비 자리를 만들지 않는다", outside => {
+  const html = renderToStaticMarkup(createElement(PathStrip, { ...LESSONS[1].path, outside, size: "small" }));
+  expect(html).toContain("path-strip-small"); expect(html).toContain("⇄");
+  expect(html).not.toMatch(/path-scope|path-outside|NetProof 계산 범위|실제 장비|PASS|DENY/);
 });

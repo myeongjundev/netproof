@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { JudgePage } from "./JudgePage";
+import { JudgePage, PracticeGuessPicker } from "./JudgePage";
 import { blankDraft, toNetwork } from "../draft";
 import type { CaseItem } from "../types";
 
@@ -41,12 +41,25 @@ it("기존 판정기는 선택 실습 질문을 추가하지 않는다", () => {
   expect(html).not.toContain("학습실에서 선택한 실습");
   expect(html).toContain("판정하기");
 });
-it.each(["PASS", "DENY"] as const)("%s 예상 진입은 입력을 아직 쓰지 않고 한 줄만 안내한다 (SSR)", practiceGuess => {
+it.each(["PASS", "DENY", undefined] as const)("%s 예상 진입은 선택 묶음만 표시하고 입력을 아직 쓰지 않는다 (SSR)", practiceGuess => {
   const draft = blankDraft(); const before = JSON.stringify(draft);
   const setDraft = vi.fn(); const onPracticeLoaded = vi.fn();
   const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft, practiceId: "synthetic-01", practiceGuess, onPracticeLoaded }));
-  expect(html).toContain(`내 예상: ${practiceGuess === "PASS" ? "통과" : "막힘"}`);
+  expect(html).toContain("<legend>내 예상</legend>");
+  const labels = [...html.matchAll(/<label><input type="radio"([^>]*)\/>((?:통과할 것 같다|막힐 것 같다|예상 없이))<\/label>/g)];
+  expect(labels).toHaveLength(3);
+  expect(labels.filter(([, attrs]) => attrs.includes("checked")).map(([, , label]) => label)).toEqual([practiceGuess === "PASS" ? "통과할 것 같다" : practiceGuess === "DENY" ? "막힐 것 같다" : "예상 없이"]);
+  expect(html).toContain("실습 없이 계속하기"); expect(html).not.toContain("판정기로 이동");
+  expect(html).toContain("구성을 불러오면 고른 예상이 받은 답(내 예상)으로 들어갑니다.");
   expect(html).toContain("구성 불러오기"); expect(html).not.toContain("실습 구성 불러오기");
   expect(setDraft).not.toHaveBeenCalled(); expect(onPracticeLoaded).not.toHaveBeenCalled();
   expect(JSON.stringify(draft)).toBe(before);
+});
+it("진입 라디오 이벤트는 App 예상 콜백만 호출하고 Draft를 고치지 않는다", () => {
+  const draft = blankDraft(); const before = JSON.stringify(draft); const setDraft = vi.fn(); const onChange = vi.fn();
+  renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft, practiceId: "synthetic-03", onPracticeGuessChange: onChange }));
+  const tree = PracticeGuessPicker({ caseId: "synthetic-03", guess: "DENY", onChange });
+  for (const label of tree.props.children[1]) label.props.children[0].props.onChange();
+  expect(onChange.mock.calls).toEqual([["synthetic-03", "PASS"], ["synthetic-03", "DENY"], ["synthetic-03", undefined]]);
+  expect(setDraft).not.toHaveBeenCalled(); expect(JSON.stringify(draft)).toBe(before);
 });

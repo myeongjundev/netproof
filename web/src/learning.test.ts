@@ -62,6 +62,17 @@ it("실행 코드에 사례 JSON·expect가 들어가지 않는다", () => {
   expect(source).not.toMatch(/(?:import|export)[^;]*cases\/|import\([^)]*cases\//);
   expect(source).not.toMatch(/\.expect\b|\[.expect.\]/);
 });
+it.each([case01, case02, case03])("$id 예상 질문은 실제 흐름의 프로토콜·포트와 일치한다", item => {
+  const prompt = lessonByCaseId(item.id)!.guessPrompt;
+  const flow = item.flow;
+  expect(prompt).toContain(flow.proto.toUpperCase());
+  if (flow.proto === "icmp") { expect(prompt).toContain("ping(ICMP)"); expect(prompt).not.toMatch(/TCP|UDP|\d+\)/); }
+  else { expect(flow).toHaveProperty("dst_port"); expect(prompt).toContain(`${flow.proto.toUpperCase()} ${"dst_port" in flow ? flow.dst_port : ""}`); }
+  const source = item.network.devices.find(device => device.interfaces.some(iface => iface.ip.split("/")[0] === flow.src))!;
+  const target = item.network.devices.find(device => device.interfaces.some(iface => iface.ip.split("/")[0] === flow.dst))!;
+  expect(prompt).toContain(source.id); expect(prompt).toContain(target.id);
+  expect(prompt).not.toMatch(/막힘|없음|정답|ACL|expect/);
+});
 it.each(["PASS", "DENY"] as const)("학생의 %s 예상만 self 받은 답으로 옮긴다", guess => {
   const before = JSON.stringify(example);
   expect(practiceDraft(example, guess).claim).toEqual({ expected: guess, kind: "self", source: "", text: "" });
