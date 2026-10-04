@@ -22,11 +22,19 @@ interface Props {
   share?: string;
   practiceId?: string;
   practiceGuess?: PracticeGuess;
+  onPracticeGuessChange?: (caseId: string, expected?: PracticeGuess) => void;
   onPracticeLoaded?: () => void;
   titleHint?: string;
 }
 
-export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeLoaded, titleHint }: Props) {
+export function PracticeGuessPicker({ caseId, guess, onChange }: { caseId: string; guess?: PracticeGuess; onChange?: Props["onPracticeGuessChange"] }) {
+  return <fieldset className="practice-guess"><legend>내 예상</legend>
+    {([ ["PASS", "통과할 것 같다"], ["DENY", "막힐 것 같다"], [undefined, "예상 없이"] ] as const).map(([expected, label]) =>
+      <label key={label}><input type="radio" name={`practice-guess-${caseId}`} checked={guess === expected} onChange={() => onChange?.(caseId, expected)} />{label}</label>)}
+  </fieldset>;
+}
+
+export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeGuessChange, onPracticeLoaded, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [examplesStatus, setExamplesStatus] = useState<ExampleStatus>("loading");
   const [examplesRequest, setExamplesRequest] = useState(0);
@@ -301,13 +309,14 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
       {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
         <p className="home-eyebrow">연습용 네트워크 실습</p>
         <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.task.question}</p>
-        {practiceGuess && <p className="practice-guess">내 예상: {practiceGuess === "PASS" ? "통과" : "막힘"}</p>}
+        <PracticeGuessPicker caseId={entryLesson.caseId} guess={practiceGuess} onChange={onPracticeGuessChange} />
+        <p className="hint">구성을 불러오면 고른 예상이 받은 답(내 예상)으로 들어갑니다.</p>
         <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
         {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>구성 불러오기</button></>}
         {entry.kind === "error" && <><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setExamplesRequest(value => value + 1)}>다시 시도</button></>}
         {entry.kind === "missing" && <p role="status">이 실습 구성은 현재 제공되지 않습니다.</p>}
         {entry.kind === "ready" && <button type="button" className="primary" onClick={() => startPractice(entryLesson.task, entry.example)}>구성 불러오기</button>}
-        <a href="#/">판정기로 이동</a>
+        <a href="#/">실습 없이 계속하기</a>
       </section>}
       <div className="page-head">
         <p>AI나 내가 예상한 “이 통신은 된다/안 된다”를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 줍니다. 판정은 로그인 없이 됩니다.</p>

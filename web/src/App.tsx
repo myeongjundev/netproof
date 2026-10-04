@@ -75,9 +75,10 @@ export function App() {
   );
 
   let page;
-  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={expected => { setGuess({ caseId: "synthetic-01", expected }); go("/practice/synthetic-01"); }} />;
-  else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} />;
-  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} practiceGuess={guess?.caseId === route.practiceId ? guess?.expected : undefined} onPracticeLoaded={() => setGuess(null)} titleHint={titleHint} />;
+  const onGuess = (caseId: string, expected: PracticeGuess) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`); };
+  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} />;
+  else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} onGuess={onGuess} />;
+  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} practiceGuess={guess?.caseId === route.practiceId ? guess?.expected : undefined} onPracticeGuessChange={(caseId, expected) => setGuess(expected ? { caseId, expected } : null)} onPracticeLoaded={() => setGuess(null)} titleHint={titleHint} />;
   else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
   else if (route.page === "missing") page = <p className="hint">없는 화면입니다. <a href="#/home">홈으로</a></p>;
   else if (!checked) page = <p className="hint">확인 중…</p>;

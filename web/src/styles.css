@@ -399,6 +399,7 @@ p .meta { display: inline; }
 .home-caption { font-size: 14px; color: var(--muted); margin-top: 16px; }
 .home-board > a { flex-shrink: 0; min-height: 44px; }
 .home-puzzle { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+.home-hero:not(.home-hero-resuming) > .home-puzzle { border: 0; border-top: 3px solid var(--accent); border-radius: 0; padding: 18px 0 0; }
 .home-puzzle h2, .home-puzzle h3 { font-size: 18px; margin-bottom: 8px; }
 .home-puzzle-question { font-size: 16px; }
 .home-guess-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -421,6 +422,7 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .learning-page h1 { font-size: 30px; letter-spacing: -.025em; line-height: 1.35; }
 .learning-detail { max-width: 900px; width: 100%; min-width: 0; padding: 28px; }
 .learning-detail .learning-question { margin-top: 12px; }
+.learning-detail > .home-puzzle { margin-top: 24px; border: 0; border-top: 3px solid var(--accent); border-radius: 0; padding: 18px 0 0; }
 .learning-detail > h2, .learning-detail h3 { font-size: 15px; display: block; margin-top: 24px; margin-bottom: 6px; }
 .learning-detail ul { margin: 8px 0; padding-left: 22px; }
 .learning-source { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 16px; color: var(--muted); font-size: 14px; }
@@ -440,13 +442,23 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .path-acl { display: block; max-width: 100%; font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; margin-top: 6px; background: var(--gray-bg); }
 .path-acl > span { display: block; color: var(--muted); font-size: 11px; }
 .path-roundtrip { margin-top: 8px; text-align: center; color: var(--muted); font-size: 13px; }
-.path-outside { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 14px; }
-.path-outside > span { border-top: 1px dashed var(--muted); width: 40px; }
+.path-strip-bounded { display: flex; gap: 18px; align-items: flex-start; }
+.path-scope { flex: 1 1 0; min-width: 0; background: var(--gray-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; position: relative; }
+.path-scope-label { color: var(--muted); font-size: 12px; line-height: 18px; margin: 0 0 12px; }
+.path-scope::after { content: ""; position: absolute; right: -1px; top: 47px; width: calc((100% - 24px) / 6 + 12px); border-top: 1px solid var(--line); }
+.path-scope:has(.path-node:nth-child(4))::after { width: calc((100% - 24px) / 8 + 12px); }
+.path-outside { flex: 0 0 140px; position: relative; padding-top: 40px; color: var(--muted); font-size: 14px; }
+.path-outside p { font-size: 12px; margin-top: 6px; }
+.path-boundary-line { position: absolute; left: -18px; top: 47px; border-top: 1px dashed var(--muted); width: 18px; }
 .path-strip-small .path-node { font-size: 12px; }
 .path-strip-small .path-acl { font-size: 11px; padding: 3px; }
 .path-strip-small .path-roundtrip { font-size: 12px; }
 .practice-entry { display: grid; gap: 10px; }
 .practice-entry .hint { margin: 0; }
+.practice-entry .practice-guess { display: flex; flex-wrap: wrap; gap: 4px 12px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px 8px; min-width: 0; }
+.practice-guess legend { padding: 0 4px; font-size: 14px; }
+.practice-guess label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; font-size: 14px; }
+.practice-guess input { width: auto; margin: 0; }
 .practice-entry button, .practice-entry > a { justify-self: start; min-height: 44px; }
 .home-page a:focus-visible, .learning-page a:focus-visible, .app-header a:focus-visible, .practice-entry a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 1100px) { .app-header .brand span { display: none; } }
@@ -474,6 +486,20 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
   .app-header .header-nickname { max-width: 100%; }
   .main:has(.home-page), .main:has(.learning-page) { padding-left: 16px; padding-right: 16px; }
   .home-puzzle { padding: 16px; }
+  .home-hero:not(.home-hero-resuming) { padding: 18px 16px; gap: 18px; }
+  .home-hero:not(.home-hero-resuming) .home-eyebrow { margin-bottom: 6px; }
+  .home-hero:not(.home-hero-resuming) .home-description { margin-top: 10px; font-size: 14px; }
+  .home-hero:not(.home-hero-resuming) .home-actions { margin-top: 8px; }
+  .home-hero:not(.home-hero-resuming) .home-caption { margin-top: 6px; font-size: 13px; }
+  .home-hero:not(.home-hero-resuming) .home-puzzle-question { font-size: 15px; }
+  .path-strip-bounded { display: block; }
+  .path-scope::after { right: 18px; width: 0; top: 47px; bottom: -1px; border-top: 0; border-left: 1px solid var(--line); }
+  .path-scope:has(.path-node:nth-child(4))::after { width: 0; }
+  .path-scope::before { content: ""; position: absolute; right: 18px; top: 47px; width: calc((100% - 24px) / 6 - 6px); border-top: 1px solid var(--line); }
+  .path-scope:has(.path-node:nth-child(4))::before { width: calc((100% - 24px) / 8 - 6px); }
+  .path-outside { padding: 20px 18px 0 0; text-align: right; }
+  .path-boundary-line { left: auto; right: 18px; top: 0; width: 0; height: 20px; border-top: 0; border-left: 1px dashed var(--muted); }
+  .path-outside p { margin-top: 2px; }
   .path-nodes { gap: 6px; }
   .path-node:not(:first-child)::before { width: calc(100% + 6px); }
   .path-node { font-size: 13px; }

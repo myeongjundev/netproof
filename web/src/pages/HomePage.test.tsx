@@ -25,8 +25,11 @@ it.each([false, true])("공개 첫 얼굴은 선택되지 않은 예상 퍼즐�
   expect(html).toContain("통과할 것 같다"); expect(html).toContain("막힐 것 같다");
   expect(html.match(/<button\b/g)).toHaveLength(2);
   expect(html).not.toMatch(/aria-pressed="true"|checked|PASS|DENY|expect|정답/);
-  expect(html).toContain("실제 장비 · NetProof 밖");
-  expect(html.match(/NetProof는 모델 안에서 계산합니다/g)).toHaveLength(1);
+  expect(html).toContain("NetProof 계산 범위"); expect(html).toContain("실제 장비");
+  expect(html).not.toContain("NetProof는 모델 안에서 계산합니다");
+  expect(html.match(/<button type="button" class="primary">/g)).toHaveLength(2);
+  const hero = html.split("</section>")[0];
+  expect(hero.match(/<a /g)).toHaveLength(1); expect(hero).not.toContain("학습실 전체 보기");
   expect(html).toContain('href="#/learn"'); expect(html).toContain("판정기 바로 열기");
   expect(html).not.toContain("작성하던 입력이 있어요"); expect(onGuess).not.toHaveBeenCalled();
   for (const spy of spies) { expect(spy).not.toHaveBeenCalled(); spy.mockRestore(); }

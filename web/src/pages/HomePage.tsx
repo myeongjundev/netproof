@@ -1,20 +1,10 @@
 import { draftSummary, hasCurrentInput } from "../homeView";
-import { LESSONS, type PracticeGuess } from "../learning";
+import { LESSONS } from "../learning";
 import { PathStrip } from "../components/PathStrip";
+import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
 import type { Draft, User } from "../types";
 
-function GuessPuzzle({ onGuess, heading = "h3" }: { onGuess: (expected: PracticeGuess) => void; heading?: "h2" | "h3" }) {
-  const lesson = LESSONS[0];
-  const Heading = heading;
-  return <div className="home-puzzle">
-    <Heading>먼저 예상해 보세요</Heading><p className="home-puzzle-question">{lesson.task.question}</p>
-    <PathStrip {...lesson.path} outside />
-    <div className="home-guess-actions"><button type="button" className="ghost" onClick={() => onGuess("PASS")}>통과할 것 같다</button><button type="button" className="ghost" onClick={() => onGuess("DENY")}>막힐 것 같다</button></div>
-    <p className="home-caption">NetProof는 모델 안에서 계산합니다. 실제 장비 결과는 따로 확인합니다.</p>
-  </div>;
-}
-
-export function HomePage({ draft, user, checked, onGuess }: { draft: Draft; user: User | null; checked: boolean; onGuess: (expected: PracticeGuess) => void }) {
+export function HomePage({ draft, user, checked, onGuess }: { draft: Draft; user: User | null; checked: boolean; onGuess: OnGuess }) {
   const resume = hasCurrentInput(draft);
   return <div className="home-page">
     <section className={`home-hero${resume ? " home-hero-resuming" : ""}`} aria-labelledby="home-title">
@@ -27,13 +17,13 @@ export function HomePage({ draft, user, checked, onGuess }: { draft: Draft; user
         <div>
           <p className="home-eyebrow">네트워크 설정 검증 실습실</p><h1 id="home-title">왜 통과하고,<br />어디서 막힐까요?</h1>
           <p className="home-description">내 예상이나 받은 답을 NetProof 계산과 비교하고, 경로와 ACL 근거를 직접 살펴보세요.</p>
-          <div className="home-actions"><a href="#/learn">학습실 전체 보기</a><a href="#/">판정기 바로 열기 →</a></div>
+          <div className="home-actions"><a href="#/">판정기 바로 열기 →</a></div>
           <p className="home-caption">판정기: 구성과 통신을 넣으면 경로와 ACL을 계산해 통과·막힘과 근거를 보여 줍니다.</p>
         </div>
-        <GuessPuzzle onGuess={onGuess} heading="h2" />
+        <GuessPuzzle lesson={LESSONS[0]} onGuess={onGuess} heading="h2" primary><PathStrip {...LESSONS[0].path} outside /></GuessPuzzle>
       </>}
     </section>
-    {resume && <section className="home-new-practice" aria-labelledby="home-new-title"><h2 id="home-new-title">새 실습 시작하기</h2><GuessPuzzle onGuess={onGuess} /></section>}
+    {resume && <section className="home-new-practice" aria-labelledby="home-new-title"><h2 id="home-new-title">새 실습 시작하기</h2><GuessPuzzle lesson={LESSONS[0]} onGuess={onGuess}><PathStrip {...LESSONS[0].path} outside /></GuessPuzzle></section>}
     <section aria-labelledby="home-topics-title">
       <div className="home-section-head"><div><h2 id="home-topics-title">어떤 내용을 확인해 볼까요?</h2><p>연습용 네트워크 3개로 경로와 ACL을 확인합니다.</p></div><a href="#/learn">학습실 전체 보기 →</a></div>
       <div className="learning-cards">{LESSONS.map(lesson => <article className="learning-card" key={lesson.id}>
