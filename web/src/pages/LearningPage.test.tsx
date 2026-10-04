@@ -16,8 +16,10 @@ it.each(LESSONS)("$id는 제목→질문→구성도→판정기 링크→설명
   expect(html).toContain("이동만으로는 지금 입력이 바뀌지 않습니다");
   expect(html.indexOf('class="learning-question"')).toBeLessThan(html.indexOf('class="path-strip"'));
   expect(html.indexOf('class="path-strip"')).toBeLessThan(html.indexOf("판정기에서 열기"));
-  expect(html.indexOf("판정기에서 열기")).toBeLessThan(html.indexOf("개념</h3>"));
-  expect(html.indexOf("개념</h3>")).toBeLessThan(html.indexOf("쉬운 비유</h3>"));
+  expect(html.indexOf("판정기에서 열기")).toBeLessThan(html.indexOf("개념</h2>"));
+  expect(html.indexOf("개념</h2>")).toBeLessThan(html.indexOf("쉬운 비유</h2>"));
+  const headings = [...html.matchAll(/<h([1-6])\b[^>]*>(.*?)<\/h\1>/g)].map(([, level, title]) => [level, title]);
+  expect(headings).toEqual([["1", lesson.title], ["2", "개념"], ["2", "쉬운 비유"], ["2", "확인할 것"], ["2", "다른 주제"]]);
   expect(html.indexOf("계산 결과는 실제 장비 동작을 보장하지 않습니다")).toBeLessThan(html.indexOf("다른 주제</h2>"));
   expect(html).toContain('aria-current="page"'); expect(html).toContain("· 보는 중");
   for (const point of lesson.task.checkpoints) expect(html).toContain(point);

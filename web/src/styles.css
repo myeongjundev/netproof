@@ -399,7 +399,7 @@ p .meta { display: inline; }
 .home-caption { font-size: 14px; color: var(--muted); margin-top: 16px; }
 .home-board > a { flex-shrink: 0; min-height: 44px; }
 .home-puzzle { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
-.home-puzzle h3 { font-size: 18px; margin-bottom: 8px; }
+.home-puzzle h2, .home-puzzle h3 { font-size: 18px; margin-bottom: 8px; }
 .home-puzzle-question { font-size: 16px; }
 .home-guess-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .home-guess-actions button { min-height: 44px; flex: 1 1 140px; }
@@ -421,7 +421,7 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .learning-page h1 { font-size: 30px; letter-spacing: -.025em; line-height: 1.35; }
 .learning-detail { max-width: 900px; width: 100%; min-width: 0; padding: 28px; }
 .learning-detail .learning-question { margin-top: 12px; }
-.learning-detail h3 { margin-top: 24px; margin-bottom: 6px; }
+.learning-detail > h2, .learning-detail h3 { font-size: 15px; display: block; margin-top: 24px; margin-bottom: 6px; }
 .learning-detail ul { margin: 8px 0; padding-left: 22px; }
 .learning-source { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 16px; color: var(--muted); font-size: 14px; }
 .learning-source ul { display: flex; flex-wrap: wrap; gap: 4px 20px; }

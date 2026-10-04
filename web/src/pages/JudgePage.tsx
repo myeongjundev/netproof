@@ -299,7 +299,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     }}>
       <h1 className="sr-only">판정기</h1>
       {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
-        <p className="home-eyebrow">학습실에서 선택한 실습 · 연습용 네트워크</p>
+        <p className="home-eyebrow">연습용 네트워크 실습</p>
         <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.task.question}</p>
         {practiceGuess && <p className="practice-guess">내 예상: {practiceGuess === "PASS" ? "통과" : "막힘"}</p>}
         <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
@@ -321,7 +321,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
           {examples.map((item) => (
             <button key={item.id} type="button" className="ghost small" onClick={() => load(fromCase(item), `예시 ${item.id.replace("synthetic-", "")}을 불러왔습니다`)}>
               예시 {item.id.replace("synthetic-", "")}
-              {item.title ? ` · ${item.title}` : ""}
+              {lessonByCaseId(item.id)?.title ? ` · ${lessonByCaseId(item.id)?.title}` : ""}
             </button>
           ))}
           <button type="button" className="ghost small" onClick={() => load(blankDraft(), "처음 구성을 불러왔습니다")}>

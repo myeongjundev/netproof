@@ -10,9 +10,9 @@ export function LearningPage({ lessonId }: { lessonId?: string }) {
       <p className="learning-question">{lesson.task.question}</p><PathStrip {...lesson.path} />
       <div className="home-actions"><a className="home-primary" href={`#/practice/${lesson.caseId}`}>판정기에서 열기</a></div>
       <p className="home-caption">이동만으로는 지금 입력이 바뀌지 않습니다.</p>
-      <h3>개념</h3><p>{lesson.concept}</p>
-      <h3>쉬운 비유</h3><p>{lesson.analogy}</p>
-      <h3>확인할 것</h3><ul>{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul>
+      <h2>개념</h2><p>{lesson.concept}</p>
+      <h2>쉬운 비유</h2><p>{lesson.analogy}</p>
+      <h2>확인할 것</h2><ul>{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul>
       <div className="learning-source"><p>출처: NetProof 모델 의미론 · 연습용 네트워크</p><ul>{lesson.sources.map(source => <li key={source.href}><a href={source.href} target="_blank" rel="noreferrer">{source.label} ↗</a></li>)}</ul><p>계산 결과는 실제 장비 동작을 보장하지 않습니다.</p></div>
       <section className="learning-other"><h2>다른 주제</h2><nav aria-label="다른 주제">{LESSONS.map(item => <a className="ghost-link" href={`#/learn/${item.id}`} key={item.id} aria-current={item.id === lessonId ? "page" : undefined}>{item.title}{item.id === lessonId ? " · 보는 중" : ""}</a>)}</nav></section>
     </article>
