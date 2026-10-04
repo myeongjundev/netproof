@@ -5,6 +5,17 @@ import { HomePage } from "./HomePage";
 import { api } from "../api";
 import type { User } from "../types";
 
+it.each([
+  [false, [["1", "왜 통과하고,어디서 막힐까요?"], ["2", "먼저 예상해 보세요"]]],
+  [true, [["1", "작성하던 입력이 있어요"], ["2", "새 실습 시작하기"], ["3", "먼저 예상해 보세요"]]],
+] as const)("두 얼굴의 퍼즐 제목은 상위 제목 다음 단계다: 이어서 하기=%s", (resume, expected) => {
+  const draft = blankDraft();
+  if (resume) draft.flow.dst_port = 8443;
+  const html = renderToStaticMarkup(createElement(HomePage, { draft, user: null, checked: true, onGuess: () => {} }));
+  const headings = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/g)].map(([, level, title]) => [level, title.replace(/<[^>]*>/g, "")]);
+  expect(headings.slice(0, expected.length)).toEqual(expected);
+});
+
 it.each([false, true])("공개 첫 얼굴은 선택되지 않은 예상 퍼즐과 모델 밖 구간을 보인다: %s", checked => {
   const spies = [vi.spyOn(api, "searchCases"), vi.spyOn(api, "examples"), vi.spyOn(api, "verify")];
   const onGuess = vi.fn();

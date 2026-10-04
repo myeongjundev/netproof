@@ -25,9 +25,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 설계는 Claude가 쓴다(기본 역할).
 - 브랜치: `codex/home-ux`(origin/main `82975e6` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 승인: **사용자 승인 완료 — 설계 `b2746fa`(2026-10-04 이번 구현 요청).**
-- 단계: **Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
+- 단계: **Claude R1·R2 리뷰 요청 → Codex 수정·재테스트 완료 → Claude 재리뷰 → 사용자 병합 결정.**
 - PR: **[#24 홈·학습실 UX 개선](https://github.com/myeongjundev/netproof/pull/24)** — main 대상, 구현 `dd6f2cd`, OPEN(미병합).
-- 다음 차례: **Codex — PR #24 리뷰 수정 요청 R1·R2 처리**(아래 "현재 과제 리뷰 기록"). R1·R2만 고치고 재리뷰를 요청한다. 병합하지 않는다.
+- 다음 차례: **재리뷰(Claude) — PR #24 R1·R2 수정 확인.** 병합하지 않는다.
 - **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·기존 expect를 바꾸지 않는다. 홈은 정답·채점·완료 표시를 만들지 않는다.
 
 ## 작업 정의
@@ -386,6 +386,186 @@ dist/assets/index-mMtmlsd0.js                            333.33 kB │ gzip: 100
   - 고칠 것: 첫 얼굴에서는 h2로 렌더링한다(예: `GuessPuzzle`에 heading 단계 prop). `HomePage.test.tsx`에 두 얼굴의 제목 순서 검사를 추가한다.
 - 홈 `/impeccable critique` 재실행(설계 10절)은 **R1·R2 반영 후 재리뷰 때** 최종 코드로 한 번 돌려 27/40과 비교한다.
 
+### PR #24 Codex R1·R2 수정 / 재실행 (2026-10-04)
+
+- `codex/home-ux`에서 `git pull`(Already up to date), AGENTS/HANDOFF의 현재 과제 리뷰 기록과 최신 [Claude] 코멘트를 읽었다. 수정 전 HEAD `14910c1`.
+- R1: AppHeader DOM을 로고→메뉴 단추→nav→계정으로 복구했다. 기존 CSS grid는 그대로이며 메뉴를 시각적으로 오른쪽 끝에 둔다. 단추가 nav보다 앞임과 전체 DOM 순서를 확인하는 회귀 테스트를 추가했다(이전 계정→단추 검사 제거).
+- R2: GuessPuzzle 제목 단계를 prop으로 받아 첫 얼굴은 h2, 이어서 하기 얼굴은 기존 h2(새 실습 시작하기) 아래 h3를 유지한다. 두 얼굴의 제목 순서 테스트 2개 추가.
+- 테스트 먼저 추가한 실행에서는 R1 DOM 순서와 R2 첫 얼굴 단계 **2 failed / 9 passed**. 코드 수정 뒤 같은 대상 테스트 **11 passed**. 최초 대상 명령에 web/ 접두사를 중복해 No test files found가 발생한 것은 명령 경로 오류이며, src/...로 바로잡아 실행했다.
+- 코드 변경은 `AppHeader.tsx`·`AppHeader.test.tsx`·`HomePage.tsx`·`HomePage.test.tsx` 네 파일뿐. CSS·App·Judge·엔진·서버·cases·expect·의존성 불변. F5/F6와 PR20 사용자 수동 QA 대기는 그대로 둔다.
+- 네 명령을 worktree에서 직접 재실행했다. engine/server는 해당 디렉터리에서 실행했고 PYTHONPATH는 이 worktree를 지정했다. 서버는 NETPROOF_TEST_DATABASE_URL 제거 후 임시 SQLite 테스트만 사용했다. 종료 코드 모두0, 기존2 xfail/1 skip 유지. 이번 결과: 엔진326+2 xfail(4.43s), 서버91+1 skip(30.83s), 웹277(690ms), 빌드286ms.
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 21%]
+........................................................................ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+......................................xx                                 [100%]
+326 passed, 2 xfailed in 4.43s
+```
+
+종료 코드: 0.
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+.......................................................................s [ 78%]
+....................                                                     [100%]
+91 passed, 1 skipped in 30.83s
+```
+
+종료 코드: 0.
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  22 passed (22)
+      Tests  277 passed (277)
+   Start at  13:15:53
+   Duration  690ms (transform 67%, import 20%, tests 8%, worker 5%)
+
+  Transform  transforming modules took 3.53s · 67% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+종료 코드: 0.
+
+### `npm --prefix web run build`
+
+```text
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 53 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-A9w8bL2W.css                            76.59 kB │ gzip:  21.77 kB
+dist/assets/index-DyZ681-n.js                            333.35 kB │ gzip: 100.50 kB
+
+✓ built in 286ms
+```
+
+종료 코드: 0.
+
+#### 375×812 실제 키보드 확인
+- Codex in-app Chromium, 새 임시 SQLite, `127.0.0.1:5187`의 수정 production build. 기존 사용자 탭/서버는 건드리지 않았다.
+- 첫 얼굴: 메뉴 직접 클릭→activeElement=BUTTON(메뉴), aria-expanded=true→메뉴 단추에서 실제 Tab 키→activeElement=A, text=학습실, href=#/learn, inHeader=true, inNav=true. 리뷰에서 재현한 본문으로 건너뛰는 문제는 재현되지 않았다.
+- 목적지 포트8443 편집 후 홈(이어서 하기 얼굴)에서도 메뉴 열기→Tab→같은 학습실 링크에 포커스. DOM만 검사한 것이 아니라 실제 키 입력으로 두 얼굴 모두 확인했다.
+- 첫 얼굴의 앞 제목: H1 왜 통과하고,어디서 막힐까요?→H2 먼저 예상해 보세요. 이어서 하기: H1 작성하던 입력이 있어요→H2 새 실습 시작하기→H3 먼저 예상해 보세요.
+- 메뉴 시각 위치 x=289.796875/right=344px, 높이44px. 로그인 right=277.796875px, 로고 x=16px: 메뉴가 오른쪽 끝인 배치는 유지된다. scrollWidth360 ≤ 375, console error/warn0.
+- 학습실 링크에서 Escape→메뉴 단추로 포커스 복귀, aria-expanded=false. 캡처 `r1-tab-375.png`·`r1-tab-resume-375.png`는 저장소 밖 `C:/Users/dora2/.codex/visualizations/home-ux-2026-10-04`에 보존.
+- 임시 QA 탭 닫음·viewport reset, QA 서버 종료 및5187 listen 없음 확인. 정확한 임시 qa.db와 빈 디렉터리 삭제(합성 데이터만 제거). 사용자 실제 DB/사례 미사용.
+- 이번 재실행은 375의 R1·R2에 한정한다. 이전1280/320·라이트/다크 전체 흐름을 이번에 다시 확인했다고 쓰지 않는다. critique 재실행은 Claude 재리뷰 때. 실제200% 확대·물리폰·실제 스크린리더·실장비·PG는 여전히 미확인.
+
+다음 차례: **재리뷰(Claude)**. R1·R2 diff/테스트와 375 키보드 순서를 독립 확인하고 홈 critique를 최종 코드로 재실행한다. 병합하지 않음.
+
+Codex (GPT-6)
+
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #23 홈·학습실·헤더 MVP (병합 완료, `82975e6`)**: 공개 홈·학습실 3주제·모바일 헤더·현재 입력 안내·명시적 실습 불러오기. 설계는 사용자 요청으로 Codex가 맡음(일회). Claude 독립 리뷰 PASS(`179d46e`) → 사용자 병합. 후속 F7(실습 알림 "실습" 중복, 이번 2절에서 처리), F8(낡은 지시, 이번 문서 정리로 처리), 실제 200% 확대 미확인. 병합 뒤 홈 critique 27/40 → 이번 과제.
 - **PR #22 문서 정리 (병합 완료, `b3f145b`)**: PR #21 병합 반영·수동 QA 절차 기록. Claude 문서 리뷰 PASS.
@@ -460,7 +640,7 @@ dist/assets/index-mMtmlsd0.js                            333.33 kB │ gzip: 100
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex:** "현재 과제 리뷰 기록"의 R1(`AppHeader.tsx`·test)과 R2(`HomePage.tsx`·test)만 고친다. 네 명령 출력을 다시 붙이고 PR #24에 `[Codex]` 코멘트로 재리뷰를 요청한다.
+- **Codex:** R1·R2 수정·네 명령 재실행·375 키보드 확인 완료. 변경과 실제 출력은 "현재 과제 리뷰 기록"의 Codex 절에 있다. 추가 수정은 재리뷰 요청 범위 안에서만 한다.
 - **Claude(재리뷰):** R1·R2 diff 확인, 독립 테스트, 홈 `/impeccable critique` 재실행으로 27/40과 비교.
 - 홈은 정답·계산 결과·expect를 보이지 않는다. 예상은 학생이 직접 고른 받은 답(`kind: "self"`)일 뿐이며 비교는 엔진 `comparison`이 한다. cases JSON은 테스트에서만 import한다.
 - 진입·주소만으로 입력을 바꾸지 않는다. 입력 변경은 "구성 불러오기" 직접 클릭 때만이며 기존 되돌리기 규칙을 따른다.

@@ -3,10 +3,11 @@ import { LESSONS, type PracticeGuess } from "../learning";
 import { PathStrip } from "../components/PathStrip";
 import type { Draft, User } from "../types";
 
-function GuessPuzzle({ onGuess }: { onGuess: (expected: PracticeGuess) => void }) {
+function GuessPuzzle({ onGuess, heading = "h3" }: { onGuess: (expected: PracticeGuess) => void; heading?: "h2" | "h3" }) {
   const lesson = LESSONS[0];
+  const Heading = heading;
   return <div className="home-puzzle">
-    <h3>먼저 예상해 보세요</h3><p className="home-puzzle-question">{lesson.task.question}</p>
+    <Heading>먼저 예상해 보세요</Heading><p className="home-puzzle-question">{lesson.task.question}</p>
     <PathStrip {...lesson.path} outside />
     <div className="home-guess-actions"><button type="button" className="ghost" onClick={() => onGuess("PASS")}>통과할 것 같다</button><button type="button" className="ghost" onClick={() => onGuess("DENY")}>막힐 것 같다</button></div>
     <p className="home-caption">NetProof는 모델 안에서 계산합니다. 실제 장비 결과는 따로 확인합니다.</p>
@@ -29,7 +30,7 @@ export function HomePage({ draft, user, checked, onGuess }: { draft: Draft; user
           <div className="home-actions"><a href="#/learn">학습실 전체 보기</a><a href="#/">판정기 바로 열기 →</a></div>
           <p className="home-caption">판정기: 구성과 통신을 넣으면 경로와 ACL을 계산해 통과·막힘과 근거를 보여 줍니다.</p>
         </div>
-        <GuessPuzzle onGuess={onGuess} />
+        <GuessPuzzle onGuess={onGuess} heading="h2" />
       </>}
     </section>
     {resume && <section className="home-new-practice" aria-labelledby="home-new-title"><h2 id="home-new-title">새 실습 시작하기</h2><GuessPuzzle onGuess={onGuess} /></section>}

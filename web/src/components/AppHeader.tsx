@@ -12,6 +12,7 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
     if (event.key === "Escape" && open) { setOpen(false); menuButton.current?.focus(); }
   }}>
     <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}>NetProof <span>Verify before you trust.</span></a>
+    <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}>메뉴</button>
     <nav id={menuId} className={`tabs header-nav${open ? " is-open" : ""}`} aria-label="주요 화면">
       {tab("학습실", "#/learn", route.page === "learn")}
       {tab("판정기", "#/", route.page === "judge")}
@@ -28,6 +29,5 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
         <button type="button" className="ghost small" onClick={() => { setOpen(false); onLogout(); }}>로그아웃</button>
       </> : <a href="#/login" className="ghost-link" onClick={() => setOpen(false)}>로그인</a>}
     </div>
-    <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}>메뉴</button>
   </header>;
 }
