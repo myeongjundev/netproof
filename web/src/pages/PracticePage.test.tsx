@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PracticePage, PracticeGuessPicker, practiceIntroSeen, rememberPracticeIntro } from "./PracticePage";
 import { initializePracticeDrafts, practiceImport } from "../App";
 import { FlowForm } from "../components/FlowForm";
+import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { blankDraft } from "../draft";
 import { practiceDraft, LESSONS } from "../learning";
@@ -72,13 +73,41 @@ it.each(examples)("$id는 ①→②→③→판정하기→④ 순서와 통신�
   expect(positions.every(n => n >= 0)).toBe(true); expect(positions).toEqual([...positions].sort((a,b) => a-b));
   expect(html).not.toMatch(/q-claim|claim-label|누구의 답인지|확인할 통신과 받은 답|예시를 불러와도 됩니다/);
   expect(html).toContain("③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다.");
-  expect(html).toContain("고른 예상은 계산에 쓰지 않고 결과와 나란히 비교만 합니다.");
+  expect(html).toContain("예상은 계산에 쓰지 않고 비교만 합니다.");
+  expect(html).not.toContain("고른 예상은 계산에 쓰지 않고 결과와 나란히 비교만 합니다.");
   expect(html).not.toMatch(/정답은 통과|정답은 막힘|채점|완료 표시|expect/);
 });
 it.each([null, "1"])("첫 안내 줄은 저장값 %s를 따른다", value => {
   vi.stubGlobal("localStorage", { getItem: () => value });
   const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   expect(html.includes("알겠어요")).toBe(value !== "1");
+});
+it("②의 접기 안에 확인할 것·통신·편집기만 넣고 ③은 밖에 둔다 (SSR)", () => {
+  fixture.items = examples; fixture.status = "ready";
+  const draft = practiceDraft(examples[0]);
+  // 빈 이름·중복 이름은 raw Draft 길이가 아니라 toNetwork와 같은 셈이다.
+  draft.acls.push({ name: " ", text: "" }, { ...draft.acls[0], name: " 101 " });
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", draft, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
+  const inside = html.slice(html.indexOf('<details class="mobile-fold'), html.indexOf("</details>"));
+  expect(inside).toContain("<summary>구성 펼쳐 보기 · 장비 3대 · ACL 1개</summary>");
+  expect(inside).not.toContain("확인할 것 3가지");
+  expect(inside).toContain("확인할 것</h3>"); expect(inside).toContain('id="flow-title"'); expect(inside).toContain('id="network-title"');
+  expect(inside).not.toContain("③ 내 예상"); expect(inside).not.toMatch(/<details[^>]*\bopen\b/);
+  expect(html.indexOf('id="practice-config-title"')).toBeLessThan(html.indexOf('<details class="mobile-fold'));
+  expect(html.indexOf("</details>")).toBeLessThan(html.indexOf("③ 내 예상"));
+});
+it("입력에서 보기는 접기를 먼저 연 뒤 ACL 줄을 선택한다", () => {
+  vi.stubGlobal("window", { matchMedia: () => ({ matches: false }) });
+  const d = driver(); const tree = d.render();
+  const fold = find(tree, item => item.type === "details")!.props.ref;
+  fold.current = { open: false };
+  const input = { value: d.draft.acls[0].text, focus: vi.fn(() => expect(fold.current.open).toBe(true)), setSelectionRange: vi.fn(), scrollIntoView: vi.fn() };
+  find(tree, item => item.type === NetworkEditor)!.props.aclInputRef(0, input);
+  d.panel().props.onShowAcl("101", 1);
+  expect(input.focus).toHaveBeenCalledWith({ preventScroll: true });
+  expect(input.setSelectionRange).toHaveBeenCalledWith(0, input.value.indexOf("\n"));
+  expect(input.scrollIntoView).toHaveBeenCalled();
+  expect(find(d.render(), item => item.type === "details")!.props).not.toHaveProperty("open");
 });
 it("저장소 읽기 실패에도 안내 줄과 화면이 렌더링된다", () => {
   vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); } });
@@ -136,6 +165,37 @@ it("편집 후 이전 결과를 표시하고 처음 상태·되돌리기는 예�
   expect(d.draft.flow.dst_port).toBe(80); expect(d.draft.claim.kind).toBe("self");
   d.button("처음 상태로").props.onClick(); d.editPort(8080); expect(d.button("되돌리기")).toBeUndefined();
 });
+it("변경 없는 처음 상태로는 결과와 진행 중 요청을 건드리지 않는다", async () => {
+  let resolve!: (value: Verdict) => void;
+  vi.spyOn(api, "verify").mockImplementation(() => new Promise(r => { resolve = r; }));
+  vi.stubGlobal("requestAnimationFrame", vi.fn());
+  const d = driver(); const pending = d.button("판정하기").props.onClick();
+  d.button("처음 상태로").props.onClick();
+  expect(d.setDraft).not.toHaveBeenCalled(); expect(d.panel().props.loading).toBe(true);
+  resolve(response); await pending;
+  d.button("처음 상태로").props.onClick();
+  expect(d.panel().props.verdict).toEqual(response); expect(d.panel().props.stale).toBe(false);
+  expect(d.button("되돌리기")).toBeUndefined(); expect(d.setDraft).not.toHaveBeenCalled();
+});
+it.each(["장비", "인터페이스", "경로", "ACL"])("%s 삭제는 한 단계 되돌리고 직접 편집하면 알림을 없앤다", kind => {
+  const d = driver();
+  if (kind === "경로") { const devices = structuredClone(d.draft.devices); devices[1].routes = [{ prefix: "0.0.0.0/0", next_hop: "10.20.20.5" }]; d.setDraft(() => ({ ...d.draft, devices })); }
+  const before = structuredClone(d.draft);
+  const editor = find(d.render(), item => item.type === NetworkEditor)!;
+  editor.props.onBeforeRemove(`${kind} 삭제`);
+  if (kind === "ACL") editor.props.onAcls([]);
+  else {
+    const devices = structuredClone(d.draft.devices);
+    if (kind === "장비") devices.splice(0, 1);
+    else if (kind === "인터페이스") devices[0].interfaces = [];
+    else devices[1].routes = [];
+    editor.props.onDevices(devices);
+  }
+  expect(d.draft).not.toEqual(before); expect(d.button("되돌리기")).toBeDefined();
+  d.button("되돌리기").props.onClick(); expect(d.draft).toEqual(before);
+  editor.props.onBeforeRemove(`${kind} 삭제`); editor.props.onAcls([]);
+  d.editPort(80); expect(d.button("되돌리기")).toBeUndefined();
+});
 it.each(["edit", "edit-reset", "unmount"])("계산 중 %s 뒤 도착한 응답은 결과·포커스를 쓰지 않는다", async action => {
   let resolve!: (v: Verdict) => void;
   vi.spyOn(api, "verify").mockImplementation(() => new Promise(r => { resolve = r; }));
@@ -150,6 +210,13 @@ it("실패 응답은 오류만 표시하고 완료 포커스 경로를 재사용
   const focus = vi.fn(); vi.stubGlobal("requestAnimationFrame", focus);
   const d = driver(); await d.button("판정하기").props.onClick();
   expect(d.panel().props.error).toBe("verify failed"); expect(d.panel().props.verdict).toBeNull(); expect(d.panel().props.loading).toBe(false); expect(focus).toHaveBeenCalledOnce();
+});
+it("알겠어요는 스크롤 없이 ② 제목으로 포커스를 넘긴다", () => {
+  const d = driver(); const title = find(d.render(), item => item.props.id === "practice-config-title")!;
+  const focus = vi.fn(); title.props.ref.current = { focus };
+  expect(title.props.tabIndex).toBe(-1);
+  d.button("알겠어요").props.onClick();
+  expect(focus).toHaveBeenCalledWith({ preventScroll: true });
 });
 it("안내 닫기의 저장이 실패해도 이번 방문 메모리에서는 숨긴다", () => {
   vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } });

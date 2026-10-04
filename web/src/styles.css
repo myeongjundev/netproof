@@ -461,6 +461,19 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .practice-intro button { flex: 0 0 auto; min-height: 44px; }
 .practice-config { min-width: 0; }
 .practice-config h2 { font-size: 18px; }
+.mobile-fold { min-width: 0; }
+.mobile-fold > summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 700; }
+.mobile-fold > summary:focus-visible, #practice-config-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.practice-config-fold[open]::details-content { display: grid; gap: 16px; }
+@media (min-width: 901px) {
+  @supports selector(::details-content) {
+    .mobile-fold > summary { display: none; }
+    .mobile-fold::details-content { content-visibility: visible; }
+    .practice-config-fold::details-content { display: grid; gap: 16px; }
+    /* ② 제목과 확인할 것은 접기로 감싸기 전 간격을 유지한다. */
+    .practice-config-fold { margin-top: -16px; }
+  }
+}
 .practice-check-title { font-size: 14px; margin-top: 8px; }
 .practice-checkpoints { margin: 4px 0 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
 .practice-prediction { padding: 14px 16px; }
@@ -471,6 +484,12 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .practice-import button { min-height: 44px; }
 .home-page a:focus-visible, .learning-page a:focus-visible, .app-header a:focus-visible, .practice-page a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 900px) {
+  .practice-page { gap: 12px; }
+  .practice-config { gap: 8px; }
+  .practice-page .layout { gap: 12px; }
+  .practice-prediction { padding: 10px 16px; }
+  .practice-problem h1 { margin: 2px 0 4px; }
+  .practice-problem .hint { margin-top: 2px; }
   .practice-problem { grid-template-columns: 1fr; gap: 10px; }
   .practice-problem h1 { font-size: 23px; }
   .practice-intro { align-items: flex-start; flex-wrap: wrap; }

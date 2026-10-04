@@ -9,6 +9,8 @@ export function CaseNetwork({ network, flow }: { network: Network; flow: Flow })
       <p className="hint">저장된 입력을 그대로 보여 줍니다. 계산 결과는 아래 판정 칸에 있습니다.</p>
       <h3>확인할 통신</h3>
       <p className="case-flow">{flowText(flow)}</p>
+      <details className="mobile-fold">
+        <summary>구성 펼쳐 보기 · 장비 {view.devices.length}대 · ACL {view.acls.length}개</summary>
       <div className="case-devices">
         {view.devices.map((device, index) => (
           <article className="case-device" key={index}>
@@ -35,6 +37,7 @@ export function CaseNetwork({ network, flow }: { network: Network; flow: Flow })
           <ol>{acl.lines.map(({ line, raw }) => <li key={line}><span>{line}</span><code>{raw}</code></li>)}</ol>
         </details>
       ))}
+      </details>
     </section>
   );
 }

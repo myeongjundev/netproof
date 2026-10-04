@@ -13,7 +13,7 @@ export function HomePage({ draft, user, checked, onGuess, practiceCaseId, practi
     <section className={`home-hero${resume ? " home-hero-resuming" : ""}`} aria-labelledby="home-title">
       {resume ? <div>
         <p className="home-eyebrow">{startedLesson ? `${startedLesson.title} 실습` : "네트워크 설정 검증 실습실"}</p><h1 id="home-title">{startedLesson ? "하던 실습이 있어요" : "작성하던 입력이 있어요"}</h1>
-        <p className="home-description home-draft-summary">{startedLesson ? practiceDraft ? draftSummary(practiceDraft) : "실습 입력을 준비하고 있습니다." : draftSummary(draft)}</p>
+        <p className="home-description home-draft-summary">{startedLesson ? practiceDraft ? draftSummary(practiceDraft) : "실습 구성을 아직 불러오지 않았습니다." : draftSummary(draft)}</p>
         <div className="home-actions"><a className="home-primary" href={startedLesson ? `#/practice/${startedLesson.caseId}` : "#/"}>{startedLesson ? "실습 이어서 하기" : "이어서 하기"}</a>{startedLesson && judgeInput && <a href="#/">판정기 입력 이어서 하기</a>}</div>
         <p className="home-caption">새로고침하면 입력이 사라집니다.</p>
       </div> : <>
