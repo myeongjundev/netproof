@@ -10,6 +10,10 @@ import { aclSelection } from "../components/AclEvidence";
 import { focusJudgeResult } from "./JudgePage";
 import { scrollTo } from "../motion";
 import type { CaseItem, Claim, Draft, Network, Verdict } from "../types";
+import { advanceChange, type ChangeHistory } from "../changeView";
+import { ChangePanel } from "../components/ChangePanel";
+import { defaultMatrixSpec } from "../policyMatrix";
+import type { ChangeImpact } from "../types";
 
 const INTRO_KEY = "netproof.practiceIntroSeen";
 let introSeenInMemory = false;
@@ -68,8 +72,21 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   latestSnapshot.current = snapshot;
   const stale = judged !== null && (needsJudge || judged !== snapshot);
   const network = draft ? toNetwork(draft) : undefined;
+  const [changeHistory, setChangeHistory] = useState<ChangeHistory>({ last: null, before: null });
+  const [impact, setImpact] = useState<ChangeImpact | null>(null);
+  const [impactError, setImpactError] = useState<string | null>(null);
+  const [impactLoading, setImpactLoading] = useState(false);
+  const impactRevision = useRef(0);
+  const previousSnapshot = useRef(snapshot);
 
-  useEffect(() => () => { revision.current += 1; }, []);
+  useEffect(() => () => { revision.current += 1; impactRevision.current += 1; }, []);
+  useEffect(() => {
+    if (previousSnapshot.current !== snapshot) {
+      previousSnapshot.current = snapshot;
+      impactRevision.current += 1;
+      setImpactLoading(false);
+    }
+  }, [snapshot]);
   useEffect(() => {
     let active = true;
     setStatus("loading");
@@ -82,6 +99,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   useEffect(() => { if (example) onReady(example); }, [example, onReady]);
 
   const update = (patch: Partial<Draft>) => {
+    impactRevision.current += 1;
+    setImpactLoading(false);
     revision.current += 1;
     setLoading(false);
     if (!removing.current) setUndo(null);
@@ -91,6 +110,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const restore = () => {
     if (!undo) return;
     revision.current += 1;
+    impactRevision.current += 1;
+    setImpactLoading(false);
     setLoading(false);
     setDraft(() => structuredClone(undo.draft));
     setNeedsJudge(true);
@@ -101,6 +122,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
     const next = { ...practiceDraft(example), claim: structuredClone(draft.claim) };
     if (JSON.stringify(next) === snapshot) return;
     setUndo({ draft: structuredClone(draft), label: "처음 상태로 돌아갔습니다" });
+    impactRevision.current += 1;
+    setImpactLoading(false);
     revision.current += 1;
     setLoading(false);
     setError(null);
@@ -110,6 +133,8 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const judge = async () => {
     if (!draft || loading) return;
     const started = ++revision.current;
+    impactRevision.current += 1;
+    setImpactLoading(false);
     const requestedSnapshot = snapshot;
     const current = () => started === revision.current && requestedSnapshot === latestSnapshot.current;
     const network = structuredClone(toNetwork(draft));
@@ -121,6 +146,9 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
       const result = await api.verify(network, flow, claim);
       if (!current()) return;
       setVerdict(result);
+      setChangeHistory(history => advanceChange(history, { network, flow, verdict: result }));
+      setImpact(null);
+      setImpactError(null);
       setJudgedNetwork(network);
       setJudgedClaim(claim);
       setJudged(requestedSnapshot);
@@ -131,6 +159,23 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
       setError(message(e));
     } finally {
       if (current()) { setLoading(false); focusJudgeResult(current); }
+    }
+  };
+  const calculateImpact = async () => {
+    if (stale || loading || impactLoading || !changeHistory.before || !changeHistory.last) return;
+    const started = ++impactRevision.current;
+    const requestedSnapshot = snapshot;
+    const current = () => started === impactRevision.current && latestSnapshot.current === requestedSnapshot;
+    setImpactLoading(true);
+    setImpactError(null);
+    try {
+      const result = await api.changeImpact(structuredClone(changeHistory.before.network),
+        structuredClone(changeHistory.last.network), structuredClone(changeHistory.last.flow), defaultMatrixSpec().services);
+      if (current()) setImpact(result);
+    } catch (error) {
+      if (current()) setImpactError(message(error));
+    } finally {
+      if (current()) setImpactLoading(false);
     }
   };
   const showAcl = (name: string, line: number | null) => {
@@ -179,6 +224,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
             <p className="hint below">예상은 계산에 쓰지 않고 비교만 합니다.</p></section>
           <div className="judge"><button type="button" className="primary" onClick={judge} disabled={loading}>{loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}</button><span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span></div>
           <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
+          <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
           <div className="practice-import"><p className="hint">ACL 점검·수정 후보·사례 저장은 판정기에서 할 수 있습니다.</p><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
         </div>
       </div>

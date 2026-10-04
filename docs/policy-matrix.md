@@ -64,4 +64,37 @@ TCP 서비스 8개로 검사 1,920건을 한 번 실행한 결과 **0.8265초**�
 verify가 매번 network를 다시 파싱하므로 더 긴 ACL·많은 라우터는 더 느릴 수 있다.
 캐싱이나 단일 흐름 판정 의미 변경은 이번 범위에 포함하지 않는다.
 
-Codex (GPT-6)
+## 변경 영향
+
+판정기·실습의 `변경 전/후`는 같은 통신을 구성만 바꿔 다시 판정했을 때 직전 판정과 지금 판정을 나란히 보인다.
+받은 답만 바꿔 다시 판정하면 기준을 유지하고, 통신을 바꾸면 기준이 사라진다. 불러오기는 기억도 지운다.
+되돌리기·실습의 처음 상태로는 구성 변경이며, 요청 실패는 판정 기억을 바꾸지 않는다. 사례·공유 링크에는 비교를 넣지 않는다.
+
+`다른 통신 영향 계산`을 직접 눌러야 `POST /api/change-impact`를 호출한다. 로그인 없이 사용할 수 있다.
+본문은 `{before: Network, after: Network, flow: Flow, services: Service[]}`다. 웹은 기본 SSH·HTTP·HTTPS·DNS·Ping을 보낸다.
+엔진은 판정한 통신의 서비스를 더하고 `_service` 키로 중복을 제거한다(먼저 지정한 이름 유지). mode는 flow의 것, 기본 session이다.
+flow의 주소·포트·프로토콜·mode 형식은 기존 판정 파서로 확인한다. 형식 오류는 전체 INVALID다.
+
+엔진 `change_impact`는 같은 서비스·mode, 의도 없음으로 양쪽 `policy_matrix`를 한 번씩 부른다.
+양쪽에 있는 `(src IP, dst IP, 서비스 키)`만 비교하고 판정한 통신과 같은 칸은 제외한다.
+**결과가 다를 때만** DENY→PASS는 `opened`, PASS→DENY는 `closed`, INVALID·UNSUPPORTED를 포함하는 변화는 `other`다.
+결과가 같으면 이유·결정 단계가 달라도 변화 목록에 넣지 않는다. 한쪽에만 있는 칸은 `not_compared`로 센다.
+끝점 주소 변경은 이전 주소와 새 주소의 칸 각각을 센다(판정한 칸 제외). 장비 이름은 변경 후 끝점 이름이다.
+
+응답은 `{status, problems, limit_exceeded, engine_version, mode, services, changes, totals}`다.
+`changes[]`는 `{src, dst, src_device, dst_device, service, kind, before: {result, reason, decisive}, after: {result, reason, decisive}}`다.
+opened→closed→other 순이며 동률은 src·dst·service 순이다. `totals`는 `{checks, changed, opened, closed, other, not_compared}`다.
+checks는 비교한 칸 수, changed는 변화 목록 수다. 한쪽 배치가 INVALID면 전체 INVALID·빈 목록·0개수이며
+problems에 `변경 전 구성: `·`변경 후 구성: `을 붙인다. 단일 칸 INVALID·UNSUPPORTED는 배치 오류와 구별한다.
+
+기존 매트릭스 한도를 양쪽 각각 적용한다: 끝점 24·서비스 8·검사 2,000건. 받은 원본 서비스 8개 한도와
+판정 서비스 추가·중복 제거 후 8개 한도 모두 적용한다. 초과는 부분 계산 없이 `limit_exceeded=true`이며 HTTP 422다.
+나머지 엔진 INVALID는 HTTP 200이다. 서버는 양쪽 각각 기존 구성 크기 제한을 검사하며, 두 구성 합쳐 64KB 요청 제한과
+X-NetProof·로그인 세션 CSRF를 유지한다. 기존 verify·policy_matrix·suggest 응답은 바꾸지 않는다.
+
+화면은 엔진의 분류·개수·순서를 그대로 사용한다. 처음 30줄만 보이고 `외 n건`을 표시한다.
+입력이 바뀌면 이전 비교임을 표시하고 계산 단추를 막는다. 다시 판정하면 영향 응답을 지우고 늦은 응답은 폐기한다.
+검사한 서비스·호스트 쌍 밖은 알 수 없으며, 변화 0개는 안전 보장이 아니다. 실제 장비 결과가 아니며 정답·채점이 아니다.
+기존 측정(한쪽 1,920건 0.8265초)의 약 두 배가 예상되지만 구성별 실행 시간 상한은 보장하지 않는다.
+
+Codex (GPT-5)

@@ -13,6 +13,7 @@ from netproof_engine import __version__ as ENGINE_VERSION
 from netproof_engine import compare, observe, policy_matrix, verify
 from netproof_engine import acl_audit
 from netproof_engine import suggest
+from netproof_engine.change import change_impact
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -90,6 +91,16 @@ def observe_endpoint():
     if not isinstance(data, dict):
         return error(400, "본문은 객체여야 합니다")
     return jsonify(observe(data.get("text"), data.get("flow")))
+
+
+@bp.post("/change-impact")
+def change_endpoint():
+    data = _body()
+    for field in ("before", "after"):
+        if problem := _limit_problem(data.get(field)):
+            return error(422, problem)
+    result = change_impact(data.get("before"), data.get("after"), data.get("flow"), data.get("services"))
+    return jsonify(result), 422 if result["limit_exceeded"] else 200
 
 
 @bp.post("/acl-audit")

@@ -23,7 +23,7 @@ export function editDescription(edit: SuggestionEdit): string {
   return `${edit.acl} · ${anchor}에 넣기 → 새 ${edit.insert_at}번 줄 · ${edit.device} ${edit.interface} ${edit.direction} · ${edit.path === "forward" ? "가는 길" : "돌아오는 길"}`;
 }
 export function sharedDescription(edit: SuggestionEdit): string {
-  return `ACL ${edit.acl}은(는) ${edit.shared_by.length}곳에 붙어 있어 이 줄은 모든 곳에 적용됩니다: ${edit.shared_by.map((site) => `${site.device} ${site.interface} ${site.direction}`).join(", ")}`;
+  return `${edit.acl} ACL은 ${edit.shared_by.length}곳에 붙어 있어 이 줄은 모든 곳에 적용됩니다: ${edit.shared_by.map((site) => `${site.device} ${site.interface} ${site.direction}`).join(", ")}`;
 }
 export function afterDescription(after: Omit<Verdict, "comparison">): string {
   const title = { PASS: "통과", DENY: "막힘", INVALID: "입력 오류", UNSUPPORTED: "판정 불가" }[after.result];

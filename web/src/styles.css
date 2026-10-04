@@ -553,3 +553,9 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
   .case-start { grid-template-columns: 1fr; gap: 4px; }
   .case-start li { border: 0; background: transparent; padding: 0; }
 }
+/* Engine-provided change impact, neutral like the comparison banner. */
+.change-panel { min-width: 0; overflow-wrap: anywhere; }
+.change-panel > p { margin-block: 10px; }
+.change-list { padding-left: 22px; }
+.change-list li { padding-block: 8px; border-bottom: 1px solid var(--line); }
+.change-list p { margin-block: 4px; }

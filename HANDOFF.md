@@ -29,8 +29,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - **판정기와 실습 화면** 두 곳에 같은 부품을 둔다.
   - **다른 통신 영향은 단추를 눌렀을 때** 계산한다.
 - 브랜치: `codex/change-impact`(origin/main `74c5255` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
-- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- 단계: **설계 `919d15b` 사용자 승인 → Codex 구현·테스트 완료 → Claude 리뷰 대기 → 사용자 병합 결정.**
+- 다음 차례: **리뷰(Claude)**. 병합하지 않는다.
 - **PASS/DENY와 "바뀜" 분류는 엔진만 정한다(ADR-001).** 화면은 엔진 응답을 보여 주기만 하고 두 결과를 비교하지 않는다. 기존 `verify`·`policy_matrix`·`suggest`의 응답과 의미는 바꾸지 않는다.
 
 ## 작업 정의
@@ -152,6 +152,208 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 가로 넘침 0, console error 0.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
+## 완료 내용 / 테스트 결과 (2026-10-05 · Codex)
+
+- 사용자 승인 설계 `919d15b`의 작업 정의 1)~7)만 구현했다. `git pull` 뒤 AGENTS·HANDOFF를 읽고 기존 `codex/change-impact`에서 작업했다.
+- 새 엔진 `change_impact`는 기존 `policy_matrix`를 양쪽 한 번씩 호출한다. 분류·개수·목록·정렬·한도는 엔진만 정하며, 기존 verify·policy_matrix·suggest의 코드·응답과 cases/expect·의존성·DB 스키마는 바꾸지 않았다.
+- 새 익명 API는 기존 본문·CSRF·X-NetProof·64KB·구성 크기 제한을 재사용한다. 양쪽 구성 제한과 200/422/403/413을 테스트했다.
+- 공용 `advanceChange`의 입력 비교와 `ChangePanel`을 판정기·실습에 연결했다. 성공한 판정만 기억하고 실패는 보존한다. 구성 변경은 직전 판정, 받은 답만 변경은 기준 유지, 통신 변경·불러오기는 기준 해제다. 영향은 직접 단추 클릭 때만 요청하며 늦은 성공·실패 응답을 버린다. 실습 입력 분리·기존 comparison 표시 원칙은 유지한다.
+- F24 제목만 있는 빈 템플릿 불러오기 되돌리기·동일 입력 제목 유지, F25 고정 조사 한 줄을 반영했다. 새 칸의 중립 스타일만 추가했다.
+- 엔진 신규 24개(작은 구성 Hypothesis 40예 포함), 서버 신규 11개, 웹 신규 28개 및 F25 기존 검사 보강. 모순된 엔진 응답을 그대로 표시하는 SSR, 30줄 제한, 실패/늦은 응답/되돌리기/초기화 회귀를 포함한다. 웹 하네스·SSR 검증은 실제 브라우저 검증과 구분한다.
+- 초기 주소 변경 테스트의 not_compared 기대값 18은 제외된 질문 칸을 고려한 실제 합집합 19로 바로잡았다(기존 사례 expect는 변경하지 않음). 최초 서버 검사에서 공유 venv의 editable 엔진 경로가 주 작업 폴더를 가리켜 새 모듈을 못 찾았다. 서버 검사 프로세스에만 아래 PYTHONPATH를 지정해 현재 worktree 엔진으로 전체 재실행했다.
+- 모든 명령 exit code 0. 기존 xfail 2개·skip 1개는 유지한다. `git diff --check` 오류 없음. 사례 JSON import 검색 결과는 테스트 파일에만 있다.
+
+### 실행 환경 · 재현
+
+Windows PowerShell에서 각 명령을 해당 작업 폴더에서 직접 실행했다. 아래 `&&` 표기는 요청한 명령 그대로이며 engine/server는 해당 디렉터리를 workdir로 지정했다. 공유 venv 설치는 변경하지 않았다. server 명령 전에 **그 프로세스에서만** 다음을 적용했다(기존 테스트 fixture의 임시 SQLite 사용, 실제 DATABASE_URL 미사용).
+
+```powershell
+$env:PYTHONPATH = 'C:/gov/project/skt aleph/netproof-judge-ux/engine/src'
+Remove-Item Env:NETPROOF_TEST_DATABASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+```
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 20%]
+........................................................................ [ 40%]
+........................................................................ [ 61%]
+........................................................................ [ 81%]
+..............................................................xx         [100%]
+350 passed, 2 xfailed in 3.31s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 63%]
+..........s...............................                               [100%]
+113 passed, 1 skipped in 23.26s
+```
+
+### `npm --prefix web test`
+
+```text
+
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  29 passed (29)
+      Tests  392 passed (392)
+   Start at  03:37:02
+   Duration  1.07s (transform 64%, import 25%, tests 8%, worker 4%)
+
+  Transform  transforming modules took 6.45s · 64% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### `npm --prefix web run build`
+
+```text
+
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 58 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-IwNrxsp2.css                            80.66 kB │ gzip:  22.48 kB
+dist/assets/index-bbNOUhK4.js                            344.84 kB │ gzip: 103.72 kB
+
+✓ built in 238ms
+```
+
+### 실제 브라우저 확인 (Chrome · 라이트 · 임시 SQLite · 127.0.0.1)
+
+빌드 결과와 현재 worktree 엔진/서버를 사용했다. 4871은 원본 QA 도구, 4872는 같은 seeded_qa와 앱의 QA 전용 외부 WSGI 래퍼다. 4872는 HTML에 `@media(max-width:900px){::-webkit-scrollbar{width:0;height:0}}`만 주입하여 innerWidth=clientWidth=375를 맞췄다. 저장소 소스·배포물·API 응답은 변조하지 않았다. 실제 Chrome viewport 흉내이며 실제 휴대폰/네이티브 모바일 에뮬레이션은 아니다. 원본 375(innerWidth 375/clientWidth 360)도 판정기 영향 흐름·넘침 0을 확인했다. 1280은 innerWidth 1280/clientWidth 1265다.
+
+| 화면 · 크기 | 직접 확인한 결과 |
+| --- | --- |
+| 판정기 1280×800 · 375×812 | 예시01 첫 DENY → 첫 deny를 두 /24 사이 deny ip로 확대 → 변경 전 DENY/후 DENY 이유 원문 → 영향 opened 0/closed 9/other 0/checks 9. 목록에 SRV→PC1 5개가 포함되며 판정한 PC1→SRV HTTPS는 제외된다. 이어 첫 줄 삭제 후 DENY→PASS, opened 9/closed 0/other 0. |
+| 판정기 두 크기 | 받은 답만 바꿔 성공 판정하면 변경 전 유지·영향 결과 지움. 포트 80으로 바꿔 판정하면 칸 없음, 예시 불러오기도 칸 없음. 입력 편집 때 이전 입력 안내와 영향 단추 비활성화 확인. 마지막 빌드 reload 뒤 1280 기준 유지 및 375 영향 9개를 다시 확인했다. |
+| 실습01 1280×800 · 375×812 | 동일한 첫 DENY → deny 확대/재판정 closed 9 → 첫 줄 삭제/재판정 PASS 및 opened 9. 받은 답만 변경은 기준 유지·영향 지움, 포트 변경 후 칸 없음. 실습② 접기 닫힌 상태에서도 판정 가능하며 새 칸은④ 아래다. |
+| F24 두 크기 | 빈 템플릿 판정 → 제목만 입력 → 예시01 불러오기 알림 → 되돌리기/재판정 시 원래 제목 복구. 같은 입력의 처음 구성 불러오기는 제목 유지. 사례 저장은 하지 않았다. |
+| 오류/넘침 | 확인한 두 크기 판정기·실습에서 가로 넘침 0px, 캡처한 console error 0건. |
+
+실습01 375×812, 첫 방문 안내 닫음·② 접음·scrollY=0·innerWidth=clientWidth=375에서 직접 읽은 viewport y 위치:
+
+| 항목 | 위 · 아래(px) |
+| --- | --- |
+| ③ 제목 | 602.671875 · 629.015625 |
+| 세 라디오/라벨(각각) | 635.015625 · 679.015625 |
+| 안내 문장 | 689.015625 · 709.156250 |
+| ③ 칸 전체 | 591.671875 · 720.156250 |
+| 고정 판정 줄 | 746.203125 · 812.000000 |
+
+PR #30 Claude 재리뷰의 실습01 기준(칸 591.7~720.2, 안내 689.0~709.2, 고정 줄 746.2)과 일치한다. ③ 전체가 고정 줄 위다. 새 칸이 ③ 위치를 바꾸지 않았다. 360/320·다크·실제 휴대폰·스크린리더·PostgreSQL은 이번 완료 조건이 아니며 이번에 확인하지 않았다. 다른 실습의 ③ 위치를 이번 실측으로 주장하지 않는다.
+
+비밀번호는 RAM/로컬 로그인에서만 사용했고 파일·출력·캡처·문서에 기록하지 않았다. QA 서버 두 개 정상 종료, 각각 temporary removed=True와 4871/4872 LISTEN 0 확인. 검증 탭 닫음·viewport 해제. 캡처는 저장소 밖에 보관했다. **사용자 수동 QA A·B·C는 그대로 대기**하며 이 확인으로 완료 처리하지 않았다.
+
+다음 차례: **리뷰(Claude)**. 변경 전 기준·실패/늦은 응답·엔진의 판정 통신 제외와 not_compared·F24를 중점 확인해 주세요. 병합하지 않는다.
+
+Codex (GPT-5)
+
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #31 판정기 알림·조사 정리 F5·F6 (병합 완료, `74c5255`)**: 손대지 않은 빈 템플릿에서는 불러오기 되돌리기 알림을 띄우지 않는다(`hasCurrentInput` 재사용). 조사 일곱 곳을 고정 낱말 뒤 조사로 바꿨다(예시 주제 알림·ACL 삭제·ACL 점검 두 문장·로그인 안내·계정 삭제·비교 배너 `과`). Claude 독립 리뷰 PASS(사례 목록 실패 시 `사례가`까지 실브라우저 확인). 후속 F24(저장 제목)·F25(`은(는)`)는 변경 전/후 과제에 넣었다.
 - **PR #30 휴대폰 구성 접기 + 실습 후속 (병합 완료, `63515a6`)**: 900px 이하에서 실습 ②와 사례 상세 네트워크 구성을 CSS 접기(`.mobile-fold`, 넓은 화면은 요약 줄 숨김·펼침), `입력에서 보기`는 접기를 먼저 엶. F19 안내 뒤 ② 제목 포커스, F20 바뀐 것 없는 처음 상태로 무시, F21 실습 삭제 되돌리기, F22 홈 문구, F23 옛 문서 정리. R1(사용자 결정)으로 폭 360 대응: 요약 줄에서 확인할 것 개수 뺌, ③ 안내 `예상은 계산에 쓰지 않고 비교만 합니다.`, 휴대폰 실습 간격. Claude 재리뷰 PASS(360×800·375×812 실습 01·02·03의 ③ 제목·라디오·안내가 고정 줄 위, 1280 무변화).
@@ -210,7 +412,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 **F5·F6 다음 기능 순서 (2026-10-05 사용자 합의 — 아래 4·5주차 목록의 순서를 대신한다)**
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
-1. [ ] 변경 전/후 판정 비교 — ② **설계(2026-10-05, `codex/change-impact`) → 사용자 승인 대기**
+1. [ ] 변경 전/후 판정 비교 — ② **승인 `919d15b`, `codex/change-impact` 구현·테스트 완료 → 리뷰(Claude) 대기**
 2. [ ] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) — 운영·④ **+ 학습실에 Graylog·Wazuh 공부 주제**(개념 설명·NetProof 로그가 어떻게 보이는지·공식 문서 출처) — 사용자 요청
 3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심)
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
@@ -243,10 +445,10 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **사용자:** 변경 전/후 판정 비교 설계 승인. 승인 뒤 Codex가 작업 정의 1)~7)을 구현한다.
-- **Codex(승인 뒤):** 분류·개수·목록은 엔진 응답만 쓴다(ADR-001). 화면은 입력이 같은지만 비교한다. 기존 `verify`·`policy_matrix`·`suggest` 응답은 바꾸지 않는다.
+- **Claude:** 승인된 변경 전/후 판정 비교 작업 정의 1)~7)의 구현을 리뷰한다. 위 완료 기록의 실제 출력·브라우저 범위·재현 환경을 확인한다.
+- **리뷰 기준:** 분류·개수·목록은 엔진 응답만 쓴다(ADR-001). 화면은 입력이 같은지만 비교한다. 기존 `verify`·`policy_matrix`·`suggest` 응답은 바꾸지 않는다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
-- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 화면은 verify만 부르고 비교를 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
+- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify만 부른다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
 - 수동 QA 결과는 사람이 `docs/qa-manual.md`로 기록한다. AI가 대신 완료로 바꾸지 않는다.
 - 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.
@@ -271,4 +473,4 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 판정기 알림·조사 정리(F5·F6) 설계: Claude (Claude Opus 5.5).
+현재 변경 전/후 판정 비교 설계: Claude (Claude Opus 5.5). 구현·검증: Codex (GPT-5).

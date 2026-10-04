@@ -9,6 +9,9 @@ import { blankDraft } from "../draft";
 import { practiceDraft, LESSONS } from "../learning";
 import { api } from "../api";
 import type { CaseItem, Draft, Verdict } from "../types";
+import type { ChangeImpact } from "../types";
+import { ChangePanel } from "../components/ChangePanel";
+import { toNetwork } from "../draft";
 import case01 from "../../../cases/synthetic-01-https-acl.json";
 import case02 from "../../../cases/synthetic-02-missing-return-route.json";
 import case03 from "../../../cases/synthetic-03-acl-out.json";
@@ -55,6 +58,48 @@ function driver() {
   const editPort = (port: number) => find(render(), item => item.type === FlowForm)!.props.onFlow({ ...draft.flow, dst_port: port });
   return { render, button, panel, editPort, setDraft, onReady, onImport, get draft() { return draft; } };
 }
+
+const impactResponse: ChangeImpact = { status: "OK", problems: [], limit_exceeded: false, engine_version: "test", mode: "session", services: [], changes: [],
+  totals: { checks: 9, changed: 0, opened: 0, closed: 0, other: 0, not_compared: 0 } };
+const changePanel = (tree: unknown) => find(tree, node => node.type === ChangePanel)!;
+const editAcl = (tree: unknown, text: string) => find(tree, node => node.type === NetworkEditor)!.props.onAcls([{ name: "101", text }]);
+
+it("실습 구성 변경·예상만 변경·통신 변경은 기준 표를 그대로 따른다", async () => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(response);
+  const d = driver(); await d.button("판정하기").props.onClick(); const old = toNetwork(d.draft);
+  editAcl(d.render(), "deny ip any any"); await d.button("다시 판정하기").props.onClick();
+  const history = changePanel(d.render()).props.history; expect(history.before.network).toEqual(old);
+  find(d.render(), node => node.type === PracticeGuessPicker)!.props.onChange("DENY"); await d.button("다시 판정하기").props.onClick();
+  expect(changePanel(d.render()).props.history.before).toBe(history.before);
+  d.editPort(80); await d.button("다시 판정하기").props.onClick(); expect(changePanel(d.render()).props.history.before).toBeNull();
+});
+it("실습 영향은 직접 단추를 눌러 직전·지금 구성을 보내며 처음 상태로도 구성 변경이다", async () => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(response);
+  const impact = vi.spyOn(api, "changeImpact").mockResolvedValue(impactResponse); const d = driver(); await d.button("판정하기").props.onClick(); const before = toNetwork(d.draft);
+  editAcl(d.render(), "deny ip any any"); await d.button("다시 판정하기").props.onClick(); expect(impact).not.toHaveBeenCalled();
+  await changePanel(d.render()).props.onCalculate(); expect(impact.mock.calls[0].slice(0, 3)).toEqual([before, toNetwork(d.draft), d.draft.flow]); expect(impact.mock.calls[0][3]).toHaveLength(5);
+  expect(changePanel(d.render()).props.result).toBe(impactResponse);
+  const modified = toNetwork(d.draft); d.button("처음 상태로").props.onClick(); expect(changePanel(d.render()).props.history.before).not.toBeNull();
+  await d.button("다시 판정하기").props.onClick(); expect(changePanel(d.render()).props.history.before.network).toEqual(modified); expect(changePanel(d.render()).props.result).toBeNull();
+});
+it.each(["success", "error"])("실습 영향의 늦은 %s는 편집·재판정 뒤 쓰지 않는다", async outcome => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(response);
+  let finish!: (value?: any) => void; vi.spyOn(api, "changeImpact").mockImplementation(() => new Promise((resolve, reject) => { finish = outcome === "success" ? resolve : reject; }));
+  const d = driver(); await d.button("판정하기").props.onClick(); editAcl(d.render(), "deny ip any any"); await d.button("다시 판정하기").props.onClick();
+  const pending = changePanel(d.render()).props.onCalculate(); editAcl(d.render(), "permit ip any any"); await d.button("다시 판정하기").props.onClick();
+  finish(outcome === "success" ? impactResponse : new Error("late")); await pending;
+  expect(changePanel(d.render()).props.result).toBeNull(); expect(changePanel(d.render()).props.error).toBeNull();
+});
+it("실습 실패는 기억 유지, 다른 실습의 새 마운트는 비교 없음", async () => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); const verify = vi.spyOn(api, "verify").mockResolvedValue(response);
+  const d = driver(); await d.button("판정하기").props.onClick(); const last = changePanel(d.render()).props.history.last;
+  editAcl(d.render(), "deny ip any any"); verify.mockRejectedValueOnce(new Error("failed")); await d.button("다시 판정하기").props.onClick();
+  expect(changePanel(d.render()).props.history.last).toBe(last);
+  await d.button("다시 판정하기").props.onClick(); expect(changePanel(d.render()).props.history.before).toBe(last);
+  fixture.states = []; fixture.refs = []; fixture.stateIndex = 0; fixture.refIndex = 0;
+  const next = PracticePage({ caseId: "synthetic-02", draft: practiceDraft(examples[1]), setDraft: () => {}, onReady: () => {}, onImport: () => {} });
+  expect(fixture.states).toContainEqual({ last: null, before: null }); expect(find(next, node => node.type === ChangePanel)).toBeUndefined();
+});
 
 it.each(["loading", "error", "ready"])("조회 %s는 로딩·실패·누락을 구별하고 입력을 변경하지 않는다 (SSR)", status => {
   fixture.status = status; const setDraft = vi.fn(); const onReady = vi.fn();
