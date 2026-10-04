@@ -17,96 +17,66 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **휴대폰 구성 접기(F18·F4) + 실습 화면 후속(F19~F23)** — 휴대폰(900px 이하)에서는 네트워크 구성이 펼쳐진 채 비교 칸보다 위에 있어 내 예상·받은 답·판정이 멀다. 구성을 접어 두고 요약 줄을 보인다. 넓은 화면은 지금 그대로다.
-  - F18: 실습 화면 375×812(synthetic-02, 안내 줄 닫음)에서 ② 구성이 2,433px라 ③ 내 예상이 y≈2930, ④ 판정이 y≈3101이다(Claude 실측).
-  - F4: 사례 상세 375에서 h2가 네트워크 구성 448 → 받은 답 1153 → 판정 1402 → 실제 결과 2365다(PR #20 리뷰 실측).
-- 사용자 결정(2026-10-05):
-  - **F18과 F4를 묶는다.**
-  - **휴대폰 실습 화면의 `확인할 것`은 접힌 구성 안에 둔다.** (설계 때 추정 ③ y≈597은 폭 375 기준이었다. 실측과 폭 360 대응은 R1에서 고쳤다.)
-  - **작은 후속 F19~F23을 같이 한다.**
-- 방식: 사례 게시판 필터(PR #20 F1)와 같은 CSS 접기다. Claude 스파이크(2026-10-05, Chromium)에서 확인했다.
-  - 넓은 화면: 닫힌 `<details>`라도 내용이 보이고 입력·포커스가 된다.
-  - 휴대폰: 닫혀 있으면 포커스가 안 되고, 연 뒤에는 포커스와 줄 선택이 된다.
-- 브랜치: `codex/mobile-config`(origin/main `f034bff` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **사용자 승인(1a1d610) → Codex 구현·테스트 완료 → Claude 리뷰 R1 수정 요청([PR #30 코멘트](https://github.com/myeongjundev/netproof/pull/30#issuecomment-5982325956)) → Codex R1(`f5b7083`) → Claude 재리뷰 PASS([코멘트](https://github.com/myeongjundev/netproof/pull/30#issuecomment-5982491300)) → 사용자 병합 결정.**
-- 다음 차례: **사용자 — 병합 결정.** 고친 목표(360×800·375×812, 실습 01·02·03의 ③ 제목·세 라디오·안내 문장이 고정 줄 위)를 Claude가 휴대폰 흉내로 재확인했다. 1280은 PR #29와 같다.
-- **판정·엔진은 그대로다.** 엔진·서버·API·DB·cases JSON·expect를 바꾸지 않는다. 정답·채점 표시를 만들지 않는다.
+- 작업: **판정기 알림·조사 정리 (F5·F6)** — PR #21 리뷰의 비차단 후속 두 건이다.
+  - **F5**: 판정기를 처음 연 상태(빈 템플릿 그대로)에서 예시를 불러와도 `예시 01을 불러왔습니다.` + `되돌리기` 알림이 뜬다. 되돌릴 사용자 입력이 없으므로 소음이다.
+    - 원인: `JudgePage`의 `load()`가 장비·ACL·흐름 주소·받은 답 중 하나라도 있으면 입력이 있다고 본다. 빈 템플릿에도 장비 3대와 흐름 주소가 있다.
+  - **F6**: `예시 02을`처럼 숫자·이름 뒤의 조사가 틀린다. 코드 전체를 찾아보니 같은 종류가 6곳 더 있어 함께 고친다(아래 2절 표).
+- 사용자 결정(2026-10-05): F5·F6을 다음 과제로 한다.
+- 브랜치: `codex/judge-notice`(origin/main `63515a6` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- **판정·엔진은 그대로다.** 문장과 알림 조건만 바꾼다. 엔진·서버·API·DB·cases JSON·expect를 바꾸지 않는다.
 
 ## 작업 정의
 - 목표:
-  1. 휴대폰 실습 화면(R1 수정 목표): 안내 줄을 닫고 ②를 접으면 360×800·375×812 실습01·02·03의 ③ 제목·세 라디오·안내 문장이 고정 줄 위에 보인다. ③ 아래 테두리까지 보이는 기준은 360×812·375×812다.
-  2. 휴대폰 사례 상세: `받은 답` 제목이 첫 화면(812px) 안에 들어온다.
-  3. 넓은 화면(901px 이상): 두 화면 모두 지금과 똑같이 보인다(요약 줄 없음, 구성 펼침).
-  4. 접힌 구성은 요약 줄로 무엇이 들었는지 알 수 있고, 한 번 눌러 펼친다.
+  1. 손대지 않은 빈 템플릿에서 무엇을 불러와도 되돌리기 알림이 뜨지 않는다. 한 칸이라도 바꾼 뒤에는 지금처럼 뜬다.
+  2. 화면 문장의 조사가 앞말에 맞는다. 조사를 자동으로 고르는 함수는 만들지 않고, **조사가 늘 같은 낱말 뒤에 오도록 문장을 바꾼다.**
 
-### 1) 공용 접기 규칙 (CSS 한 벌)
-- 새 클래스 `.mobile-fold`(`<details>`). 처음엔 닫혀 있다. **React가 `open`을 관리하지 않는다**(다시 그려도 사용자가 연 상태가 남는다).
-- `styles.css`:
-  - `.mobile-fold > summary`: 최소 높이 44px, 커서 pointer, 굵은 글씨, 키보드 포커스 표시.
-  - 넓은 화면에서는 요약 줄을 숨기고 내용을 펼친다. 사례 게시판 필터와 같은 방식이다:
-    ```css
-    @media (min-width: 901px) {
-      @supports selector(::details-content) {
-        .mobile-fold > summary { display: none; }
-        .mobile-fold::details-content { content-visibility: visible; }
-      }
-    }
-    ```
-  - `::details-content` 미지원 브라우저는 넓은 화면에서도 요약 줄이 보이고 접힌 채 시작한다(내용 접근은 된다). PR #20 필터와 같은 한계다.
-- 판정기(JudgePage)의 구성은 접지 않는다. 작성 도구이고, 판정하면 결과로 포커스가 간다.
+### 1) F5 — 빈 템플릿에서는 되돌리기 알림을 띄우지 않는다
+- `JudgePage`의 `load()` 안 `hasInput` 판단을 홈과 같은 기준인 `hasCurrentInput(current)`(`homeView.ts`, 빈 템플릿과 JSON 비교)로 바꾼다. 새 함수는 만들지 않는다.
+- 결과: 손대지 않은 빈 템플릿에서 예시·처음 구성·JSON 붙여 넣기·`판정기로 가져가기`를 불러오면 알림이 없다. 받은 답 하나만 바꿨어도 입력이 있는 것이므로 알림이 뜬다.
+- 되돌리기 규칙(한 단계, 직접 편집하면 닫힘, 같은 입력이면 알림 없음)은 그대로다.
 
-### 2) 실습 화면 ② (F18)
-- ② 머리(`② 구성 살펴보기` + `처음 상태로`)는 그대로 보인다.
-- 그 아래 `.mobile-fold` 하나에 `확인할 것`, `FlowForm`, `NetworkEditor`를 넣는다.
-- 요약 줄(R1): `구성 펼쳐 보기 · 장비 {n}대 · ACL {m}개`. n·m은 `draftSummary`와 같은 셈(`toNetwork` 기준)이다. 확인할 것 개수는 요약에서만 빼고 내용은 접기 안에 둔다.
-- `입력에서 보기`(showAcl)는 접기를 먼저 열고(`open = true`) 지금처럼 ACL 줄을 선택·스크롤한다. 넓은 화면에서는 보이는 변화가 없다.
-- ③·판정하기·④의 순서와 넓은 화면 배치는 바꾸지 않는다.
+### 2) F6 — 조사가 앞말에 맞도록 문장 고치기
+| 곳 | 지금 | 바꿀 문장 |
+| --- | --- | --- |
+| `JudgePage` 예시 불러오기 알림 | `예시 02을 불러왔습니다` | `{학습 주제} 예시를 불러왔습니다`(예: `왕복 경로 예시를 불러왔습니다`). 학습 주제가 없는 예시는 `예시({번호})를 불러왔습니다` |
+| `NetworkEditor` ACL 삭제 알림 | `ACL 102을 삭제했습니다` | `{이름} ACL을 삭제했습니다`. 이름이 비어 있으면 `ACL을 삭제했습니다` |
+| `aclAudit.ts` 가려짐 | `이 줄의 permit는 적용되지 않습니다` | `이 줄의 동작({permit·deny})은 적용되지 않습니다` |
+| `aclAudit.ts` 뒤쪽 중복 | `지워도 {줄·암묵적 deny}이(가) 같은 동작을 합니다` | `지워도 {줄·암묵적 deny}에서 같은 동작이 적용됩니다` |
+| `App.tsx` 로그인 안내 | `{닉네임}으로 로그인돼 있습니다` | `{닉네임} 계정으로 로그인돼 있습니다` |
+| `SettingsPage` 계정 삭제 | 개수를 모를 때 `내가 저장한 사례이 함께 지워지고` | 개수를 모르면 `사례가`, 알면 `사례 {n}건이` |
+| `verdictView.ts` 비교 배너·상태 줄 | `내 예상(통과)와 NetProof 계산…` | `내 예상(통과)과 NetProof 계산…`(AI 답·받은 답, PASS·DENY 모두 `과`) |
 
-### 3) 사례 상세 네트워크 구성 (F4)
-- `CaseNetwork`의 h2 `네트워크 구성`, 안내 문장, `확인할 통신`과 흐름 줄은 그대로 보인다.
-- 장비 카드와 `ACL 원문`을 `.mobile-fold` 하나에 넣는다. 요약 줄: `구성 펼쳐 보기 · 장비 {n}대 · ACL {m}개`.
-- ACL별 기존 `<details>`는 그대로 둔다(접기 안의 접기).
-- `CaseDetailPage`의 칸 순서와 내용은 바꾸지 않는다.
+- 비교 배너 근거: 괄호 뒤 조사는 괄호 앞말에 맞춘다(국립국어원 온라인가나다, 예: `식재료(고등어, 달걀 등)를`). 괄호 앞말은 `예상`·`답`이라 늘 `과`다. `NetProof 계산(막힘)이`는 `계산` 뒤라 지금도 맞다.
+- 비교 배너는 판정기·실습 화면·사례 상세가 함께 쓴다(`ResultPanel`). 세 화면에 같이 반영된다.
+- `aclAudit.ts`는 표시 문장만 바꾼다. 점검 결과(가려짐·중복 판단)는 엔진 계산 그대로다.
 
-### 4) 실습 화면 후속 (F19~F22)
-- **F19**: `알겠어요`로 안내 줄을 닫으면 포커스를 ② 제목(`#practice-config-title`, tabIndex -1, preventScroll)으로 옮긴다.
-- **F20**: `처음 상태로`를 눌러도 바뀌는 것이 없으면 아무것도 하지 않는다. 결과를 `이전 결과`로 바꾸지 않고 알림도 띄우지 않는다.
-- **F21**: 실습 화면의 `NetworkEditor`에 `onBeforeRemove`를 연결한다. 장비·인터페이스·경로·ACL을 지우면 판정기와 같은 한 단계 되돌리기 알림을 띄운다(판정기의 remember + removing 플래그 방식).
-- **F22**: 홈 이어서 하기에서 실습 입력이 아직 없으면 요약을 `실습 구성을 아직 불러오지 않았습니다.`로 쓴다(지금은 `실습 입력을 준비하고 있습니다.`).
-
-### 5) 문서 정리 (F23)
-- `docs/home-learning-ui.md`의 옛 실습 흐름만 PR #29 이후 동작으로 고친다:
-  - 129줄: 상세 순서 5(`판정기에서 실습 살펴보기`)
-  - 136~147줄: `판정기에 들어왔을 때` 절
-  - 214·216줄: 확인 흐름
-- 이 문서의 다른 절은 건드리지 않는다.
-
-### 6) 범위 밖 · 허용 파일
-- 하지 않는 것: 판정기 구성 접기, NetworkEditor 안쪽의 장비별 접기, 고정 판정 줄에 예상 표시, ① 문제·안내 줄 높이 줄이기, 엔진·서버·API·DB·cases JSON·expect, 새 의존성, F5·F6.
+### 3) 범위 밖 · 허용 파일
+- 하지 않는 것:
+  - 엔진·서버 메시지(엔진의 `reason`·`problems`, 서버 오류 문구)
+  - 조사 자동 판별 함수나 라이브러리
+  - 그 밖의 문구 다듬기, 배너 톤·구조 변경
+  - 엔진·서버·API·DB·cases JSON·expect, 새 의존성
 - 허용 파일:
-  - 수정: `web/src/pages/PracticePage.tsx`·`PracticePage.test.tsx`, `web/src/components/CaseNetwork.tsx`, `web/src/pages/HomePage.tsx`·`HomePage.test.tsx`, `web/src/styles.css`
-  - 신규: `web/src/components/CaseNetwork.test.tsx`(SSR 요약 줄 테스트)
-  - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`, `docs/qa-manual.md`(A에 휴대폰 상세 접기, C에 휴대폰 실습 접기 항목), `docs/home-learning-ui.md`(5절의 줄만)
-- 읽기만: `NetworkEditor`, `FlowForm`, `ResultPanel`, `CaseDetailPage`, `JudgePage`, `App.tsx`, `caseView.ts`, `draft.ts`, `engine/`·`server/`.
-- 다음을 바꾸고 싶으면 **먼저 요청한다**: 접는 화면 범위, 요약 줄 문구, 넓은 화면 기준 901px, F19 포커스 위치.
+  - 수정: `web/src/pages/JudgePage.tsx`(`load` 입력 판단·예시 알림 문구)·test, `web/src/components/NetworkEditor.tsx`(ACL 삭제 문구 한 줄), `web/src/aclAudit.ts`·test, `web/src/App.tsx`(로그인 안내 한 줄), `web/src/pages/SettingsPage.tsx`(계정 삭제 문장 한 줄), `web/src/verdictView.ts`·test, 배너 문구를 기대하는 다른 테스트(`PracticePage.test.tsx` 등)
+  - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`
+- 읽기만: `homeView.ts`(`hasCurrentInput` 재사용), `ResultPanel`, `engine/`·`server/`.
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: 2절 표의 문장.
 
-### 7) 위험
-- **넓은 화면에서 구성이 접혀 보임** → `::details-content`를 지원하는 브라우저에서 1280을 확인한다. 미지원 브라우저 한계는 PR #20 필터와 같다(내용 접근은 됨).
-- **휴대폰에서 `입력에서 보기`가 닫힌 칸 안으로 포커스를 못 옮김** → 먼저 연다. 테스트와 브라우저로 확인한다.
-- **다시 그릴 때 사용자가 연 접기가 닫힘** → `open`을 React 상태로 관리하지 않는다.
-- **숨은 칸의 입력 오류를 못 봄** → 접힌 채로도 판정할 수 있고, 판정하면 ResultPanel이 지금처럼 `입력 오류`와 문제 목록을 보인다.
+### 4) 위험
+- **배너 문구가 세 화면에 동시에 바뀐다** → verdictView 테스트와 브라우저로 판정기·실습·사례 상세를 확인한다.
+- **F5 때문에 되돌리기가 필요한 경우까지 알림이 사라진다** → 포트 하나만 바꾼 경우, 받은 답만 바꾼 경우 알림이 뜨는지 테스트한다.
+- **문장을 바꾸며 기존 테스트 문자열이 깨진다** → 테스트를 함께 고치고, 뜻이 같은지 확인한다.
 
-### 8) 완료 조건 · 테스트
+### 5) 완료 조건 · 테스트
 - 자동 테스트:
-  - `PracticePage.test.tsx`(SSR·기존 하네스 범위):
-    - `.mobile-fold` 안에 확인할 것·FlowForm·NetworkEditor가 있고 ③ 내 예상은 밖에 있다.
-    - 요약 줄 셈(synthetic-01: 장비 3대·ACL 1개), 확인할 것 개수는 표시하지 않음. ③ 안내는 `예상은 계산에 쓰지 않고 비교만 합니다.`.
-    - showAcl이 접기를 연다.
-    - F19: 알겠어요 → ② 제목 포커스.
-    - F20: 바뀐 것 없는 처음 상태로 → stale 아님·알림 없음.
-    - F21: 삭제 → 되돌리기 알림 → 복구.
-  - `CaseNetwork.test.tsx`(SSR): 확인할 통신은 접기 밖, 장비·ACL 원문은 안, 요약 줄 셈.
-  - `HomePage.test.tsx`: 실습 입력이 없을 때의 문구.
+  - F5: 빈 템플릿 → 예시 불러오기 알림 없음, 흐름 포트 하나 바꿈 → 알림, 받은 답만 바꿈 → 알림, 같은 입력 → 알림 없음.
+  - 예시 알림 문구: 세 학습 주제와 주제 없는 예시.
+  - ACL 삭제 문구: 이름 있음, 빈 이름.
+  - aclAudit: 가려짐 문장이 permit·deny 모두 `동작(…)은`, 뒤쪽 중복 문장에 `이(가)` 없음.
+  - verdictView 배너·상태 줄: AI 답·내 예상·받은 답 × PASS·DENY 예상 모두 `과`.
+  - 로그인 안내·계정 삭제 문장: SSR이나 문자열 테스트로 확인한다. 어려우면 브라우저 확인으로 기록한다.
 - 네 명령의 실제 출력 전체를 이 문서에 붙인다:
   ```text
   cd engine && ../.venv/Scripts/python -m pytest -q
@@ -114,236 +84,17 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   npm --prefix web test
   npm --prefix web run build
   ```
-- 브라우저 확인(실제 브라우저, `scripts/qa_local.py` 또는 임시 서버, 375×812·1280×800, 라이트·다크, 320 보조):
-  - 실습 375(synthetic-01·02):
-    - 접힌 ② 요약 줄이 보인다.
-    - 안내 줄을 닫은 상태에서 ③ 칸의 위·아래 끝과 고정 줄 위 끝(746)을 기록하고, 안내 줄을 연 상태도 기록한다.
-    - 펼치기 → 편집 → 다시 판정.
-    - 접힌 채 판정 → ④의 `입력에서 보기` → ②가 열리고 ACL 줄이 선택된다.
-  - 실습 1280: 요약 줄이 없고 구성이 펼쳐져 있다. 결과 제목·배너 위치가 PR #29 기록(안내 닫힘 548/652)과 같다.
-  - 사례 상세 375: 접기 전/후 h2 위치(네트워크 구성·받은 답·판정·실제 결과)를 기록하고, 받은 답이 812 안에 든다. 1280은 변화가 없다.
-  - F19는 키보드로: 알겠어요 다음 Tab이 ②부터 이어진다. F21은 삭제 → 되돌리기. F22는 실습 조회 실패 상황에서 문구를 본다. 실패 상황을 만들 수 없으면 단위 테스트로만 확인했다고 적는다.
-  - 가로 넘침 0, console error 0.
+- 브라우저 확인(실제 브라우저, `scripts/qa_local.py` 또는 임시 서버, 375×812·1280×800, 라이트):
+  - 새로고침 직후 판정기에서 예시를 불러오면 알림이 없다. 포트를 바꾼 뒤 예시를 불러오면 `{주제} 예시를 불러왔습니다.` + 되돌리기가 뜬다.
+  - ACL 삭제 알림 문구.
+  - ACL 점검의 가려짐·중복 문장(앞줄 deny, 뒷줄 permit처럼 가려지는 구성을 직접 만들어 확인).
+  - 판정기·실습 화면·사례 상세의 배너 `내 예상(통과)과 …`.
+  - 로그인한 채 `#/login`의 안내, 설정의 계정 삭제 문장(합성 계정).
+  - console error 0.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
-## Claude 리뷰 (2026-10-05 · R1 수정 요청)
-- 근거: 직접 실행 엔진 `326 passed, 2 xfailed` · 서버 `102 passed, 1 skipped` · 웹 `27 files / 342 passed` · 빌드 성공, 번들 cases 0. 브라우저로 F19~F22·접기·입력에서 보기·1280 무변화·사례 상세(375 받은 답 654, 펼침 1128) 확인.
-- Codex 실측(01 823.69·02 783.59)과의 차이는 데스크톱 스크롤바 15px 때문이다(375 창 = 실제 폭 360). 휴대폰 흉내 375에서는 02 ③ 604–740, 01 ③ 624–760.
-- 사용자 결정(2026-10-05): **이 PR에서 폭 360까지 맞춘다.**
-
-### R1 — 폭 360에서 ③ 맞추기 (Claude 스파이크로 수치 확인)
-1. **② 요약 줄**: `구성 펼쳐 보기 · 장비 {n}대 · ACL {m}개`. 확인할 것 개수를 빼서 사례 상세와 같은 문구로 한다. 360에서 두 줄(71px)이 한 줄(47px)이 된다.
-2. **③ 안내 문장(모든 폭)**: `예상은 계산에 쓰지 않고 비교만 합니다.` 360에서 두 줄이 한 줄이 된다.
-3. **휴대폰(900px 이하) 실습 화면 간격만 조정**:
-   - `.practice-page` gap 12px
-   - `.practice-config` gap 8px
-   - 실습 화면의 `.layout` gap 12px
-   - `.practice-prediction` padding 10px 16px
-   - `.practice-problem h1` margin 2px 0 4px
-   - `.practice-problem .hint` margin-top 2px
-   - 넓은 화면과 판정기는 그대로 둔다.
-4. **고친 목표**: 안내 줄을 닫은 상태에서 **360×800·375×812, 실습 01·02·03 모두 ③의 제목·세 라디오·안내 문장이 고정 줄 위 끝보다 위**에 있다. ③ 칸 아래 테두리까지 다 들어오는 기준은 360×812·375×812다.
-   - 스파이크 수치(360×800, 고정 줄 위 끝 734): 01 ③ 612–740·안내 문장 709–729, 02 ③ 572–700, 03 ③ 592–720.
-5. **측정 방법**: 휴대폰 흉내(폭 = 화면 폭, 겹치는 스크롤바)로 잰다. 데스크톱 창을 줄여 재면 스크롤바만큼 좁아진다는 점을 기록에 적는다.
-6. **나머지**: 테스트 기대값(요약 줄·안내 문장)을 갱신하고, `docs/qa-manual.md` C 줄을 고친 목표에 맞추고, 1280 결과 위치(548.344/651.938)가 그대로인지 확인한다.
-
-
-## 완료 내용 / 테스트 결과 (2026-10-05 Codex · R1 반영)
-
-- 사용자 결정과 Claude 리뷰 R1 1)~6)만 수정했다. ② 요약 줄에서 확인할 것 개수를 빼고 체크포인트 내용은 접기 안에 그대로 두었다. ③ 안내는 모든 폭에서 `예상은 계산에 쓰지 않고 비교만 합니다.`로 바꿨다.
-- 기존 900px 이하 media 안에 승인된 실습 간격 여섯 값만 추가했다(gap 12/8/12, padding 10px 16px, h1 margin 2px 0 4px, hint margin-top 2px). 901px 이상 CSS·판정기·다른 화면을 수정하지 않았다. React open 제어, 입력·비교·판정·되돌리기 코드도 불변이다.
-- PracticePage 테스트의 정확한 요약/안내 문구 기대값과 QA 문서 C의 목표만 갱신했다. 코드 3개와 기록 3개(총 6파일) 변경. 엔진·서버·API·DB·cases JSON·expect·의존성 불변.
-- 초기 구현 `dbeffb8`의 데스크톱 스크롤바 포함 측정/첫 화면 미달은 PR 초기 설명·코멘트에 남아 있다. 현재 완료 근거는 아래 R1 재측정이다. 수동 QA A/B/C 체크박스는 여전히 사용자 대기이며 AI가 완료로 표시하지 않았다.
-
-### 실제 브라우저 재측정 · 휴대폰 흉내
-
-- Windows 실제 Chrome, 이번 빌드와 `scripts/qa_local.py`의 `seeded_qa()`, 임시 SQLite·127.0.0.1:4868만 사용. 비로그인, 첫 안내 닫힘, ② 접힘, scrollY=0으로 측정. 세 실습 × 360×800/375×812/360×812 × 라이트·다크 총 18조합을 확인했고 두 테마의 수치는 같았다.
-- **방법을 구분한다:** Chrome viewport 크기만 바꾸면 360 창의 clientWidth는 345(일반 스크롤바 15px)다. 이를 휴대폰 측정으로 쓰지 않았다. 저장소 밖 임시 WSGI QA 응답에만 `@media(max-width:900px){html::-webkit-scrollbar{width:0;height:0}}`를 붙여 스크롤 가능한 상태에서 스크롤바 점유 폭을 0으로 흉내 냈다. 앱 소스·빌드 산출물은 바꾸지 않았다. 브라우저 DOM에서 innerWidth=clientWidth=360 또는 375, 가로 넘침0을 직접 확인했다. 이는 겹치는 스크롤바와 같은 **내용 폭 조건의 흉내**이지 실제 휴대폰·네이티브 장치 에뮬레이터 검증은 아니다. 1280에서는 QA CSS가 적용되지 않는다.
-- 좌표는 `getBoundingClientRect()` CSS px, 표는 소수 셋째 자리 반올림이다. 세 라디오(통과할 것 같다/막힐 것 같다/예상 없이)는 각 input과 label을 모두 측정했으며 각각 같은 위~아래 값이었다.
-
-| 휴대폰 크기 | 실습 | ③ 제목 위~아래 | 세 라디오 위~아래 | 안내 문장 위~아래 | ③ 칸 위~아래 | 고정 줄 위 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| 360×800 | 01 | 622.813~649.156 | 655.156~699.156 | 709.156~729.297 | 611.813~740.297 | 734.203 |
-| 360×800 | 02 | 582.719~609.063 | 615.063~659.063 | 669.063~689.203 | 571.719~700.203 | 734.203 |
-| 360×800 | 03 | 602.672~629.016 | 635.016~679.016 | 689.016~709.156 | 591.672~720.156 | 734.203 |
-| 375×812 | 01 | 602.672~629.016 | 635.016~679.016 | 689.016~709.156 | 591.672~720.156 | 746.203 |
-| 375×812 | 02 | 582.719~609.063 | 615.063~659.063 | 669.063~689.203 | 571.719~700.203 | 746.203 |
-| 375×812 | 03 | 602.672~629.016 | 635.016~679.016 | 689.016~709.156 | 591.672~720.156 | 746.203 |
-| 360×812 | 01 | 622.813~649.156 | 655.156~699.156 | 709.156~729.297 | 611.813~740.297 | 746.203 |
-| 360×812 | 02 | 582.719~609.063 | 615.063~659.063 | 669.063~689.203 | 571.719~700.203 | 746.203 |
-| 360×812 | 03 | 602.672~629.016 | 635.016~679.016 | 689.016~709.156 | 591.672~720.156 | 746.203 |
-
-- **고친 목표 충족:** 360×800·375×812의 세 실습 모두 제목·각 라디오·안내 아래가 고정 줄 위보다 작다. 가장 좁은 여유는 360×800 실습01의 안내 아래729.296875 < 고정 줄734.203125(4.90625px).
-- 360×800 실습01의 칸 테두리 아래740.296875는 고정 줄734.203125보다 낮다. 이를 칸 전체가 보인다고 보고하지 않는다. R1에서 정한 **테두리까지 보이는 기준인 360×812·375×812에서는 세 칸 모두** 고정 줄746.203125보다 위다(360 실습01 여유5.90625px).
-- 1280×800 실습01, 안내 닫힘·내 예상 막힘·엔진 DENY/AGREE: 라이트·다크 모두 결과 제목 **548.34375**(반올림548.344), 비교 배너 아래 **651.9375**(651.938), scrollY=0. 기존 승인 수치와 정확히 같음. clientWidth=1265(기존 데스크톱 스크롤바15px), summary display:none. 넓은 화면은 휴대폰 흉내 CSS를 적용하지 않음.
-- 이번 검증 탭 console error0. 캡처 `C:/Users/dora2/.codex/visualizations/mobile-config-r1-375.png`는 저장소 밖 보관(비밀번호·쿠키·토큰 없음). computer-use 스킬로 실제 브라우저 UI와 DOM 위치를 확인했다.
-- QA 서버4867/4868 정상 종료, 두 임시 폴더 removed=True·listen 수0 확인. 검증 탭 닫고 viewport reset했다. 실패했던 QA 응답 후처리 초기 시도도 임시 SQLite context 종료로 정리됐다. 기존 사용자 탭·DB는 변경하지 않았다.
-- 실휴대폰·터치/스크린리더·::details-content 미지원 브라우저·PostgreSQL 실연결은 미검증이다. 320은 이번 R1 목표가 아니므로 재측정하지 않았다. 다른 화면의 이전 회귀 근거는 PR 기존 기록이며 이번에 재실행했다고 주장하지 않는다.
-
-### 네 명령 실제 전체 출력
-
-- 엔진326 passed/기존2 xfailed, 서버102 passed/1 skipped, 웹342 passed(27files), 빌드 성공. 서버 테스트 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL을 제거한 뒤 fixture 임시 SQLite만 사용했다. 비밀값은 출력하지 않았다.
-
-### engine
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 21%]
-........................................................................ [ 43%]
-........................................................................ [ 65%]
-........................................................................ [ 87%]
-......................................xx                                 [100%]
-326 passed, 2 xfailed in 4.97s
-```
-
-### server
-
-```text
-cd server && ../.venv/Scripts/python -m pytest -q
-.......................................................................s [ 69%]
-...............................                                          [100%]
-102 passed, 1 skipped in 35.44s
-```
-
-### web
-
-```text
-npm --prefix web test
-
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
-
-
- Test Files  27 passed (27)
-      Tests  342 passed (342)
-   Start at  02:03:23
-   Duration  891ms (transform 70%, import 19%, tests 8%, worker 3%)
-
-  Transform  transforming modules took 5.68s · 70% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-### build
-
-```text
-npm --prefix web run build
-
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 56 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:   0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-DXu01Xp7.css                            80.45 kB │ gzip:  22.44 kB
-dist/assets/index-tA25QX7S.js                            340.18 kB │ gzip: 102.56 kB
-
-✓ built in 396ms
-```
-
-- (Codex 기록 당시 다음 차례는 재리뷰(Claude)였다. 재리뷰 PASS 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
-
-Codex (GPT-5)
-
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #30 휴대폰 구성 접기 + 실습 후속 (병합 완료, `63515a6`)**: 900px 이하에서 실습 ②와 사례 상세 네트워크 구성을 CSS 접기(`.mobile-fold`, 넓은 화면은 요약 줄 숨김·펼침), `입력에서 보기`는 접기를 먼저 엶. F19 안내 뒤 ② 제목 포커스, F20 바뀐 것 없는 처음 상태로 무시, F21 실습 삭제 되돌리기, F22 홈 문구, F23 옛 문서 정리. R1(사용자 결정)으로 폭 360 대응: 요약 줄에서 확인할 것 개수 뺌, ③ 안내 `예상은 계산에 쓰지 않고 비교만 합니다.`, 휴대폰 실습 간격. Claude 재리뷰 PASS(360×800·375×812 실습 01·02·03의 ③ 제목·라디오·안내가 고정 줄 위, 1280 무변화).
 - **PR #29 실습 화면 + 라이트 기본 (병합 완료, `f034bff`)**: 전용 `#/practice/:caseId`(구성 왼쪽·예상과 결과 오른쪽, 칸 번호 ①~④, 첫 방문 안내 줄), 실습 입력 분리(`practiceDrafts`), `판정기로 가져가기`(기존 load·되돌리기), 판정기 실습 기능 제거, 홈 이어서 하기 실습 우선, 라이트 기본(설정에서 다크·기기 설정 따르기). Claude 독립 리뷰 PASS(OS 다크 + 빈 저장소 → 라이트를 리뷰에서 실브라우저로 확인). 후속 F18~F23은 이번 과제.
 - **PR #28 QA 서버 동시 연결 (병합 완료, `8268789`)**: `scripts/qa_local.py`의 `threaded=True`, 빈 연결을 유지한 채 두 번째 요청을 확인하는 회귀 테스트, 강제 종료 안내. PR #27 리뷰가 순차 요청만 확인해 놓친 결함(병합 후 실제 브라우저로 발견).
 - **PR #27 후속 F15~F17 + QA 준비 도구 (병합 완료, `2ad04a0`)**: 불러오기 뒤 실습 제목 포커스, reduced-motion 공용 스크롤, 학습 상세 부제, `scripts/qa_local.py`(임시 SQLite·127.0.0.1·DATABASE_URL 무시), `docs/qa-manual.md`. 리뷰가 순차 요청만 확인해 놓친 단일 스레드 결함은 PR #28에서 수정. 사용자 수동 QA·reduced-motion 실브라우저 미확인은 별도다.
@@ -424,11 +175,12 @@ Codex (GPT-5)
 - [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
 - [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② PR #27 `2ad04a0`, QA 서버 동시 연결 PR #28 `8268789`. 수동 QA는 사람 대기.
 - [x] **실습 화면 + 라이트 기본(프로그래머스 벤치마크, 2차 설계)** — ①② PR #29 병합(`f034bff`).
-- [ ] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② **PR #30 Claude 재리뷰 PASS, 사용자 병합 결정 대기 — codex/mobile-config**
+- [x] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② PR #30 병합(`63515a6`).
+- [ ] **판정기 알림·조사 정리(F5·F6)** — ② **설계 완료, 사용자 승인 대기 — 브랜치 codex/judge-notice**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **사용자:** PR #30 병합 결정. 병합 뒤 수동 QA A(휴대폰 사례 상세 접기)·C(휴대폰 실습 접기)는 새 기준으로 사람이 확인한다.
+- **Codex(사용자 승인 뒤):** `codex/judge-notice`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~5) 범위 안에서만 구현·테스트한다. 조사 자동 판별 함수는 만들지 않고 2절 표의 문장대로 바꾼다. 승인 전이면 멈춘다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 화면은 verify만 부르고 비교를 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
@@ -439,7 +191,7 @@ Codex (GPT-5)
 - **A(PR #20 G2)·B(실제 기본 확인창 삭제 취소)·C(홈·실습 흐름): 사용자 수동 확인 대기.** 도구 실행 확인과 F15·F17 구현 검증은 수동 QA 통과가 아니다.
 - 병합 뒤 [체크리스트](docs/qa-manual.md)와 `scripts/qa_local.py`로 사람이 직접 확인한다. 결과는 사람이 PR 코멘트나 이 절에 적는다. 비밀번호·쿠키·토큰은 기록하지 않는다.
 - 원칙: 임시 DB·합성 계정/사례만 쓴다. 실제 기본 확인창을 대체·우회하지 않는다. 비밀번호·쿠키·토큰을 기록하지 않는다. 확인한 항목만 완료로 바꾼다.
-- F5·F6(판정기 빈 템플릿 알림, 조사)은 별도 후속이다.
+- F5·F6(판정기 빈 템플릿 알림, 조사)은 이번 과제(codex/judge-notice)다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
@@ -455,4 +207,4 @@ Codex (GPT-5)
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 휴대폰 구성 접기 설계: Claude (Claude Opus 5.5).
+현재 판정기 알림·조사 정리(F5·F6) 설계: Claude (Claude Opus 5.5).
