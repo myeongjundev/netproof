@@ -1,6 +1,6 @@
 /* 색은 light-dark(라이트, 다크) 한 줄로. 설정의 테마 선택은 <html data-theme>로 color-scheme만 바꾼다(theme.ts). */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: light-dark(#f5f6f4, #141816);
   --surface: light-dark(#ffffff, #1c211f);
   --ink: light-dark(#1d2220, #e6ebe8);
@@ -19,7 +19,7 @@
   --radius: 10px;
   font-family: "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
-:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="system"] { color-scheme: light dark; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
 .matrix-services { display: grid; gap: 10px; margin: 12px 0; }
