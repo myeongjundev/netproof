@@ -13,6 +13,7 @@ it("첫 헤더는 홈 로고·학습실·기존 판정기와 접힌 메뉴를 �
   expect(html).toContain('aria-expanded="false"');
   expect(html).toContain('aria-controls=');
   expect(html).not.toContain("내 실습");
+  expect(html.indexOf('class="who header-account"')).toBeLessThan(html.indexOf('class="ghost header-menu-toggle"'));
 });
 it.each(["user", "reviewer"] as const)("대시보드는 검토자에게만, 로그인 표시는 기존대로: %s", role => {
   const html = renderToStaticMarkup(createElement(AppHeader, { route: { page: "judge" }, user: { ...user, role }, checked: true, onLogout: () => {} }));

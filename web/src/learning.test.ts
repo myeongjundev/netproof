@@ -1,7 +1,11 @@
 import { blankDraft, EMPTY_CLAIM, toNetwork } from "./draft";
-import { LESSONS, lessonById, lessonByCaseId, practiceEntry, practiceDraft } from "./learning";
+import { LESSONS, lessonById, lessonByCaseId, practiceEntry, practiceDraft, practiceStartLabel } from "./learning";
 import { PRACTICE } from "./practice";
 import type { CaseItem } from "./types";
+import case01 from "../../cases/synthetic-01-https-acl.json";
+import case02 from "../../cases/synthetic-02-missing-return-route.json";
+import case03 from "../../cases/synthetic-03-acl-out.json";
+import learningSource from "./learning.ts?raw";
 
 const example: CaseItem = { id: "synthetic-01", source: "synthetic", network: toNetwork(blankDraft()), flow: blankDraft().flow, claim: { expected: "DENY", text: "not an answer to copy", source: "test", kind: "ai" }, expect: { result: "DENY" } } as CaseItem;
 
@@ -35,4 +39,36 @@ it("조회 중·실패·누락·완료를 구분하며 ID 없는 다른 예시�
   expect(practiceEntry("synthetic-02", [example], "ready")).toEqual({ kind: "missing" });
   expect(practiceEntry("synthetic-01", [example], "ready")).toEqual({ kind: "ready", example });
   expect(JSON.stringify(example)).toContain("not an answer to copy");
+});
+
+it.each([case01, case02, case03])("$id 경로 메타데이터는 실제 예시 장비와 ACL 연결에 일치한다", item => {
+  const lesson = lessonByCaseId(item.id)!;
+  // 이 세 직선 구성의 연결 순서(판정·ACL 규칙 해석은 하지 않는다).
+  const devices = item.network.devices;
+  const source = devices.find(device => device.interfaces.some(iface => iface.ip.split("/")[0] === item.flow.src))!;
+  const target = devices.find(device => device.interfaces.some(iface => iface.ip.split("/")[0] === item.flow.dst))!;
+  expect(lesson.path.nodes).toEqual(devices.map(device => ({ id: device.id, kind: device.kind })));
+  expect(lesson.path.nodes[0].id).toBe(source.id);
+  expect(lesson.path.nodes.at(-1)!.id).toBe(target.id);
+  const acls = devices.flatMap(device => device.interfaces.flatMap(iface => {
+    const bindings = iface as { name: string; acl_in?: string; acl_out?: string };
+    return (["in", "out"] as const).flatMap(dir => bindings[`acl_${dir}`] ? [{ device: device.id, iface: iface.name, dir, name: bindings[`acl_${dir}`] }] : []);
+  }));
+  expect(lesson.path.acls).toEqual(acls);
+  expect(!!lesson.path.roundTrip).toBe(item.id === "synthetic-02");
+});
+it("실행 코드에 사례 JSON·expect가 들어가지 않는다", () => {
+  const source = learningSource;
+  expect(source).not.toMatch(/(?:import|export)[^;]*cases\/|import\([^)]*cases\//);
+  expect(source).not.toMatch(/\.expect\b|\[.expect.\]/);
+});
+it.each(["PASS", "DENY"] as const)("학생의 %s 예상만 self 받은 답으로 옮긴다", guess => {
+  const before = JSON.stringify(example);
+  expect(practiceDraft(example, guess).claim).toEqual({ expected: guess, kind: "self", source: "", text: "" });
+  expect(practiceDraft(example, guess)).not.toHaveProperty("expect");
+  expect(JSON.stringify(example)).toBe(before);
+});
+it.each(PRACTICE)("$case_id 시작 알림에서 실습이 겹치지 않는다", task => {
+  expect(practiceStartLabel(task)).toBe(`${task.title.replace(/^실습 · /, "")} 실습을 시작했습니다`);
+  expect(practiceStartLabel(task).match(/실습/g)).toHaveLength(1);
 });

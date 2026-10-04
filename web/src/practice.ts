@@ -17,7 +17,7 @@ export const PRACTICE: PracticeTask[] = [
   {
     case_id: "synthetic-02",
     title: "실습 · 왕복 경로",
-    question: "PC1에서 SRV로 보낸 통신이 왕복할 수 있나요?",
+    question: "PC1에서 SRV2로 보낸 통신이 왕복할 수 있나요?",
     checkpoints: ["흐름의 프로토콜과 판정 모드", "가는 경로의 게이트웨이와 정적 경로", "돌아오는 경로의 게이트웨이와 정적 경로"],
   },
   {

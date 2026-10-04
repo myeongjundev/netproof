@@ -3,24 +3,28 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningPage } from "./LearningPage";
 import { LESSONS } from "../learning";
 
-it("목록에는 세 합성 주제만 있고 자동 실행 링크나 채점이 없다", () => {
+it("목록의 세 연습 주제는 축소 구성도와 상세 링크를 보인다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, {}));
-  expect(html).toContain("살펴볼 주제를 선택하세요");
-  expect(html).not.toContain('href="#/practice/');
+  expect(html).toContain("주제를 선택하세요"); expect(html).not.toContain('href="#/practice/');
+  expect(html.match(/path-strip-small/g)).toHaveLength(3);
   for (const lesson of LESSONS) expect(html).toContain(lesson.title);
 });
-it.each(LESSONS)("$id는 질문→개념→비유→체크포인트→명시적 시작→출처다", lesson => {
+it.each(LESSONS)("$id는 제목→질문→구성도→판정기 링크→설명→다른 주제다", lesson => {
   const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: lesson.id }));
-  expect(html).toContain(`href="#/practice/${lesson.caseId}"`);
-  expect(html).toContain('aria-current="page"');
-  expect(html).toContain("지금 입력은 바뀌지 않습니다");
-  expect(html).toContain("계산 결과는 실제 장비 동작을 보장하지 않습니다");
-  for (const point of lesson.task.checkpoints) expect(html).toContain(point);
+  expect(html).toContain(`<h1 id="lesson-title">${lesson.title}</h1>`); expect(html.match(/<h1\b/g)).toHaveLength(1);
+  expect(html).toContain(`href="#/practice/${lesson.caseId}"`); expect(html).toContain("판정기에서 열기");
+  expect(html).toContain("이동만으로는 지금 입력이 바뀌지 않습니다");
+  expect(html.indexOf('class="learning-question"')).toBeLessThan(html.indexOf('class="path-strip"'));
+  expect(html.indexOf('class="path-strip"')).toBeLessThan(html.indexOf("판정기에서 열기"));
+  expect(html.indexOf("판정기에서 열기")).toBeLessThan(html.indexOf("개념</h3>"));
   expect(html.indexOf("개념</h3>")).toBeLessThan(html.indexOf("쉬운 비유</h3>"));
-  expect(html).not.toMatch(/PASS|DENY|정답은 통과|정답은 막힘/);
+  expect(html.indexOf("계산 결과는 실제 장비 동작을 보장하지 않습니다")).toBeLessThan(html.indexOf("다른 주제</h2>"));
+  expect(html).toContain('aria-current="page"'); expect(html).toContain("· 보는 중");
+  for (const point of lesson.task.checkpoints) expect(html).toContain(point);
+  expect(html).not.toMatch(/PASS|DENY|살펴보기|합성 실습|정답은 통과|정답은 막힘/);
 });
-it("모르는 주제를 조용히 다른 실습으로 바꾸지 않는다", () => {
+it("없는 주제도 학습실 틀 안에서 복귀 경로를 보인다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: "missing" }));
-  expect(html).toContain("없는 학습 주제");
-  expect(html).not.toContain("HTTPS");
+  expect(html).toContain('class="learning-page"'); expect(html).toContain("<h1>없는 학습 주제");
+  expect(html).toContain('href="#/learn"'); expect(html).not.toContain("HTTPS");
 });
