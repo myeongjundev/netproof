@@ -22,6 +22,7 @@ export function App() {
   // 판정기 입력은 화면을 옮겨 다녀도 남긴다(로그인하러 갔다 와도 그대로).
   const [draft, setDraft] = useState<Draft>(blankDraft);
   const [guess, setGuess] = useState<{ caseId: string; expected: PracticeGuess } | null>(null);
+  const [practiceCaseId, setPracticeCaseId] = useState<string | null>(null);
   const practiceId = route.page === "judge" ? route.practiceId : undefined;
   const lessonId = route.page === "learn" ? route.lessonId : undefined;
   const main = useRef<HTMLElement>(null);
@@ -76,9 +77,9 @@ export function App() {
 
   let page;
   const onGuess = (caseId: string, expected: PracticeGuess) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`); };
-  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} />;
+  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} practiceCaseId={practiceCaseId} />;
   else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} onGuess={onGuess} />;
-  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} practiceGuess={guess?.caseId === route.practiceId ? guess?.expected : undefined} onPracticeGuessChange={(caseId, expected) => setGuess(expected ? { caseId, expected } : null)} onPracticeLoaded={() => setGuess(null)} titleHint={titleHint} />;
+  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} practiceGuess={guess?.caseId === route.practiceId ? guess?.expected : undefined} onPracticeGuessChange={(caseId, expected) => setGuess(expected ? { caseId, expected } : null)} onPracticeLoaded={caseId => { setGuess(null); setPracticeCaseId(caseId); }} onPracticeContextChange={setPracticeCaseId} titleHint={titleHint} />;
   else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
   else if (route.page === "missing") page = <p className="hint">없는 화면입니다. <a href="#/home">홈으로</a></p>;
   else if (!checked) page = <p className="hint">확인 중…</p>;
@@ -97,7 +98,7 @@ export function App() {
   else if (!user) page = needLogin;
   else if (route.page === "cases") page = <CasesPage />;
   else if (route.page === "case")
-    page = <CaseDetailPage key={route.id} id={route.id} user={user} onOpenInJudge={(next, saveTitle) => (setDraft(() => next), setTitleHint(saveTitle ?? ""), go("/"))} />;
+    page = <CaseDetailPage key={route.id} id={route.id} user={user} onOpenInJudge={(next, saveTitle) => (setDraft(() => next), setPracticeCaseId(null), setTitleHint(saveTitle ?? ""), go("/"))} />;
   else if (route.page === "dashboard")
     page =
       user.role === "reviewer" ? (

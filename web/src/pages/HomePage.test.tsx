@@ -7,7 +7,7 @@ import type { User } from "../types";
 
 it.each([
   [false, [["1", "왜 통과하고,어디서 막힐까요?"], ["2", "먼저 예상해 보세요"]]],
-  [true, [["1", "작성하던 입력이 있어요"], ["2", "새 실습 시작하기"], ["3", "먼저 예상해 보세요"]]],
+  [true, [["1", "작성하던 입력이 있어요"], ["2", "다음 실습: HTTPS와 입력 ACL"], ["3", "먼저 예상해 보세요"]]],
 ] as const)("두 얼굴의 퍼즐 제목은 상위 제목 다음 단계다: 이어서 하기=%s", (resume, expected) => {
   const draft = blankDraft();
   if (resume) draft.flow.dst_port = 8443;
@@ -27,6 +27,7 @@ it.each([false, true])("공개 첫 얼굴은 선택되지 않은 예상 퍼즐�
   expect(html).not.toMatch(/aria-pressed="true"|checked|PASS|DENY|expect|정답/);
   expect(html).toContain("NetProof 계산 범위"); expect(html).toContain("실제 장비");
   expect(html).not.toContain("NetProof는 모델 안에서 계산합니다");
+  expect(html).not.toContain("판정기:");
   expect(html.match(/<button type="button" class="primary">/g)).toHaveLength(2);
   const hero = html.split("</section>")[0];
   expect(hero.match(/<a /g)).toHaveLength(1); expect(hero).not.toContain("학습실 전체 보기");
@@ -43,10 +44,25 @@ it("작성 중 얼굴은 요약·이어서 하기를 먼저 보이고 새 퍼즐
   expect(html).toContain("TCP 444 · 내 예상 막힘 · 장비 3대 · ACL 0개");
   expect(html).toContain('href="#/"'); expect(html).toContain("이어서 하기");
   expect(html).toContain("새로고침하면 입력이 사라집니다");
-  expect(html.indexOf("이어서 하기")).toBeLessThan(html.indexOf("새 실습 시작하기</h2>"));
-  expect(html.indexOf("새 실습 시작하기</h2>")).toBeLessThan(html.indexOf("먼저 예상해 보세요"));
+  expect(html.indexOf("이어서 하기")).toBeLessThan(html.indexOf("다음 실습: HTTPS와 입력 ACL</h2>"));
+  expect(html.indexOf("다음 실습: HTTPS와 입력 ACL</h2>")).toBeLessThan(html.indexOf("먼저 예상해 보세요"));
   expect(html).not.toContain("home-resume");
   expect(html).not.toMatch(/PASS|DENY|expect|정답|NetProof 계산 통과|NetProof 계산 막힘/);
+  expect(JSON.stringify(draft)).toBe(before);
+});
+it.each([
+  ["synthetic-01", "HTTPS와 입력 ACL", "왕복 경로"],
+  ["synthetic-02", "왕복 경로", "출력 ACL"],
+  ["synthetic-03", "출력 ACL", "HTTPS와 입력 ACL"],
+  [null, null, "HTTPS와 입력 ACL"],
+  ["unknown", null, "HTTPS와 입력 ACL"],
+] as const)("이어서 하기의 출발 맥락과 다음 퍼즐: %s", (practiceCaseId, started, next) => {
+  const draft = blankDraft(); draft.flow.dst_port = 444;
+  const before = JSON.stringify(draft);
+  const html = renderToStaticMarkup(createElement(HomePage, { draft, user: null, checked: true, onGuess: () => {}, practiceCaseId }));
+  expect(html).toContain(started ? `${started} 실습에서 시작한 입력` : "네트워크 설정 검증 실습실");
+  expect(html).toContain(`다음 실습: ${next}</h2>`);
+  expect(html).not.toMatch(/expect|정답|NetProof 계산 통과|NetProof 계산 막힘/);
   expect(JSON.stringify(draft)).toBe(before);
 });
 it("홈은 계정명이나 사례 내용을 싣지 않고 주제별 구성도와 같은 동작명을 쓴다", () => {

@@ -23,7 +23,8 @@ interface Props {
   practiceId?: string;
   practiceGuess?: PracticeGuess;
   onPracticeGuessChange?: (caseId: string, expected?: PracticeGuess) => void;
-  onPracticeLoaded?: () => void;
+  onPracticeLoaded?: (caseId: string) => void;
+  onPracticeContextChange?: (caseId: string | null) => void;
   titleHint?: string;
 }
 
@@ -34,7 +35,19 @@ export function PracticeGuessPicker({ caseId, guess, onChange }: { caseId: strin
   </fieldset>;
 }
 
-export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeGuessChange, onPracticeLoaded, titleHint }: Props) {
+/** 완료한 요청만 결과에 초점을 둔다. 예약 뒤 입력을 불러온 경우도 버린다. */
+export function focusJudgeResult(isCurrent: () => boolean) {
+  requestAnimationFrame(() => {
+    if (!isCurrent()) return;
+    const heading = document.getElementById("result-title");
+    if (!heading) return;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+    if (window.matchMedia("(max-width: 900px)").matches) heading.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeGuessChange, onPracticeLoaded, onPracticeContextChange, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [examplesStatus, setExamplesStatus] = useState<ExampleStatus>("loading");
   const [examplesRequest, setExamplesRequest] = useState(0);
@@ -68,6 +81,9 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
   const contextNow = useRef({ task, title });
   contextNow.current = { task, title };
   const [needsJudge, setNeedsJudge] = useState(false);
+
+  // 다른 화면의 같은 result-title로 늦은 요청이 초점을 옮기지 않게 한다.
+  useEffect(() => () => { revision.current += 1; }, []);
 
   useEffect(() => {
     let active = true;
@@ -119,12 +135,13 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     setSuggestLoading(false);
     setDraft(() => structuredClone(undo.draft));
     setTask(undo.task);
+    onPracticeContextChange?.(undo.task?.case_id ?? null);
     setTitle(undo.title);
     setNeedsJudge(true);
     setUndo(null);
   };
 
-  const load = useCallback((next: Draft, label?: string) => {
+  const load = useCallback((next: Draft, label?: string, practiceCaseId?: string) => {
     const current = draftNow.current;
     const input = (item: Draft) => JSON.stringify({ network: toNetwork(item), flow: item.flow, claim: item.claim });
     const hasInput = current.devices.length > 0 || current.acls.length > 0 || !!current.flow.src || !!current.flow.dst || !!current.claim.expected;
@@ -136,6 +153,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     setSuggestError(null);
     setSuggestLoading(false);
     setDraft(() => next);
+    if (!practiceCaseId) onPracticeContextChange?.(null);
     if (!label) {
       setVerdict(null);
       setAudit(null);
@@ -150,13 +168,13 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     setTask(null);
     setTitle("");
     setSaveError(null);
-  }, [setDraft]);
+  }, [setDraft, onPracticeContextChange]);
 
   const startPractice = (nextTask: PracticeTask, example: CaseItem) => {
-    load(practiceDraft(example, nextTask.case_id === practiceId ? practiceGuess : undefined), practiceStartLabel(nextTask));
+    load(practiceDraft(example, nextTask.case_id === practiceId ? practiceGuess : undefined), practiceStartLabel(nextTask), nextTask.case_id);
     setTask(nextTask);
     setTitle(nextTask.title);
-    onPracticeLoaded?.();
+    onPracticeLoaded?.(nextTask.case_id);
     if (practiceId) {
       window.history.replaceState(null, "", "#/");
       window.dispatchEvent(new HashChangeEvent("hashchange"));
@@ -227,14 +245,13 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
       setJudgedClaim(structuredClone(draft.claim));
       setJudged(snapshot);
       setNeedsJudge(false);
-      // 한 줄 배치(휴대폰)에서는 결과가 폼 아래에 있어 눌러도 안 보인다. 결과로 옮겨 준다.
-      if (window.matchMedia("(max-width: 900px)").matches) {
-        requestAnimationFrame(() => document.getElementById("result-title")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-      }
     } catch (e) {
       if (started === revision.current) setError(message(e));
     } finally {
-      if (started === revision.current) setLoading(false);
+      if (started === revision.current) {
+        setLoading(false);
+        focusJudgeResult(() => started === revision.current);
+      }
     }
   };
 
@@ -308,9 +325,9 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
       <h1 className="sr-only">판정기</h1>
       {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
         <p className="home-eyebrow">연습용 네트워크 실습</p>
-        <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.task.question}</p>
+        <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.guessPrompt}</p>
         <PracticeGuessPicker caseId={entryLesson.caseId} guess={practiceGuess} onChange={onPracticeGuessChange} />
-        <p className="hint">구성을 불러오면 고른 예상이 받은 답(내 예상)으로 들어갑니다.</p>
+        <p className="hint">{practiceGuess ? `구성을 불러오면 받은 답이 "${practiceGuess === "PASS" ? "된다" : "안 된다"}(내 예상)"로 들어갑니다.` : '예상 없이 불러오면 받은 답은 "비교 안 함"입니다.'}</p>
         <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
         {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>구성 불러오기</button></>}
         {entry.kind === "error" && <><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setExamplesRequest(value => value + 1)}>다시 시도</button></>}

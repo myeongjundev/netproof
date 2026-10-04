@@ -46,6 +46,12 @@ export const LESSONS = metadata.map((lesson) => {
 export function lessonById(id: string) { return LESSONS.find(lesson => lesson.id === id); }
 export function lessonByCaseId(id: string) { return LESSONS.find(lesson => lesson.caseId === id); }
 
+/** 실습의 출발점만 사용한다. 결과나 정답에 따른 추천이 아니다. */
+export function nextLesson(caseId?: string | null) {
+  const index = LESSONS.findIndex(lesson => lesson.caseId === caseId);
+  return LESSONS[(index + 1) % LESSONS.length];
+}
+
 export type ExampleStatus = "loading" | "ready" | "error";
 export function practiceEntry(id: string, examples: CaseItem[], status: ExampleStatus):
   { kind: "loading" | "error" | "missing" } | { kind: "ready"; example: CaseItem } {

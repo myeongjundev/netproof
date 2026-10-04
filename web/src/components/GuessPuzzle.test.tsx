@@ -9,6 +9,9 @@ it.each(LESSONS)("$id 예상 블록은 흐름 질문과 같은 무게의 선택 
   expect(html).toContain("<h2>먼저 예상해 보세요</h2>"); expect(html).toContain(lesson.guessPrompt);
   expect(html).toContain(`role="group" aria-labelledby="guess-question-${lesson.caseId}"`);
   expect(html).toContain(`id="guess-question-${lesson.caseId}"`);
+  expect(html).toContain('class="home-puzzle-question"');
+  expect(html).toContain("고르면 판정기에서 이 구성을 불러와 계산할 수 있습니다.");
+  expect(html.indexOf("고르면 판정기")).toBeGreaterThan(html.indexOf("막힐 것 같다</button>"));
   expect(html.match(/<button type="button" class="primary">/g)).toHaveLength(2);
   expect(html).not.toMatch(/aria-pressed|checked|PASS|DENY|expect|정답|NetProof 계산 통과|NetProof 계산 막힘/);
   expect(onGuess).not.toHaveBeenCalled();
