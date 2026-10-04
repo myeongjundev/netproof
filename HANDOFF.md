@@ -17,127 +17,61 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **후속 정리와 수동 QA 준비** — PR #26 리뷰의 후속 F15~F17을 고치고, 오래 대기 중인 PR #20 사용자 수동 QA(G2 화면 확인·삭제 취소)를 사람이 명령 하나로 바로 할 수 있게 QA 준비 도구와 체크리스트를 만든다.
-- 사용자 결정(2026-10-04):
-  - **수동 QA: QA 준비 도구 + 체크리스트.** 클릭과 판단은 사람이 한다. 도구는 임시 DB·합성 계정·합성 사례·로컬 서버만 준비한다. PR #20 항목에 최근 홈·실습 흐름을 더한다.
-  - **F17: 학습 상세의 개념 질문은 부제로.** 질문 문장은 예상 질문 하나만 남긴다.
-- 브랜치: `codex/followup-qa`(origin/main `11c6ac2` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 설계 승인: **사용자 승인 완료(`231b943`).**
-- 단계: **Codex 구현·자동 테스트 및 도구 실행 확인 → Claude 리뷰 → 사용자 병합 → 사용자 수동 QA.** reduced-motion 브라우저 에뮬레이션은 도구 지원 부재로 미확인(아래 기록).
-- 다음 차례: **사용자 — PR #27 병합 결정**(Claude 독립 리뷰 PASS, `a585a1a`). 병합 뒤 수동 QA A·B·C는 사람이 `docs/qa-manual.md`로 확인한다.
-- **판정·엔진은 그대로다.** 엔진·서버 API·저장 데이터·cases JSON·expect를 바꾸지 않는다. QA 도구는 로컬 전용 개발 도구이며 배포물(`api/`, `vercel.json`, 서버 앱)에 연결하지 않는다.
+- 작업: **QA 로컬 서버 동시 연결 수정**. PR #27 병합 후 발견한 빈 연결에 의한 응답 멈춤을 처리한다.
+- 근거: [PR #27 최신 Claude 코멘트](https://github.com/myeongjundev/netproof/pull/27#issuecomment-5979592996). 이전 순차 HTTP·test client 검사는 이 결함을 드러내지 못했다.
+- 사용자 승인: 이번 지시의 threaded=True·동시 연결 회귀·실제 브라우저 로그인/목록/상세·종료 안내 보강.
+- 브랜치: `codex/qa-threaded`, 최신 main `2ad04a0`(PR #27 merge)에서 새로 생성. worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 단계: 수정·검증 → Claude 리뷰 → 사용자 병합 결정. 다음 차례: **리뷰(Claude)**. 병합하지 않는다.
+- 임시 SQLite·127.0.0.1 전용·DATABASE_URL 무시·비밀번호 콘솔만·배포물 미연결은 유지한다. 수동 QA A·B·C 결과는 사람이 기록한다.
 
 ## 작업 정의
-### 1) F15 — 구성 불러오기 뒤 포커스
-- 현재: 진입 카드의 `구성 불러오기`를 누르면 카드가 사라지면서 포커스가 `body`로 떨어진다.
-- 바꿀 것: `startPractice`가 끝난 뒤(진입 카드에서 눌렀을 때와 페이지 안 `실습 · … · 시작` 단추 모두) 실습 안내 패널 제목 `#practice-title`에 `tabIndex=-1`을 주고 포커스를 옮긴다. 휴대폰(900px 이하)은 그 제목이 보이게 스크롤한다(3절 규칙 적용), 넓은 화면은 `preventScroll`.
-- 늦게 바뀐 화면(이미 다른 입력을 불러옴)에서는 옮기지 않는다. 기존 `focusJudgeResult`와 같은 방식(현재 여부 확인 함수)으로 만든다.
+### 1) 동시 요청 수정
+- `scripts/qa_local.py`의 make_server 호출에 `threaded=True`만 추가한다. 엔진·서버 앱/API·QA 계정/사례 구성·배포·화면은 변경하지 않는다.
 
-### 2) F17 — 학습 상세 질문 하나로, 실습 안내 문구
-- 학습 상세(`LearningPage`):
-  - 지금 h1 아래 `learning-question`(`task.question`)을 질문이 아닌 **부제 한 줄**로 바꾼다: `이 실습에서 볼 것: {focus}`.
-  - `learning.ts` lesson에 `focus`(화면 표시 전용, 정답 없음)를 더한다:
-    - synthetic-01: `입력 ACL이 HTTPS 통신에 어떻게 적용되는지`
-    - synthetic-02: `가는 길과 돌아오는 길이 모두 있는지`
-    - synthetic-03: `출력 ACL이 나가는 패킷에 어떻게 적용되는지`
-  - 질문 문장은 예상 블록의 `guessPrompt` 하나만 남는다. `PRACTICE.question`·판정기 실습 안내 패널은 그대로다.
-- 판정기 실습 안내 패널의 `정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.`를 상태에 맞춘다:
-  - 받은 답이 있으면: `정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다.`
-  - 없으면: 지금 문장 그대로.
+### 2) 회귀 테스트
+- `server/tests/test_qa_local.py`: QA main이 넘긴 옵션 그대로 실제 loopback 서버를 연다(포트만 OS 할당).
+- 빈 TCP 연결을 먼저 열고 요청 핸들러 수락을 Event로 확인한 뒤 첫 연결을 유지하면서 두 번째 GET이 제한 시간 안에 200으로 응답하는지 확인한다.
+- finally에서 두 연결 닫기·서버 shutdown·스레드 join. 기존 CLI mock은 threaded=True도 검사한다. 비밀번호는 테스트 출력에 기록하지 않는다.
 
-### 3) F16 — 움직임 줄이기
-- `scrollIntoView({ behavior: "smooth" })` 세 곳(`JudgePage.tsx` 결과·ACL 줄 보기, `PolicyMatrixPage.tsx` 상세)을 공용 함수 하나로 바꾼다: `prefers-reduced-motion: reduce`면 `behavior: "auto"`, 아니면 `"smooth"`.
-- 위치: 새 파일 `web/src/motion.ts`(함수 하나, 테스트 `motion.test.ts`).
+### 3) 브라우저·종료 안내
+- 실제 QA CLI에 브라우저로 로그인·목록·상세가 열리는지 확인해 기록한다. 수동 QA A·B·C 완료로 대신 표시하지 않는다.
+- `docs/qa-manual.md`에 강제 종료하면 임시 폴더가 남을 수 있으니 Ctrl+C로 끈다고 보강한다.
 
-### 4) QA 준비 도구 (사용자 결정)
-- 새 파일 `scripts/qa_local.py`. 실행: `.venv/Scripts/python scripts/qa_local.py` (저장소 루트에서).
-- 하는 일:
-  1. `web/dist/index.html`이 없으면 `npm --prefix web run build`를 먼저 하라고 알리고 끝낸다(직접 빌드하지 않는다).
-  2. 운영체제 임시 폴더에 새 폴더를 만들고 그 안의 새 SQLite 파일로 `create_app(overrides={"SQLALCHEMY_DATABASE_URI": ...})`을 만든다. **환경 변수 `DATABASE_URL`은 무시한다**(실제 DB에 닿지 않게). `NETPROOF_SECURE_COOKIES`는 끈다.
-  3. 앱의 test client로 합성 계정 두 개(`qa_author`, `qa_reviewer`)를 가입시키고 `qa_reviewer`를 검토자로 바꾼다(기존 `make-reviewer`와 같은 모델 변경). 비밀번호는 `secrets.token_urlsafe`로 매번 새로 만든다.
-  4. 합성 사례 4건을 `qa_author`로 만든다(예시 구성 사용): AI 답 있음+실제 결과+검토 확인 1건, 받은 답 없음 1건, 내 예상+실제 결과 1건, 아주 긴 제목 1건. 제목 앞에 `QA`를 붙인다.
-  5. `127.0.0.1`에서만 서버를 연다(기본 포트 4860, `--port`로 바꿀 수 있음). 외부 주소로 열지 않는다.
-  6. 콘솔에 접속 주소, 두 계정 닉네임·비밀번호, 체크리스트 경로를 출력한다. **비밀번호는 콘솔에만** 출력하고 파일·저장소·로그에 쓰지 않는다.
-  7. 종료(Ctrl+C) 때 임시 폴더를 지운다.
-- 저장소에 DB·비밀번호·캡처를 남기지 않는다. `.gitignore` 변경이 필요 없게 임시 폴더만 쓴다.
-- 테스트 `server/tests/test_qa_local.py`: 시드 함수가 새 임시 DB에만 쓰고(`DATABASE_URL`을 가짜 값으로 설정해도 무시), 계정 2·검토자 1·사례 4가 생기고, 서버 실행 없이 함수만 검사한다. 스크립트는 `importlib`로 경로를 지정해 불러온다.
-
-### 5) 수동 QA 체크리스트 (사용자 결정)
-- 새 파일 `docs/qa-manual.md` 한 장. 사람이 위에서부터 따라 하며 칸에 표시하는 형식이다.
-  - 준비: 빌드 → `scripts/qa_local.py` 실행 → 브라우저 주소. 화면 크기 375×812·1280×800, 라이트·다크.
-  - **A. PR #20 G2 화면 확인**: 사례 게시판 목록(필터 접기·적용 조건·검색·초기화), 사례 상세(구성 원문·받은 답·NetProof 계산 구분).
-  - **B. 삭제 취소(실제 기본 확인창)**: 합성 사례 상세 → 삭제 → 브라우저 확인창 **취소** → 같은 주소에 머무는지, 새로고침 뒤 사례가 남는지, 가능하면 개발자 도구 Network에 DELETE가 없는지. confirm 대체 검사로 대신하지 않는다.
-  - **C. 홈·실습 흐름(PR #23~#26)**: 첫 진입 홈 → 예상 고르기 → 진입 카드 라디오 → 구성 불러오기(포커스 위치) → 판정 → 배너 문장 → 홈 이어서 하기 라벨·다음 실습 → 학습 상세 부제.
-  - **D. 기록 칸**: 날짜, 브라우저와 버전, 확인한 조합, 통과/문제, 문제 재현 순서. 비밀번호·쿠키·토큰을 적지 않는다.
-  - 마지막에 "결과는 PR 코멘트나 HANDOFF '사용자 수동 QA' 절에 사람이 적는다. AI가 대신 완료로 바꾸지 않는다."
-- HANDOFF의 `사용자 수동 QA 대기` 절은 이 체크리스트를 가리키게 줄인다.
-
-### 6) 범위 밖 · 허용 파일
-- 하지 않는 것: QA를 자동으로 통과 처리, 브라우저 자동 클릭, 확인창 대체·우회, F5·F6, 배너 아래 대결 머리 정리, 진입 카드 그림·예상 칩, 엔진·서버 API·DB 스키마·cases JSON·expect, 배포 설정, 새 의존성.
-- 허용 파일:
-  - 신규: `scripts/qa_local.py`, `server/tests/test_qa_local.py`, `docs/qa-manual.md`, `web/src/motion.ts`, `web/src/motion.test.ts`
-  - 수정: `web/src/pages/{JudgePage,LearningPage,PolicyMatrixPage}.tsx`와 JudgePage·LearningPage test, `web/src/learning.ts`·test, `web/src/styles.css`(학습 부제 한 줄만 필요하면)
-  - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`
-- 읽기만: `engine/`, `server/netproof_api/`(QA 도구는 `create_app`·모델을 불러 쓰기만), `api/`, `vercel.json`, 결과·편집기 컴포넌트, `cases/*.json`.
-- 다음을 바꾸고 싶으면 **먼저 요청한다**: `focus` 세 문장, 실습 안내 문구, QA 도구가 만드는 계정·사례 구성, 체크리스트 항목.
-
-### 7) 위험
-- **QA 도구가 실제 DB를 건드림** → `DATABASE_URL` 무시·임시 폴더 강제, 테스트로 고정.
-- **QA 도구가 외부에 열림** → `127.0.0.1` 고정.
-- **비밀번호가 남음** → 콘솔 출력만, 파일·저장소 기록 금지, 종료 때 임시 폴더 삭제.
-- **사람 확인을 AI가 대신 완료 처리** → 체크리스트와 HANDOFF에 "사람이 적는다"를 명시. Codex·Claude는 QA 결과를 만들지 않는다.
-- **포커스 이동이 넓은 화면을 튀게 함** → `preventScroll`.
-
-### 8) 완료 조건 · 테스트
-- 자동 테스트: `motion.test.ts`(reduce면 auto), JudgePage(불러오기 뒤 포커스 함수, 실습 안내 문구 두 경우), LearningPage(부제 `이 실습에서 볼 것:`·질문은 guessPrompt 하나), `learning.test.ts`(`focus` 세 개), `test_qa_local.py`(위 4절).
-- 네 명령의 실제 출력 전체를 이 문서에 붙인다:
-  ```text
-  cd engine && ../.venv/Scripts/python -m pytest -q
-  cd server && ../.venv/Scripts/python -m pytest -q
-  npm --prefix web test
-  npm --prefix web run build
-  ```
-- QA 도구 실제 실행 확인: 실행 → 주소 접속 → 두 계정 로그인 가능 → 사례 4건 보임 → 종료 뒤 임시 폴더 없음. **비밀번호는 기록하지 않는다.** 이 확인은 도구 동작 확인이며 사용자 수동 QA(A·B)를 대신하지 않는다.
-- 브라우저 확인(375·1280): 구성 불러오기 뒤 `activeElement`가 `#practice-title`, 학습 상세 부제, reduced-motion 에뮬레이션에서 스크롤이 즉시 이동.
-- 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
+### 4) 범위·완료
+- 허용: `scripts/qa_local.py`, `server/tests/test_qa_local.py`, `docs/qa-manual.md`, `HANDOFF.md`, `decisions/ai-work-log.md`만.
+- 네 명령 전체 출력·브라우저/도구 확인, 작업 로그 한 줄, 다음 차례 리뷰(Claude), 커밋·푸시·PR. 병합하지 않는다.
 
 ## 완료 내용 / 테스트 결과 (2026-10-04 Codex)
 
-- 승인 `231b943`의 작업 정의 1)~8)만 구현. F15 진입 카드·내부 실습 시작 후 실습 제목 포커스(늦은 예약 폐기), F16 공용 reduced-motion 스크롤, F17 부제 세 문장·받은 답 상태별 안내 문구.
-- QA 준비: 항상 새 OS 임시 SQLite, DATABASE_URL·PostgreSQL engine options 무시, SECURE_COOKIES=False, 127.0.0.1 고정, debug/reloader 없음. 두 계정·합성 사례 4건은 기존 API로 생성하고 판정은 기존 엔진에 맡김. 배포 앱·설정과 연결하지 않음.
-- 자동 회귀: 웹 10건·QA 도구 10건 추가. 원래 테스트/엔진/서버 앱/cases JSON/expect/의존성 불변. `git diff --check` 오류 없음.
-- **사용자 수동 QA A·B·C는 대기 유지.** AI는 목록 필터 G2·삭제 기본 확인창 취소를 수행하거나 통과로 표시하지 않았음. computer-use는 아래 F15/F17 구현 화면 확인에만 사용.
+- `make_server(..., threaded=True)` 한 줄 변경. 격리·호스트·시드·출력, 서버 앱·엔진·배포물·화면은 그대로다.
+- 새 동시 연결 회귀는 수정 전 `TimeoutError: timed out`, `1 failed, 10 deselected in 4.21s`로 결함을 재현했다. 수정 뒤 QA 도구 전체 `11 passed in 4.34s`. 첫 연결의 서버 수락 Event 뒤에만 두 번째 GET을 보내며, 첫 빈 연결이 열린 채 200·JSON 응답을 확인한다. 테스트가 threaded를 강제하지 않고 실제 QA main이 넘긴 옵션만 사용한다.
+- 강제 종료 시 임시 폴더 잔존 가능·Ctrl+C 종료 안내 보강. `git diff --check` 오류 없음.
+- **사용자 수동 QA A·B·C는 대기 유지.** 아래는 도구 응답 확인이며 G2·실제 기본 확인창 취소·홈 흐름 QA 완료를 대신한 기록이 아니다. F5·F6·reduced-motion 실브라우저 미확인은 그대로다.
 
-### QA 도구 실제 실행 (비밀번호 제외)
+### 실제 CLI·브라우저 확인 (비밀번호 제외)
 
-- 명령: `.venv/Scripts/python scripts/qa_local.py --port 4860`.
-- 저장소 밖 검증 프로세스가 자식 콘솔의 비밀번호를 메모리에서만 받아 두 계정의 loopback 로그인에 사용. 비밀번호 줄·쿠키·CSRF·응답 본문은 출력·파일·저장소·캡처에 남기지 않음. 아래에는 비밀값 없는 상태 출력만 기록.
-- 가짜 PostgreSQL DATABASE_URL을 설정한 상태에서 실행. HTTP 접속·두 계정 로그인·사례 네 건 조회만 확인(수동 QA 아님). 실제 CLI 정상 종료·임시 폴더 삭제·포트 listen 없음 확인. Windows Ctrl+Break와 Ctrl+C는 같은 정리 경로이며, 단위 테스트에서 KeyboardInterrupt 정리도 확인.
+- 실제 명령: `.venv/Scripts/python scripts/qa_local.py --port 4862`. 가짜 PostgreSQL DATABASE_URL을 설정해도 새 임시 SQLite 사용.
+- 저장소 밖 검증 하네스가 **실제 CLI를 변경 없이 실행**했다(별도 threaded 래퍼 앱이 아님). 빈 TCP 연결 하나를 유지한 채 GET / 200. 브라우저 확인이 끝날 때까지 이 연결을 계속 열어 뒀다.
+- computer-use로 Codex in-app browser에서 실제 폼 로그인:
+  - **1280×800 라이트 / qa_author:** 로그인 뒤 헤더 닉네임·일반 등급 → 사례 게시판 검색 결과4 → QA AI 답 · 합성 실제 결과 · 검토 확인 상세 `#/cases/1` 제목 표시 → 상세 새로고침 응답 → 로그아웃.
+  - **375×812 라이트 / qa_reviewer:** 로그인 뒤 닉네임 → 목록4 → 같은 사례 상세 제목·주소 표시 → 로그아웃.
+  - 필터·삭제·확인창 조작 없음. 사례/실제 결과 저장 없음.
+- 비밀번호는 자식 콘솔에서 **메모리·일회성 로컬 IPC**로만 전달해 브라우저 폼에 입력했다. 값·쿠키·CSRF는 도구 출력/파일/저장소/캡처/PR에 기록하지 않았다. 입력 뒤 자격 증명 변수 제거.
+- 검증 탭 닫음·viewport reset. 검증 프로세스와 4862 listen 없음 확인. 비대화형 하네스 종료에서는 이번 임시 폴더가 남아, 정확한 대상(이번 생성 `netproof-qa-kcfzkwt_`, 내부 `qa.db` 하나)을 확인한 뒤 DB와 빈 폴더를 각각 삭제했다. **정상 Ctrl+C 자동 정리 성공으로 주장하지 않는다.** 다른 임시 폴더는 건드리지 않았다. 합성 데이터는 도구 재실행으로 새로 준비할 수 있다.
+- 캡처: 저장소 밖 `C:/Users/dora2/.codex/visualizations/qa-threaded-2026-10-04/`, author-cases/detail-1280.png·reviewer-cases/detail-375.png. 비밀번호 화면 캡처 없음.
 
 ```text
-GET /: 200
-qa_author: login 200, role=user
-qa_author: cases=4, QA prefix=True
-qa_reviewer: login 200, role=reviewer
-qa_reviewer: cases=4, QA prefix=True
-DATABASE_URL fake PostgreSQL ignored; temporary SQLite exists=True
-Credentials: console pipe/RAM only; omitted from this verification output.
-READY FOR UI CHECKS; manual A/B remain pending.
-Exit code=0; temporary directory removed=True
+CLI GET / with idle first TCP connection held: 200
+Fake DATABASE_URL ignored; temporary SQLite exists=True
+READY: actual CLI on 127.0.0.1:4862; idle TCP connection remains open during browser checks.
+Credentials are RAM/one-shot IPC only; never printed in verification records.
 QA listen count after shutdown: 0
+QA verification directory removed: True
 ```
-
-### 브라우저 확인 — 구현 변경만 (375×812·1280×800)
-
-- Codex in-app browser, `http://127.0.0.1:4860/`, 라이트. A·B 체크리스트 미실행, 기본 확인창 대체/우회 없음.
-- 375: 학습01 부제 `이 실습에서 볼 것: 입력 ACL이 HTTPS 통신에 어떻게 적용되는지` 표시, 예상 질문 하나. 예상 선택→진입 카드→구성 불러오기 후 `document.activeElement.id=practice-title`. 제목으로 스크롤하여 보임. 페이지 내부 `실습 · 왕복 경로 · 시작`도 activeElement=practice-title.
-- 1280: 동일 부제·질문 하나. 예상 없이 진입→직접 불러오기 후 activeElement=practice-title, scrollY 불러오기 전후 0→0(넓은 화면 preventScroll). 페이지 내부 `실습 · 출력 ACL · 시작`도 activeElement=practice-title, scrollY=0. 받은 답 있음/없음 두 안내 문구 확인.
-- **reduced-motion 에뮬레이션 브라우저 검증 미확인:** 현재 브라우저가 제공하는 capability는 visibility·viewport뿐이며 탭도 pageAssets·webmcp만 제공. 미디어 에뮬레이션 API 없음. 실제 matchMedia(reduce)=false를 확인했으므로 즉시 스크롤 PASS로 주장하지 않음. 단위 테스트는 reduce=true→auto, false→smooth 및 ACL center 보존을 확인. Claude 리뷰에서 지원되는 브라우저로 에뮬레이션 재확인이 필요함.
-- 캡처는 저장소 밖 `C:/Users/dora2/.codex/visualizations/followup-qa-2026-10-04/`의 learning-375/1280·practice-focus-375/1280.png. 비밀번호 화면 캡처 없음. 검증 탭 닫음·viewport reset, QA 서버 종료·임시 DB 삭제(재실행하면 새 합성 데이터가 생김).
 
 ### 네 명령의 실제 전체 출력
 
-서버 명령은 실행 전 `NETPROOF_TEST_DATABASE_URL`을 프로세스 환경에서 제거해 기존 PostgreSQL 테스트 DB를 건드리지 않음. 모든 exit code 0. skip/xfail은 기존 항목이며 이번에 통과로 바꾸지 않음.
+모든 exit code 0. 서버 테스트 전에 NETPROOF_TEST_DATABASE_URL을 프로세스 환경에서 제거하여 임시 SQLite만 사용했다. 기존 skip/xfail을 통과로 바꾸지 않았다.
 
 ### cd engine && ../.venv/Scripts/python -m pytest -q
 
@@ -147,15 +81,15 @@ QA listen count after shutdown: 0
 ........................................................................ [ 65%]
 ........................................................................ [ 87%]
 ......................................xx                                 [100%]
-326 passed, 2 xfailed in 6.00s
+326 passed, 2 xfailed in 5.72s
 ```
 
 ### cd server && ../.venv/Scripts/python -m pytest -q
 
 ```text
-.......................................................................s [ 70%]
-..............................                                           [100%]
-101 passed, 1 skipped in 19.19s
+.......................................................................s [ 69%]
+...............................                                          [100%]
+102 passed, 1 skipped in 37.07s
 ```
 
 ### npm --prefix web test
@@ -171,10 +105,10 @@ QA listen count after shutdown: 0
 
  Test Files  24 passed (24)
       Tests  316 passed (316)
-   Start at  19:52:15
-   Duration  1.12s (transform 53%, import 28%, worker 13%, tests 6%)
+   Start at  21:08:36
+   Duration  781ms (transform 67%, import 20%, tests 8%, worker 4%)
 
-  Transform  transforming modules took 4.54s · 53% of tracked time, re-done on every run
+  Transform  transforming modules took 4.67s · 67% of tracked time, re-done on every run
              persist transforms across runs with fsModuleCache: true
              learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
 ```
@@ -287,13 +221,17 @@ dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
 dist/assets/index-CThyBs7X.css                            78.95 kB │ gzip:  22.20 kB
 dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101.41 kB
 
-✓ built in 925ms
+✓ built in 403ms
 ```
 
 구현·테스트: Codex (GPT-5).
 
 
+
 ## 현재 과제 리뷰 기록
+- 새 QA 동시 연결 수정은 Claude 리뷰 대기다. 근거는 PR #27 병합 후 [Claude 결함 보고](https://github.com/myeongjundev/netproof/pull/27#issuecomment-5979592996)이며 이전 PASS가 이번 수정의 리뷰를 대신하지 않는다.
+
+## 이전 과제 리뷰 기록 (PR #27)
 ### PR #27 Claude 독립 리뷰 (2026-10-04, HEAD `a585a1a`) — **PASS**
 - 근거: `git diff origin/main...HEAD` 14파일. 엔진·서버 앱 코드 변경 0(`server/tests/test_qa_local.py`만 추가). 배포물(`api/`, `vercel.json`)은 그대로다. 승인 설계 6절 허용 목록 안.
 - Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.64s` · 서버 `101 passed, 1 skipped in 35.30s`(QA 도구 테스트 포함) · 웹 `24 files, 316 passed` · 빌드 `✓ built in 245ms`.
@@ -310,6 +248,7 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - 남은 것: 사용자 수동 QA A·B·C(병합 뒤), F5·F6.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #27 F15~F17·QA 준비 도구 (병합 완료, `2ad04a0`)**: 독립 리뷰 PASS 뒤 병합. 순차 검사에서 놓친 단일 스레드 QA 서버의 빈 연결 응답 멈춤은 이번 codex/qa-threaded에서 수정한다. 사용자 수동 QA·reduced-motion 실브라우저 미확인은 별도다.
 - **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
 - **PR #25 홈·학습 2차 (병합 완료, `397ee0d`)**: 계산 범위 띠(`NetProof 계산 범위` + 점선 `실제 장비`), 홈 퍼즐을 채운 단추 주 행동으로(375 단추 아래 끝 745/812), 세 실습 모두 예상 블록(`guessPrompt`·공용 `GuessPuzzle`), 판정기 진입 카드 예상 라디오(통과/막힘/예상 없이). Claude 독립 리뷰 PASS(`cd49334`), critique 3회차 26/40 → 사용자 병합. 후속 F12~F14와 배너 톤은 이번 과제.
 - **PR #24 홈·학습실 개선 (병합 완료, `b8bb8e8`)**: 홈 예상 퍼즐(synthetic-01)·이어서 하기 얼굴·PathStrip 경로 그림·학습 상세 먼저·포커스 이동·말 다듬기·휴대폰 헤더. 리뷰 R1(메뉴 키보드 순서)·R2(제목 단계) → critique 2회차 26/40에서 P0(예상 직후 예시 단추 제목이 답 노출) 발견 → 사용자 결정으로 R3(예시 단추 주제 이름)·R4(F9~F11) → Claude 재리뷰 PASS(`575f902`) → 사용자 병합. 남은 P1·P2는 이번 과제.
@@ -385,11 +324,12 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
 - [x] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② PR #25 병합(`397ee0d`).
 - [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
-- [ ] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **승인231b943 구현·테스트, 리뷰(Claude) 대기 — 브랜치 codex/followup-qa**
+- [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **PR #27 병합 `2ad04a0`, 수동 QA는 별도 대기.**
+- [ ] **QA 도구 동시 연결 결함 수정** — **codex/qa-threaded 구현·검증 후 리뷰(Claude) 대기.**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- PR #27은 Claude 독립 리뷰 PASS(`a585a1a`). 다음은 사용자 병합 결정, 그 뒤 사람이 `docs/qa-manual.md`로 수동 QA를 한다.
+- PR #27은 `2ad04a0`로 병합됐다. 다음은 **codex/qa-threaded 동시 연결 수정 Claude 리뷰**다. 수동 QA 결과는 사람이 기록한다.
 - QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
 - 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
 - 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
