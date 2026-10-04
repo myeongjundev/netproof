@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { blankDraft } from "./draft";
 import { AppHeader } from "./components/AppHeader";
@@ -8,12 +8,25 @@ import { CaseDetailPage } from "./pages/CaseDetailPage";
 import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JudgePage } from "./pages/JudgePage";
+import { PracticePage } from "./pages/PracticePage";
 import { PolicyMatrixPage } from "./pages/PolicyMatrixPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { go, useRoute } from "./router";
-import type { Draft, User } from "./types";
-import type { PracticeGuess } from "./learning";
+import type { CaseItem, Draft, User } from "./types";
+import { lessonByCaseId, practiceDraft, type PracticeGuess } from "./learning";
+
+/** 판정기 입력과 별개인 실습별 메모리 입력. 기존 편집 내용은 그대로 이어간다. */
+export function initializePracticeDrafts(current: Record<string, Draft>, caseId: string, example: CaseItem, guess?: PracticeGuess): Record<string, Draft> {
+  const existing = current[caseId];
+  if (existing && !guess) return current;
+  const next = existing ?? practiceDraft(example);
+  return { ...current, [caseId]: guess ? { ...next, claim: { expected: guess, kind: "self", source: "", text: "" } } : next };
+}
+
+export function practiceImport(caseId: string, draft: Draft) {
+  return { draft: structuredClone(draft), label: `${lessonByCaseId(caseId)!.title} 실습 구성을 판정기로 가져왔습니다` };
+}
 
 export function App() {
   const route = useRoute();
@@ -23,20 +36,29 @@ export function App() {
   const [draft, setDraft] = useState<Draft>(blankDraft);
   const [guess, setGuess] = useState<{ caseId: string; expected: PracticeGuess } | null>(null);
   const [practiceCaseId, setPracticeCaseId] = useState<string | null>(null);
-  const practiceId = route.page === "judge" ? route.practiceId : undefined;
+  const [practiceDrafts, setPracticeDrafts] = useState<Record<string, Draft>>({});
+  const [pendingImport, setPendingImport] = useState<ReturnType<typeof practiceImport> | null>(null);
+  const caseId = route.page === "practice" ? route.caseId : undefined;
   const lessonId = route.page === "learn" ? route.lessonId : undefined;
   const main = useRef<HTMLElement>(null);
-  const previousScreen = useRef({ page: route.page, lessonId });
+  const previousScreen = useRef({ page: route.page, lessonId, caseId });
   useEffect(() => {
-    setGuess(current => current?.caseId === practiceId ? current : null);
-  }, [route.page, practiceId]);
+    setGuess(current => current?.caseId === caseId ? current : null);
+    if (caseId) setPracticeCaseId(caseId);
+  }, [caseId]);
+  const preparePractice = useCallback((example: CaseItem) => {
+    if (!caseId) return;
+    setPracticeDrafts(current => initializePracticeDrafts(current, caseId, example, guess?.caseId === caseId ? guess.expected : undefined));
+    setGuess(current => current?.caseId === caseId ? null : current);
+  }, [caseId, guess]);
+  const consumeImport = useCallback(() => setPendingImport(null), []);
   useEffect(() => {
     const previous = previousScreen.current;
-    previousScreen.current = { page: route.page, lessonId };
-    if (previous.page === route.page && previous.lessonId === lessonId) return;
+    previousScreen.current = { page: route.page, lessonId, caseId };
+    if (previous.page === route.page && previous.lessonId === lessonId && previous.caseId === caseId) return;
     const heading = main.current?.querySelector("h1");
     if (heading) { heading.tabIndex = -1; heading.focus(); }
-  }, [route.page, lessonId]);
+  }, [route.page, lessonId, caseId]);
   const [titleHint, setTitleHint] = useState("");
   // 로그인 화면으로 오기 직전에 보던 화면. 로그인한 뒤 그리로 돌려보낸다.
   const [back, setBack] = useState("/home");
@@ -77,9 +99,12 @@ export function App() {
 
   let page;
   const onGuess = (caseId: string, expected: PracticeGuess) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`); };
-  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} practiceCaseId={practiceCaseId} />;
+  if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} practiceCaseId={practiceCaseId} practiceDraft={practiceCaseId ? practiceDrafts[practiceCaseId] : undefined} />;
   else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} onGuess={onGuess} />;
-  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} practiceId={route.practiceId} practiceGuess={guess?.caseId === route.practiceId ? guess?.expected : undefined} onPracticeGuessChange={(caseId, expected) => setGuess(expected ? { caseId, expected } : null)} onPracticeLoaded={caseId => { setGuess(null); setPracticeCaseId(caseId); }} onPracticeContextChange={setPracticeCaseId} titleHint={titleHint} />;
+  else if (route.page === "practice") page = <PracticePage key={route.caseId} caseId={route.caseId} draft={practiceDrafts[route.caseId]} onReady={preparePractice}
+    setDraft={update => setPracticeDrafts(current => current[route.caseId] ? { ...current, [route.caseId]: update(current[route.caseId]) } : current)}
+    onImport={next => { setPendingImport(practiceImport(route.caseId, next)); go("/"); }} />;
+  else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} titleHint={titleHint} pendingImport={pendingImport} onImportConsumed={consumeImport} />;
   else if (route.page === "matrix") page = <PolicyMatrixPage draft={draft} />;
   else if (route.page === "missing") page = <p className="hint">없는 화면입니다. <a href="#/home">홈으로</a></p>;
   else if (!checked) page = <p className="hint">확인 중…</p>;
@@ -98,7 +123,7 @@ export function App() {
   else if (!user) page = needLogin;
   else if (route.page === "cases") page = <CasesPage />;
   else if (route.page === "case")
-    page = <CaseDetailPage key={route.id} id={route.id} user={user} onOpenInJudge={(next, saveTitle) => (setDraft(() => next), setPracticeCaseId(null), setTitleHint(saveTitle ?? ""), go("/"))} />;
+    page = <CaseDetailPage key={route.id} id={route.id} user={user} onOpenInJudge={(next, saveTitle) => (setDraft(() => next), setTitleHint(saveTitle ?? ""), go("/"))} />;
   else if (route.page === "dashboard")
     page =
       user.role === "reviewer" ? (

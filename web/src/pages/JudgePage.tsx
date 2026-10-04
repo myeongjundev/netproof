@@ -8,8 +8,7 @@ import { SuggestPanel } from "../components/SuggestPanel";
 import type { Suggestion, SuggestionTarget } from "../types";
 import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
-import { practiceTasks, type PracticeTask } from "../practice";
-import { lessonByCaseId, practiceDraft, practiceEntry, practiceStartLabel, type ExampleStatus, type PracticeGuess } from "../learning";
+import { LESSONS, lessonByCaseId } from "../learning";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import { scrollTo } from "../motion";
@@ -21,19 +20,15 @@ interface Props {
   draft: Draft;
   setDraft: (update: (current: Draft) => Draft) => void;
   share?: string;
-  practiceId?: string;
-  practiceGuess?: PracticeGuess;
-  onPracticeGuessChange?: (caseId: string, expected?: PracticeGuess) => void;
-  onPracticeLoaded?: (caseId: string) => void;
-  onPracticeContextChange?: (caseId: string | null) => void;
+  pendingImport?: { draft: Draft; label: string } | null;
+  onImportConsumed?: () => void;
   titleHint?: string;
 }
 
-export function PracticeGuessPicker({ caseId, guess, onChange }: { caseId: string; guess?: PracticeGuess; onChange?: Props["onPracticeGuessChange"] }) {
-  return <fieldset className="practice-guess"><legend>내 예상</legend>
-    {([ ["PASS", "통과할 것 같다"], ["DENY", "막힐 것 같다"], [undefined, "예상 없이"] ] as const).map(([expected, label]) =>
-      <label key={label}><input type="radio" name={`practice-guess-${caseId}`} checked={guess === expected} onChange={() => onChange?.(caseId, expected)} />{label}</label>)}
-  </fieldset>;
+/** 실습의 명시적 가져오기만 기존 load·되돌리기 경로에 연결한다. */
+export function acceptJudgeImport(pending: NonNullable<Props["pendingImport"]>, load: (draft: Draft, label: string) => void, consumed?: () => void) {
+  load(pending.draft, pending.label);
+  consumed?.();
 }
 
 /** 완료한 요청만 결과에 초점을 둔다. 예약 뒤 입력을 불러온 경우도 버린다. */
@@ -48,28 +43,8 @@ export function focusJudgeResult(isCurrent: () => boolean) {
   });
 }
 
-/** 불러오기 후 카드가 사라져도 초점은 실습 안내 제목에 남긴다. */
-export function focusPractice(isCurrent: () => boolean) {
-  requestAnimationFrame(() => {
-    if (!isCurrent()) return;
-    const heading = document.getElementById("practice-title");
-    if (!heading) return;
-    heading.tabIndex = -1;
-    heading.focus({ preventScroll: true });
-    if (window.matchMedia("(max-width: 900px)").matches) scrollTo(heading);
-  });
-}
-
-export function practiceHint(claim: Claim) {
-  return claim.expected
-    ? "정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다."
-    : "정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.";
-}
-
-export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeGuessChange, onPracticeLoaded, onPracticeContextChange, titleHint }: Props) {
+export function JudgePage({ user, draft, setDraft, share, pendingImport, onImportConsumed, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
-  const [examplesStatus, setExamplesStatus] = useState<ExampleStatus>("loading");
-  const [examplesRequest, setExamplesRequest] = useState(0);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [audit, setAudit] = useState<AuditResult | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
@@ -82,7 +57,6 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
   const [loading, setLoading] = useState(false);
   const [pasted, setPasted] = useState("");
   const [title, setTitle] = useState("");
-  const [task, setTask] = useState<PracticeTask | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
@@ -93,12 +67,13 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
   const [suggestResult, setSuggestResult] = useState<Suggestion | null>(null);
   const [suggestError, setSuggestError] = useState<string | null>(null);
   const [suggestLoading, setSuggestLoading] = useState(false);
-  const [undo, setUndo] = useState<{ draft: Draft; label: string; task: PracticeTask | null; title: string } | null>(null);
+  const [undo, setUndo] = useState<{ draft: Draft; label: string; title: string } | null>(null);
   const removing = useRef(false);
   const draftNow = useRef(draft);
   draftNow.current = draft;
-  const contextNow = useRef({ task, title });
-  contextNow.current = { task, title };
+  const contextNow = useRef({ title });
+  contextNow.current = { title };
+  const imported = useRef<Props["pendingImport"]>(null);
   const [needsJudge, setNeedsJudge] = useState(false);
 
   // 다른 화면의 같은 result-title로 늦은 요청이 초점을 옮기지 않게 한다.
@@ -107,22 +82,17 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
   useEffect(() => {
     let active = true;
     setExamples([]);
-    setExamplesStatus("loading");
     api.examples().then((items) => {
-      if (active) { setExamples(items); setExamplesStatus("ready"); }
+      if (active) setExamples(items);
     }, () => {
-      if (active) { setExamples([]); setExamplesStatus("error"); }
+      if (active) setExamples([]);
     });
     return () => { active = false; };
-  }, [practiceId, examplesRequest]);
+  }, []);
 
   useEffect(() => {
     if (titleHint) setTitle(titleHint);
   }, [titleHint]);
-
-  const tasks = useMemo(() => practiceTasks(examples), [examples]);
-  const entryLesson = practiceId ? lessonByCaseId(practiceId) : undefined;
-  const entry = practiceId ? practiceEntry(practiceId, examples, examplesStatus) : null;
 
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const latestSnapshot = useRef(snapshot);
@@ -153,14 +123,12 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     setLoading(false);
     setSuggestLoading(false);
     setDraft(() => structuredClone(undo.draft));
-    setTask(undo.task);
-    onPracticeContextChange?.(undo.task?.case_id ?? null);
     setTitle(undo.title);
     setNeedsJudge(true);
     setUndo(null);
   };
 
-  const load = useCallback((next: Draft, label?: string, practiceCaseId?: string) => {
+  const load = useCallback((next: Draft, label?: string) => {
     const current = draftNow.current;
     const input = (item: Draft) => JSON.stringify({ network: toNetwork(item), flow: item.flow, claim: item.claim });
     const hasInput = current.devices.length > 0 || current.acls.length > 0 || !!current.flow.src || !!current.flow.dst || !!current.claim.expected;
@@ -172,7 +140,6 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     setSuggestError(null);
     setSuggestLoading(false);
     setDraft(() => next);
-    if (!practiceCaseId) onPracticeContextChange?.(null);
     if (!label) {
       setVerdict(null);
       setAudit(null);
@@ -184,23 +151,15 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
     if (!label) setAuditRequested(false);
     setLoading(false);
     setError(null);
-    setTask(null);
     setTitle("");
     setSaveError(null);
-  }, [setDraft, onPracticeContextChange]);
+  }, [setDraft]);
 
-  const startPractice = (nextTask: PracticeTask, example: CaseItem) => {
-    load(practiceDraft(example, nextTask.case_id === practiceId ? practiceGuess : undefined), practiceStartLabel(nextTask), nextTask.case_id);
-    setTask(nextTask);
-    setTitle(nextTask.title);
-    onPracticeLoaded?.(nextTask.case_id);
-    if (practiceId) {
-      window.history.replaceState(null, "", "#/");
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-    }
-    const loaded = revision.current;
-    focusPractice(() => loaded === revision.current);
-  };
+  useEffect(() => {
+    if (!pendingImport || imported.current === pendingImport) return;
+    imported.current = pendingImport;
+    acceptJudgeImport(pendingImport, load, onImportConsumed);
+  }, [pendingImport, load, onImportConsumed]);
 
   useEffect(() => {
     if (share === undefined) return;
@@ -344,18 +303,6 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
       }
     }}>
       <h1 className="sr-only">판정기</h1>
-      {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
-        <p className="home-eyebrow">연습용 네트워크 실습</p>
-        <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.guessPrompt}</p>
-        <PracticeGuessPicker caseId={entryLesson.caseId} guess={practiceGuess} onChange={onPracticeGuessChange} />
-        <p className="hint">{practiceGuess ? `구성을 불러오면 받은 답이 "${practiceGuess === "PASS" ? "된다" : "안 된다"}(내 예상)"로 들어갑니다.` : '예상 없이 불러오면 받은 답은 "비교 안 함"입니다.'}</p>
-        <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
-        {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>구성 불러오기</button></>}
-        {entry.kind === "error" && <><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setExamplesRequest(value => value + 1)}>다시 시도</button></>}
-        {entry.kind === "missing" && <p role="status">이 실습 구성은 현재 제공되지 않습니다.</p>}
-        {entry.kind === "ready" && <button type="button" className="primary" onClick={() => startPractice(entryLesson.task, entry.example)}>구성 불러오기</button>}
-        <a href="#/">실습 없이 계속하기</a>
-      </section>}
       <div className="page-head">
         <p>AI나 내가 예상한 “이 통신은 된다/안 된다”를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 줍니다. 판정은 로그인 없이 됩니다.</p>
         <ol className="case-start" aria-label="시작 안내">
@@ -375,17 +322,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
             처음 구성
           </button>
         </div>
-        {tasks.length > 0 && (
-          <details className="practice-list">
-            <summary>실습 과제</summary>
-            <p className="hint">합성 구성으로 경로와 ACL을 직접 살펴보세요.</p>
-            <div className="examples">
-              {tasks.map(({ task: nextTask, example }) => (
-                <button key={nextTask.case_id} type="button" className="ghost small" onClick={() => startPractice(nextTask, example)}>{nextTask.title} · 시작</button>
-              ))}
-            </div>
-          </details>
-        )}
+        <p className="hint">실습은 학습실에서: {LESSONS.map((lesson, index) => <span key={lesson.caseId}>{index > 0 && " · "}<a href={`#/practice/${lesson.caseId}`}>{lesson.title}</a></span>)}</p>
       </div>
 
       {undo && <div className="undo-notice" role="status">
@@ -393,19 +330,6 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGu
         <button type="button" className="ghost small" onClick={restore}>되돌리기</button>
         <button type="button" className="ghost icon" aria-label="되돌리기 알림 닫기" onClick={() => setUndo(null)}>×</button>
       </div>}
-
-      {task && (
-        <section className="panel practice-guide" aria-labelledby="practice-title">
-          <div className="panel-head">
-            <h2 id="practice-title">{task.title}</h2>
-            <button type="button" className="ghost small" onClick={() => setTask(null)}>그만하기</button>
-          </div>
-          <p>{task.question}</p>
-          <h3>확인할 점</h3>
-          <ul>{task.checkpoints.map((point) => <li key={point}>{point}</li>)}</ul>
-          <p className="hint">{practiceHint(draft.claim)}</p>
-        </section>
-      )}
 
       <FlowForm
         flow={draft.flow}

@@ -1,5 +1,5 @@
 import { blankDraft, EMPTY_CLAIM, toNetwork } from "./draft";
-import { LESSONS, lessonById, lessonByCaseId, nextLesson, practiceEntry, practiceDraft, practiceStartLabel } from "./learning";
+import { LESSONS, lessonById, lessonByCaseId, nextLesson, practiceEntry, practiceDraft } from "./learning";
 import { PRACTICE } from "./practice";
 import type { CaseItem } from "./types";
 import case01 from "../../cases/synthetic-01-https-acl.json";
@@ -92,8 +92,4 @@ it.each(["PASS", "DENY"] as const)("학생의 %s 예상만 self 받은 답으로
   expect(practiceDraft(example, guess).claim).toEqual({ expected: guess, kind: "self", source: "", text: "" });
   expect(practiceDraft(example, guess)).not.toHaveProperty("expect");
   expect(JSON.stringify(example)).toBe(before);
-});
-it.each(PRACTICE)("$case_id 시작 알림에서 실습이 겹치지 않는다", task => {
-  expect(practiceStartLabel(task)).toBe(`${task.title.replace(/^실습 · /, "")} 실습을 시작했습니다`);
-  expect(practiceStartLabel(task).match(/실습/g)).toHaveLength(1);
 });

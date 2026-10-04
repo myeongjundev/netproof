@@ -4,9 +4,9 @@ import { applyTheme, savedTheme, type Theme } from "../theme";
 import type { User } from "../types";
 
 const THEMES: [Theme, string][] = [
-  ["system", "기기 설정 따르기"],
-  ["light", "라이트"],
+  ["light", "라이트 (기본)"],
   ["dark", "다크"],
+  ["system", "기기 설정 따르기"],
 ];
 
 /** 폼 하나의 진행·성공·오류 상태. 성공하면 보여 줄 문장을 돌려받는다. */

@@ -25,9 +25,9 @@ it("빈 해시와 명시적인 홈, 학습실을 구분한다", () => {
   }
 });
 
-it("실습 주소는 자동 불러오기가 아닌 판정기 진입이다", () => {
-  for (const practiceId of ["synthetic-01", "synthetic-02", "synthetic-03"]) {
-    expect(parseRoute(`#/practice/${practiceId}`)).toEqual({ page: "judge", practiceId });
+it("실습 주소는 판정기와 분리된 전용 실습 화면이다", () => {
+  for (const caseId of ["synthetic-01", "synthetic-02", "synthetic-03"]) {
+    expect(parseRoute(`#/practice/${caseId}`)).toEqual({ page: "practice", caseId });
   }
 });
 

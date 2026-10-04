@@ -8,10 +8,11 @@ interface Props {
   endpoints: { ip: string; label: string }[];
   onFlow: (flow: Flow) => void;
   onClaim: (claim: Claim) => void;
+  hideClaim?: boolean;
 }
 
 /** 판정기 맨 위의 질문 줄: 어떤 통신을 확인할지, 받은 답이 무엇인지. */
-export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
+export function FlowForm({ flow, claim, endpoints, onFlow, onClaim, hideClaim = false }: Props) {
   const usesPort = flow.proto !== "icmp";
   const id = useId();
   const [checked, setChecked] = useState<{ src?: string; dst?: string }>({});
@@ -20,7 +21,7 @@ export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
   return (
     <section className="question" aria-labelledby="flow-title">
       <h2 id="flow-title" className="sr-only">
-        확인할 통신과 받은 답
+        {hideClaim ? "확인할 통신" : "확인할 통신과 받은 답"}
       </h2>
       <datalist id="endpoints">
         {endpoints.map((item) => (
@@ -81,7 +82,7 @@ export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
         </label>
       </div>
 
-      <div className="q-claim">
+      {!hideClaim && <div className="q-claim">
         <span className="q-label" id="claim-label">
           받은 답
         </span>
@@ -116,8 +117,8 @@ export function FlowForm({ flow, claim, endpoints, onFlow, onClaim }: Props) {
             </div>
           </details>
         )}
-      </div>
-      <p className="hint below">AI나 내가 예상한 답을 고르면 계산 결과와 나란히 보여 줍니다. NetProof는 이 답을 판정에 쓰지 않습니다.</p>
+      </div>}
+      {!hideClaim && <p className="hint below">AI나 내가 예상한 답을 고르면 계산 결과와 나란히 보여 줍니다. NetProof는 이 답을 판정에 쓰지 않습니다.</p>}
     </section>
   );
 }

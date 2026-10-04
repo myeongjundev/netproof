@@ -16,6 +16,6 @@ export function GuessPuzzle({ lesson, heading = "h3", onGuess, primary = false, 
       <button type="button" className={primary ? "primary" : "ghost"} onClick={() => onGuess(lesson.caseId, "PASS")}>통과할 것 같다</button>
       <button type="button" className={primary ? "primary" : "ghost"} onClick={() => onGuess(lesson.caseId, "DENY")}>막힐 것 같다</button>
     </div>
-    <p className="home-caption">고르면 판정기에서 이 구성을 불러와 계산할 수 있습니다.</p>
+    <p className="home-caption">고르면 실습 화면에서 이 구성으로 계산해 봅니다.</p>
   </div>;
 }

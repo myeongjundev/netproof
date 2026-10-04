@@ -1,5 +1,3 @@
-import type { CaseItem } from "./types";
-
 export interface PracticeTask {
   case_id: string;
   title: string;
@@ -27,13 +25,6 @@ export const PRACTICE: PracticeTask[] = [
     checkpoints: ["패킷이 나가는 인터페이스", "ACL이 적용되는 방향", "흐름과 ACL의 주소·프로토콜 조건"],
   },
 ];
-
-export function practiceTasks(examples: CaseItem[]): { task: PracticeTask; example: CaseItem }[] {
-  return PRACTICE.flatMap((task) => {
-    const example = examples.find((item) => item.id === task.case_id);
-    return example ? [{ task, example }] : [];
-  });
-}
 
 export function cloneTitle(title: string): string {
   return Array.from(`복제 · ${title}`).slice(0, 80).join("");

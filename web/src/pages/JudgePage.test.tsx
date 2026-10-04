@@ -1,131 +1,126 @@
-import { createElement } from "react";
+import { createElement, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { JudgePage, PracticeGuessPicker, focusJudgeResult, focusPractice, practiceHint } from "./JudgePage";
-import { lessonByCaseId } from "../learning";
+import { JudgePage, acceptJudgeImport, focusJudgeResult } from "./JudgePage";
+import { FlowForm } from "../components/FlowForm";
 import { blankDraft, toNetwork } from "../draft";
-import type { CaseItem } from "../types";
+import { api } from "../api";
+import type { CaseItem, Draft } from "../types";
 
-const examplesState = vi.hoisted(() => ({ items: null as CaseItem[] | null }));
-// SSR에는 API 효과가 없으므로 예시 배열 상태만 주입한다. 실제 클릭은 브라우저에서 확인한다.
+// SSR는 문구를, 훅 단위 하네스는 실제 load/restore 콜백을 검사한다.
+// DOM·포커스·React 생명주기 통합 검증은 별도 실제 브라우저 QA에서 한다.
+const fixture = vi.hoisted(() => ({ items: null as CaseItem[] | null, controller: false,
+  states: [] as unknown[], refs: [] as { current: unknown }[], effects: [] as (() => unknown)[], stateIndex: 0, refIndex: 0 }));
 vi.mock("react", async () => {
   const actual = await vi.importActual<typeof import("react")>("react");
-  return { ...actual, useState: (initial: unknown) => actual.useState(Array.isArray(initial) && initial.length === 0 && examplesState.items ? examplesState.items : initial) };
+  return { ...actual,
+    useState: (initial: unknown) => {
+      if (!fixture.controller) return actual.useState(Array.isArray(initial) && initial.length === 0 && fixture.items ? fixture.items : initial);
+      const index = fixture.stateIndex++;
+      if (!(index in fixture.states)) fixture.states[index] = typeof initial === "function" ? initial() : initial;
+      return [fixture.states[index], (value: unknown) => { fixture.states[index] = typeof value === "function" ? value(fixture.states[index]) : value; }];
+    },
+    useRef: (initial: unknown) => fixture.controller ? (fixture.refs[fixture.refIndex++] ??= { current: initial }) : actual.useRef(initial),
+    useMemo: (make: () => unknown, deps: unknown[]) => fixture.controller ? make() : actual.useMemo(make, deps),
+    useCallback: (callback: () => unknown, deps: unknown[]) => fixture.controller ? callback : actual.useCallback(callback, deps),
+    useEffect: (effect: () => unknown, deps: unknown[]) => fixture.controller ? fixture.effects.push(effect) : actual.useEffect(effect as () => void, deps),
+  };
+});
+afterEach(() => {
+  fixture.items = null; fixture.controller = false; fixture.states = []; fixture.refs = []; fixture.effects = [];
+  vi.restoreAllMocks(); vi.unstubAllGlobals();
 });
 
-it.each([undefined, "synthetic-01"])("예시 조회 상태를 넣은 SSR 단추는 결론 대신 주제 이름만 쓴다: %s", practiceId => {
+function find(node: unknown, test: (item: ReactElement<Record<string, any>>) => boolean): ReactElement<Record<string, any>> | undefined {
+  if (Array.isArray(node)) return node.map(item => find(item, test)).find(Boolean);
+  if (!isValidElement<Record<string, any>>(node)) return;
+  return test(node) ? node : find(node.props.children, test);
+}
+
+it("예시 조회 상태를 넣은 SSR 단추는 결론 대신 주제 이름만 쓴다", () => {
   const draft = blankDraft();
   const titles = ["HTTPS가 ACL에 막힘", "돌아오는 경로 없음", "ACL을 나가는 방향으로 붙임", "알 수 없는 예시의 정답은 막힘"];
-  examplesState.items = titles.map((title, i) => ({ id: `synthetic-0${i + 1}`, title, source: "test", network: toNetwork(draft), flow: draft.flow }));
-  try {
-    const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft: () => {}, practiceId }));
-    const buttons = html.match(/<div class="examples" aria-label="예시 불러오기">([\s\S]*?)<\/div>/)![1];
-    const labels = [...buttons.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)].map(([, text]) => text.trim());
-    expect(labels).toEqual(["예시 01 · HTTPS와 입력 ACL", "예시 02 · 왕복 경로", "예시 03 · 출력 ACL", "예시 04", "처음 구성"]);
-    for (const title of titles) expect(buttons).not.toContain(title);
-  } finally { examplesState.items = null; }
+  fixture.items = titles.map((title, i) => ({ id: `synthetic-0${i + 1}`, title, source: "test", network: toNetwork(draft), flow: draft.flow }));
+  const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft: () => {} }));
+  const buttons = html.match(/<div class="examples" aria-label="예시 불러오기">([\s\S]*?)<\/div>/)![1];
+  const labels = [...buttons.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)].map(([, text]) => text.trim());
+  expect(labels).toEqual(["예시 01 · HTTPS와 입력 ACL", "예시 02 · 왕복 경로", "예시 03 · 출력 ACL", "예시 04", "처음 구성"]);
+  for (const title of titles) expect(buttons).not.toContain(title);
 });
 
-it.each(["synthetic-01", "synthetic-02", "synthetic-03"])("%s 진입은 로딩 안내만 렌더링하고 입력을 고치지 않는다 (SSR)", practiceId => {
-  const draft = blankDraft(); draft.flow.src = "10.10.10.12";
+it("판정기는 자유 도구이며 실습 진입 카드·안내·라디오·접기 과제가 없다", () => {
   const setDraft = vi.fn();
-  const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft, practiceId }));
-  expect(html).toContain("지금 입력은 아직 바꾸지 않았습니다");
-  expect(html).toContain("연습용 네트워크 실습");
-  expect(html).not.toContain("학습실에서 선택한 실습");
-  expect(html).toContain("실습 구성을 불러오는 중");
-  expect(html).toContain("disabled");
-  expect(html).toContain(lessonByCaseId(practiceId)!.guessPrompt);
-  expect(html.match(/class="panel practice-entry"[\s\S]*?<\/section>/)![0]).not.toContain(lessonByCaseId(practiceId)!.task.question);
+  const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft: blankDraft(), setDraft }));
+  expect(html).toContain("판정하기"); expect(html).toContain("실습은 학습실에서:");
+  for (const id of ["01", "02", "03"]) expect(html).toContain(`href="#/practice/synthetic-${id}"`);
+  expect(html).not.toMatch(/practice-entry|practice-title|practice-guide|practice-guess|실습 과제|구성 불러오기/);
   expect(setDraft).not.toHaveBeenCalled();
-  expect(draft.flow.src).toBe("10.10.10.12");
 });
-it("기존 판정기는 선택 실습 질문을 추가하지 않는다", () => {
-  const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft: blankDraft(), setDraft: () => {} }));
-  expect(html).not.toContain("학습실에서 선택한 실습");
-  expect(html).toContain("판정하기");
+
+it("pendingImport는 지정 라벨로 load 후 소비되고 실제 되돌리기로 기존 입력을 복구한다", () => {
+  fixture.controller = true;
+  vi.spyOn(api, "examples").mockResolvedValue([]);
+  let draft = blankDraft(); draft.flow.dst_port = 8443;
+  const before = structuredClone(draft);
+  const next = blankDraft(); next.flow.dst_port = 22;
+  const pendingImport = { draft: next, label: "출력 ACL 실습 구성을 판정기로 가져왔습니다" };
+  const setDraft = vi.fn((update: (current: Draft) => Draft) => { draft = update(draft); });
+  const consumed = vi.fn();
+  const render = () => {
+    fixture.stateIndex = 0; fixture.refIndex = 0; fixture.effects = [];
+    return JudgePage({ user: null, draft, setDraft, pendingImport, onImportConsumed: consumed });
+  };
+  render(); fixture.effects.forEach(effect => effect());
+  expect(draft).toEqual(next); expect(consumed).toHaveBeenCalledOnce();
+  const tree = render();
+  expect(find(tree, item => item.type === "span" && Array.isArray(item.props.children) && item.props.children.join("") === `${pendingImport.label}.`)).toBeDefined();
+  fixture.effects.forEach(effect => effect());
+  expect(consumed).toHaveBeenCalledOnce(); expect(setDraft).toHaveBeenCalledOnce();
+  find(tree, item => item.type === "button" && item.props.children === "되돌리기")!.props.onClick();
+  expect(draft).toEqual(before); expect(draft).not.toBe(before);
+  expect(find(render(), item => item.type === "button" && item.props.children === "되돌리기")).toBeUndefined();
 });
-it.each(["PASS", "DENY", undefined] as const)("%s 예상 진입은 선택 묶음만 표시하고 입력을 아직 쓰지 않는다 (SSR)", practiceGuess => {
-  const draft = blankDraft(); const before = JSON.stringify(draft);
-  const setDraft = vi.fn(); const onPracticeLoaded = vi.fn();
-  const html = renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft, practiceId: "synthetic-01", practiceGuess, onPracticeLoaded }));
-  expect(html).toContain("<legend>내 예상</legend>");
-  const labels = [...html.matchAll(/<label><input type="radio"([^>]*)\/>((?:통과할 것 같다|막힐 것 같다|예상 없이))<\/label>/g)];
-  expect(labels).toHaveLength(3);
-  expect(labels.filter(([, attrs]) => attrs.includes("checked")).map(([, , label]) => label)).toEqual([practiceGuess === "PASS" ? "통과할 것 같다" : practiceGuess === "DENY" ? "막힐 것 같다" : "예상 없이"]);
-  expect(html).toContain("실습 없이 계속하기"); expect(html).not.toContain("판정기로 이동");
-  expect(html).toContain(practiceGuess ? `구성을 불러오면 받은 답이 &quot;${practiceGuess === "PASS" ? "된다" : "안 된다"}(내 예상)&quot;로 들어갑니다.` : "예상 없이 불러오면 받은 답은 &quot;비교 안 함&quot;입니다.");
-  expect(html).toContain("구성 불러오기"); expect(html).not.toContain("실습 구성 불러오기");
-  expect(setDraft).not.toHaveBeenCalled(); expect(onPracticeLoaded).not.toHaveBeenCalled();
-  expect(JSON.stringify(draft)).toBe(before);
+
+it("가져오기 알림도 직접 편집하면 닫힌다", () => {
+  fixture.controller = true; vi.spyOn(api, "examples").mockResolvedValue([]);
+  let draft = blankDraft(); draft.flow.dst_port = 8443;
+  const pendingImport = { draft: blankDraft(), label: "실습 구성" };
+  const render = () => {
+    fixture.stateIndex = 0; fixture.refIndex = 0; fixture.effects = [];
+    return JudgePage({ user: null, draft, setDraft: update => { draft = update(draft); }, pendingImport });
+  };
+  render(); fixture.effects.forEach(effect => effect());
+  const tree = render();
+  find(tree, item => item.type === FlowForm)!.props.onFlow({ ...draft.flow, dst_port: 80 });
+  expect(find(render(), item => item.type === "button" && item.props.children === "되돌리기")).toBeUndefined();
 });
+
+it("가져오기 소비는 load가 성공한 뒤에만 일어난다", () => {
+  const consumed = vi.fn();
+  expect(() => acceptJudgeImport({ draft: blankDraft(), label: "실습" }, () => { throw new Error("load failed"); }, consumed)).toThrow("load failed");
+  expect(consumed).not.toHaveBeenCalled();
+});
+
 describe("완료 요청의 결과 포커스", () => {
-  afterEach(() => vi.unstubAllGlobals());
   it.each([true, false])("결과·오류 공용 완료 경로: 휴대폰=%s", mobile => {
     const heading = { tabIndex: 0, focus: vi.fn(), scrollIntoView: vi.fn() };
     let frame!: () => void;
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
     vi.stubGlobal("document", { getElementById: vi.fn(() => heading) });
     vi.stubGlobal("window", { matchMedia: vi.fn(query => ({ matches: query === "(max-width: 900px)" && mobile })) });
-    focusJudgeResult(() => true);
-    expect(heading.focus).not.toHaveBeenCalled();
-    frame();
-    expect(heading.tabIndex).toBe(-1);
-    expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true });
+    focusJudgeResult(() => true); expect(heading.focus).not.toHaveBeenCalled(); frame();
+    expect(heading.tabIndex).toBe(-1); expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true });
     if (mobile) expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
     else expect(heading.scrollIntoView).not.toHaveBeenCalled();
   });
   it("예약 뒤 revision이 바뀐 응답은 DOM을 건드리지 않는다", () => {
-    let current = true; let frame!: () => void;
-    const getElementById = vi.fn();
+    let current = true; let frame!: () => void; const getElementById = vi.fn();
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
-    vi.stubGlobal("document", { getElementById });
-    focusJudgeResult(() => current);
-    current = false; frame();
+    vi.stubGlobal("document", { getElementById }); focusJudgeResult(() => current); current = false; frame();
     expect(getElementById).not.toHaveBeenCalled();
   });
   it("결과 제목이 없는 화면에는 초점을 옮기지 않는다", () => {
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
-    const getElementById = vi.fn(() => null);
-    vi.stubGlobal("document", { getElementById });
-    focusJudgeResult(() => true);
-    expect(getElementById).toHaveBeenCalledWith("result-title");
+    const getElementById = vi.fn(() => null); vi.stubGlobal("document", { getElementById });
+    focusJudgeResult(() => true); expect(getElementById).toHaveBeenCalledWith("result-title");
   });
-});
-describe("불러오기 후 실습 포커스", () => {
-  afterEach(() => vi.unstubAllGlobals());
-  it.each([true, false])("실습 제목으로 이동: 휴대폰=%s", mobile => {
-    let frame!: () => void;
-    const heading = { tabIndex: 0, focus: vi.fn(), scrollIntoView: vi.fn() };
-    const getElementById = vi.fn(() => heading);
-    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
-    vi.stubGlobal("document", { getElementById });
-    vi.stubGlobal("window", { matchMedia: (query: string) => ({ matches: query === "(prefers-reduced-motion: reduce)" || mobile }) });
-    focusPractice(() => true); frame();
-    expect(getElementById).toHaveBeenCalledWith("practice-title");
-    expect(heading.tabIndex).toBe(-1);
-    expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true });
-    if (mobile) expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
-    else expect(heading.scrollIntoView).not.toHaveBeenCalled();
-  });
-  it("예약 뒤 다른 입력을 불러오면 포커스도 버린다", () => {
-    let frame!: () => void; let current = true;
-    const getElementById = vi.fn();
-    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
-    vi.stubGlobal("document", { getElementById });
-    focusPractice(() => current); current = false; frame();
-    expect(getElementById).not.toHaveBeenCalled();
-  });
-});
-it.each(["PASS", "DENY", null] as const)("실습 안내는 현재 받은 답 유무를 따른다: %s", expected => {
-  expect(practiceHint({ expected, source: "", text: "" })).toBe(expected
-    ? "정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다."
-    : "정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.");
-});
-it("진입 라디오 이벤트는 App 예상 콜백만 호출하고 Draft를 고치지 않는다", () => {
-  const draft = blankDraft(); const before = JSON.stringify(draft); const setDraft = vi.fn(); const onChange = vi.fn();
-  renderToStaticMarkup(createElement(JudgePage, { user: null, draft, setDraft, practiceId: "synthetic-03", onPracticeGuessChange: onChange }));
-  const tree = PracticeGuessPicker({ caseId: "synthetic-03", guess: "DENY", onChange });
-  for (const label of tree.props.children[1]) label.props.children[0].props.onChange();
-  expect(onChange.mock.calls).toEqual([["synthetic-03", "PASS"], ["synthetic-03", "DENY"], ["synthetic-03", undefined]]);
-  expect(setDraft).not.toHaveBeenCalled(); expect(JSON.stringify(draft)).toBe(before);
 });

@@ -10,8 +10,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
       <div className="home-section-head"><div><p className="home-eyebrow">학습실 · 연습용 네트워크</p><h1 id="lesson-title">{lesson.title}</h1></div><a href="#/home">홈으로</a></div>
       <p className="learning-question">이 실습에서 볼 것: {lesson.focus}</p><PathStrip {...lesson.path} outside />
       <GuessPuzzle lesson={lesson} heading="h2" onGuess={onGuess} primary />
-      <div className="home-actions"><a href={`#/practice/${lesson.caseId}`}>예상 없이 판정기에서 열기</a></div>
-      <p className="home-caption">이동만으로는 지금 입력이 바뀌지 않습니다.</p>
+      <div className="home-actions"><a href={`#/practice/${lesson.caseId}`}>예상 없이 실습 열기</a></div>
       <h2>개념</h2><p>{lesson.concept}</p>
       <h2>쉬운 비유</h2><p>{lesson.analogy}</p>
       <h2>확인할 것</h2><ul>{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul>
