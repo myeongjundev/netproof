@@ -188,7 +188,7 @@ function Account({ user, onUser, onSignedOut }: { user: User; onUser: (user: Use
       <section className="panel danger-zone" aria-labelledby="delete-title">
         <h2 id="delete-title">계정 삭제</h2>
         <p className="hint">
-          계정과 내가 저장한 사례{caseCount === null ? "" : ` ${caseCount}건`}이 함께 지워지고 되돌릴 수 없습니다.
+          계정과 내가 저장한 사례{caseCount === null ? "가" : ` ${caseCount}건이`} 함께 지워지고 되돌릴 수 없습니다.
           {user.role === "reviewer" && " 내가 검토자로 확인한 다른 사람의 사례는 확인 표시가 남습니다."}
         </p>
         <form onSubmit={deleteAccount}>
