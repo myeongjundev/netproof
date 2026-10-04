@@ -3,11 +3,15 @@ import type { Claim, Verdict } from "./types";
 const titles = { PASS: "통과", DENY: "막힘", INVALID: "입력 오류", UNSUPPORTED: "판정 불가" };
 
 /** Display only the comparison supplied by the engine; never compare the answers here. */
-export function comparisonBanner(verdict: Verdict | null, claim: Claim): { tone: "agree" | "disagree"; text: string } | null {
+export function comparisonBanner(verdict: Verdict | null, claim: Claim): { tone: "agree" | "disagree"; text: string; hint?: string } | null {
   if (!verdict || !claim.expected || (verdict.result !== "PASS" && verdict.result !== "DENY")) return null;
-  const who = claim.kind === "ai" ? "AI 답이" : claim.kind === "self" ? "내 예상이" : "받은 답이";
-  if (verdict.comparison === "AGREE") return { tone: "agree", text: `✓ ${who} NetProof 계산과 같습니다` };
-  if (verdict.comparison === "DISAGREE") return { tone: "disagree", text: `✕ ${who} NetProof 계산과 다릅니다` };
+  const who = claim.kind === "ai" ? "AI 답" : claim.kind === "self" ? "내 예상" : "받은 답";
+  const answer = `${who}(${titles[claim.expected]})${claim.expected === "PASS" ? "와" : "과"}`;
+  if (verdict.comparison === "AGREE") return { tone: "agree", text: `= ${answer} NetProof 계산이 같습니다` };
+  if (verdict.comparison === "DISAGREE") return {
+    tone: "disagree", text: `≠ ${answer} NetProof 계산(${titles[verdict.result]})이 다릅니다`,
+    hint: "아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+  };
   return null;
 }
 

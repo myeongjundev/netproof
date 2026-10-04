@@ -157,9 +157,10 @@ button:disabled { opacity: 0.55; cursor: default; }
 .verdict.compared { background: var(--gray-bg); color: var(--ink); }
 .calculated.pass strong { color: var(--pass); }
 .calculated.deny strong { color: var(--deny); }
-.comparison-banner { padding: 10px 12px; border-radius: 6px; font-weight: 700; margin-bottom: 10px; }
-.comparison-banner.agree { background: var(--pass-bg); color: var(--pass); border: 1px solid var(--pass); }
-.comparison-banner.disagree { background: var(--deny); color: light-dark(#fff, #141816); border: 1px solid var(--deny); }
+.comparison-banner { padding: 10px 12px; border-radius: 6px; font-weight: 700; margin-bottom: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-left-width: 4px; }
+.comparison-banner.agree { border-left-color: var(--accent); }
+.comparison-banner.disagree { border-left-color: var(--warn); }
+.comparison-banner small { display: block; margin-top: 6px; font-size: 14px; font-weight: 400; }
 .verdict.outdated { opacity: .55; }
 .previous-result { font-weight: 700; font-size: 13px; color: var(--warn); }
 .field-problem { color: var(--deny); font-size: 12px; }
@@ -400,10 +401,10 @@ p .meta { display: inline; }
 .home-board > a { flex-shrink: 0; min-height: 44px; }
 .home-puzzle { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
 .home-hero:not(.home-hero-resuming) > .home-puzzle { border: 0; border-top: 3px solid var(--accent); border-radius: 0; padding: 18px 0 0; }
-.home-puzzle h2, .home-puzzle h3 { font-size: 18px; margin-bottom: 8px; }
-.home-puzzle-question { font-size: 16px; }
+.home-puzzle h2, .home-puzzle h3 { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+.home-puzzle-question { font-size: 20px; font-weight: 600; }
 .home-guess-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.home-guess-actions button { min-height: 44px; flex: 1 1 140px; }
+.home-guess-actions button { min-height: 44px; flex: 1 1 0; min-width: 0; white-space: nowrap; padding: 10px 12px; }
 .home-new-practice { display: grid; gap: 14px; }
 .home-new-practice > .home-puzzle { max-width: 720px; background: var(--surface); }
 .home-section-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
@@ -486,12 +487,12 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
   .app-header .header-nickname { max-width: 100%; }
   .main:has(.home-page), .main:has(.learning-page) { padding-left: 16px; padding-right: 16px; }
   .home-puzzle { padding: 16px; }
-  .home-hero:not(.home-hero-resuming) { padding: 18px 16px; gap: 18px; }
+  .home-hero:not(.home-hero-resuming) { padding: 18px 16px; gap: 8px; }
   .home-hero:not(.home-hero-resuming) .home-eyebrow { margin-bottom: 6px; }
   .home-hero:not(.home-hero-resuming) .home-description { margin-top: 10px; font-size: 14px; }
   .home-hero:not(.home-hero-resuming) .home-actions { margin-top: 8px; }
   .home-hero:not(.home-hero-resuming) .home-caption { margin-top: 6px; font-size: 13px; }
-  .home-hero:not(.home-hero-resuming) .home-puzzle-question { font-size: 15px; }
+  .home-puzzle-question { font-size: 17px; }
   .path-strip-bounded { display: block; }
   .path-scope::after { right: 18px; width: 0; top: 47px; bottom: -1px; border-top: 0; border-left: 1px solid var(--line); }
   .path-scope:has(.path-node:nth-child(4))::after { width: 0; }

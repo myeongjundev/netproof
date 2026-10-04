@@ -145,7 +145,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, on
         <>
           {stale && <><p className="previous-result">이전 결과</p><p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p></>}
           <div className={`verdict ${verdict.result.toLowerCase()}${banner ? " compared" : ""}${stale ? " outdated" : ""}`}>
-            {banner && <p className={`comparison-banner ${banner.tone}`}>{banner.text}</p>}
+            {banner && <p className={`comparison-banner ${banner.tone}`}>{banner.text}{banner.hint && <small>{banner.hint}</small>}</p>}
             {cannotCompare || verdict.comparison === "NO_CLAIM" || !verdict.comparison || !claim.expected ? (
               <p className="verdict-title">{RESULT_TEXT[verdict.result].title}</p>
             ) : (

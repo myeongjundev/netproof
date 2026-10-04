@@ -11,10 +11,18 @@ import type { AclAudit as AuditResult } from "./types";
 const claim: Claim = { expected: "PASS", source: "not in banner", text: "" };
 const verdict: Verdict = { result: "DENY", comparison: "AGREE", reason: "verbatim", problems: [], forward: null, return: null, decisive: null };
 describe("engine comparison presentation", () => {
-  it.each(["ai", "self", null] as const)("renders %s without comparing result to expected", (kind) => {
-    const who = kind === "ai" ? "AI 답이" : kind === "self" ? "내 예상이" : "받은 답이";
-    expect(comparisonBanner(verdict, { ...claim, kind })).toEqual({ tone: "agree", text: `✓ ${who} NetProof 계산과 같습니다` });
-    expect(comparisonBanner({ ...verdict, comparison: "DISAGREE" }, { ...claim, kind })).toEqual({ tone: "disagree", text: `✕ ${who} NetProof 계산과 다릅니다` });
+  describe.each(["ai", "self", null, undefined] as const)("kind=%s", kind => {
+    it.each(["PASS", "DENY"] as const)("uses the engine comparison, expected=%s", expected => {
+      const who = kind === "ai" ? "AI 답" : kind === "self" ? "내 예상" : "받은 답";
+      const answer = `${who}(${expected === "PASS" ? "통과" : "막힘"})${expected === "PASS" ? "와" : "과"}`;
+      for (const result of ["PASS", "DENY"] as const) {
+        // Deliberately includes PASS/PASS/DISAGREE and PASS/DENY/AGREE.
+        expect(comparisonBanner({ ...verdict, result, comparison: "AGREE" }, { ...claim, kind, expected })).toEqual({ tone: "agree", text: `= ${answer} NetProof 계산이 같습니다` });
+        const banner = comparisonBanner({ ...verdict, result, comparison: "DISAGREE" }, { ...claim, kind, expected });
+        expect(banner).toEqual({ tone: "disagree", text: `≠ ${answer} NetProof 계산(${result === "PASS" ? "통과" : "막힘"})이 다릅니다`, hint: "아래 경로와 ACL 근거에서 이유를 확인해 보세요." });
+        expect(banner!.text).not.toMatch(/✓|✕|틀렸습니다|맞았습니다/);
+      }
+    });
   });
   it.each(["NO_CLAIM", "NOT_COMPARABLE", undefined] as const)("has no banner for %s", (comparison) => {
     expect(comparisonBanner({ ...verdict, comparison } as Verdict, claim)).toBeNull();
@@ -28,7 +36,8 @@ describe("engine comparison presentation", () => {
   });
   it("announces only the short state", () => {
     expect(statusLine(verdict, claim, true)).toBe("계산 중…");
-    expect(statusLine(verdict, claim, false)).toBe("✓ 받은 답이 NetProof 계산과 같습니다 · NetProof 계산 막힘");
+    expect(statusLine(verdict, claim, false)).toBe("= 받은 답(통과)와 NetProof 계산이 같습니다 · NetProof 계산 막힘");
+    expect(statusLine({ ...verdict, comparison: "DISAGREE" }, claim, false)).toBe("≠ 받은 답(통과)와 NetProof 계산(막힘)이 다릅니다 · NetProof 계산 막힘");
     expect(statusLine({ ...verdict, comparison: "NO_CLAIM" }, claim, false)).toBe("NetProof 계산 막힘");
     expect(statusLine({ ...verdict, result: "INVALID" }, claim, false)).toBe("NetProof 계산 입력 오류");
     expect(statusLine({ ...verdict, result: "UNSUPPORTED" }, claim, false)).toBe("NetProof 계산 판정 불가");
@@ -44,6 +53,13 @@ describe("rendered result contract", () => {
     expect(html.indexOf('class="comparison-banner')).toBeLessThan(html.indexOf('class="versus"'));
     expect(html).toContain('role="status"');
     expect(html).not.toContain('aria-live="polite"');
+    expect(html).not.toContain("아래 경로와 ACL 근거에서 이유를 확인해 보세요.");
+  });
+  it("renders the hint only under the disagreement banner, not in the live region", () => {
+    const html = render({ comparison: "DISAGREE" });
+    expect(html).toContain('<small>아래 경로와 ACL 근거에서 이유를 확인해 보세요.</small>');
+    expect(html.match(/아래 경로와 ACL 근거에서 이유를 확인해 보세요\./g)).toHaveLength(1);
+    expect(html.match(/<p[^>]*role="status"[^>]*>(.*?)<\/p>/)![1]).not.toContain("아래 경로");
   });
   it.each(["INVALID", "UNSUPPORTED"] as const)("puts %s problems before engine reason without versus", (result) => {
     const html = render({ result, problems: ["engine problem"], reason: "engine reason" });

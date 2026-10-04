@@ -1,5 +1,5 @@
 import { blankDraft, EMPTY_CLAIM, toNetwork } from "./draft";
-import { LESSONS, lessonById, lessonByCaseId, practiceEntry, practiceDraft, practiceStartLabel } from "./learning";
+import { LESSONS, lessonById, lessonByCaseId, nextLesson, practiceEntry, practiceDraft, practiceStartLabel } from "./learning";
 import { PRACTICE } from "./practice";
 import type { CaseItem } from "./types";
 import case01 from "../../cases/synthetic-01-https-acl.json";
@@ -8,6 +8,11 @@ import case03 from "../../cases/synthetic-03-acl-out.json";
 import learningSource from "./learning.ts?raw";
 
 const example: CaseItem = { id: "synthetic-01", source: "synthetic", network: toNetwork(blankDraft()), flow: blankDraft().flow, claim: { expected: "DENY", text: "not an answer to copy", source: "test", kind: "ai" }, expect: { result: "DENY" } } as CaseItem;
+
+it("다음 실습은 01→02→03→01로 순환하고 없는 맥락은 01이다", () => {
+  expect(LESSONS.map(lesson => nextLesson(lesson.caseId).caseId)).toEqual(["synthetic-02", "synthetic-03", "synthetic-01"]);
+  for (const id of [null, undefined, "unknown"]) expect(nextLesson(id)).toBe(LESSONS[0]);
+});
 
 it("세 주제는 기존 실습 체크포인트를 연결하고 정답 필드를 만들지 않는다", () => {
   expect(LESSONS).toHaveLength(3);

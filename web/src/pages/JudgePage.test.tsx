@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { JudgePage, PracticeGuessPicker } from "./JudgePage";
+import { JudgePage, PracticeGuessPicker, focusJudgeResult } from "./JudgePage";
+import { lessonByCaseId } from "../learning";
 import { blankDraft, toNetwork } from "../draft";
 import type { CaseItem } from "../types";
 
@@ -33,6 +34,8 @@ it.each(["synthetic-01", "synthetic-02", "synthetic-03"])("%s 진입은 로딩 �
   expect(html).not.toContain("학습실에서 선택한 실습");
   expect(html).toContain("실습 구성을 불러오는 중");
   expect(html).toContain("disabled");
+  expect(html).toContain(lessonByCaseId(practiceId)!.guessPrompt);
+  expect(html.match(/class="panel practice-entry"[\s\S]*?<\/section>/)![0]).not.toContain(lessonByCaseId(practiceId)!.task.question);
   expect(setDraft).not.toHaveBeenCalled();
   expect(draft.flow.src).toBe("10.10.10.12");
 });
@@ -50,10 +53,43 @@ it.each(["PASS", "DENY", undefined] as const)("%s 예상 진입은 선택 묶음
   expect(labels).toHaveLength(3);
   expect(labels.filter(([, attrs]) => attrs.includes("checked")).map(([, , label]) => label)).toEqual([practiceGuess === "PASS" ? "통과할 것 같다" : practiceGuess === "DENY" ? "막힐 것 같다" : "예상 없이"]);
   expect(html).toContain("실습 없이 계속하기"); expect(html).not.toContain("판정기로 이동");
-  expect(html).toContain("구성을 불러오면 고른 예상이 받은 답(내 예상)으로 들어갑니다.");
+  expect(html).toContain(practiceGuess ? `구성을 불러오면 받은 답이 &quot;${practiceGuess === "PASS" ? "된다" : "안 된다"}(내 예상)&quot;로 들어갑니다.` : "예상 없이 불러오면 받은 답은 &quot;비교 안 함&quot;입니다.");
   expect(html).toContain("구성 불러오기"); expect(html).not.toContain("실습 구성 불러오기");
   expect(setDraft).not.toHaveBeenCalled(); expect(onPracticeLoaded).not.toHaveBeenCalled();
   expect(JSON.stringify(draft)).toBe(before);
+});
+describe("완료 요청의 결과 포커스", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it.each([true, false])("결과·오류 공용 완료 경로: 휴대폰=%s", mobile => {
+    const heading = { tabIndex: 0, focus: vi.fn(), scrollIntoView: vi.fn() };
+    let frame!: () => void;
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
+    vi.stubGlobal("document", { getElementById: vi.fn(() => heading) });
+    vi.stubGlobal("window", { matchMedia: vi.fn(() => ({ matches: mobile })) });
+    focusJudgeResult(() => true);
+    expect(heading.focus).not.toHaveBeenCalled();
+    frame();
+    expect(heading.tabIndex).toBe(-1);
+    expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true });
+    if (mobile) expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
+    else expect(heading.scrollIntoView).not.toHaveBeenCalled();
+  });
+  it("예약 뒤 revision이 바뀐 응답은 DOM을 건드리지 않는다", () => {
+    let current = true; let frame!: () => void;
+    const getElementById = vi.fn();
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
+    vi.stubGlobal("document", { getElementById });
+    focusJudgeResult(() => current);
+    current = false; frame();
+    expect(getElementById).not.toHaveBeenCalled();
+  });
+  it("결과 제목이 없는 화면에는 초점을 옮기지 않는다", () => {
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => callback());
+    const getElementById = vi.fn(() => null);
+    vi.stubGlobal("document", { getElementById });
+    focusJudgeResult(() => true);
+    expect(getElementById).toHaveBeenCalledWith("result-title");
+  });
 });
 it("진입 라디오 이벤트는 App 예상 콜백만 호출하고 Draft를 고치지 않는다", () => {
   const draft = blankDraft(); const before = JSON.stringify(draft); const setDraft = vi.fn(); const onChange = vi.fn();
