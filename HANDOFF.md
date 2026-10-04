@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 근거: [PR #27 최신 Claude 코멘트](https://github.com/myeongjundev/netproof/pull/27#issuecomment-5979592996). 이전 순차 HTTP·test client 검사는 이 결함을 드러내지 못했다.
 - 사용자 승인: 이번 지시의 threaded=True·동시 연결 회귀·실제 브라우저 로그인/목록/상세·종료 안내 보강.
 - 브랜치: `codex/qa-threaded`, 최신 main `2ad04a0`(PR #27 merge)에서 새로 생성. worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: 수정·검증 → Claude 리뷰 → 사용자 병합 결정. 다음 차례: **리뷰(Claude)**. 병합하지 않는다.
+- 단계: 수정·검증 → Claude 리뷰 PASS → 사용자 병합 결정. 다음 차례: **사용자 — PR #28 병합 결정**(Claude 리뷰 PASS, `7c75bc3`). 병합하지 않는다.
 - 임시 SQLite·127.0.0.1 전용·DATABASE_URL 무시·비밀번호 콘솔만·배포물 미연결은 유지한다. 수동 QA A·B·C 결과는 사람이 기록한다.
 
 ## 작업 정의
@@ -229,7 +229,15 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 
 
 ## 현재 과제 리뷰 기록
-- 새 QA 동시 연결 수정은 Claude 리뷰 대기다. 근거는 PR #27 병합 후 [Claude 결함 보고](https://github.com/myeongjundev/netproof/pull/27#issuecomment-5979592996)이며 이전 PASS가 이번 수정의 리뷰를 대신하지 않는다.
+### PR #28 Claude 독립 리뷰 (2026-10-04, HEAD `7c75bc3`) — **PASS**
+- diff: 코드는 `scripts/qa_local.py`의 `threaded=True` 한 줄과 `server/tests/test_qa_local.py`(동시 연결 회귀), `docs/qa-manual.md` 강제 종료 안내뿐이다. 엔진·서버 앱·배포물·화면 변경은 0이다.
+- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.43s` · 서버 `102 passed, 1 skipped in 34.72s` · 웹 `24 files, 316 passed` · 빌드 `✓ built in 255ms`.
+- 실제 도구 확인(Claude 스크립트, 비밀번호는 읽기만 하고 출력·기록하지 않음):
+  - 가짜 `DATABASE_URL`을 설정한 채 `scripts/qa_local.py --port 4872`를 실행하고, **빈 TCP 연결 두 개를 열어 둔 상태에서** 진행했다.
+  - `qa_author`(user)·`qa_reviewer`(reviewer)로 로그인되고, 사례 4건이 보이고, `/`는 200이다.
+  - CTRL_BREAK로 종료하니 exit 0이고 임시 폴더가 삭제됐다. 수정 전에는 같은 상황에서 응답이 멈췄다(PR #27 코멘트).
+- 회귀 테스트는 첫 연결이 서버에 **수락**된 것을 확인한 뒤(backlog 대기 거짓 양성 방지) 두 번째 요청을 보낸다. main이 넘긴 옵션을 그대로 쓰므로 `threaded`를 빼면 실패한다(Codex 기록: 수정 전 TimeoutError).
+- 사용자 수동 QA A·B·C는 사람이 기록할 대기 상태 그대로다.
 
 ## 이전 과제 리뷰 기록 (PR #27)
 ### PR #27 Claude 독립 리뷰 (2026-10-04, HEAD `a585a1a`) — **PASS**
@@ -329,7 +337,7 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- PR #27은 `2ad04a0`로 병합됐다. 다음은 **codex/qa-threaded 동시 연결 수정 Claude 리뷰**다. 수동 QA 결과는 사람이 기록한다.
+- PR #28은 Claude 리뷰 PASS(`7c75bc3`). 다음은 사용자 병합 결정, 그 뒤 수동 QA는 사람이 `docs/qa-manual.md`로 기록한다.
 - QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
 - 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
 - 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
