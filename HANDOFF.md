@@ -17,245 +17,112 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **QA 로컬 서버 동시 연결 수정**. PR #27 병합 후 발견한 빈 연결에 의한 응답 멈춤을 처리한다.
-- 근거: [PR #27 최신 Claude 코멘트](https://github.com/myeongjundev/netproof/pull/27#issuecomment-5979592996). 이전 순차 HTTP·test client 검사는 이 결함을 드러내지 못했다.
-- 사용자 승인: 이번 지시의 threaded=True·동시 연결 회귀·실제 브라우저 로그인/목록/상세·종료 안내 보강.
-- 브랜치: `codex/qa-threaded`, 최신 main `2ad04a0`(PR #27 merge)에서 새로 생성. worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: 수정·검증 → Claude 리뷰 PASS → 사용자 병합 결정. 다음 차례: **사용자 — PR #28 병합 결정**(Claude 리뷰 PASS, `7c75bc3`). 병합하지 않는다.
-- 임시 SQLite·127.0.0.1 전용·DATABASE_URL 무시·비밀번호 콘솔만·배포물 미연결은 유지한다. 수동 QA A·B·C 결과는 사람이 기록한다.
+- 작업: **실습 모드 분할 화면 + 첫 방문 안내 투어** — 프로그래머스 문제 풀이 화면 벤치마크(2026-10-04)를 NetProof 원칙에 맞춰 옮긴다. 홈 critique 1~4회차가 반복해 지적한 문제를 한 번에 푼다: 실습 안내 카드 아래 판정기 전체가 깔림, 같은 예상을 두 번 확인, 결과가 화면 한참 아래, "판정기"를 모름 (순환 고리 ①②).
+- 벤치마크에서 가져온 것: 문제·입력·결과 분할, 첫 방문 단계 안내, 경로 표시, 고정 단추 줄. **가져오지 않은 것**: 채점·정답률·완료 인원(AGENTS.md 원칙·가짜 수치 금지), 광고 배너, 전체 어두운 테마, 로고·그림·문구.
+- 사용자 결정(2026-10-04):
+  - **실습 입력은 판정기 입력과 분리.** 실습 화면에 들어가면 바로 실습 구성이 열리고, 판정기에서 쓰던 입력은 바뀌지 않는다. 판정기로 옮길 때만 기존 되돌리기를 거친다.
+  - **휴대폰은 위아래 쌓기**, 판정하기는 하단 고정.
+  - **안내 투어는 실습 화면만**(4단계, 건너뛰기·다시 보기).
+  - **결과 칸은 판정·근거만.** ACL 점검·수정 후보·사례 저장은 "판정기로 가져가기" 뒤 판정기에서.
+- 브랜치: `codex/practice-mode`(origin/main `8268789` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- **판정·엔진은 그대로다.** 실습 화면도 `POST /api/verify` 결과(`result`·`comparison`·근거)만 보인다. 엔진·서버·API·DB·cases JSON·expect를 바꾸지 않는다. 정답·채점·완료 표시를 만들지 않는다.
 
 ## 작업 정의
-### 1) 동시 요청 수정
-- `scripts/qa_local.py`의 make_server 호출에 `threaded=True`만 추가한다. 엔진·서버 앱/API·QA 계정/사례 구성·배포·화면은 변경하지 않는다.
+- 목표:
+  1. 실습을 고르면 한 화면에서 질문·그림을 보며 예상을 고르고, 구성을 고쳐 보고, 판정과 근거를 바로 옆(휴대폰은 바로 아래)에서 본다.
+  2. 실습 화면에 들어가는 것만으로 판정기 입력이 바뀌지 않으므로 "구성 불러오기" 확인 단계가 없다.
+  3. 처음 온 학생이 4단계 안내로 화면 읽는 법을 안다.
+  4. 더 깊이 보고 싶으면 "판정기로 가져가기"로 판정기의 모든 기능(ACL 점검·수정 후보·저장)을 쓴다.
 
-### 2) 회귀 테스트
-- `server/tests/test_qa_local.py`: QA main이 넘긴 옵션 그대로 실제 loopback 서버를 연다(포트만 OS 할당).
-- 빈 TCP 연결을 먼저 열고 요청 핸들러 수락을 Event로 확인한 뒤 첫 연결을 유지하면서 두 번째 GET이 제한 시간 안에 200으로 응답하는지 확인한다.
-- finally에서 두 연결 닫기·서버 shutdown·스레드 join. 기존 CLI mock은 threaded=True도 검사한다. 비밀번호는 테스트 출력에 기록하지 않는다.
+### 1) 주소와 화면
+- `#/practice/:caseId`(synthetic-01~03)는 이제 판정기가 아니라 **새 실습 화면**(`PracticePage`)이다. 라우터는 `{ page: "practice", caseId }`를 돌려준다. 모르는 ID는 지금처럼 `missing`.
+- 기존 판정기의 실습 진입 카드(`.practice-entry`, `PracticeGuessPicker` 자리, `practiceId` prop·`startPractice`의 주소 교체)는 없앤다. 판정기 안 `실습 과제` 목록의 `… · 시작` 단추는 해당 `#/practice/:caseId` **링크**로 바꾼다.
+- 홈·학습의 예상 단추(`GuessPuzzle`)는 지금처럼 App에 예상을 맡기고 `#/practice/:caseId`로 간다. 학습 상세의 `예상 없이 판정기에서 열기`는 `예상 없이 실습 열기`로 바꾼다.
 
-### 3) 브라우저·종료 안내
-- 실제 QA CLI에 브라우저로 로그인·목록·상세가 열리는지 확인해 기록한다. 수동 QA A·B·C 완료로 대신 표시하지 않는다.
-- `docs/qa-manual.md`에 강제 종료하면 임시 폴더가 남을 수 있으니 Ctrl+C로 끈다고 보강한다.
+### 2) 실습 입력 (판정기와 분리)
+- App이 실습 입력을 따로 가진다: `practiceDrafts: Record<caseId, Draft>`(메모리, 새로고침하면 사라짐, 저장 안 함). 판정기 `draft`와 섞지 않는다.
+- 실습 화면에 들어올 때:
+  - 그 caseId의 실습 입력이 없으면 예시를 불러와 `practiceDraft(example, guess)`로 만든다(기존 함수, 예시의 claim·expect는 옮기지 않음).
+  - 이미 있으면 그대로 이어서 보여 준다.
+  - App에 그 caseId의 예상이 있으면(홈·학습에서 막 고른 경우) 실습 입력의 받은 답을 그 예상으로 바꾸고 예상을 지운다. 학생이 방금 직접 고른 값이기 때문이다.
+- 예시 조회는 기존 `practiceEntry` 상태(loading·error·missing)를 그대로 쓴다. 실패하면 `다시 시도`, 없으면 `이 실습 구성은 현재 제공되지 않습니다.`
+- `실습 처음 상태로`(보조 단추): 그 caseId 실습 입력을 예시에서 다시 만든다. 한 단계 되돌리기 알림을 띄운다(기존 알림 모양 재사용, 실습 화면 안에서만).
 
-### 4) 범위·완료
-- 허용: `scripts/qa_local.py`, `server/tests/test_qa_local.py`, `docs/qa-manual.md`, `HANDOFF.md`, `decisions/ai-work-log.md`만.
-- 네 명령 전체 출력·브라우저/도구 확인, 작업 로그 한 줄, 다음 차례 리뷰(Claude), 커밋·푸시·PR. 병합하지 않는다.
+### 3) 분할 배치
+- **넓은 화면(901px 이상)**: 두 칸.
+  - **왼쪽 "문제"** (h2): 경로 표시 `학습실 › {주제} › 실습`, 실습 제목(h1), 예상 질문(`guessPrompt`), `PathStrip`(outside, 계산 범위 띠), `이 실습에서 볼 것: {focus}`, `확인할 것`(checkpoints), **내 예상** 선택(통과할 것 같다·막힐 것 같다·예상 없이 — 지금 `PracticeGuessPicker`를 옮겨 쓴다. 고르면 실습 입력의 받은 답이 바로 바뀐다), `정답은 들어 있지 않습니다.` 한 줄.
+  - **오른쪽 위 "구성"** (h2): 통신 입력(`FlowForm`, **받은 답 칸은 숨김** — 내 예상이 왼쪽에 있으므로)과 `NetworkEditor`. 학생이 ACL·경로를 고쳐 볼 수 있다.
+  - **오른쪽 아래 "결과"** (h2): `ResultPanel`만(비교 배너·경로·ACL 근거). 판정 전에는 `예상을 고르고 판정하기를 누르세요.`
+  - 칸 경계 끌기(크기 조절)는 이번에 넣지 않는다.
+- **휴대폰(900px 이하)**: 문제 → 내 예상 → 구성 → 결과 순서로 쌓는다. 문제 칸의 그림·확인할 것은 `<details>`로 접을 수 있게 하되 처음엔 펼친다.
+- **단추 줄**(넓은 화면은 오른쪽 칸 아래 고정, 휴대폰은 하단 고정): `판정하기`(주 단추, Ctrl/Cmd+Enter), `실습 처음 상태로`, `판정기로 가져가기`. 휴대폰 하단 고정 줄에는 `판정하기`만 두고 나머지 둘은 결과 칸 아래에 둔다.
+- 판정하면 결과 제목으로 포커스를 옮긴다(휴대폰은 스크롤, `motion.ts` 사용). 입력이 바뀌면 기존처럼 결과를 흐리고 `이전 결과`.
 
-## 완료 내용 / 테스트 결과 (2026-10-04 Codex)
+### 4) 판정 계산 연결
+- 실습 화면은 `api.verify(toNetwork(실습 입력), 실습 입력.flow, 실습 입력.claim)`만 부른다. ACL 점검·수정 후보 API는 부르지 않는다.
+- 늦은 응답 폐기(revision), 이전 결과 표시(stale), 판정 당시 받은 답 복사본 표시는 판정기와 같은 규칙으로 한다. **새 비교 계산은 만들지 않는다**(배너는 기존 `comparisonBanner`).
+- 판정기 코드를 크게 고치지 않기 위해, 실습 화면의 판정 상태는 새 파일 안의 작은 훅(예: `usePracticeVerify`)으로 둔다. 판정기와 겹치는 몇 줄은 허용한다(ponytail: 둘이 더 자라면 공용 훅으로 합친다).
 
-- `make_server(..., threaded=True)` 한 줄 변경. 격리·호스트·시드·출력, 서버 앱·엔진·배포물·화면은 그대로다.
-- 새 동시 연결 회귀는 수정 전 `TimeoutError: timed out`, `1 failed, 10 deselected in 4.21s`로 결함을 재현했다. 수정 뒤 QA 도구 전체 `11 passed in 4.34s`. 첫 연결의 서버 수락 Event 뒤에만 두 번째 GET을 보내며, 첫 빈 연결이 열린 채 200·JSON 응답을 확인한다. 테스트가 threaded를 강제하지 않고 실제 QA main이 넘긴 옵션만 사용한다.
-- 강제 종료 시 임시 폴더 잔존 가능·Ctrl+C 종료 안내 보강. `git diff --check` 오류 없음.
-- **사용자 수동 QA A·B·C는 대기 유지.** 아래는 도구 응답 확인이며 G2·실제 기본 확인창 취소·홈 흐름 QA 완료를 대신한 기록이 아니다. F5·F6·reduced-motion 실브라우저 미확인은 그대로다.
+### 5) 판정기로 가져가기
+- 누르면 App이 `pendingImport = { draft: 실습 입력 복사본, caseId, label: "{주제} 실습을 판정기로 가져왔습니다" }`를 두고 `#/`로 간다.
+- 판정기는 마운트되거나 `pendingImport`가 바뀌면 기존 `load(next, label, caseId)`로 받는다 → **기존 한 단계 되돌리기 알림**이 뜨고(판정기에 쓰던 입력이 있으면 되돌릴 수 있음), 실습 맥락(`practiceCaseId`)과 실습 안내 패널이 설정된다. 받은 다음 `pendingImport`를 지운다.
+- 실습 입력(`practiceDrafts`)은 그대로 남는다(복사).
 
-### 실제 CLI·브라우저 확인 (비밀번호 제외)
+### 6) 첫 방문 안내 투어 (실습 화면만)
+- 새 컴포넌트 `PracticeTour`. 실습 화면에 처음 들어오면 자동으로 뜬다. 4단계:
+  1. **문제**: 질문과 구성 그림. "계산 범위 밖의 실제 장비 결과는 따로 확인합니다."
+  2. **내 예상**: 통과·막힘을 먼저 고른다. 정답은 들어 있지 않다.
+  3. **구성**: 장비·ACL·경로를 고쳐 보며 결과가 어떻게 바뀌는지 본다.
+  4. **판정하기·결과**: NetProof 계산과 내 예상을 비교하고, 근거(경로·ACL 줄)에서 이유를 찾는다.
+- 모양: 해당 영역에 테두리 강조 + 바로 옆(휴대폰은 화면 아래쪽) 설명 상자, `n/4`, `이전`·`다음`(마지막은 `시작하기`), `건너뛰기`. 화면 전체 어둡게 덮기는 하지 않는다(가벼운 강조만).
+- 접근성: 설명 상자 `role="dialog"` + `aria-labelledby`, 뜰 때 상자에 포커스, `Escape`=건너뛰기, 닫으면 실습 제목(h1)으로 포커스. 포커스 가두기는 하지 않는다(비모달).
+- 다시 보기: 경로 표시 줄 끝의 `안내 다시 보기` 링크.
+- 본 적 있음 기록: `localStorage` 키 `netproof.practiceTourSeen` = `"1"`. 읽기·쓰기는 `try/catch`. 저장소를 못 쓰면 이번 방문(메모리)에서만 다시 안 띄운다.
 
-- 실제 명령: `.venv/Scripts/python scripts/qa_local.py --port 4862`. 가짜 PostgreSQL DATABASE_URL을 설정해도 새 임시 SQLite 사용.
-- 저장소 밖 검증 하네스가 **실제 CLI를 변경 없이 실행**했다(별도 threaded 래퍼 앱이 아님). 빈 TCP 연결 하나를 유지한 채 GET / 200. 브라우저 확인이 끝날 때까지 이 연결을 계속 열어 뒀다.
-- computer-use로 Codex in-app browser에서 실제 폼 로그인:
-  - **1280×800 라이트 / qa_author:** 로그인 뒤 헤더 닉네임·일반 등급 → 사례 게시판 검색 결과4 → QA AI 답 · 합성 실제 결과 · 검토 확인 상세 `#/cases/1` 제목 표시 → 상세 새로고침 응답 → 로그아웃.
-  - **375×812 라이트 / qa_reviewer:** 로그인 뒤 닉네임 → 목록4 → 같은 사례 상세 제목·주소 표시 → 로그아웃.
-  - 필터·삭제·확인창 조작 없음. 사례/실제 결과 저장 없음.
-- 비밀번호는 자식 콘솔에서 **메모리·일회성 로컬 IPC**로만 전달해 브라우저 폼에 입력했다. 값·쿠키·CSRF는 도구 출력/파일/저장소/캡처/PR에 기록하지 않았다. 입력 뒤 자격 증명 변수 제거.
-- 검증 탭 닫음·viewport reset. 검증 프로세스와 4862 listen 없음 확인. 비대화형 하네스 종료에서는 이번 임시 폴더가 남아, 정확한 대상(이번 생성 `netproof-qa-kcfzkwt_`, 내부 `qa.db` 하나)을 확인한 뒤 DB와 빈 폴더를 각각 삭제했다. **정상 Ctrl+C 자동 정리 성공으로 주장하지 않는다.** 다른 임시 폴더는 건드리지 않았다. 합성 데이터는 도구 재실행으로 새로 준비할 수 있다.
-- 캡처: 저장소 밖 `C:/Users/dora2/.codex/visualizations/qa-threaded-2026-10-04/`, author-cases/detail-1280.png·reviewer-cases/detail-375.png. 비밀번호 화면 캡처 없음.
+### 7) 범위 밖 · 허용 파일
+- 하지 않는 것: 채점·정답·진도·배지·완료 인원, 칸 크기 끌기, 실습 입력 저장(새로고침 복구), 실습 화면의 ACL 점검·수정 후보·사례 저장, 일반 판정기 투어, 홈 이어서 하기에 실습 입력 표시, 엔진·서버·API·DB·cases JSON·expect, 새 의존성, F5·F6.
+- 허용 파일:
+  - 신규: `web/src/pages/PracticePage.tsx`·`PracticePage.test.tsx`, `web/src/components/PracticeTour.tsx`·`PracticeTour.test.tsx`
+  - 수정: `web/src/App.tsx`(practiceDrafts·pendingImport·라우트 연결), `web/src/router.ts`·`router.test.ts`, `web/src/pages/JudgePage.tsx`·test(진입 카드 제거, 실습 과제 링크, pendingImport 받기), `web/src/components/FlowForm.tsx`(받은 답 칸 숨김 prop 하나), `web/src/pages/{HomePage,LearningPage}.tsx`·test(링크·문구), `web/src/learning.ts`·test(필요 시), `web/src/styles.css`(practice·tour 국소 규칙)
+  - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`, `docs/qa-manual.md`(C 항목에 실습 화면 확인 추가)
+- 읽기만: `engine/`·`server/`, `api.ts`·`types.ts`·`draft.ts`·`share.ts`·`verdictView.ts`, `ResultPanel`·`NetworkEditor`·`PathStrip`(그대로 재사용), `cases/*.json`(테스트 import만).
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: 분할 배치의 칸 구성, 투어 4단계 문구, `판정기로 가져가기` 동작, 실습 입력을 메모리에만 두는 규칙.
 
-```text
-CLI GET / with idle first TCP connection held: 200
-Fake DATABASE_URL ignored; temporary SQLite exists=True
-READY: actual CLI on 127.0.0.1:4862; idle TCP connection remains open during browser checks.
-Credentials are RAM/one-shot IPC only; never printed in verification records.
-QA listen count after shutdown: 0
-QA verification directory removed: True
-```
+### 8) 위험
+- **실습 화면이 판정기 입력을 바꿈** → 실습 입력은 `practiceDrafts`에만. 판정기 `draft`는 `판정기로 가져가기`(되돌리기 포함) 때만 바뀐다. 테스트로 고정.
+- **화면이 비교를 다시 계산** → `ResultPanel`·`comparisonBanner` 재사용, verify 응답만 표시(ADR-001).
+- **기존 판정기 회귀**(진입 카드 제거·실습 과제 링크·pendingImport) → JudgePage 테스트와 브라우저로 공유 링크·사례 열기·예시 불러오기·되돌리기 재확인.
+- **투어가 입력을 가림·키보드 갇힘** → 비모달, Escape, 건너뛰기, 휴대폰은 화면 아래쪽 상자.
+- **저장소 예외** → localStorage `try/catch`, 실패해도 화면 정상.
 
-### 네 명령의 실제 전체 출력
-
-모든 exit code 0. 서버 테스트 전에 NETPROOF_TEST_DATABASE_URL을 프로세스 환경에서 제거하여 임시 SQLite만 사용했다. 기존 skip/xfail을 통과로 바꾸지 않았다.
-
-### cd engine && ../.venv/Scripts/python -m pytest -q
-
-```text
-........................................................................ [ 21%]
-........................................................................ [ 43%]
-........................................................................ [ 65%]
-........................................................................ [ 87%]
-......................................xx                                 [100%]
-326 passed, 2 xfailed in 5.72s
-```
-
-### cd server && ../.venv/Scripts/python -m pytest -q
-
-```text
-.......................................................................s [ 69%]
-...............................                                          [100%]
-102 passed, 1 skipped in 37.07s
-```
-
-### npm --prefix web test
-
-```text
-
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
-
-
- Test Files  24 passed (24)
-      Tests  316 passed (316)
-   Start at  21:08:36
-   Duration  781ms (transform 67%, import 20%, tests 8%, worker 4%)
-
-  Transform  transforming modules took 4.67s · 67% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-### npm --prefix web run build
-
-```text
-
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 55 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:   0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-CThyBs7X.css                            78.95 kB │ gzip:  22.20 kB
-dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101.41 kB
-
-✓ built in 403ms
-```
-
-구현·테스트: Codex (GPT-5).
-
-
-
-## 현재 과제 리뷰 기록
-### PR #28 Claude 독립 리뷰 (2026-10-04, HEAD `7c75bc3`) — **PASS**
-- diff: 코드는 `scripts/qa_local.py`의 `threaded=True` 한 줄과 `server/tests/test_qa_local.py`(동시 연결 회귀), `docs/qa-manual.md` 강제 종료 안내뿐이다. 엔진·서버 앱·배포물·화면 변경은 0이다.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.43s` · 서버 `102 passed, 1 skipped in 34.72s` · 웹 `24 files, 316 passed` · 빌드 `✓ built in 255ms`.
-- 실제 도구 확인(Claude 스크립트, 비밀번호는 읽기만 하고 출력·기록하지 않음):
-  - 가짜 `DATABASE_URL`을 설정한 채 `scripts/qa_local.py --port 4872`를 실행하고, **빈 TCP 연결 두 개를 열어 둔 상태에서** 진행했다.
-  - `qa_author`(user)·`qa_reviewer`(reviewer)로 로그인되고, 사례 4건이 보이고, `/`는 200이다.
-  - CTRL_BREAK로 종료하니 exit 0이고 임시 폴더가 삭제됐다. 수정 전에는 같은 상황에서 응답이 멈췄다(PR #27 코멘트).
-- 회귀 테스트는 첫 연결이 서버에 **수락**된 것을 확인한 뒤(backlog 대기 거짓 양성 방지) 두 번째 요청을 보낸다. main이 넘긴 옵션을 그대로 쓰므로 `threaded`를 빼면 실패한다(Codex 기록: 수정 전 TimeoutError).
-- 사용자 수동 QA A·B·C는 사람이 기록할 대기 상태 그대로다.
-
-## 이전 과제 리뷰 기록 (PR #27)
-### PR #27 Claude 독립 리뷰 (2026-10-04, HEAD `a585a1a`) — **PASS**
-- 근거: `git diff origin/main...HEAD` 14파일. 엔진·서버 앱 코드 변경 0(`server/tests/test_qa_local.py`만 추가). 배포물(`api/`, `vercel.json`)은 그대로다. 승인 설계 6절 허용 목록 안.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.64s` · 서버 `101 passed, 1 skipped in 35.30s`(QA 도구 테스트 포함) · 웹 `24 files, 316 passed` · 빌드 `✓ built in 245ms`.
-- QA 도구 실제 실행(Claude 스크립트, 비밀번호는 읽기만 하고 출력·기록하지 않음):
-  - `DATABASE_URL=postgres://…`(가짜)를 설정한 채 `scripts/qa_local.py --port 4871`을 실행했다. 새 OS 임시 폴더의 SQLite로 열렸다.
-  - `qa_author`(user)·`qa_reviewer`(reviewer)로 로그인되고, 각각 사례 4건이 보이고, `/`는 200이다.
-  - CTRL_BREAK로 종료하니 exit 0이고 임시 폴더가 삭제됐다. 서버는 `127.0.0.1`에만 열린다(`make_server("127.0.0.1", …)`).
-- 코드 대조:
-  - F15: `startPractice` 뒤 `focusPractice`가 `#practice-title`로 포커스를 옮기고, revision이 바뀌면 버린다.
-  - F16: `motion.ts` `scrollTo` 한 곳으로 세 스크롤을 모았다(reduced-motion이면 `auto`).
-  - F17: 학습 상세 부제 `이 실습에서 볼 것: …`, 실습 안내 문구는 받은 답 유무에 따라 바뀐다.
-  - 체크리스트 `docs/qa-manual.md`는 A(PR #20 G2)·B(실제 확인창 취소)·C(홈 흐름)·D(사람 기록)이며, AI가 완료로 바꾸지 않는다고 적었다.
-- 브라우저 미확인: Claude 창이 가려져 requestAnimationFrame이 멈추는 환경이라 F15 포커스를 직접 재현하지 못했다. 이 도구에는 reduced-motion 에뮬레이션도 없다. 두 동작은 `focusPractice`·`scrollTo` 단위 테스트와 Codex 기록으로 확인했다. **사용자 수동 QA C에서 포커스 항목을 사람이 확인한다.**
-- 남은 것: 사용자 수동 QA A·B·C(병합 뒤), F5·F6.
+### 9) 완료 조건 · 테스트
+- 자동 테스트:
+  - `router.test.ts`: `#/practice/synthetic-0N` → `{ page: "practice", caseId }`, 모르는 ID `missing`, 기존 경로 회귀.
+  - `PracticePage.test.tsx`(SSR·순수 함수): 로딩·실패·없음 상태, 제목 h1·경로 표시·예상 질문·그림·내 예상 선택, FlowForm 받은 답 칸 없음, 결과 칸 안내 문구, 판정기 `draft`를 건드리지 않음(setDraft 미호출), 예상 반영 규칙(App 예상 → 실습 받은 답 `kind:"self"`).
+  - `PracticeTour.test.tsx`: 4단계 문구·`n/4`·이전/다음/건너뛰기, localStorage 예외에도 렌더, 본 적 있으면 안 뜸.
+  - `JudgePage.test.tsx`: 진입 카드 없음, 실습 과제가 링크, pendingImport → load 라벨·실습 맥락, 기존 결론 문구 미노출·배너 회귀.
+- 네 명령의 실제 출력 전체를 이 문서에 붙인다:
+  ```text
+  cd engine && ../.venv/Scripts/python -m pytest -q
+  cd server && ../.venv/Scripts/python -m pytest -q
+  npm --prefix web test
+  npm --prefix web run build
+  ```
+- 브라우저 확인(실제 브라우저, `scripts/qa_local.py` 또는 임시 서버, 375×812·1280×800, 라이트·다크):
+  - 판정기에 입력을 써 둔 채 홈 `막힐 것 같다` → 실습 화면이 바로 열림(확인 단계 없음), 내 예상 `막힐 것 같다`, 판정 → 결과가 오른쪽(휴대폰은 아래)에 배너·근거. 판정기로 돌아가면 써 둔 입력이 그대로.
+  - 실습 화면에서 ACL 한 줄 수정 → 이전 결과 → 다시 판정. `실습 처음 상태로` → 되돌리기.
+  - `판정기로 가져가기` → 판정기에 되돌리기 알림·실습 안내 패널, 되돌리기로 원래 입력 복구.
+  - 투어: 첫 방문 자동, 4단계, Escape, 다시 보기, 새로고침 뒤 안 뜸.
+  - 판정기 회귀: 공유 링크, 사례 열기, 예시 불러오기, ACL 점검·수정 후보.
+  - 가로 넘침 없음, console error 0, 판정 뒤 포커스 `#result-title`.
+- `docs/qa-manual.md` C 항목에 실습 화면 확인(위 첫째·셋째 줄)을 사람이 할 항목으로 더한다.
+- 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #28 QA 서버 동시 연결 (병합 완료, `8268789`)**: `scripts/qa_local.py`의 `threaded=True`, 빈 연결을 유지한 채 두 번째 요청을 확인하는 회귀 테스트, 강제 종료 안내. PR #27 리뷰가 순차 요청만 확인해 놓친 결함(병합 후 실제 브라우저로 발견).
+- **PR #27 후속 F15~F17 + QA 준비 도구 (병합 완료, `2ad04a0`)**: 불러오기 뒤 실습 제목 포커스, reduced-motion 공용 스크롤, 학습 상세 부제, `scripts/qa_local.py`(임시 SQLite·127.0.0.1·DATABASE_URL 무시), `docs/qa-manual.md`.
 - **PR #27 F15~F17·QA 준비 도구 (병합 완료, `2ad04a0`)**: 독립 리뷰 PASS 뒤 병합. 순차 검사에서 놓친 단일 스레드 QA 서버의 빈 연결 응답 멈춤은 이번 codex/qa-threaded에서 수정한다. 사용자 수동 QA·reduced-motion 실브라우저 미확인은 별도다.
 - **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
 - **PR #25 홈·학습 2차 (병합 완료, `397ee0d`)**: 계산 범위 띠(`NetProof 계산 범위` + 점선 `실제 장비`), 홈 퍼즐을 채운 단추 주 행동으로(375 단추 아래 끝 745/812), 세 실습 모두 예상 블록(`guessPrompt`·공용 `GuessPuzzle`), 판정기 진입 카드 예상 라디오(통과/막힘/예상 없이). Claude 독립 리뷰 PASS(`cd49334`), critique 3회차 26/40 → 사용자 병합. 후속 F12~F14와 배너 톤은 이번 과제.
@@ -332,15 +199,16 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
 - [x] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② PR #25 병합(`397ee0d`).
 - [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
-- [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **PR #27 병합 `2ad04a0`, 수동 QA는 별도 대기.**
+- [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② PR #27 `2ad04a0`, QA 서버 동시 연결 PR #28 `8268789`. 수동 QA는 사람 대기.
+- [ ] **실습 모드 분할 화면 + 첫 방문 투어(프로그래머스 벤치마크)** — ①② **설계 완료, 사용자 승인 대기 — 브랜치 codex/practice-mode**
 - [ ] **QA 도구 동시 연결 결함 수정** — **codex/qa-threaded 구현·검증 후 리뷰(Claude) 대기.**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- PR #28은 Claude 리뷰 PASS(`7c75bc3`). 다음은 사용자 병합 결정, 그 뒤 수동 QA는 사람이 `docs/qa-manual.md`로 기록한다.
-- QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
-- 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
-- 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
+- **Codex(사용자 승인 뒤):** `codex/practice-mode`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~9) 범위 안에서만 구현·테스트한다. 승인 전이면 멈춘다.
+- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 화면은 verify만 부르고 비교를 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
+- 투어는 비모달·Escape·건너뛰기, localStorage는 try/catch. cases JSON은 테스트에서만 import한다.
+- 수동 QA 결과는 사람이 `docs/qa-manual.md`로 기록한다. AI가 대신 완료로 바꾸지 않는다.
 - 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.
 
 ## 사용자 수동 QA 대기 (PR #20 G2·삭제 취소 + 홈·실습 흐름)
@@ -363,4 +231,4 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 후속·수동 QA 준비 설계: Claude (Claude Opus 5.5). 구현·테스트: Codex (GPT-5).
+현재 실습 모드 설계: Claude (Claude Opus 5.5).
