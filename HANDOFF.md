@@ -24,7 +24,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: `codex/followup-qa`(origin/main `11c6ac2` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 설계 승인: **사용자 승인 완료(`231b943`).**
 - 단계: **Codex 구현·자동 테스트 및 도구 실행 확인 → Claude 리뷰 → 사용자 병합 → 사용자 수동 QA.** reduced-motion 브라우저 에뮬레이션은 도구 지원 부재로 미확인(아래 기록).
-- 다음 차례: **리뷰(Claude).** 수동 QA A·B·C는 사람이 확인하기 전까지 대기다.
+- 다음 차례: **사용자 — PR #27 병합 결정**(Claude 독립 리뷰 PASS, `a585a1a`). 병합 뒤 수동 QA A·B·C는 사람이 `docs/qa-manual.md`로 확인한다.
 - **판정·엔진은 그대로다.** 엔진·서버 API·저장 데이터·cases JSON·expect를 바꾸지 않는다. QA 도구는 로컬 전용 개발 도구이며 배포물(`api/`, `vercel.json`, 서버 앱)에 연결하지 않는다.
 
 ## 작업 정의
@@ -293,6 +293,22 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 구현·테스트: Codex (GPT-5).
 
 
+## 현재 과제 리뷰 기록
+### PR #27 Claude 독립 리뷰 (2026-10-04, HEAD `a585a1a`) — **PASS**
+- 근거: `git diff origin/main...HEAD` 14파일. 엔진·서버 앱 코드 변경 0(`server/tests/test_qa_local.py`만 추가). 배포물(`api/`, `vercel.json`)은 그대로다. 승인 설계 6절 허용 목록 안.
+- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.64s` · 서버 `101 passed, 1 skipped in 35.30s`(QA 도구 테스트 포함) · 웹 `24 files, 316 passed` · 빌드 `✓ built in 245ms`.
+- QA 도구 실제 실행(Claude 스크립트, 비밀번호는 읽기만 하고 출력·기록하지 않음):
+  - `DATABASE_URL=postgres://…`(가짜)를 설정한 채 `scripts/qa_local.py --port 4871`을 실행했다. 새 OS 임시 폴더의 SQLite로 열렸다.
+  - `qa_author`(user)·`qa_reviewer`(reviewer)로 로그인되고, 각각 사례 4건이 보이고, `/`는 200이다.
+  - CTRL_BREAK로 종료하니 exit 0이고 임시 폴더가 삭제됐다. 서버는 `127.0.0.1`에만 열린다(`make_server("127.0.0.1", …)`).
+- 코드 대조:
+  - F15: `startPractice` 뒤 `focusPractice`가 `#practice-title`로 포커스를 옮기고, revision이 바뀌면 버린다.
+  - F16: `motion.ts` `scrollTo` 한 곳으로 세 스크롤을 모았다(reduced-motion이면 `auto`).
+  - F17: 학습 상세 부제 `이 실습에서 볼 것: …`, 실습 안내 문구는 받은 답 유무에 따라 바뀐다.
+  - 체크리스트 `docs/qa-manual.md`는 A(PR #20 G2)·B(실제 확인창 취소)·C(홈 흐름)·D(사람 기록)이며, AI가 완료로 바꾸지 않는다고 적었다.
+- 브라우저 미확인: Claude 창이 가려져 requestAnimationFrame이 멈추는 환경이라 F15 포커스를 직접 재현하지 못했다. 이 도구에는 reduced-motion 에뮬레이션도 없다. 두 동작은 `focusPractice`·`scrollTo` 단위 테스트와 Codex 기록으로 확인했다. **사용자 수동 QA C에서 포커스 항목을 사람이 확인한다.**
+- 남은 것: 사용자 수동 QA A·B·C(병합 뒤), F5·F6.
+
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 - **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
 - **PR #25 홈·학습 2차 (병합 완료, `397ee0d`)**: 계산 범위 띠(`NetProof 계산 범위` + 점선 `실제 장비`), 홈 퍼즐을 채운 단추 주 행동으로(375 단추 아래 끝 745/812), 세 실습 모두 예상 블록(`guessPrompt`·공용 `GuessPuzzle`), 판정기 진입 카드 예상 라디오(통과/막힘/예상 없이). Claude 독립 리뷰 PASS(`cd49334`), critique 3회차 26/40 → 사용자 병합. 후속 F12~F14와 배너 톤은 이번 과제.
@@ -373,7 +389,7 @@ dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude:** `codex/followup-qa`의 작업 정의 1)~8)와 diff·실제 테스트 출력을 독립 리뷰한다. reduced-motion 브라우저 에뮬레이션 미확인 항목도 확인한다. 병합 결정은 사용자다.
+- PR #27은 Claude 독립 리뷰 PASS(`a585a1a`). 다음은 사용자 병합 결정, 그 뒤 사람이 `docs/qa-manual.md`로 수동 QA를 한다.
 - QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
 - 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
 - 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
