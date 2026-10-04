@@ -17,102 +17,79 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **비교 배너 톤과 실습 흐름 다듬기** — 홈 critique 3회차(2026-10-04, 26/40)의 지적 중 사용자가 고른 것. 불일치 배너가 채점처럼 보이지 않게 하고, 예상의 이름이 단계마다 이어지게 하고, 이어서 하기 화면에 맥락을 주고, 휴대폰 단추·판정 뒤 포커스를 고친다 (순환 고리 ②).
-- 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-04T09-12-25Z__web-src-pages-homepage-tsx.md`.
+- 작업: **후속 정리와 수동 QA 준비** — PR #26 리뷰의 후속 F15~F17을 고치고, 오래 대기 중인 PR #20 사용자 수동 QA(G2 화면 확인·삭제 취소)를 사람이 명령 하나로 바로 할 수 있게 QA 준비 도구와 체크리스트를 만든다.
 - 사용자 결정(2026-10-04):
-  - **불일치 배너: 중립 톤 + 근거 안내.** PR #21에서 승인한 `✕ …계산과 다릅니다`(빨간 채움)를 바꾼다. `틀렸습니다/맞았습니다`처럼 단정하지 않는다는 PR #21 원칙은 그대로다.
-  - **이어서 하기: 실습 이름 + 다음 실습.** 판정 여부·결과는 보이지 않는다(기존 약속 유지).
-  - 함께 넣을 것: **예상 이름 잇기(F13 포함), 퍼즐 질문 강조, 후속 F12·F14.**
-- 브랜치: `codex/home-ux3`(origin/main `397ee0d` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- PR: [#26 비교 배너 중립 톤과 실습 흐름 다듬기](https://github.com/myeongjundev/netproof/pull/26) → main, 리뷰 대기. 구현 커밋 `72e2cbf`.
-- 설계 승인: 사용자 승인 완료(`37e66cf`).
-- 단계: **Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
-- 다음 차례: **사용자 — PR #26 병합 결정.** Claude 독립 리뷰 PASS(`e8f4175`). 병합하지 않는다.
-- **판정·엔진은 그대로다.** 배너는 엔진의 `comparison`·`result`만 읽는다. 엔진·서버·API·저장 데이터·cases JSON·expect를 바꾸지 않는다.
+  - **수동 QA: QA 준비 도구 + 체크리스트.** 클릭과 판단은 사람이 한다. 도구는 임시 DB·합성 계정·합성 사례·로컬 서버만 준비한다. PR #20 항목에 최근 홈·실습 흐름을 더한다.
+  - **F17: 학습 상세의 개념 질문은 부제로.** 질문 문장은 예상 질문 하나만 남긴다.
+- 브랜치: `codex/followup-qa`(origin/main `11c6ac2` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 설계 승인: **사용자 승인 완료(`231b943`).**
+- 단계: **Codex 구현·자동 테스트 및 도구 실행 확인 → Claude 리뷰 → 사용자 병합 → 사용자 수동 QA.** reduced-motion 브라우저 에뮬레이션은 도구 지원 부재로 미확인(아래 기록).
+- 다음 차례: **사용자 — PR #27 병합 결정**(Claude 독립 리뷰 PASS, `a585a1a`). 병합 뒤 수동 QA A·B·C는 사람이 `docs/qa-manual.md`로 확인한다.
+- **판정·엔진은 그대로다.** 엔진·서버 API·저장 데이터·cases JSON·expect를 바꾸지 않는다. QA 도구는 로컬 전용 개발 도구이며 배포물(`api/`, `vercel.json`, 서버 앱)에 연결하지 않는다.
 
 ## 작업 정의
-- 목표:
-  1. 예상이 계산과 달라도 "틀렸다"가 아니라 "다르다, 이유를 보자"로 읽힌다. 빨강·초록은 계산 결과(통과/막힘)에만 쓴다.
-  2. 학생이 고른 "막힐 것 같다"가 판정기에서 "안 된다(내 예상)"로, 배너에서 "내 예상(막힘)"으로 이어져 같은 것임을 안다.
-  3. 작성 중인 학생이 홈에서 어느 실습을 하던 중인지 알고, 다음 실습을 권받는다.
-  4. 휴대폰에서 예상 단추가 한 줄·같은 높이로 첫 화면 안에 있고, 판정 뒤 키보드 포커스가 결과로 간다.
+### 1) F15 — 구성 불러오기 뒤 포커스
+- 현재: 진입 카드의 `구성 불러오기`를 누르면 카드가 사라지면서 포커스가 `body`로 떨어진다.
+- 바꿀 것: `startPractice`가 끝난 뒤(진입 카드에서 눌렀을 때와 페이지 안 `실습 · … · 시작` 단추 모두) 실습 안내 패널 제목 `#practice-title`에 `tabIndex=-1`을 주고 포커스를 옮긴다. 휴대폰(900px 이하)은 그 제목이 보이게 스크롤한다(3절 규칙 적용), 넓은 화면은 `preventScroll`.
+- 늦게 바뀐 화면(이미 다른 입력을 불러옴)에서는 옮기지 않는다. 기존 `focusJudgeResult`와 같은 방식(현재 여부 확인 함수)으로 만든다.
 
-### 1) 비교 배너: 중립 톤 + 근거 안내 (사용자 결정)
-- 현재: `verdictView.ts` `comparisonBanner`가 `✓ {누구}이 NetProof 계산과 같습니다` / `✕ {누구}이 NetProof 계산과 다릅니다`를 만들고, `.comparison-banner.disagree`는 `--deny` 빨강 채움, `.agree`는 `--pass` 초록이다. 판정기·사례 상세·정책 검증(`ResultPanel` 사용처)에 모두 나온다.
-- 바꿀 것(문장은 `comparisonBanner` 한 곳에서만 만든다):
-  - 이름: `kind`가 `ai`면 `AI 답`, `self`면 `내 예상`, 그 밖은 `받은 답`.
-  - 값: 받은 답 `expected`와 엔진 `result`를 `통과`/`막힘`으로 적는다.
-  - 다를 때(`DISAGREE`): `≠ {이름}({받은 값}){와/과} NetProof 계산({계산 값})이 다릅니다`
-    - 조사는 괄호 안 값의 받침으로 고른다: `통과` → `와`, `막힘` → `과`. 예: `≠ 내 예상(막힘)과 NetProof 계산(통과)이 다릅니다`, `≠ AI 답(통과)와 NetProof 계산(막힘)이 다릅니다`.
-    - 둘째 줄(작게): `아래 경로와 ACL 근거에서 이유를 확인해 보세요.`
-  - 같을 때(`AGREE`): `= {이름}({값}){와/과} NetProof 계산이 같습니다`. 둘째 줄 없음.
-  - `NO_CLAIM`·`NOT_COMPARABLE`·`INVALID`·`UNSUPPORTED`는 지금처럼 배너 없음.
-  - 반환값에 `hint?: string`을 더해 둘째 줄을 함께 넘기고, `ResultPanel`은 그대로 그리기만 한다. `statusLine`은 첫 줄만 쓴다.
-- 모양(`styles.css`):
-  - 두 경우 모두 바탕 `--surface`, 글자 `--ink`, 테두리 `1px solid var(--line)`. 왼쪽 굵은 선 4px로만 구분: 같음은 `--accent`, 다름은 `--warn`.
-  - `✓`·`✕`를 쓰지 않는다. `=`·`≠`는 글자로 둔다(색 아님).
-  - `--pass`·`--deny`(초록·빨강)는 배너에 쓰지 않는다. 계산 결과 표시(`.calculated.pass/.deny`, 판정 상자)에는 그대로 남는다.
-  - 다크 모드에서 대비 4.5:1 이상.
-- 기존 대결 머리(`받은 답 · 안 된다 ≠ NetProof 계산 · 통과`)와 `verdict-line`은 그대로 둔다.
+### 2) F17 — 학습 상세 질문 하나로, 실습 안내 문구
+- 학습 상세(`LearningPage`):
+  - 지금 h1 아래 `learning-question`(`task.question`)을 질문이 아닌 **부제 한 줄**로 바꾼다: `이 실습에서 볼 것: {focus}`.
+  - `learning.ts` lesson에 `focus`(화면 표시 전용, 정답 없음)를 더한다:
+    - synthetic-01: `입력 ACL이 HTTPS 통신에 어떻게 적용되는지`
+    - synthetic-02: `가는 길과 돌아오는 길이 모두 있는지`
+    - synthetic-03: `출력 ACL이 나가는 패킷에 어떻게 적용되는지`
+  - 질문 문장은 예상 블록의 `guessPrompt` 하나만 남는다. `PRACTICE.question`·판정기 실습 안내 패널은 그대로다.
+- 판정기 실습 안내 패널의 `정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.`를 상태에 맞춘다:
+  - 받은 답이 있으면: `정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다.`
+  - 없으면: 지금 문장 그대로.
 
-### 2) 예상 이름 잇기 (F13 포함)
-- 진입 카드 질문: `entryLesson.task.question` 대신 `entryLesson.guessPrompt`를 보인다. 홈·학습의 예상 질문과 같은 문장이 된다. 불러온 뒤의 실습 안내(`task.question`)는 그대로다.
-- 진입 카드 안내 한 줄을 고른 값에 따라 바꾼다(기존 `구성을 불러오면 고른 예상이…` 대체):
-  - `통과할 것 같다`: `구성을 불러오면 받은 답이 "된다(내 예상)"로 들어갑니다.`
-  - `막힐 것 같다`: `구성을 불러오면 받은 답이 "안 된다(내 예상)"로 들어갑니다.`
-  - `예상 없이`: `예상 없이 불러오면 받은 답은 "비교 안 함"입니다.`
-- 배너는 1절대로 `내 예상(막힘)`을 쓴다. 판정기 받은 답 라디오(`된다/안 된다`)는 AI 답에도 쓰는 공용이라 바꾸지 않는다.
+### 3) F16 — 움직임 줄이기
+- `scrollIntoView({ behavior: "smooth" })` 세 곳(`JudgePage.tsx` 결과·ACL 줄 보기, `PolicyMatrixPage.tsx` 상세)을 공용 함수 하나로 바꾼다: `prefers-reduced-motion: reduce`면 `behavior: "auto"`, 아니면 `"smooth"`.
+- 위치: 새 파일 `web/src/motion.ts`(함수 하나, 테스트 `motion.test.ts`).
 
-### 3) 이어서 하기: 실습 이름 + 다음 실습
-- App에 `practiceCaseId: string | null` 상태를 둔다. **JudgePage가 명시적으로 알릴 때만** 바뀐다(마운트 effect로 바꾸지 않는다):
-  - `startPractice` → 그 caseId (`onPracticeLoaded(caseId)`로 넘긴다. 기존 guess 삭제도 여기서).
-  - 실습이 아닌 `load()`(예시·처음 구성·JSON 가져오기·공유 링크) → `null`.
-  - 되돌리기 `restore` → `undo.task?.case_id ?? null`.
-  - App의 사례 상세 "판정기에서 열기"(`onOpenInJudge`) → `null`.
-  - 입력을 직접 고치는 것은 바꾸지 않는다(실습 구성을 고치는 것도 실습의 일부다).
-- 홈 이어서 하기 얼굴:
-  - `practiceCaseId`가 있으면 h1 위 작은 라벨을 `{주제 이름} 실습에서 시작한 입력`으로 바꾼다(예 `HTTPS와 입력 ACL 실습에서 시작한 입력`). 없으면 지금 라벨 그대로.
-  - 요약 줄은 그대로 둔다. 판정 여부·결과는 보이지 않는다.
-  - 아래 `새 실습 시작하기` 퍼즐은 **다음 실습**을 쓴다: `practiceCaseId`의 다음 lesson(01 → 02 → 03 → 01). 없으면 01. 제목은 `다음 실습: {주제 이름}`(h2).
-  - 퍼즐의 그림도 그 lesson의 경로로 바뀐다.
-- 알려진 한계(이번 범위 밖): 홈에 갔다가 판정기로 돌아오면 판정기 안의 실습 안내 패널(`task`)은 지금처럼 사라진다. 따로 설계한다.
+### 4) QA 준비 도구 (사용자 결정)
+- 새 파일 `scripts/qa_local.py`. 실행: `.venv/Scripts/python scripts/qa_local.py` (저장소 루트에서).
+- 하는 일:
+  1. `web/dist/index.html`이 없으면 `npm --prefix web run build`를 먼저 하라고 알리고 끝낸다(직접 빌드하지 않는다).
+  2. 운영체제 임시 폴더에 새 폴더를 만들고 그 안의 새 SQLite 파일로 `create_app(overrides={"SQLALCHEMY_DATABASE_URI": ...})`을 만든다. **환경 변수 `DATABASE_URL`은 무시한다**(실제 DB에 닿지 않게). `NETPROOF_SECURE_COOKIES`는 끈다.
+  3. 앱의 test client로 합성 계정 두 개(`qa_author`, `qa_reviewer`)를 가입시키고 `qa_reviewer`를 검토자로 바꾼다(기존 `make-reviewer`와 같은 모델 변경). 비밀번호는 `secrets.token_urlsafe`로 매번 새로 만든다.
+  4. 합성 사례 4건을 `qa_author`로 만든다(예시 구성 사용): AI 답 있음+실제 결과+검토 확인 1건, 받은 답 없음 1건, 내 예상+실제 결과 1건, 아주 긴 제목 1건. 제목 앞에 `QA`를 붙인다.
+  5. `127.0.0.1`에서만 서버를 연다(기본 포트 4860, `--port`로 바꿀 수 있음). 외부 주소로 열지 않는다.
+  6. 콘솔에 접속 주소, 두 계정 닉네임·비밀번호, 체크리스트 경로를 출력한다. **비밀번호는 콘솔에만** 출력하고 파일·저장소·로그에 쓰지 않는다.
+  7. 종료(Ctrl+C) 때 임시 폴더를 지운다.
+- 저장소에 DB·비밀번호·캡처를 남기지 않는다. `.gitignore` 변경이 필요 없게 임시 폴더만 쓴다.
+- 테스트 `server/tests/test_qa_local.py`: 시드 함수가 새 임시 DB에만 쓰고(`DATABASE_URL`을 가짜 값으로 설정해도 무시), 계정 2·검토자 1·사례 4가 생기고, 서버 실행 없이 함수만 검사한다. 스크립트는 `importlib`로 경로를 지정해 불러온다.
 
-### 4) 퍼즐 질문 강조
-- `GuessPuzzle`:
-  - `먼저 예상해 보세요`는 태그(h2/h3)는 유지하고 모양만 작은 라벨로(13px, `--accent`, 600).
-  - 질문(`.home-puzzle-question`)을 주인공으로: 1280에서 20px/600, 720px 이하 17px/600.
-  - 단추 아래 작은 한 줄: `고르면 판정기에서 이 구성을 불러와 계산할 수 있습니다.` — 예상 뒤 무슨 일이 일어나는지 알린다.
-- 홈 첫 얼굴 히어로 왼쪽: `판정기:` 설명 줄을 지운다. 왼쪽은 라벨·h1·설명 한 줄·`판정기 바로 열기 →`만 남는다.
-
-### 5) 후속 F12·F14
-- F12 휴대폰 예상 단추:
-  - `.home-guess-actions button`에 `white-space: nowrap`, 좌우 padding 축소(예 `10px 12px`), 두 단추 `flex: 1 1 0; min-width: 0`으로 같은 폭.
-  - 완료 기준: 375·320 폭 모두에서 홈·학습 상세의 두 단추가 **한 줄, 같은 높이(44~48px), 나란히**이고, 홈 첫 얼굴에서는 375×812·320×812 모두 두 단추 아래 끝이 812 안.
-- F14 판정 뒤 포커스:
-  - `judge()`가 끝나면(결과·오류 모두) `#result-title`에 `tabIndex=-1`을 주고 포커스를 옮긴다. 900px 이하에서는 지금의 부드러운 스크롤과 함께, 넓은 화면에서는 `focus({ preventScroll: true })`.
-  - 늦게 도착해 버려진 응답(revision 불일치)에서는 옮기지 않는다.
+### 5) 수동 QA 체크리스트 (사용자 결정)
+- 새 파일 `docs/qa-manual.md` 한 장. 사람이 위에서부터 따라 하며 칸에 표시하는 형식이다.
+  - 준비: 빌드 → `scripts/qa_local.py` 실행 → 브라우저 주소. 화면 크기 375×812·1280×800, 라이트·다크.
+  - **A. PR #20 G2 화면 확인**: 사례 게시판 목록(필터 접기·적용 조건·검색·초기화), 사례 상세(구성 원문·받은 답·NetProof 계산 구분).
+  - **B. 삭제 취소(실제 기본 확인창)**: 합성 사례 상세 → 삭제 → 브라우저 확인창 **취소** → 같은 주소에 머무는지, 새로고침 뒤 사례가 남는지, 가능하면 개발자 도구 Network에 DELETE가 없는지. confirm 대체 검사로 대신하지 않는다.
+  - **C. 홈·실습 흐름(PR #23~#26)**: 첫 진입 홈 → 예상 고르기 → 진입 카드 라디오 → 구성 불러오기(포커스 위치) → 판정 → 배너 문장 → 홈 이어서 하기 라벨·다음 실습 → 학습 상세 부제.
+  - **D. 기록 칸**: 날짜, 브라우저와 버전, 확인한 조합, 통과/문제, 문제 재현 순서. 비밀번호·쿠키·토큰을 적지 않는다.
+  - 마지막에 "결과는 PR 코멘트나 HANDOFF '사용자 수동 QA' 절에 사람이 적는다. AI가 대신 완료로 바꾸지 않는다."
+- HANDOFF의 `사용자 수동 QA 대기` 절은 이 체크리스트를 가리키게 줄인다.
 
 ### 6) 범위 밖 · 허용 파일
-- 하지 않는 것: 판정 결과 복원·저장, 판정기 실습 안내 패널 유지, 받은 답 라디오 문구 변경, 헤더·표어, 사례 상세·게시판 예시 제목, F5·F6, PR #20 수동 QA, 엔진·서버·API·DB·cases JSON·expect, 새 의존성.
+- 하지 않는 것: QA를 자동으로 통과 처리, 브라우저 자동 클릭, 확인창 대체·우회, F5·F6, 배너 아래 대결 머리 정리, 진입 카드 그림·예상 칩, 엔진·서버 API·DB 스키마·cases JSON·expect, 배포 설정, 새 의존성.
 - 허용 파일:
-  - 수정: `web/src/verdictView.ts`·`verdictView.test.ts`, `web/src/components/ResultPanel.tsx`(배너 둘째 줄 그리기만), `web/src/components/GuessPuzzle.tsx`·test, `web/src/pages/{HomePage,JudgePage}.tsx`와 각 test, `web/src/App.tsx`(practiceCaseId 상태·콜백 연결만), `web/src/learning.ts`·test(다음 lesson 함수가 필요하면), `web/src/styles.css`(배너·home·guess·practice-entry 국소 규칙만)
+  - 신규: `scripts/qa_local.py`, `server/tests/test_qa_local.py`, `docs/qa-manual.md`, `web/src/motion.ts`, `web/src/motion.test.ts`
+  - 수정: `web/src/pages/{JudgePage,LearningPage,PolicyMatrixPage}.tsx`와 JudgePage·LearningPage test, `web/src/learning.ts`·test, `web/src/styles.css`(학습 부제 한 줄만 필요하면)
   - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`
-- 읽기만: `engine/`·`server/`, `types.ts`·`draft.ts`·`practice.ts`·`share.ts`, `FlowForm.tsx`, 사례·매트릭스 페이지(배너 변경이 그대로 나타나는지 브라우저로만 확인), `cases/*.json`(테스트 import만).
-- 다음을 바꾸고 싶으면 **먼저 요청한다**: 배너 두 문장과 둘째 줄, `=`/`≠` 표기, 왼쪽 선 색, 진입 카드 안내 세 문장, 이어서 하기 라벨 문장, 퍼즐 단추 아래 한 줄.
+- 읽기만: `engine/`, `server/netproof_api/`(QA 도구는 `create_app`·모델을 불러 쓰기만), `api/`, `vercel.json`, 결과·편집기 컴포넌트, `cases/*.json`.
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: `focus` 세 문장, 실습 안내 문구, QA 도구가 만드는 계정·사례 구성, 체크리스트 항목.
 
 ### 7) 위험
-- **배너가 판정을 다시 계산함** → `comparisonBanner`는 엔진 `comparison`이 AGREE/DISAGREE일 때만 문장을 만들고, 값은 `claim.expected`와 엔진 `result`를 그대로 옮긴다. 비교 연산을 새로 하지 않는다. 테스트로 `comparison`과 문장이 어긋나는 입력(예: expected=PASS, result=PASS, comparison=DISAGREE)에서도 엔진 값을 따름을 고정한다.
-- **조사 틀림** → `통과`/`막힘` 두 값뿐이라 표로 고정하고 네 조합을 테스트한다.
-- **사례 상세·정책 검증 배너 회귀** → 두 화면을 브라우저로 확인한다(문장·색).
-- **실습 맥락이 엉뚱하게 남음** → 알림 지점 네 곳을 명시하고, 예시 불러오기·사례 열기 뒤 홈 라벨이 기본으로 돌아오는지 확인한다.
-- **포커스 이동이 넓은 화면에서 화면을 튀게 함** → `preventScroll`.
+- **QA 도구가 실제 DB를 건드림** → `DATABASE_URL` 무시·임시 폴더 강제, 테스트로 고정.
+- **QA 도구가 외부에 열림** → `127.0.0.1` 고정.
+- **비밀번호가 남음** → 콘솔 출력만, 파일·저장소 기록 금지, 종료 때 임시 폴더 삭제.
+- **사람 확인을 AI가 대신 완료 처리** → 체크리스트와 HANDOFF에 "사람이 적는다"를 명시. Codex·Claude는 QA 결과를 만들지 않는다.
+- **포커스 이동이 넓은 화면을 튀게 함** → `preventScroll`.
 
 ### 8) 완료 조건 · 테스트
-- 자동 테스트:
-  - `verdictView.test.ts`: DISAGREE/AGREE × kind(ai/self/없음) × 값(통과/막힘) 문장과 조사, `hint`는 DISAGREE만, `✓`·`✕` 없음, NO_CLAIM·NOT_COMPARABLE·INVALID·UNSUPPORTED 배너 없음, 엔진 comparison을 따르는지(위 위험 항목), `statusLine`은 첫 줄만.
-  - `GuessPuzzle.test.tsx`: 단추 아래 안내 한 줄, 질문 클래스, 기존 group·heading 검사 유지.
-  - `HomePage.test.tsx`: 첫 얼굴에 `판정기:` 줄 없음. 이어서 하기 얼굴에서 `practiceCaseId` 있음 → 라벨 `… 실습에서 시작한 입력`·퍼즐 `다음 실습: …`(01→02, 03→01), 없음 → 기본 라벨·01.
-  - `JudgePage.test.tsx`: 진입 카드 질문이 `guessPrompt`, 안내 문장 세 가지가 선택값에 따라 바뀜(순수 함수로 분리해 검사 가능), 기존 결론 문구 미노출·라디오 입력 불변 유지.
+- 자동 테스트: `motion.test.ts`(reduce면 auto), JudgePage(불러오기 뒤 포커스 함수, 실습 안내 문구 두 경우), LearningPage(부제 `이 실습에서 볼 것:`·질문은 guessPrompt 하나), `learning.test.ts`(`focus` 세 개), `test_qa_local.py`(위 4절).
 - 네 명령의 실제 출력 전체를 이 문서에 붙인다:
   ```text
   cd engine && ../.venv/Scripts/python -m pytest -q
@@ -120,45 +97,69 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   npm --prefix web test
   npm --prefix web run build
   ```
-- 브라우저 확인(375×812·1280×800 × 라이트·다크, 320×812, 임시 SQLite·합성 데이터만):
-  - 학습 01 `통과할 것 같다` → 진입 카드 안내 `"된다(내 예상)"` → 불러오기 → 판정 → 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`(엔진 결과에 따라 문장 확인) + 둘째 줄, 빨강 채움 없음.
-  - 같은 경우(AGREE)도 한 번: `= …같습니다`, 초록 채움 없음.
-  - 사례 상세(AI 답 사례)와 정책 검증 화면에서 배너 문장·모양 회귀 확인.
-  - 실습 02 불러오기 후 홈 → 라벨 `왕복 경로 실습에서 시작한 입력`, 퍼즐 `다음 실습: 출력 ACL`. 그 뒤 판정기에서 예시 불러오기 → 홈 라벨 기본, 퍼즐 01.
-  - 375·320 홈·학습 상세 예상 단추 한 줄·같은 높이·아래 끝 위치 기록.
-  - 판정하기(단추·Ctrl+Enter) 뒤 `document.activeElement`가 `#result-title`인지, 1280에서 화면이 튀지 않는지.
-  - 대비 4.5:1(배너 라이트·다크), console error 0, 가로 넘침 없음.
-- 리뷰 때 Claude가 홈 `/impeccable critique`를 다시 돌려 26/40과 비교한다.
+- QA 도구 실제 실행 확인: 실행 → 주소 접속 → 두 계정 로그인 가능 → 사례 4건 보임 → 종료 뒤 임시 폴더 없음. **비밀번호는 기록하지 않는다.** 이 확인은 도구 동작 확인이며 사용자 수동 QA(A·B)를 대신하지 않는다.
+- 브라우저 확인(375·1280): 구성 불러오기 뒤 `activeElement`가 `#practice-title`, 학습 상세 부제, reduced-motion 에뮬레이션에서 스크롤이 즉시 이동.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
 ## 완료 내용 / 테스트 결과 (2026-10-04 Codex)
-- 사용자 승인 `37e66cf` 기준 "작업 정의" 1)~8)만 구현했다. 허용 코드 13파일 + 기록 2파일. 엔진·서버·API·cases JSON·expect·의존성·FlowForm·사례/매트릭스 페이지는 변경하지 않았다.
-- 배너: 엔진 `comparison`만 AGREE/DISAGREE 표시를 정하고, `claim.expected`·엔진 `result`를 통과/막힘으로 옮겼다. `=`/`≠`·조사·둘째 줄을 한 빌더에서 제공하며 statusLine은 첫 줄만 읽는다. 바탕/글자는 surface/ink, 왼쪽 선만 accent/warn이다. 비교를 다시 계산하거나 맞음/틀림을 선언하지 않는다.
-- 진입: 세 실습의 guessPrompt와 선택값별 승인 문장 사용. 예상은 직접 불러올 때만 `kind: "self"` 받은 답에 들어간다. 홈/학습/주소 진입·라디오만으로 Draft를 고치지 않는다.
-- 이어서 하기: App practiceCaseId는 실습 불러오기, 일반 load, 되돌리기, 사례→판정기 콜백에서만 갱신한다. 직접 편집/화면 왕복에는 유지하며 다음 주제를 01→02→03→01로 연결한다. 결과/판정 상태는 복원·표시하지 않는다. 기존 판정기 과제 안내 패널의 화면 왕복 소실은 범위 밖으로 유지했다.
-- 질문 20px(휴대폰 17px)/600, 퍼즐 제목 13px accent/600, 단추 아래 승인 안내. 예상 단추는 nowrap·같은 높이·나란히 배치. 로그인 320 첫 화면에서 하단818.48px로 넘는 것을 발견해 허용된 홈 hero 간격만 18→8px로 줄였다(최종808.48px).
-- 판정 완료/오류 finally 공용 경로에서 결과 제목을 tabIndex=-1로 focus(preventScroll). 휴대폰 smooth scroll 병행, 넓은 화면은 focus만. revision 불일치/예약 뒤 불러오기/언마운트에는 이동하지 않는다.
-- 웹 테스트 16개 추가(290→306): 비교×종류×값/엔진과 일부러 어긋난 조합, hint/statusLine, 질문/안내, 맥락/순환, 포커스·예약 취소·제목 없음. 기존 입력 불변/정답 미노출/그룹·제목 단계 검사를 유지했다.
-- 아래 네 명령을 최종 코드에서 직접 실행했다. 모두 exit 0. engine의 기존 strict xfail 2건, server의 PostgreSQL 실연결 skip 1건은 유지한다. 서버 테스트는 NETPROOF_TEST_DATABASE_URL을 제거해 임시 SQLite만 사용했다.
+
+- 승인 `231b943`의 작업 정의 1)~8)만 구현. F15 진입 카드·내부 실습 시작 후 실습 제목 포커스(늦은 예약 폐기), F16 공용 reduced-motion 스크롤, F17 부제 세 문장·받은 답 상태별 안내 문구.
+- QA 준비: 항상 새 OS 임시 SQLite, DATABASE_URL·PostgreSQL engine options 무시, SECURE_COOKIES=False, 127.0.0.1 고정, debug/reloader 없음. 두 계정·합성 사례 4건은 기존 API로 생성하고 판정은 기존 엔진에 맡김. 배포 앱·설정과 연결하지 않음.
+- 자동 회귀: 웹 10건·QA 도구 10건 추가. 원래 테스트/엔진/서버 앱/cases JSON/expect/의존성 불변. `git diff --check` 오류 없음.
+- **사용자 수동 QA A·B·C는 대기 유지.** AI는 목록 필터 G2·삭제 기본 확인창 취소를 수행하거나 통과로 표시하지 않았음. computer-use는 아래 F15/F17 구현 화면 확인에만 사용.
+
+### QA 도구 실제 실행 (비밀번호 제외)
+
+- 명령: `.venv/Scripts/python scripts/qa_local.py --port 4860`.
+- 저장소 밖 검증 프로세스가 자식 콘솔의 비밀번호를 메모리에서만 받아 두 계정의 loopback 로그인에 사용. 비밀번호 줄·쿠키·CSRF·응답 본문은 출력·파일·저장소·캡처에 남기지 않음. 아래에는 비밀값 없는 상태 출력만 기록.
+- 가짜 PostgreSQL DATABASE_URL을 설정한 상태에서 실행. HTTP 접속·두 계정 로그인·사례 네 건 조회만 확인(수동 QA 아님). 실제 CLI 정상 종료·임시 폴더 삭제·포트 listen 없음 확인. Windows Ctrl+Break와 Ctrl+C는 같은 정리 경로이며, 단위 테스트에서 KeyboardInterrupt 정리도 확인.
+
+```text
+GET /: 200
+qa_author: login 200, role=user
+qa_author: cases=4, QA prefix=True
+qa_reviewer: login 200, role=reviewer
+qa_reviewer: cases=4, QA prefix=True
+DATABASE_URL fake PostgreSQL ignored; temporary SQLite exists=True
+Credentials: console pipe/RAM only; omitted from this verification output.
+READY FOR UI CHECKS; manual A/B remain pending.
+Exit code=0; temporary directory removed=True
+QA listen count after shutdown: 0
+```
+
+### 브라우저 확인 — 구현 변경만 (375×812·1280×800)
+
+- Codex in-app browser, `http://127.0.0.1:4860/`, 라이트. A·B 체크리스트 미실행, 기본 확인창 대체/우회 없음.
+- 375: 학습01 부제 `이 실습에서 볼 것: 입력 ACL이 HTTPS 통신에 어떻게 적용되는지` 표시, 예상 질문 하나. 예상 선택→진입 카드→구성 불러오기 후 `document.activeElement.id=practice-title`. 제목으로 스크롤하여 보임. 페이지 내부 `실습 · 왕복 경로 · 시작`도 activeElement=practice-title.
+- 1280: 동일 부제·질문 하나. 예상 없이 진입→직접 불러오기 후 activeElement=practice-title, scrollY 불러오기 전후 0→0(넓은 화면 preventScroll). 페이지 내부 `실습 · 출력 ACL · 시작`도 activeElement=practice-title, scrollY=0. 받은 답 있음/없음 두 안내 문구 확인.
+- **reduced-motion 에뮬레이션 브라우저 검증 미확인:** 현재 브라우저가 제공하는 capability는 visibility·viewport뿐이며 탭도 pageAssets·webmcp만 제공. 미디어 에뮬레이션 API 없음. 실제 matchMedia(reduce)=false를 확인했으므로 즉시 스크롤 PASS로 주장하지 않음. 단위 테스트는 reduce=true→auto, false→smooth 및 ACL center 보존을 확인. Claude 리뷰에서 지원되는 브라우저로 에뮬레이션 재확인이 필요함.
+- 캡처는 저장소 밖 `C:/Users/dora2/.codex/visualizations/followup-qa-2026-10-04/`의 learning-375/1280·practice-focus-375/1280.png. 비밀번호 화면 캡처 없음. 검증 탭 닫음·viewport reset, QA 서버 종료·임시 DB 삭제(재실행하면 새 합성 데이터가 생김).
+
+### 네 명령의 실제 전체 출력
+
+서버 명령은 실행 전 `NETPROOF_TEST_DATABASE_URL`을 프로세스 환경에서 제거해 기존 PostgreSQL 테스트 DB를 건드리지 않음. 모든 exit code 0. skip/xfail은 기존 항목이며 이번에 통과로 바꾸지 않음.
 
 ### cd engine && ../.venv/Scripts/python -m pytest -q
+
 ```text
 ........................................................................ [ 21%]
 ........................................................................ [ 43%]
 ........................................................................ [ 65%]
 ........................................................................ [ 87%]
 ......................................xx                                 [100%]
-326 passed, 2 xfailed in 4.39s
+326 passed, 2 xfailed in 6.00s
 ```
 
 ### cd server && ../.venv/Scripts/python -m pytest -q
+
 ```text
-.......................................................................s [ 78%]
-....................                                                     [100%]
-91 passed, 1 skipped in 30.94s
+.......................................................................s [ 70%]
+..............................                                           [100%]
+101 passed, 1 skipped in 19.19s
 ```
 
 ### npm --prefix web test
+
 ```text
 
 > netproof-web@0.1.0 test
@@ -168,17 +169,18 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
  RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
 
 
- Test Files  23 passed (23)
-      Tests  306 passed (306)
-   Start at  18:48:38
-   Duration  634ms (transform 66%, import 21%, tests 9%, worker 4%)
+ Test Files  24 passed (24)
+      Tests  316 passed (316)
+   Start at  19:52:15
+   Duration  1.12s (transform 53%, import 28%, worker 13%, tests 6%)
 
-  Transform  transforming modules took 3.41s · 66% of tracked time, re-done on every run
+  Transform  transforming modules took 4.54s · 53% of tracked time, re-done on every run
              persist transforms across runs with fsModuleCache: true
              learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
 ```
 
 ### npm --prefix web run build
+
 ```text
 
 > netproof-web@0.1.0 build
@@ -186,7 +188,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 vite v8.3.1 building client environment for production...
 transforming...
-✓ 54 modules transformed.
+✓ 55 modules transformed.
 rendering chunks...
 computing gzip size...
 dist/index.html                                            0.62 kB │ gzip:   0.45 kB
@@ -283,59 +285,32 @@ dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
 dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
 dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
 dist/assets/index-CThyBs7X.css                            78.95 kB │ gzip:  22.20 kB
-dist/assets/index-B1q0oKJb.js                            335.34 kB │ gzip: 101.23 kB
+dist/assets/index-Ycfs375n.js                            335.98 kB │ gzip: 101.41 kB
 
-✓ built in 363ms
+✓ built in 925ms
 ```
 
-### 브라우저 확인 — 임시 SQLite · 합성 데이터만
-- 환경: Codex in-app Chromium, 프로덕션 web/dist, localhost:5187의 별도 임시 SQLite. 합성 계정·합성 AI 답 사례 1건을 기존 UI/API로 만들었고 실제 DB/계정/네트워크는 사용하지 않았다. computer-use 스킬에 따라 실제 UI 조작·DOM 측정·스크린샷으로 확인했다.
-- 375×812·1280×800 × 라이트/다크: 공개 홈, 학습 01→예상→진입→직접 불러오기→판정 흐름 확인. 320×812도 라이트/다크 확인. 세 학습 상세는 세 크기 × 두 테마 총18조합에서 예상 단추가 한 줄/같은 높이, 가로 넘침 없음.
-- 01 통과 예상: 같은 HTTPS(TCP443) 질문→`구성을 불러오면 받은 답이 "된다(내 예상)"로 들어갑니다.`→불러오기→엔진 DENY/DISAGREE→`≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다` + 승인 둘째 줄. surface 바탕/warn 왼쪽 선, 빨강 채움 없음.
-- 01 막힘 예상: 안내 `"안 된다(내 예상)"`→엔진 DENY/AGREE→`= 내 예상(막힘)과 NetProof 계산이 같습니다`, 둘째 줄 없음. 두 테마 모두 surface 바탕/accent 왼쪽 선, 초록 채움 없음. 예상 없이 안내도 승인된 `"비교 안 함"` 문장 확인.
-- 기존 목적지 포트8443에서 학습→예상→라디오 변경 뒤에도8443, 직접 구성 불러오기 클릭 후443이 되었다. self 종류도 확인. 첫 진입은 기존 장비/ACL/받은 답을 유지했고 계산 요청/결과를 만들지 않았다.
-- 실습02 불러오기 후 홈: `왕복 경로 실습에서 시작한 입력`·ICMP 요약·`다음 실습: 출력 ACL`. 예시01 불러오기 후 홈: 기본 라벨·`다음 실습: HTTPS와 입력 ACL`. 실습03→예시01→되돌리기→홈: `출력 ACL 실습에서 시작한 입력`·TCP22·내 예상 막힘·다음01. 사례의 판정기에서 열기 뒤에도 기본 라벨/01.
-- 사례 상세 AI 답: `≠ AI 답(통과)와 NetProof 계산(막힘)이 다릅니다` + 둘째 줄. 정책 검증 TCP443 의도PASS/엔진DENY: `≠ 받은 답(통과)와 NetProof 계산(막힘)이 다릅니다` + 둘째 줄. **두 화면 모두375/1280 × 라이트/다크 네 조합**에서 문장·중립 바탕·왼쪽 warn 선·페이지 넘침 없음. 매트릭스의 원래 내부 가로 스크롤은 유지한다. QA 의도는 UI의 의도 없음으로 되돌렸다.
-- 최종 홈 단추 측정(두 테마 동일, 두 단추 모두 높이44.796875px/같은 y):
-  - 비로그인375: y641.859375·하단686.65625·폭143px.
-  - 비로그인320: y680.59375·하단725.390625·폭115.5px.
-  - 로그인375: y671.109375·하단715.90625·폭143px.
-  - 로그인320(합성 긴 닉네임): y763.6875·하단808.484375·폭115.5px. 계정 조회 완료 뒤 측정했다.
-  - 1280: y370.46875·하단415.265625, 질문20px.
-- 학습 상세(로그인, 두 테마 동일):375 하단01=632.578125/02=635.875/03=655.828125px,320 하단01=782.71875/02=716.0625/03=726.71875px. 모두 나란히/44.796875px, 각 화면 높이812px 안이다. 비로그인01 하단375=603.328125/320=699.625px도 확인했다.
-- 포커스:375 단추 및 Ctrl+Enter 뒤 activeElement.id=`result-title`.1280 Ctrl+Enter 뒤 동일, 최종 scrollY334→334(화면 튐 없음). 오류/폐기 응답 예약 분기는 공용 finally/순수 포커스 테스트로 확인했고 실제 통신 오류를 브라우저에 주입하지는 않았다.
-- 배너 글자/바탕 측정: 라이트 rgb(29,34,32)/rgb(255,255,255)=**16.13:1**, 다크 rgb(230,235,232)/rgb(28,33,31)=**13.53:1**(WCAG 상대 휘도 식). 둘째 줄도 같은 ink를 쓴다.
-- 콘솔 error0, 확인한 화면 조합 모두 documentElement.scrollWidth≤innerWidth. 실제 장비·물리폰·실제 스크린리더·200% 확대·PostgreSQL 실연결·지연 응답 브라우저 주입은 미검증이며 PASS로 적지 않는다.
-- 캡처(로컬, git 제외): `C:/Users/dora2/.codex/visualizations/home-ux-2026-10-04/ux3-final-home-375-light.png`, `ux3-final-home-320-account-light.png`, `ux3-final-banner-375-light.png`, `ux3-case-{375,1280}-{light,dark}.png`, `ux3-matrix-{375,1280}-{light,dark}.png`.
-- 정리: 임시 서버5187 listen 없음 확인, 테스트 DB `netproof-home-ux-pcl_h34m/qa.db`와 빈 임시 폴더만 삭제(합성 데이터 복구용 백업 없음). 생성한 QA 탭 닫기, viewport reset, 테마 기기 설정으로 복원했다. 캡처/명령 출력은 DB와 별도로 보존했다.
-- 다음 차례 **리뷰(Claude)**: 승인37e66cf·작업 정의1)~8)/diff/출력을 독립 확인하고 홈 critique26/40과 비교한다. F5·F6 및 PR20 사용자 G2·실제 삭제 취소 수동 확인 대기는 그대로다. 병합하지 않았다.
+구현·테스트: Codex (GPT-5).
 
-Codex (GPT-5)
 
 ## 현재 과제 리뷰 기록
-### PR #26 Claude 독립 리뷰 (2026-10-04, HEAD `e8f4175`) — **PASS**
-- 근거: `git diff origin/main...HEAD` 15파일. 엔진·서버 변경 0, 승인 설계 6절 허용 목록 안. 번들에 cases JSON이 없다.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 4.06s` · 서버 `91 passed, 1 skipped in 32.23s` · 웹 `23 files, 306 passed` · 빌드 `✓ built in 239ms`.
-- 브라우저(임시 SQLite, localhost)로 직접 확인:
-  - 학습 01 `통과할 것 같다` → 진입 카드 질문은 `guessPrompt`이고, 안내는 선택값에 따라 바뀐다(`"된다(내 예상)"` ↔ `예상 없이 … "비교 안 함"`).
-  - 불러오기 → 판정 → 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다` + `아래 경로와 ACL 근거에서 이유를 확인해 보세요.`가 나온다. 바탕은 surface, 글자는 ink, 왼쪽 선만 `--warn`이며 빨강 채움은 없다. 상태 줄은 첫 줄만 읽는다.
-  - 홈 이어서 하기: 라벨 `HTTPS와 입력 ACL 실습에서 시작한 입력`, `다음 실습: 왕복 경로`(ping 질문). 예시 02를 불러온 뒤에는 라벨이 기본으로 돌아가고 다음 실습은 01이다.
-  - 320×812: 홈·학습 03의 예상 단추가 한 줄·45px로 나란히 서고, 홈 아래 끝은 725다. 퍼즐 라벨 13px, 질문 17px, 넘침 없음.
-  - 판정 뒤 포커스(F14)는 창이 가려져 requestAnimationFrame이 멈춘 환경이라 Claude 브라우저로 재현하지 못했다. Codex 기록(375·1280에서 `activeElement.id=result-title`, 1280 scrollY 변화 없음)과 `focusJudgeResult` 단위 테스트로 확인했다.
-- 설계 대조:
-  - 1)~5)를 반영했다. 배너는 `claim.expected`와 엔진 `result`를 옮기고, 엔진 `comparison`이 AGREE/DISAGREE일 때만 문장을 만든다(ADR-001). `✓·✕`·`틀렸습니다/맞았습니다`는 없다.
-  - 실습 맥락은 명시 알림 4곳에서만 바뀐다.
-- **홈 critique 4회차(dual-agent): 25/40**(27 → 26 → 26 → 25). 기록은 `.impeccable/critique/2026-10-04T10-27-03Z__web-src-pages-homepage-tsx.md`(로컬, git 제외).
-  - 이번 목표는 측정상 달성: 배너가 비교로 읽히고 대비가 13~16:1이다. 예상 이름이 이어지고, 휴대폰 단추가 한 줄이고, 이어서 하기에 맥락이 생겼다.
-  - 점수는 회차마다 새 리뷰가 흐름의 다음 층을 지적해 오르지 않는다. 지금 지적은 배너 아래 대결 머리의 빨간 `막힘`·같은 말 세 번, 진입 단계의 두 번 확인, 결과 뒤 다음 할 일 없음이다.
-  - **화면 다듬기만으로는 점수가 수렴하지 않는다.** 다음 판단은 실제 학생 관찰(사람 트랙 인터뷰)로 하는 것이 낫다.
-- 비차단 후속:
-  - F15: 구성 불러오기 뒤 포커스가 body로 간다(진입 카드 단추가 사라짐).
-  - F16: 결과로 가는 smooth 스크롤이 `prefers-reduced-motion`을 따르지 않는다.
-  - F17: 학습 상세에는 질문이 두 개다(`task.question`·`guessPrompt`). 실습 안내 문구 "받은 답이나 내 예상을 적어 비교하세요"가 이미 채워진 상태와 어긋난다.
-- 다음 설계 후보(사용자 결정 필요): 배너가 있을 때 대결 머리·verdict-line 정리(같은 비교를 한 번만), 진입 카드에 그림·예상 확인 칩, 결과 끝에 "개념 다시 보기 · 다음 실습".
+### PR #27 Claude 독립 리뷰 (2026-10-04, HEAD `a585a1a`) — **PASS**
+- 근거: `git diff origin/main...HEAD` 14파일. 엔진·서버 앱 코드 변경 0(`server/tests/test_qa_local.py`만 추가). 배포물(`api/`, `vercel.json`)은 그대로다. 승인 설계 6절 허용 목록 안.
+- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.64s` · 서버 `101 passed, 1 skipped in 35.30s`(QA 도구 테스트 포함) · 웹 `24 files, 316 passed` · 빌드 `✓ built in 245ms`.
+- QA 도구 실제 실행(Claude 스크립트, 비밀번호는 읽기만 하고 출력·기록하지 않음):
+  - `DATABASE_URL=postgres://…`(가짜)를 설정한 채 `scripts/qa_local.py --port 4871`을 실행했다. 새 OS 임시 폴더의 SQLite로 열렸다.
+  - `qa_author`(user)·`qa_reviewer`(reviewer)로 로그인되고, 각각 사례 4건이 보이고, `/`는 200이다.
+  - CTRL_BREAK로 종료하니 exit 0이고 임시 폴더가 삭제됐다. 서버는 `127.0.0.1`에만 열린다(`make_server("127.0.0.1", …)`).
+- 코드 대조:
+  - F15: `startPractice` 뒤 `focusPractice`가 `#practice-title`로 포커스를 옮기고, revision이 바뀌면 버린다.
+  - F16: `motion.ts` `scrollTo` 한 곳으로 세 스크롤을 모았다(reduced-motion이면 `auto`).
+  - F17: 학습 상세 부제 `이 실습에서 볼 것: …`, 실습 안내 문구는 받은 답 유무에 따라 바뀐다.
+  - 체크리스트 `docs/qa-manual.md`는 A(PR #20 G2)·B(실제 확인창 취소)·C(홈 흐름)·D(사람 기록)이며, AI가 완료로 바꾸지 않는다고 적었다.
+- 브라우저 미확인: Claude 창이 가려져 requestAnimationFrame이 멈추는 환경이라 F15 포커스를 직접 재현하지 못했다. 이 도구에는 reduced-motion 에뮬레이션도 없다. 두 동작은 `focusPractice`·`scrollTo` 단위 테스트와 Codex 기록으로 확인했다. **사용자 수동 QA C에서 포커스 항목을 사람이 확인한다.**
+- 남은 것: 사용자 수동 QA A·B·C(병합 뒤), F5·F6.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
 - **PR #25 홈·학습 2차 (병합 완료, `397ee0d`)**: 계산 범위 띠(`NetProof 계산 범위` + 점선 `실제 장비`), 홈 퍼즐을 채운 단추 주 행동으로(375 단추 아래 끝 745/812), 세 실습 모두 예상 블록(`guessPrompt`·공용 `GuessPuzzle`), 판정기 진입 카드 예상 라디오(통과/막힘/예상 없이). Claude 독립 리뷰 PASS(`cd49334`), critique 3회차 26/40 → 사용자 병합. 후속 F12~F14와 배너 톤은 이번 과제.
 - **PR #24 홈·학습실 개선 (병합 완료, `b8bb8e8`)**: 홈 예상 퍼즐(synthetic-01)·이어서 하기 얼굴·PathStrip 경로 그림·학습 상세 먼저·포커스 이동·말 다듬기·휴대폰 헤더. 리뷰 R1(메뉴 키보드 순서)·R2(제목 단계) → critique 2회차 26/40에서 P0(예상 직후 예시 단추 제목이 답 노출) 발견 → 사용자 결정으로 R3(예시 단추 주제 이름)·R4(F9~F11) → Claude 재리뷰 PASS(`575f902`) → 사용자 병합. 남은 P1·P2는 이번 과제.
 - **PR #23 홈·학습실·헤더 MVP (병합 완료, `82975e6`)**: 공개 홈·학습실 3주제·모바일 헤더·현재 입력 안내·명시적 실습 불러오기. 설계는 사용자 요청으로 Codex가 맡음(일회). Claude 독립 리뷰 PASS(`179d46e`) → 사용자 병합. 후속 F7(실습 알림 "실습" 중복, 이번 2절에서 처리), F8(낡은 지시, 이번 문서 정리로 처리), 실제 200% 확대 미확인. 병합 뒤 홈 critique 27/40 → 이번 과제.
@@ -409,22 +384,22 @@ Codex (GPT-5)
 - [x] **홈·학습실·헤더 MVP(2026-10-04 추가)** — ①② PR #23 병합(`82975e6`).
 - [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
 - [x] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② PR #25 병합(`397ee0d`).
-- [ ] **비교 배너 톤·실습 흐름 다듬기(중립 배너, 예상 이름 잇기, 이어서 하기 맥락, F12·F14)** — ② **구현·테스트 완료, 리뷰(Claude) 대기 — 브랜치 codex/home-ux3**
+- [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
+- [ ] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② **승인231b943 구현·테스트, 리뷰(Claude) 대기 — 브랜치 codex/followup-qa**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- PR #26은 Claude 독립 리뷰 PASS(`e8f4175`). 다음은 사용자 병합 결정이다. 병합 뒤 새 작업은 Claude 설계와 사용자 승인 후 새 codex 브랜치에서 시작한다.
-- 배너는 엔진 `comparison`·`result`만 옮겨 적는다. 화면이 비교를 다시 계산하면 설계 위반이다(ADR-001). `틀렸습니다/맞았습니다` 같은 단정은 쓰지 않는다.
-- 예상은 학생이 고른 받은 답(`kind: "self"`)이다. 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
-- 다음 우선 확인은 아래 **사용자 수동 QA**다. 미확인을 PASS로 적지 않는다. 코드·배포·병합은 자동 진행하지 않는다.
-- 판정기 규칙(되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다. 배너 문장은 이번 1절이 새 기준이다.
+- PR #27은 Claude 독립 리뷰 PASS(`a585a1a`). 다음은 사용자 병합 결정, 그 뒤 사람이 `docs/qa-manual.md`로 수동 QA를 한다.
+- QA 도구는 임시 SQLite·`127.0.0.1`만 쓴다. `DATABASE_URL`을 무시하고, 비밀번호는 콘솔에만 출력한다. 배포물에 연결하지 않는다.
+- 수동 QA(A·B)의 결과는 사람이 적는다. AI는 QA를 대신 통과·완료로 표시하지 않고, 확인창을 대체·우회하지 않는다.
+- 배너는 엔진 `comparison`·`result`만 옮겨 적는다(ADR-001). 진입·주소·라디오만으로 입력을 바꾸지 않는다. cases JSON은 테스트에서만 import한다.
+- 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.
 
-## 사용자 수동 QA 대기 (PR #20 G2·삭제 취소)
-- **환경:** 병합된 main 빌드, 새 임시 SQLite·합성 계정/사례만 사용한다. 기존/운영 DB의 실제 사례를 삭제 시험에 쓰지 않는다. 실제 기본 확인창을 대체하거나 우회하지 않는다.
-- **G2 화면 확인:** 375×812·1280×800에서 라이트/다크로 목록의 필터 접기·적용 조건·검색/초기화, 사례 상세의 구성 원문·받은 답·NetProof 계산 구분을 사람이 확인한다. 초기 코드 QA와 별도의 사용자 확인이다.
-- **삭제 취소:** 합성 사례 상세에서 삭제를 누르고 실제 브라우저 확인창의 **취소**를 클릭한다. 같은 상세 URL에 머물고 새로고침 후 사례가 남는지 확인한다. 가능하면 Network에서 DELETE 요청이 없었는지도 기록한다. confirm=false 대체 검사 결과를 이 확인으로 쓰지 않는다.
-- **기록:** 실행 날짜·브라우저/버전·확인한 화면 조합·취소 후 URL/사례 존재·문제 재현 순서. 계정 비밀번호·쿠키·토큰은 문서/캡처에 포함하지 않는다. 확인한 항목만 완료로 바꾼다.
-- **F5·F6:** 이번에는 코드 그대로. 빈 템플릿 알림과 조사 표기는 후속 설계/수정 승인 시 별도 처리한다.
+## 사용자 수동 QA 대기 (PR #20 G2·삭제 취소 + 홈·실습 흐름)
+- **A(PR #20 G2)·B(실제 기본 확인창 삭제 취소)·C(홈·실습 흐름): 사용자 수동 확인 대기.** 도구 실행 확인과 F15·F17 구현 검증은 수동 QA 통과가 아니다.
+- 병합 뒤 [체크리스트](docs/qa-manual.md)와 `scripts/qa_local.py`로 사람이 직접 확인한다. 결과는 사람이 PR 코멘트나 이 절에 적는다. 비밀번호·쿠키·토큰은 기록하지 않는다.
+- 원칙: 임시 DB·합성 계정/사례만 쓴다. 실제 기본 확인창을 대체·우회하지 않는다. 비밀번호·쿠키·토큰을 기록하지 않는다. 확인한 항목만 완료로 바꾼다.
+- F5·F6(판정기 빈 템플릿 알림, 조사)은 별도 후속이다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
@@ -440,4 +415,4 @@ Codex (GPT-5)
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 비교 배너·실습 흐름 설계: Claude (Claude Opus 5.5).
+현재 후속·수동 QA 준비 설계: Claude (Claude Opus 5.5). 구현·테스트: Codex (GPT-5).

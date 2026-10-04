@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { JudgePage, PracticeGuessPicker, focusJudgeResult } from "./JudgePage";
+import { JudgePage, PracticeGuessPicker, focusJudgeResult, focusPractice, practiceHint } from "./JudgePage";
 import { lessonByCaseId } from "../learning";
 import { blankDraft, toNetwork } from "../draft";
 import type { CaseItem } from "../types";
@@ -65,7 +65,7 @@ describe("완료 요청의 결과 포커스", () => {
     let frame!: () => void;
     vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
     vi.stubGlobal("document", { getElementById: vi.fn(() => heading) });
-    vi.stubGlobal("window", { matchMedia: vi.fn(() => ({ matches: mobile })) });
+    vi.stubGlobal("window", { matchMedia: vi.fn(query => ({ matches: query === "(max-width: 900px)" && mobile })) });
     focusJudgeResult(() => true);
     expect(heading.focus).not.toHaveBeenCalled();
     frame();
@@ -90,6 +90,36 @@ describe("완료 요청의 결과 포커스", () => {
     focusJudgeResult(() => true);
     expect(getElementById).toHaveBeenCalledWith("result-title");
   });
+});
+describe("불러오기 후 실습 포커스", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it.each([true, false])("실습 제목으로 이동: 휴대폰=%s", mobile => {
+    let frame!: () => void;
+    const heading = { tabIndex: 0, focus: vi.fn(), scrollIntoView: vi.fn() };
+    const getElementById = vi.fn(() => heading);
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
+    vi.stubGlobal("document", { getElementById });
+    vi.stubGlobal("window", { matchMedia: (query: string) => ({ matches: query === "(prefers-reduced-motion: reduce)" || mobile }) });
+    focusPractice(() => true); frame();
+    expect(getElementById).toHaveBeenCalledWith("practice-title");
+    expect(heading.tabIndex).toBe(-1);
+    expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true });
+    if (mobile) expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+    else expect(heading.scrollIntoView).not.toHaveBeenCalled();
+  });
+  it("예약 뒤 다른 입력을 불러오면 포커스도 버린다", () => {
+    let frame!: () => void; let current = true;
+    const getElementById = vi.fn();
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => { frame = callback; });
+    vi.stubGlobal("document", { getElementById });
+    focusPractice(() => current); current = false; frame();
+    expect(getElementById).not.toHaveBeenCalled();
+  });
+});
+it.each(["PASS", "DENY", null] as const)("실습 안내는 현재 받은 답 유무를 따른다: %s", expected => {
+  expect(practiceHint({ expected, source: "", text: "" })).toBe(expected
+    ? "정답은 들어 있지 않습니다. 판정하면 받은 답과 NetProof 계산을 비교합니다."
+    : "정답은 들어 있지 않습니다. 직접 판정하고, 받은 답이나 내 예상을 적어 비교하세요.");
 });
 it("진입 라디오 이벤트는 App 예상 콜백만 호출하고 Draft를 고치지 않는다", () => {
   const draft = blankDraft(); const before = JSON.stringify(draft); const setDraft = vi.fn(); const onChange = vi.fn();

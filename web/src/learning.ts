@@ -10,9 +10,10 @@ export interface LessonPath {
 }
 
 const semantics = "https://github.com/myeongjundev/netproof/blob/main/docs/semantics.md";
-const metadata: { id: string; caseId: string; title: string; category: string; guessPrompt: string; concept: string; analogy: string; sources: { label: string; href: string }[]; path: LessonPath }[] = [
+const metadata: { id: string; caseId: string; title: string; category: string; focus: string; guessPrompt: string; concept: string; analogy: string; sources: { label: string; href: string }[]; path: LessonPath }[] = [
   {
     id: "https-acl", caseId: "synthetic-01", title: "HTTPS와 입력 ACL", category: "ACL 기초",
+    focus: "입력 ACL이 HTTPS 통신에 어떻게 적용되는지",
     guessPrompt: "PC1에서 SRV의 HTTPS(TCP 443)에 접속할 수 있을까요?",
     path: { nodes: [{ id: "PC1", kind: "host" }, { id: "R1", kind: "router" }, { id: "SRV", kind: "host" }], acls: [{ device: "R1", iface: "g0/0", dir: "in", name: "101" }] },
     concept: "입력 ACL은 라우터 인터페이스로 들어오는 패킷의 조건을 확인합니다. 위에서부터 처음 일치하는 규칙의 동작을 따르며, 붙은 ACL에서 일치하는 규칙이 없으면 암묵적으로 막힙니다.",
@@ -21,6 +22,7 @@ const metadata: { id: string; caseId: string; title: string; category: string; g
   },
   {
     id: "round-trip", caseId: "synthetic-02", title: "왕복 경로", category: "경로 확인",
+    focus: "가는 길과 돌아오는 길이 모두 있는지",
     guessPrompt: "PC1에서 SRV2로 보낸 ping(ICMP)이 왕복할 수 있을까요?",
     path: { nodes: [{ id: "PC1", kind: "host" }, { id: "R1", kind: "router" }, { id: "R2", kind: "router" }, { id: "SRV2", kind: "host" }], acls: [], roundTrip: true },
     concept: "NetProof의 기본 session 모드는 가는 길과 돌아오는 길을 모두 계산합니다. ACL은 무상태이므로 가는 길이 허용됐다고 돌아오는 길이 자동으로 허용되지는 않습니다. 상태 기반 방화벽의 동작은 이 모델의 지원 범위 밖입니다.",
@@ -29,6 +31,7 @@ const metadata: { id: string; caseId: string; title: string; category: string; g
   },
   {
     id: "output-acl", caseId: "synthetic-03", title: "출력 ACL", category: "적용 방향",
+    focus: "출력 ACL이 나가는 패킷에 어떻게 적용되는지",
     guessPrompt: "PC1에서 SRV의 SSH(TCP 22)에 접속할 수 있을까요?",
     path: { nodes: [{ id: "PC1", kind: "host" }, { id: "R1", kind: "router" }, { id: "SRV", kind: "host" }], acls: [{ device: "R1", iface: "g0/1", dir: "out", name: "110" }] },
     concept: "라우터는 입력 ACL을 확인하고 경로를 조회한 뒤, 나가는 인터페이스의 출력 ACL을 확인합니다. in과 out은 그 인터페이스를 기준으로 패킷이 들어오고 나가는 방향입니다. 같은 통신도 ACL이 붙은 위치와 방향을 함께 살펴봐야 합니다.",
