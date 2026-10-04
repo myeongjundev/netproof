@@ -26,6 +26,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: `codex/home-ux`(origin/main `82975e6` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 승인: **사용자 승인 완료 — 설계 `b2746fa`(2026-10-04 이번 구현 요청).**
 - 단계: **Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
+- PR: **[#24 홈·학습실 UX 개선](https://github.com/myeongjundev/netproof/pull/24)** — main 대상, 구현 `dd6f2cd`, OPEN(미병합).
 - 다음 차례: **리뷰(Claude).** 병합하지 않는다.
 - **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·기존 expect를 바꾸지 않는다. 홈은 정답·채점·완료 표시를 만들지 않는다.
 
