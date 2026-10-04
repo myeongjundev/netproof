@@ -22,6 +22,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 결정(2026-10-04): 다음 단계로 네 후보(계산 범위 띠, 퍼즐 주 행동, 학습 상세마다 예상 단추, 진입 카드에서 예상 바꾸기)를 설계한다.
 - 브랜치: `codex/home-ux2`(origin/main `b8bb8e8` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 승인: **사용자 승인 완료 — 설계 `98cbf2b`(2026-10-04 구현 요청).**
+- PR: **[#25 홈·학습 2차: 모든 실습의 예상 먼저 흐름](https://github.com/myeongjundev/netproof/pull/25)** — main 대상, 구현 `45b3948`, OPEN(미병합).
 - 단계: **Claude 설계 → 사용자 승인 → Codex 구현·테스트 완료 → Claude 리뷰 → 사용자 병합 결정.**
 - 다음 차례: **리뷰(Claude)** — 승인 설계 1)~7)·diff·독립 테스트·브라우저 흐름 확인 후 홈 critique를 26/40과 비교한다. 병합하지 않는다.
 - **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·cases JSON·expect를 바꾸지 않는다. 정답·채점·완료 표시를 만들지 않는다.
