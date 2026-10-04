@@ -21,7 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 사용자 요청 “이번 설계는 너가 해줘”로 이번 설계만 Codex가 맡았으며, “작업진행하자”(2026-10-04)로 [설계](docs/home-learning-ui.md)와 구현 범위를 승인했다. 일반 역할 규칙은 변경하지 않는다.
 - PR #22 MERGED·`b3f145b` 확인 후 같은 worktree `C:/gov/project/skt aleph/netproof-judge-ux`에서 origin/main 기반 `codex/home-learning-ui`를 생성했다. 원래 `codex/acl-suggest` 폴더와 이전 브랜치는 보존한다.
 - 목표: 공개 홈·고정 배너·학습실 3주제·모바일 헤더·현재 입력으로 돌아가기·명시적 실습 불러오기. 첫 방문(빈 해시)은 홈, 기존 `#/`·공유 주소는 판정기로 유지한다.
-- 다음 차례: **리뷰(Claude) → 사용자 병합 결정**. 구현·테스트·브라우저 확인 완료(실제 200% 확대는 미확인). 병합하지 않는다.
+- 다음 차례: **사용자 — PR #23 병합 결정.** Claude 독립 리뷰 PASS(`13e9439`, 아래 "이전 과제 리뷰 기록" 맨 위). 실제 200% 확대는 미확인. 병합하지 않는다.
 - PR: [#23 홈·학습실·헤더 MVP](https://github.com/myeongjundev/netproof/pull/23), main 대상 OPEN. 설계 `320d97e`·구현 `b000064` 커밋·푸시 완료, [Codex 검증 출력 코멘트](https://github.com/myeongjundev/netproof/pull/23#issuecomment-5971715859). 리뷰어는 아래 현재 완료 절을 기준으로 재확인한다.
 - 자동 저장·내 실습·점수·뉴스·사례 공개 피드는 제외. F5·F6, PR #20 G2/실제 삭제 취소 수동 QA는 별도 대기 유지.
 
@@ -577,6 +577,24 @@ dist/assets/index-DpEveb1U.js                            317.69 kB │ gzip: 96.
 구현·테스트·기록: Codex (GPT-6)
 
 ## 이전 과제 리뷰 기록
+### PR #23 홈·학습실·헤더 Claude 독립 리뷰 (2026-10-04, HEAD `13e9439`) — **PASS**
+- 근거: `git diff origin/main...HEAD` 19파일. 엔진·서버 변경 0. 모두 승인 설계 6절 허용 목록 안이며, 결과·편집기 컴포넌트와 `types/draft/practice/share`는 그대로다.
+- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.97s` · 서버 `91 passed, 1 skipped in 31.30s` · 웹 `21 files, 252 passed` · 빌드 `✓ built in 263ms`.
+- 브라우저(임시 SQLite, localhost)로 직접 확인:
+  - 해시 없는 첫 진입은 홈이고, 작성 중 안내가 없다.
+  - 판정기에서 입력을 고친 뒤 `#/home`으로 가면 "작성 중인 입력이 있습니다"가 뜬다.
+  - 학습 상세에서 `#/practice/synthetic-01`로 진입하면 입력은 그대로이고 "실습 구성 불러오기"만 보인다.
+  - 버튼을 누르면 주소가 `#/`로 바뀌고 받은 답이 "비교 안 함"이 된다. 실습 안내와 되돌리기 알림이 뜨고, 뒤로 가기는 `#/learn/https-acl`로 간다.
+  - 375에서 메뉴 펼침 → Escape로 닫힘, 메뉴 버튼으로 focus 복귀, scrollWidth 375.
+- 설계 대조:
+  - 홈·학습실은 판정·사례 API를 부르지 않는다. 결과·expect·정답·완료 배지도 없다.
+  - 학습 설명(입력 ACL 첫 일치·암묵적 deny, 무상태 왕복, in→경로→out 순서)은 `docs/semantics.md` 2·4·5·6절과 맞다. GitHub 절 링크 형식도 제목과 맞다.
+  - 실습 진입은 직접 누를 때만 기존 `load`·되돌리기 경로를 쓴다. ADR-001 위반은 없다.
+- 비차단 후속:
+  - F7: 실습 시작 알림이 "실습 · HTTPS와 입력 ACL 실습을 시작했습니다"로 "실습"이 겹친다. 과제 제목의 접두어 때문이며 PR #21부터 있던 문구다.
+  - F8: 이 문서 "다음 LLM이 확인할 내용"에 지난 PR #22 리뷰 지시가 남아 있다. 다음 문서 정리 때 지운다.
+  - 실제 200% 확대·물리 스크린리더는 미확인(Codex 기록 그대로).
+
 ### PR #22 문서 정리 Claude 리뷰 (2026-10-04, HEAD `463ddb6`) — **PASS**
 - diff는 `HANDOFF.md`·`decisions/ai-work-log.md` 두 파일뿐이다. main 코드는 Claude가 재리뷰한 `5056cb0`과 트리가 같다(`git diff 5056cb0 origin/main` 비어 있음).
 - 직접 실행: 엔진 `326 passed, 2 xfailed in 3.32s` · 서버 `91 passed, 1 skipped in 29.89s` · 웹 `15 files, 219 passed` · 빌드 `✓ built in 235ms`.
