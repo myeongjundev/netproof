@@ -17,142 +17,90 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **홈·학습실 개선** — Impeccable critique(2026-10-04, 홈 27/40)의 우선 문제 5개와 작은 문제들. 홈 첫 화면에서 "예상 → 계산 → 비교"를 바로 시작하게 하고, 작성 중인 학생에게는 이어서 하기를 먼저 보여 주고, 계산과 실제 장비의 경계를 그림으로 보인다 (순환 고리 ①②).
-- 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-04T00-51-48Z__web-src-pages-homepage-tsx.md`. 디자인 리뷰와 검출기(TSX 0건, CSP로 오버레이 불가)·브라우저 측정(넘침 없음, 대비 최저 5.64:1)을 합친 결과다. 필요한 내용은 아래 작업 정의에 모두 옮겼다.
-- 사용자 결정(2026-10-04):
-  - 우선 영역: **첫 실습 흐름.** 범위: **우선 문제 5개 전부.**
-  - 아이디어 **A 예상 고르기 첫 화면, B 패킷 경로 그림, C 두 얼굴 홈, D 학습 카드 축소 구성도** 모두 채택.
-  - 설계는 Claude가 쓴다(기본 역할).
-- 브랜치: `codex/home-ux`(origin/main `82975e6` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 승인: **사용자 승인 완료 — 설계 `b2746fa`(2026-10-04 이번 구현 요청).**
-- 단계: **R1·R2 해결 → 사용자 R3·R4 수정 승인 → Codex 수정·재테스트 완료 → Claude 재리뷰 → 사용자 병합 결정.**
-- PR: **[#24 홈·학습실 UX 개선](https://github.com/myeongjundev/netproof/pull/24)** — main 대상, 구현 `dd6f2cd`, OPEN(미병합).
-- 다음 차례: **사용자 — PR #24 병합 결정.** Claude 재리뷰 PASS(`40df78d`, R1~R4 해결). 병합하지 않는다.
-- **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·기존 expect를 바꾸지 않는다. 홈은 정답·채점·완료 표시를 만들지 않는다.
+- 작업: **홈·학습 2차 — 예상 먼저를 모든 실습으로** — 홈 critique 2회차(2026-10-04, 26/40)의 P1·P2 중 네 가지. 계산 범위를 그림으로 감싸고, 예상 퍼즐을 홈의 주 행동으로 세우고, 세 실습 모두에서 "예상 → 계산 → 비교"를 하게 하고, 판정기 진입 카드에서 예상을 고르거나 바꾸게 한다 (순환 고리 ①②).
+- 근거: critique 기록(로컬, git 제외) `.impeccable/critique/2026-10-04T04-27-29Z__web-src-pages-homepage-tsx.md`. 필요한 내용은 아래 작업 정의에 옮겼다.
+- 사용자 결정(2026-10-04): 다음 단계로 네 후보(계산 범위 띠, 퍼즐 주 행동, 학습 상세마다 예상 단추, 진입 카드에서 예상 바꾸기)를 설계한다.
+- 브랜치: `codex/home-ux2`(origin/main `b8bb8e8` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 단계: **Claude 설계(현재) → 사용자 승인 → Codex 구현·테스트 → Claude 리뷰 → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 설계 승인.** 승인 전에는 구현하지 않는다.
+- **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·cases JSON·expect를 바꾸지 않는다. 정답·채점·완료 표시를 만들지 않는다.
 
 ## 작업 정의
 - 목표:
-  1. 처음 온 학생이 홈에서 바로 "통과할까, 막힐까"를 예상하고, 그 예상을 들고 판정기로 간다.
-  2. 작성 중인 학생은 홈에서 자기 입력으로 돌아가는 길을 가장 먼저 본다.
-  3. NetProof가 계산하는 부분과 계산하지 않는 부분(실제 장비)을 그림으로 구분한다.
-  4. 첫 실습 단추가 메뉴가 아니라 그 수업으로 데려간다.
-  5. 한 동작은 한 이름으로 부르고, 휴대폰 헤더를 다듬는다.
+  1. 그림만 봐도 "여기까지가 NetProof 계산, 그 밖은 실제 장비"가 보인다.
+  2. 처음 온 학생의 눈과 손이 홈에서 가장 먼저 예상 퍼즐로 간다.
+  3. 세 실습 모두 예상을 먼저 고르고 판정기로 갈 수 있다.
+  4. 판정기 진입 카드에서 예상을 고르고, 바꾸고, 빼는 것이 한 자리에서 된다.
 
-### 1) 홈 첫 화면: 예상 고르기 (아이디어 A + B, P1·P2)
-- 현재: 오른쪽 "이용 순서"는 흐린 글씨 세 줄이고 휴대폰에서는 숨는다. 주 단추 "첫 실습 둘러보기"는 학습실 목록 위에 떨어진다.
-- 바꿀 것: 히어로 오른쪽(휴대폰은 글 아래)을 **예상 퍼즐**로 바꾼다.
-  - 작은 제목: `먼저 예상해 보세요`
-  - 질문: `PRACTICE`의 synthetic-01 질문을 그대로 쓴다("PC1에서 SRV의 HTTPS에 접속할 수 있나요?").
-  - 구성 그림: 5절의 `PathStrip`으로 synthetic-01 경로를 그린다: `PC1 — R1 [ACL 101 · g0/0 들어올 때] — SRV`. 끝에 **점선 구간**과 `실제 장비 · NetProof 밖` 표시를 붙인다(`outside`).
-  - 단추 두 개: `통과할 것 같다` / `막힐 것 같다`. 같은 무게(둘 다 테두리 단추)로 두고 어느 쪽도 기본 선택하지 않는다.
-  - 누르면 App이 예상을 기억하고(`guess = { caseId: "synthetic-01", expected: "PASS" | "DENY" }`) `#/practice/synthetic-01`로 간다. **입력은 여기서 바꾸지 않는다**(2절에서 직접 불러올 때만).
-  - 캡션 한 줄(홈에서 면책은 이 한 번만): `NetProof는 모델 안에서 계산합니다. 실제 장비 결과는 따로 확인합니다.` 기존 히어로 캡션은 지운다. 앱 공통 푸터는 그대로 둔다.
-- 히어로 왼쪽: 라벨·h1·설명은 그대로. 링크는 `학습실 전체 보기`(→ `#/learn`)와 `판정기 바로 열기 →`(→ `#/`) 두 개. 그 아래 한 줄 설명: `판정기: 구성과 통신을 넣으면 경로와 ACL을 계산해 통과·막힘과 근거를 보여 줍니다.`
-- 홈 어디에도 정답·계산 결과·expect를 보여 주지 않는다. 예시 API·판정 API를 부르지 않는다.
-- 이것은 채점이 아니다. 예상은 학생 자신의 "받은 답"이 되고, 비교는 기존 엔진 `comparison`과 배너가 한다. 로드맵 5주차 "연습 문제 모드(채점)"와 다르다.
+### 1) 계산 범위 띠 (P1)
+- 현재: `PathStrip`의 `outside` 점선은 40px 짧은 선이 SRV 아래 오른쪽에 따로 떠 있어 네 번째 장비나 범례처럼 보인다.
+- 바꿀 것: `outside`가 켜진 그림(홈 퍼즐, 학습 상세)은 **두 구역**으로 그린다.
+  - **계산 범위 띠**: 장비 줄 전체를 옅은 바탕(`--gray-bg`)과 테두리(`--line`)로 감싸고, 띠 왼쪽 위에 작은 라벨 `NetProof 계산 범위`.
+  - **띠 밖**: 마지막 장비에서 이어지는 선이 띠 경계를 넘어 **점선**으로 바뀌고, 띠 밖 같은 높이에 테두리 없는 자리 `실제 장비`를 둔다. 그 아래 한 줄 `결과는 장비에서 따로 확인`.
+  - 기존 `실제 장비 · NetProof 밖` 문단은 없앤다(띠가 대신한다).
+- 학습 카드용 `size="small"`은 띠 없이 지금처럼 둔다(작은 카드에 두 구역은 과하다). 학습 상세는 `outside`를 켠다.
+- 색: PASS/DENY 색 금지. 띠 라벨·점선·`실제 장비`는 `--muted`. 휴대폰(375·320)에서 띠 밖 자리가 들어가지 않으면 띠 **아래**로 내려 세로로 잇는다. 가로 스크롤 금지.
+- 접근성: figcaption 문장 끝을 `NetProof는 이 구성 안에서 계산하고, 실제 장비 결과는 따로 확인합니다.`로 바꾼다. 띠·점선 장식은 `aria-hidden`.
+- 홈 퍼즐 캡션(`NetProof는 모델 안에서 계산합니다…`)은 띠가 같은 뜻을 보이므로 지운다. 앱 공통 푸터는 그대로.
 
-### 2) 판정기 실습 진입에 예상 싣기 (아이디어 A 연결, P1)
-- `JudgePage`에 `practiceGuess?: "PASS" | "DENY"` prop을 추가한다. App은 `guess.caseId === route.practiceId`일 때만 넘긴다.
-- 진입 카드(`.practice-entry`)에 예상이 있으면 `내 예상: 통과`(또는 `막힘`)를 한 줄로 보인다. 진입만으로 입력은 바꾸지 않는다는 기존 문구·규칙은 그대로다.
-- **"구성 불러오기"를 직접 누를 때만** 기존 `startPractice` 경로를 탄다. 이때 받은 답은:
-  - 예상이 있으면 `{ expected: guess, kind: "self", source: "", text: "" }`
-  - 없으면 지금처럼 `EMPTY_CLAIM`
-  - 예시의 `claim`·`expect`는 여전히 옮기지 않는다(`practiceDraft` 규칙 유지).
-- 불러오기가 끝나면 App의 `guess`를 지운다. 다른 실습 주소로 가거나 홈으로 돌아가도 지운다. 새로고침하면 사라진다(저장하지 않음).
-- 학생이 판정하면 기존 배너가 `✓ 내 예상이 NetProof 계산과 같습니다` / `✕ … 다릅니다`를 보인다. 새 비교 코드는 만들지 않는다.
-- F7(실습 시작 알림 "실습"이 겹침)을 함께 고친다: 알림 문구는 과제 제목 앞의 `실습 · `를 떼고 `{제목} 실습을 시작했습니다`.
+### 2) 예상 퍼즐을 홈의 주 행동으로 (P2)
+- 현재: 첫 얼굴 왼쪽에 밑줄 링크 두 개, 오른쪽 퍼즐은 히어로 카드 안의 테두리 카드이고 단추는 테두리 단추다. 375에서 `막힐 것 같다` 아래 끝이 765/812로 아슬아슬하고 캡션은 접힘선 밖이다.
+- 바꿀 것(첫 얼굴만, 이어서 하기 얼굴은 그대로):
+  - 퍼즐의 안쪽 테두리를 없애고(카드 안의 카드 제거), 퍼즐 영역 위에 accent 굵은 선(3px)을 둬 히어로 안에서 퍼즐이 주인공이 되게 한다.
+  - 예상 단추 두 개를 **채운 단추**(`primary` 계열 같은 무게 두 개)로 바꾼다. 둘 다 같은 색·크기다. 어느 쪽도 기본 선택하지 않는다.
+  - 왼쪽 링크는 `판정기 바로 열기 →` 하나만 남긴다. `학습실 전체 보기`는 바로 아래 주제 구역 머리에 이미 있으므로 히어로에서 뺀다. `판정기:` 한 줄 설명은 그대로 둔다.
+  - 375 기준: 첫 화면(812px) 안에 퍼즐 질문과 **예상 단추 두 개가 모두 보여야 한다.** 필요하면 휴대폰에서 히어로 설명 문단(`내 예상이나 받은 답을…`)을 퍼즐 뒤로 보내지 말고 글자·여백을 줄이는 쪽으로 맞춘다. DOM 순서는 바꾸지 않는다(h1 → 설명 → 퍼즐).
+- 홈 첫 카드(HTTPS와 입력 ACL)가 퍼즐과 같은 실습인 중복은 그대로 둔다. 카드는 "주제 목록", 퍼즐은 "바로 해 보기"라 역할이 다르다.
 
-### 3) 두 얼굴 홈: 이어서 하기 (아이디어 C, P1)
-- 현재: 작성 중인 입력이 있어도 채운 주 단추는 "첫 실습 둘러보기"이고, 돌아가기는 아래 회색 띠의 테두리 단추다. 안내는 경고 세 문장이다.
-- 바꿀 것: `hasCurrentInput(draft)`이면 히어로가 **이어서 하기 얼굴**로 바뀐다.
-  - h1: `작성하던 입력이 있어요`
-  - 요약 한 줄(표시만, 판정 아님): `homeView.ts`에 `draftSummary(draft)`를 추가한다.
-    - 형식: `{src} → {dst} · {PROTO}{ 포트} · {받은 답}`. 예: `10.10.10.10 → 10.20.20.5 · TCP 443 · 내 예상 통과`
-    - 빈 주소는 `출발지 미입력`/`목적지 미입력`. ICMP는 포트 없이. 받은 답: `expected`가 없으면 `예상 없음`, 있으면 kind별 `AI 답`/`내 예상`/`받은 답` + `통과`/`막힘`.
-    - 이어서 `장비 N대 · ACL M개`(`toNetwork` 기준). 판정 결과·저장 시각·진도는 보이지 않는다.
-  - 주 단추(채움): `이어서 하기` → `#/`. 입력을 바꾸지 않는다.
-  - 한 줄: `새로고침하면 입력이 사라집니다.`
-  - 1절의 예상 퍼즐은 그 아래 `새 실습 시작하기` 구역(h2)으로 내려간다. 퍼즐을 눌러도 입력은 2절 규칙대로 직접 불러올 때만 바뀌고, 그때 기존 되돌리기 알림이 뜬다.
-- 기존 `.home-resume` 띠는 없앤다(얼굴로 대체).
+### 3) 학습 상세마다 예상 단추 (P2)
+- 현재: 학습 상세의 주 단추는 `판정기에서 열기` 하나라, 예상 먼저가 홈의 synthetic-01에만 있다.
+- 바꿀 것: 학습 상세의 그림 바로 아래를 **예상 블록**으로 바꾼다.
+  - 작은 제목 `먼저 예상해 보세요`(h2), 예상 질문, 같은 무게의 단추 두 개 `통과할 것 같다` / `막힐 것 같다`.
+  - 누르면 App이 그 실습의 예상을 기억하고 `#/practice/{caseId}`로 간다. 입력은 바꾸지 않는다(2절 진입 규칙 그대로).
+  - 그 아래 보조 링크 `예상 없이 판정기에서 열기` → `#/practice/{caseId}`. 기존 안내 `이동만으로는 지금 입력이 바뀌지 않습니다.`는 유지.
+- **예상 질문은 예/아니오로 답할 수 있어야 한다.** `learning.ts` lesson에 `guessPrompt`를 추가한다(화면 표시 전용, 정답 없음):
+  - synthetic-01: `PC1에서 SRV의 HTTPS(TCP 443)에 접속할 수 있을까요?`
+  - synthetic-02: `PC1에서 SRV2로 보낸 ping(ICMP)이 왕복할 수 있을까요?`
+  - synthetic-03: `PC1에서 SRV의 SSH(TCP 22)에 접속할 수 있을까요?`
+  - 기존 `PRACTICE.question`(특히 03의 "어떻게 적용되나요?")은 학습 질문으로 그대로 두고, 예상 블록만 `guessPrompt`를 쓴다. 홈 퍼즐도 `guessPrompt`를 쓴다.
+  - `learning.test.ts`: 각 `guessPrompt`의 프로토콜·포트가 해당 cases JSON의 `flow`(proto, dst_port)와 맞는지 대조한다(테스트에서만 import).
+- 홈 퍼즐과 학습 상세 예상 블록은 **같은 컴포넌트**를 쓴다(`GuessPuzzle`을 `HomePage.tsx` 밖 `web/src/components/GuessPuzzle.tsx`로 옮기고 `lesson`·`heading`·`onGuess`를 받는다).
+- App의 `onGuess`를 `(caseId, expected) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`) }`로 일반화한다.
 
-### 4) 학습실: 상세를 먼저 (P1)
-- 현재: `#/learn/:id`에서 같은 카드 3장이 상세 위에 있어, 휴대폰에서 실습 단추가 약 1.5화면 아래(y≈1248)다.
-- 바꿀 것:
-  - `#/learn`(목록): 지금처럼 카드 3장. 카드에 6절의 축소 구성도를 넣는다.
-  - `#/learn/:id`(상세): **상세가 먼저**다. 순서:
-    1. h1 = 주제 제목(예: `HTTPS와 입력 ACL`), 그 위 작은 라벨 `학습실 · 연습용 네트워크`
-    2. 질문
-    3. `PathStrip`(그 실습의 구성)
-    4. 주 단추 `판정기에서 열기` → `#/practice/synthetic-0N`, 바로 아래 `이동만으로는 지금 입력이 바뀌지 않습니다.`
-    5. 개념 · 쉬운 비유 · 확인할 것
-    6. 출처와 한계(면책은 여기 한 번)
-    7. `다른 주제` — 작은 링크 칩 3개. 지금 주제는 `aria-current="page"`와 글자 표시 `· 보는 중`을 함께 둔다(색·테두리만으로 구분하지 않음).
-  - 없는 주제(`#/learn/xyz`)는 지금처럼 라우터가 `missing`으로 보낸다. `LearningPage` 안의 맨 문단 분기는 학습실 틀(제목·학습실로 링크) 안에서 보이도록 바꾼다.
-- **포커스:** App이 `route.page` 또는 `lessonId`가 바뀔 때(첫 로드 제외) `main` 안의 첫 `h1`에 `tabIndex=-1`을 주고 포커스를 옮긴다. 같은 판정기 안에서 실습 주소가 `#/`로 바뀌는 경우(`startPractice`)는 page가 같으므로 옮기지 않는다. h1이 없는 화면은 건너뛴다.
+### 4) 판정기 진입 카드에서 예상 고르기·바꾸기 (P1)
+- 현재: 진입 카드는 `내 예상: 막힘` 문장만 보인다. 바꾸려면 홈으로 돌아가야 하고, 예상 없이 들어오면 고를 방법이 없다.
+- 바꿀 것: 진입 카드의 그 자리를 **선택 묶음**으로 바꾼다.
+  - `<fieldset>` + `<legend>내 예상</legend>` 안에 라디오 세 개: `통과할 것 같다` · `막힐 것 같다` · `예상 없이`. 들어온 예상이 있으면 그 값, 없으면 `예상 없이`가 선택된 상태로 시작한다.
+  - 바꾸면 App의 guess가 바뀐다(`예상 없이`는 guess 삭제). 입력(Draft)은 바꾸지 않는다.
+  - 한 줄 안내: `구성을 불러오면 고른 예상이 받은 답(내 예상)으로 들어갑니다.` — 불러오기 전 아래 받은 답 칸이 `비교 안 함`인 이유를 설명한다.
+  - `구성 불러오기`는 지금처럼 그때의 guess로 `practiceDraft`를 만든다(guess 없으면 EMPTY_CLAIM).
+  - 진입 카드의 `판정기로 이동` 링크는 이미 판정기 화면이라 뜻이 모호하므로 `실습 없이 계속하기`로 바꾼다(동작 동일: `#/`).
+- 예상 단추·라디오 묶음 모두 질문과 묶어 읽히게 한다: 홈·학습 예상 블록은 `role="group"` + `aria-labelledby`(질문 문단 id), 진입 카드는 fieldset/legend.
 
-### 5) PathStrip: 경로 그림 (아이디어 B + D, P2)
-- 신규 `web/src/components/PathStrip.tsx` 하나로 홈 퍼즐, 학습 카드, 학습 상세가 같이 쓴다.
-- 입력(정적 메타데이터, `learning.ts`의 각 lesson에 `path`로 추가):
-  - `nodes: { id: string; kind: "host" | "router" }[]` — 흐름이 지나는 순서
-  - `acls: { device: string; iface: string; dir: "in" | "out"; name: string }[]`
-  - `roundTrip?: boolean` — 돌아오는 길도 계산함을 보이는 `⇄` 표시(synthetic-02)
-  - `outside?: boolean` — 끝의 점선 `실제 장비 · NetProof 밖`(홈 퍼즐만)
-  - `size?: "small"` — 카드용
-- 값(손으로 확인한 실제 예시 구성):
-  - synthetic-01: PC1 → R1 → SRV, ACL `101` R1 `g0/0` **in**
-  - synthetic-02: PC1 → R1 → R2 → SRV2, ACL 없음, `roundTrip`
-  - synthetic-03: PC1 → R1 → SRV, ACL `110` R1 `g0/1` **out**
-- 그림은 정답을 드러내지 않는다: 규칙 줄·통과/막힘·"돌아오는 경로 없음" 같은 결론을 그리지 않는다. 장비와 ACL이 붙은 위치·방향만 그린다.
-- 마크업: `<figure>` 안에 순서 있는 목록(`ol`)으로 장비를 늘어놓고 CSS로 선을 잇는다. `figcaption`(화면에는 sr-only 가능)에 문장으로 쓴다. 예: `구성: PC1, R1(g0/0에 들어올 때 ACL 101), SRV`. SVG·그림 라이브러리·애니메이션 없음.
-- 색: 장비 점은 accent, 선은 `--line`, ACL 표시는 작은 태그(`ACL 101 · in`). PASS/DENY 색(`--pass`·`--deny`)은 쓰지 않는다. 점선 구간은 `--muted`.
-- 휴대폰: 숨기지 않는다. 장비가 4개(synthetic-02)여도 375px 안에서 줄바꿈 없이 들어가게 글자·간격을 줄이고, 넘치면 세로 배치로 바꾼다. 가로 스크롤 금지.
-- **메타데이터와 예시 구성이 어긋나지 않게** `learning.test.ts`에서 `cases/synthetic-0N.json`을 import해 nodes(흐름 경로상 장비)와 ACL 위치·방향·이름을 대조한다. **이 JSON import는 테스트에만** 둔다. `learning.ts`·화면 코드는 cases JSON을 import하지 않는다(번들에 expect가 들어가면 안 된다).
-
-### 6) 말 다듬기 (P2)
-- 한 동작은 한 이름:
-  - 홈·학습실 카드 링크: `실습 열기` (→ `#/learn/:id`)
-  - 학습 상세 주 단추: `판정기에서 열기` (→ `#/practice/...`)
-  - 판정기 진입 카드 단추: `구성 불러오기` (기존 `실습 구성 불러오기`에서 줄임)
-  - "살펴보기"는 이 흐름의 단추·링크에서 쓰지 않는다.
-- `합성 실습` → `연습용 네트워크`(홈·학습실·진입 카드의 화면 문구만). 출처 표기 `NetProof 모델 의미론 · 연습용 네트워크`.
-- 홈 주제 구역 설명: `연습용 네트워크 3개로 경로와 ACL을 확인합니다.`
-- `practice.ts` synthetic-02 질문의 `SRV` → `SRV2`(실제 구성과 그림에 맞춤). 그 밖의 practice 문구·checkpoints는 그대로.
-- 13px 회색 안내(홈·학습실 캡션)는 14px로. 게시판 안내 구역 h2는 18px로 내려 주 구역(22px)과 강약을 둔다.
-
-### 7) 헤더 (P3)
-- 960px 이하:
-  - 순서: 로고 — (오른쪽으로) 로그인/계정 — `메뉴` 단추. 메뉴 단추가 맨 오른쪽 끝에 온다.
-  - 펼친 메뉴는 **세로 목록**: 항목마다 한 줄 전체 폭, 높이 44px 이상, 항목 사이 구분선.
-- 800~1280px: `로그인` 링크와 `메뉴` 단추 높이를 44px 이상으로.
-- 그대로 둘 것(이번 범위 밖, 사람 결정):
-  - `Verify before you trust.` 표어 — 로드맵 사람 트랙 "표어 결정" 대상이라 바꾸지 않는다.
-  - `정책 검증`을 "도구"로 묶는 일 — 근거(사용자 관찰)가 생긴 뒤 따로 정한다.
-
-### 8) 범위 밖 · 허용 파일
-- 하지 않는 것: 채점·정답 표시·진도·배지, 입력 자동 저장, 헤더 메뉴 묶기·표어 변경, F5·F6, PR #20 수동 QA, 엔진·서버·API·DB·expect·cases JSON 변경, 새 의존성.
+### 5) 범위 밖 · 허용 파일
+- 하지 않는 것: 채점·정답·진도·배지, 입력 자동 저장, 홈 카드 구성 변경, 헤더·표어, 사례 상세·게시판의 예시 제목, F5·F6, PR #20 수동 QA, 엔진·서버·API·DB·cases JSON·expect 변경, 새 의존성.
 - 허용 파일:
-  - 신규: `web/src/components/PathStrip.tsx`, `PathStrip.test.tsx`
-  - 수정: `web/src/pages/{HomePage,LearningPage,JudgePage}.tsx`와 각 test, `web/src/components/AppHeader.tsx`·`AppHeader.test.tsx`, `web/src/{learning,homeView}.ts`와 각 test, `web/src/App.tsx`(guess 상태·포커스 이동·prop 연결만), `web/src/practice.ts`(synthetic-02 질문 한 곳만), `web/src/styles.css`(home·learning·header·practice-entry·path-strip 국소 클래스만)
+  - 신규: `web/src/components/GuessPuzzle.tsx`, `GuessPuzzle.test.tsx`
+  - 수정: `web/src/components/PathStrip.tsx`·test, `web/src/pages/{HomePage,LearningPage,JudgePage}.tsx`와 각 test, `web/src/learning.ts`·test, `web/src/App.tsx`(onGuess 일반화·guess 변경 콜백 연결만), `web/src/styles.css`(home·learning·practice-entry·path-strip·guess 국소 클래스만)
   - 기록: `HANDOFF.md`, `decisions/ai-work-log.md`
-- 읽기만: `engine/`·`server/`, `types.ts`·`draft.ts`·`share.ts`·`validate.ts`·`verdictView.ts`, 결과·편집기 컴포넌트, `cases/*.json`(테스트 import만), `package.json`.
-- 다음을 바꾸고 싶으면 **먼저 요청한다**: 예상 단추 문구, 예상을 받은 답(`kind: "self"`)으로 싣는 규칙, 이어서 하기 요약 항목, PathStrip이 그리는 정보 범위.
+- 읽기만: `engine/`·`server/`, `types.ts`·`draft.ts`·`practice.ts`·`share.ts`·`validate.ts`·`verdictView.ts`, 결과·편집기 컴포넌트, `AppHeader.tsx`, `cases/*.json`(테스트 import만).
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: `guessPrompt` 세 문장, 띠 라벨 `NetProof 계산 범위`, 진입 카드 라디오 세 항목 문구, 예상을 받은 답(`kind: "self"`)으로 싣는 규칙.
 
-### 9) 위험
-- **홈이 정답을 흘림** → PathStrip은 위치·방향만, 예시 API·expect 미사용, cases JSON은 테스트에서만 import. 테스트로 막는다.
-- **진입만으로 입력이 바뀜** → 예상은 App 상태에만, 입력 변경은 "구성 불러오기" 직접 클릭 때만. 기존 테스트 유지 + 예상 있는 경우 추가.
-- **예상이 다른 실습에 묻어감** → `caseId` 일치할 때만 전달, 불러오기·다른 주소·홈 복귀 시 삭제.
-- **포커스 이동이 판정기 흐름을 방해** → page·lessonId가 바뀔 때만, 첫 로드와 같은 화면 안 주소 교체는 제외.
-- **휴대폰에서 4개 장비 그림이 넘침** → 375·320에서 scrollWidth 확인.
+### 6) 위험
+- **예상 질문이 답을 흘림** → `guessPrompt`는 흐름(출발·도착·프로토콜·포트)만 말하고 ACL·경로 결론을 말하지 않는다. 테스트로 흐름 일치만 대조한다.
+- **라디오가 입력을 바꿈** → 진입 카드 선택은 App guess만 바꾸고 Draft는 "구성 불러오기" 때만 바뀐다. setDraft 미호출 테스트.
+- **예상이 다른 실습에 묻어감** → 기존 규칙 유지(caseId 일치 때만 전달, 불러오기·다른 주소에서 삭제).
+- **채운 단추 두 개가 정답 힌트처럼 보임** → 같은 색·크기·순서 고정(통과 → 막힘), 기본 선택 없음.
+- **휴대폰에서 띠 밖 자리가 넘침** → 375·320에서 세로 전환, scrollWidth 확인.
 
-### 10) 완료 조건 · 테스트
+### 7) 완료 조건 · 테스트
 - 자동 테스트:
-  - `PathStrip.test.tsx`: 장비 순서, ACL 태그(`ACL 101 · in`), `roundTrip`·`outside` 표시, figcaption 문장, PASS/DENY 문구·클래스 없음.
-  - `learning.test.ts`: 세 lesson의 `path`가 `cases/synthetic-0N.json` 구성(흐름 경로상 장비, ACL 위치·방향·이름)과 일치. `learning.ts` 소스가 cases JSON을 import하지 않음.
-  - `homeView.test.ts`: `draftSummary` — TCP/UDP 포트, ICMP 무포트, 빈 주소, 받은 답 없음/AI/내 예상/받은 답, 장비·ACL 개수.
-  - `HomePage.test.tsx`: 빈 입력이면 예상 퍼즐 얼굴(h1 1개, 단추 2개, 기본 선택 없음, 점선 `NetProof 밖`, 면책 1회), 입력이 있으면 이어서 하기 얼굴(h1 `작성하던 입력이 있어요`, 요약, `이어서 하기` → `#/`, 퍼즐은 h2 아래). 결과·expect·정답 문구 없음.
-  - `JudgePage.test.tsx`: 예상 있는 진입 카드에 `내 예상: 통과` 표시, 진입만으로 setDraft 미호출. 불러오기 후 claim `{expected, kind:"self"}`, 예상 없으면 EMPTY_CLAIM(SSR로 못 보는 클릭은 순수 함수로 분리해 검사하고, SSR만으로 클릭 검증했다고 쓰지 않는다). F7 알림 문구.
-  - `LearningPage.test.tsx`: 상세 h1이 주제 제목, 질문·그림·`판정기에서 열기`가 개념보다 앞, `다른 주제` 칩의 `aria-current`와 `· 보는 중`.
-  - `AppHeader.test.tsx`: 기존 회귀 유지.
+  - `PathStrip.test.tsx`: `outside`일 때 `NetProof 계산 범위` 띠·`실제 장비` 자리·새 figcaption 문장, `small`일 때 띠 없음, PASS/DENY 문구·클래스 없음.
+  - `GuessPuzzle.test.tsx`: 질문은 `guessPrompt`, 단추 두 개 같은 클래스·기본 선택 없음, `role="group"`과 `aria-labelledby`, 클릭 시 `onGuess(caseId, expected)`(순수 함수 분리 또는 이벤트 검증), heading 단계 prop.
+  - `learning.test.ts`: 세 `guessPrompt`의 프로토콜·포트가 cases JSON `flow`와 일치. `learning.ts`가 cases JSON을 import하지 않음(기존 검사 유지).
+  - `HomePage.test.tsx`: 첫 얼굴 히어로 링크는 `판정기 바로 열기` 하나, 퍼즐 캡션 문장 없음, 퍼즐 단추가 채운 단추 클래스. 이어서 하기 얼굴 회귀.
+  - `LearningPage.test.tsx`: 상세 순서 h1 → 질문 → 그림(outside) → 예상 블록(h2) → `예상 없이 판정기에서 열기` → 개념….
+  - `JudgePage.test.tsx`: 진입 카드 fieldset/legend `내 예상`, 들어온 예상 선택 상태, 없으면 `예상 없이` 선택, 라디오 변경이 setDraft를 부르지 않음, `실습 없이 계속하기` 문구. 기존 결론 문구 미노출 검사 유지.
 - 네 명령의 실제 출력 전체를 이 문서에 붙인다:
   ```text
   cd engine && ../.venv/Scripts/python -m pytest -q
@@ -160,632 +108,18 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   npm --prefix web test
   npm --prefix web run build
   ```
-- 브라우저 확인(375×812·1280×800 × 라이트·다크, 임시 SQLite·합성 데이터만):
-  - 빈 첫 진입 → 예상 `막힐 것 같다` → 진입 카드 `내 예상: 막힘` → 구성 불러오기 → 받은 답 "내 예상 · 막힘" → 판정 → 배너가 엔진 비교대로.
-  - 입력 수정 → 홈이 이어서 하기 얼굴(요약 정확) → `이어서 하기`로 같은 입력.
-  - `#/learn/https-acl`(375): `판정기에서 열기`가 첫 화면 안에 보이는지(스크롤 위치 기록). 다른 주제 칩 이동.
-  - 경로 이동 시 포커스가 h1로 가는지(activeElement 기록), 판정기 안 실습 주소 교체 때는 그대로인지.
-  - 960 이하 메뉴: 오른쪽 끝 단추, 세로 목록, Escape·focus 복귀. 800·1100에서 로그인/메뉴 높이 44 이상.
-  - 375·320에서 synthetic-02 그림 포함 가로 넘침 없음, console error 0.
-- 리뷰 때 Claude가 `/impeccable critique`(홈)를 다시 돌려 27/40과 비교한다.
+- 브라우저 확인(375×812·1280×800 × 라이트·다크, 320px, 임시 SQLite·합성 데이터만):
+  - 홈 첫 얼굴 375: 퍼즐 질문과 예상 단추 두 개가 812px 안(아래 끝 y 기록). 띠와 `실제 장비` 자리가 넘치지 않음.
+  - 학습 상세 03에서 `막힐 것 같다` → 진입 카드 라디오 `막힐 것 같다` 선택 → `통과할 것 같다`로 바꿈 → 구성 불러오기 → 받은 답 "된다"·내 예상 → 판정 → 배너가 엔진 비교대로.
+  - `예상 없이 판정기에서 열기` → 진입 카드 `예상 없이` 선택 → 구성 불러오기 → 받은 답 `비교 안 함`.
+  - 진입 카드에서 라디오를 바꿔도 아래 입력 칸(출발지 IP 등)이 그대로인지.
+  - 판정기 화면 본문에 결론 문구(`ACL에 막힘`, `돌아오는 경로 없음`, `나가는 방향으로 붙임`)가 없음(회귀).
+  - console error 0, 가로 넘침 없음.
+- 리뷰 때 Claude가 홈 `/impeccable critique`를 다시 돌려 26/40과 비교한다.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
-## 완료 내용 / 테스트 결과 (2026-10-04 Codex)
-
-- 사용자 요청으로 설계 `b2746fa` 승인 확인. 기존 `codex/home-ux`로 전환 후 `git pull`(Already up to date), AGENTS/HANDOFF를 읽고 작업 정의 1)~10) 안에서 구현했다.
-- 홈 예상 퍼즐·두 얼굴 홈과 `draftSummary`, 공유 정적 `PathStrip`, 상세 우선 학습실·다른 주제 칩, 예상 전달/소비·화면 제목 포커스, 모바일 헤더를 구현했다. F7 알림 중복을 제거하고 synthetic-02 질문의 SRV만 SRV2로 바꿨다.
-- 홈은 예시/판정 API·expect·정답·계산 결과를 사용하지 않는다. 정적 경로에는 장비와 ACL 위치/방향만 있다. 학생 선택은 `kind: "self"` 받은 답으로만 옮기며 기존 엔진 comparison/배너는 수정하지 않았다.
-- 예시 불러오기는 기존 직접 클릭/되돌리기 경로만 사용한다. `App` 변경은 guess 상태·전달/소비와 포커스에 한정했다. 엔진·서버·결과/편집기·타입/공유/검사·의존성·cases JSON·기존 expect 변경 없음.
-- 웹 테스트 252→274(+22). 경로 메타데이터를 세 cases JSON의 장비/ACL 연결과 대조하는 import는 테스트에만 둔다. 예상별 self claim/EMPTY_CLAIM·원본 불변·F7·요약·홈 API 미호출·상세 순서·헤더 회귀를 확인했다. SSR 테스트는 진입 렌더만 확인하며, 클릭/라우팅/포커스는 아래 실제 브라우저에서 별도로 확인했다.
-- 네 명령을 worktree에서 직접 실행했다(모두 종료 0). PowerShell에서는 해당 engine/server 디렉터리를 workdir로 지정해 명령을 실행했다. PYTHONPATH는 이 worktree의 engine/src와 server로 명시했으며 서버 테스트는 NETPROOF_TEST_DATABASE_URL을 제거해 임시 SQLite를 사용했다. 2 xfail/1 skip은 기존 항목이며 PASS로 바꾸지 않았다.
-
-### `cd engine && ../.venv/Scripts/python -m pytest -q`
-
-```text
-........................................................................ [ 21%]
-........................................................................ [ 43%]
-........................................................................ [ 65%]
-........................................................................ [ 87%]
-......................................xx                                 [100%]
-326 passed, 2 xfailed in 3.96s
-```
-
-종료 코드: 0.
-
-### `cd server && ../.venv/Scripts/python -m pytest -q`
-
-```text
-.......................................................................s [ 78%]
-....................                                                     [100%]
-91 passed, 1 skipped in 18.07s
-```
-
-종료 코드: 0.
-
-### `npm --prefix web test`
-
-```text
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
-
-
- Test Files  22 passed (22)
-      Tests  274 passed (274)
-   Start at  10:41:16
-   Duration  948ms (transform 71%, import 20%, tests 6%, worker 3%)
-
-  Transform  transforming modules took 6.11s · 71% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-종료 코드: 0.
-
-### `npm --prefix web run build`
-
-```text
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 53 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:   0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-A9w8bL2W.css                            76.59 kB │ gzip:  21.77 kB
-dist/assets/index-mMtmlsd0.js                            333.33 kB │ gzip: 100.47 kB
-
-✓ built in 425ms
-```
-
-종료 코드: 0.
-
-### 실제 브라우저 확인
-
-- 환경: Codex in-app Chromium, 최신 production build, `127.0.0.1:5187`, 새 임시 SQLite·연습용 구성·합성 검토자만 사용. 사용자 원래 `5183/#/cases` 탭/서버는 건드리지 않았다. 캡처는 저장소 밖 `C:/Users/dora2/.codex/visualizations/home-ux-2026-10-04`에 보관했다(비밀번호/쿠키/토큰 없음).
-- 아래 네 조합 모두 빈 홈→막힐 것 같다→진입의 내 예상: 막힘→구성 불러오기→내 예상/안 된다→판정의 `✓ 내 예상이 NetProof 계산과 같습니다`를 직접 확인했다. 이후 포트 443→8443 편집→홈 요약→이어서 하기로 8443 유지도 각각 확인했다. 각 조합의 홈·이어서 하기·HTTPS 상세 캡처를 저장했다.
-
-| 화면 | 테마 | 전체 실습·이어서 하기 | 홈/학습 가로 넘침 |
-| --- | --- | --- | --- |
-| 1280×800 | 라이트 | 확인 | 없음(scrollWidth 1265~1280 ≤ 1280) |
-| 1280×800 | 다크 | 확인 | 없음(scrollWidth 1265 ≤ 1280) |
-| 375×812 | 라이트 | 확인 | 없음(scrollWidth 360 ≤ 375) |
-| 375×812 | 다크 | 확인 | 없음(scrollWidth 360 ≤ 375) |
-
-- 예상 클릭/실습 주소 진입 전후 입력이 그대로이며 직접 불러오기 뒤에만 새 구성/학생 예상이 들어갔다. 기존 8443·막힘 입력을 둔 상태에서 통과 예상으로 진입해도 이전 입력 유지→불러오기 때 443·통과 변경→되돌리기 때 8443·막힘 복원 확인.
-- 통과 예상으로 동일 구성을 불러와 판정했을 때 `✕ 내 예상이 NetProof 계산과 다릅니다` 확인. 비교는 기존 엔진 응답이다. 불러오기 후 재진입에는 예상 안내가 없고 예상 없이 불러오면 비교 안 함이 선택된다. 다른 synthetic-02 주소 및 새로고침에서도 예상 안내가 사라졌다(저장 없음).
-- F7 실제 알림: `HTTPS와 입력 ACL 실습을 시작했습니다.`(실습 한 번).
-- 375 HTTPS 상세: 라이트·다크 모두 scrollY=0, 주 단추 top=320.421875/bottom=364.421875px, 높이44px. 812px 첫 화면 안에 보인다. 기존 카드 세 장을 상세 위에 놓지 않는다.
-- 다른 주제→왕복 경로 이동 뒤 activeElement=H1(왕복 경로), scrollY=0; main의 현재 칩 `왕복 경로 · 보는 중`과 aria-current=page 확인. 홈/판정기 화면 이동도 H1 포커스. 최초 새로고침 activeElement=BODY, 같은 judge의 practice→#/ 주소 교체는 H1로 다시 포커스하지 않는다(BODY, 사라진 불러오기 단추의 자연스러운 포커스 해제).
-- 375 메뉴: 로고→로그인→맨 오른쪽 메뉴 순서, 펼친 5항목 각각 세로 전체 폭328px·높이44px. 800 메뉴 항목 폭753px·높이44px·구분선1px. Escape 뒤 메뉴에 포커스 복귀/aria-expanded=false.
-- 800: 로그인/메뉴 각각44px, 메뉴 오른쪽769px(헤더 안 가장 오른쪽). 1100: 로그인44px, 메뉴는 데스크톱 내비게이션 대신 숨김(display:none, DOM 높이0; 숨긴 메뉴를 44px 클릭 영역으로 확인했다고 쓰지 않음).
-- 320×812 라이트·다크 synthetic-02의 PC1→R1→R2→SRV2 그림 표시, scrollWidth305 ≤ 320, 라이트 그림 폭231px. 375에서도 네 장비 표시/넘침 없음. 합성 검토자 닉네임/배지/로그아웃 헤더를 375·320에서 확인해 넘침 없음, 모바일 메뉴의 검토자 대시보드 링크 유지.
-- 요청 기록을 비운 뒤 홈→학습 목록→왕복 상세만 이동한 구간의 API 요청 배열 `[]`. 수집 console error/warn 0. 런타임 화면에 cases JSON import 없음은 소스/테스트로 확인.
-- QA 뒤 로그아웃·기기 테마 설정 복원·viewport reset·임시 QA 탭 닫음. QA 서버 5187 listen/해당 helper 프로세스 없음 확인 후 정확한 임시 DB 파일과 빈 디렉터리 삭제(합성 데이터만 제거, 복구 불필요). 캡처는 보존.
-- 미확인: 실제 200% 브라우저 확대, 물리 휴대폰/다른 브라우저/실제 스크린리더, 실제 네트워크 장비, PostgreSQL 실연결. PR #20 G2/실제 기본 확인창 삭제 취소는 **사용자 수동 확인 대기 그대로**이며 이번 QA로 완료 처리하지 않는다. F5/F6 미수정.
-
-다음 차례: 리뷰(Claude). 홈 `/impeccable critique`를 재실행해 기존 27/40과 비교하고, 작업 정의·diff·실행 근거를 독립 확인한다. 이번 Codex는 critique를 실행하거나 점수를 새로 만들지 않았다. 병합하지 않음.
-
-구현·테스트: Codex (GPT-6).
-
-## 현재 과제 리뷰 기록
-### PR #24 Claude 재리뷰 R3·R4 (2026-10-04, HEAD `40df78d`) — **PASS**
-- diff `3c068e1..40df78d`: 코드는 `JudgePage.tsx`(예시 단추 주제 이름, 진입 카드 라벨), `LearningPage.tsx`(소제목 h2), `styles.css`(퍼즐 h2·학습 h2 스타일)와 각 test뿐이다.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.37s` · 서버 `91 passed, 1 skipped in 27.64s` · 웹 `22 files, 279 passed` · 빌드 `✓ built in 273ms`.
-- 브라우저(임시 SQLite, localhost):
-  - 홈 `막힐 것 같다` → 판정기 화면 본문에 결론 문구(`ACL에 막힘`, `돌아오는 경로 없음`, `나가는 방향으로 붙임`)가 하나도 없다.
-  - 예시 단추는 `예시 01 · HTTPS와 입력 ACL` / `예시 02 · 왕복 경로` / `예시 03 · 출력 ACL`로 보인다. 진입 카드 라벨은 `연습용 네트워크 실습`이다.
-  - 퍼즐 제목은 18px다. 학습 상세 제목은 h1(30px) → h2 `개념`·`쉬운 비유`·`확인할 것`(15px, 이전 h3와 같은 크기) → h2 `다른 주제` 순서다.
-- R1~R4 모두 해결. 테스트의 `useState` 모의는 SSR에서 예시 배열을 넣기 위한 테스트 전용이며, 실제 클릭은 위 브라우저 확인으로 대신했다.
-- 남은 다음 설계 후보(비차단): critique 2회차의 P1·P2(계산 범위 띠, 퍼즐을 주 행동으로, 학습 상세마다 예상 단추, 진입 카드에서 예상 바꾸기). 사례 상세·게시판 등 다른 화면의 예시 제목 표시.
-
-### PR #24 수정 요청 R3·R4 (2026-10-04, 사용자 결정: "이 PR에서 고침", "F9~F11 같이 고침")
-- **R3 — 예시 단추가 답을 드러내지 않게 한다** (`web/src/pages/JudgePage.tsx`·`JudgePage.test.tsx`).
-  - 지금: `JudgePage.tsx:321-324`가 `예시 {번호} · {item.title}`로 표시한다. 예시 제목(`HTTPS가 ACL에 막힘`, `돌아오는 경로 없음`, `ACL을 나가는 방향으로 붙임`)이 풀이 결론이다.
-  - 바꿀 것: 표시를 `예시 {번호} · {lessonByCaseId(item.id)?.title}`로 바꾼다(예 `예시 01 · HTTPS와 입력 ACL`). 학습 메타데이터에 없는 예시는 `예시 {번호}`만 쓰고 `item.title`은 쓰지 않는다. 버튼 동작·되돌리기 알림 문구·`fromCase`는 그대로다.
-  - cases JSON·서버·API 응답은 바꾸지 않는다. 사례 상세·게시판 등 다른 화면의 제목 표시도 이번에는 그대로다.
-  - 테스트: 세 예시 단추 텍스트에 예시 제목(결론 문구)이 없고 주제 이름이 있는지, 메타데이터에 없는 예시는 번호만 보이는지.
-- **R4 — 작은 후속 F9~F11**
-  - F9 (`styles.css`): `.home-puzzle h3` 규칙을 `.home-puzzle h2, .home-puzzle h3`로 넓혀 두 얼굴 모두 18px로 맞춘다.
-  - F10 (`LearningPage.tsx`·test): 학습 상세의 `개념`·`쉬운 비유`·`확인할 것`을 h2로 바꿔 h1 → h2 순서로 맞춘다(`다른 주제` h2는 그대로). 같은 크기가 유지되도록 `.learning-detail h3` 규칙도 h2를 포함하게 한다. 제목 순서 테스트를 추가한다.
-  - F11 (`JudgePage.tsx`): 진입 카드 라벨 `학습실에서 선택한 실습 · 연습용 네트워크`를 출발지와 상관없는 `연습용 네트워크 실습`으로 바꾼다.
-- 확인: 네 명령 출력, 브라우저 375·1280에서 홈 `막힐 것 같다` → 판정기 첫 화면에 결론 문구가 없는지, 퍼즐 제목 18px, 학습 상세 제목 순서.
-
-### PR #24 Codex R3·R4 수정 / 재실행 (2026-10-04)
-
-- 기존 `codex/home-ux`에서 `git pull`(Already up to date) 후 AGENTS.md와 HANDOFF의 R3·R4를 읽었다. 수정 전 HEAD `3c068e1`. 사용자 승인 범위만 처리했다.
-- R3: 예시 단추는 학습 메타데이터의 주제 이름을 표시하며, 없는 ID는 번호만 표시한다. `item.title`은 단추 표시에 쓰지 않는다. 단추 클릭·`fromCase`·불러오기/되돌리기 알림은 그대로다. 일반 진입/실습 진입 두 경우에 세 주제 이름·결론 미노출·알 수 없는 ID의 번호만 표시를 검사하는 회귀 2개를 추가했다.
-- R4/F9: 두 얼굴의 퍼즐 h2·h3 모두 18px. F10: 학습 상세의 개념·쉬운 비유·확인할 것을 h2로 바꾸고, 직접 자식 제목에 기존 15px/block/위24px·아래6px 스타일을 유지했다. 다른 주제의 h2(17px/flex)는 건드리지 않았다. 세 상세의 h1→h2 전체 제목 순서를 검사한다. F11: 진입 라벨은 `연습용 네트워크 실습`.
-- 테스트 먼저 작성한 대상 실행은 **8 failed / 5 passed**, 구현 뒤 같은 대상 `npm --prefix web test -- src/pages/JudgePage.test.tsx src/pages/LearningPage.test.tsx`는 **13 passed (2 files, 335ms)**. 예시 테스트는 SSR에서 API 효과가 실행되지 않으므로 배열 상태만 주입하며 실제 API 조회/사용자 이동은 아래 브라우저 확인으로 구분한다.
-- 코드 변경은 JudgePage·LearningPage와 각 test, styles.css의 5파일뿐. App·HomePage·헤더·엔진·서버·API·cases JSON·expect·의존성 불변. R1·R2 해결 상태, F5/F6·PR20 G2/삭제 취소 사용자 수동 확인 대기를 유지한다.
-- 네 명령을 직접 실행했다. PowerShell에서는 engine/server 작업 디렉터리를 각각 지정해 같은 python 명령을 실행했고 PYTHONPATH는 이 worktree를 지정했다. 서버 테스트는 NETPROOF_TEST_DATABASE_URL 제거 후 임시 SQLite만 사용했다. 모두 종료 코드0이며 기존2 xfail/1 skip은 그대로다. 아래는 잘라내지 않은 전체 출력이다.
-
-#### `cd engine && ../.venv/Scripts/python -m pytest -q`
-
-```text
-........................................................................ [ 21%]
-........................................................................ [ 43%]
-........................................................................ [ 65%]
-........................................................................ [ 87%]
-......................................xx                                 [100%]
-326 passed, 2 xfailed in 5.88s
-```
-
-종료 코드: 0.
-
-#### `cd server && ../.venv/Scripts/python -m pytest -q`
-
-```text
-.......................................................................s [ 78%]
-....................                                                     [100%]
-91 passed, 1 skipped in 30.44s
-```
-
-종료 코드: 0.
-
-#### `npm --prefix web test`
-
-```text
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
-
-
- Test Files  22 passed (22)
-      Tests  279 passed (279)
-   Start at  13:40:35
-   Duration  766ms (transform 60%, import 25%, tests 9%, worker 6%)
-
-  Transform  transforming modules took 3.49s · 60% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-종료 코드: 0.
-
-#### `npm --prefix web run build`
-
-```text
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 53 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:   0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-CEk4QdHu.css                            76.65 kB │ gzip:  21.78 kB
-dist/assets/index-C56RPp9H.js                            333.34 kB │ gzip: 100.50 kB
-
-✓ built in 629ms
-```
-
-종료 코드: 0.
-
-#### 브라우저 실제 확인 — R3·R4, 375×812·1280×800
-
-- computer-use 스킬의 브라우저 검증 절차로 Codex in-app Chromium의 새 QA 탭에서 수정 production build를 확인했다. `127.0.0.1:5187`, 새 임시 SQLite·합성 데이터만 사용, 기기 설정을 따르는 라이트 상태였다. 사용자 기존 탭/서버/실제 DB는 사용하지 않았다.
-- 각 크기에서 홈의 **막힐 것 같다**를 직접 클릭하고 예시 조회가 완료된 판정기 첫 화면을 확인했다. 단추는 `예시 01 · HTTPS와 입력 ACL`, `예시 02 · 왕복 경로`, `예시 03 · 출력 ACL`, `처음 구성`. 본문에 `HTTPS가 ACL에 막힘`·`돌아오는 경로 없음`·`ACL을 나가는 방향으로 붙임`이 없었다(검색 결과 빈 배열).
-- 진입 라벨은 두 크기 모두 `연습용 네트워크 실습`, 학생 선택은 `내 예상: 막힘`이다. 이는 계산 결론이 아니다. 비교 배너 없음, 초기 목적지 포트443 유지, `구성 불러오기`와 판정은 클릭하지 않았다. 주소 이동만으로 입력을 바꾸지 않는 경로를 그대로 확인했다.
-- 375 첫 화면 scrollY0·scrollWidth360≤375, 1280 scrollY0·scrollWidth1265≤1280. 첫 얼굴의 퍼즐 h2와 목적지 포트8443 편집 후 홈으로 돌아간 이어서 하기 얼굴의 퍼즐 h3가 두 크기 모두 computed font-size18px였다.
-- 학습 상세도 두 크기에서 H1 HTTPS와 입력 ACL→H2 개념→H2 쉬운 비유→H2 확인할 것→H2 다른 주제 순서였다. 변경한 세 제목은 15px/block/위24px·아래6px 유지, 다른 주제는 기존17px/flex 유지. 375 상세 scrollWidth360≤375. 수집 console error/warn0.
-- 화면 캡처 `r3-entry-375.png`·`r3-entry-1280.png`는 저장소 밖 `C:/Users/dora2/.codex/visualizations/home-ux-2026-10-04`에 보존했다. QA 탭 닫음·viewport reset, 서버 종료·5187 listen 없음 확인, 정확한 임시 qa.db와 빈 디렉터리 삭제(합성 테스트 데이터만 제거).
-- 이번 확인은 요청한 R3·R4 두 크기 라이트 화면에 한정한다. 다크·320·실제200% 확대·물리폰·실제 스크린리더·실장비·PG를 이번에 재검사했다고 쓰지 않는다. 홈 critique 재실행/점수는 Claude 재리뷰 차례이며 새 점수를 만들지 않았다.
-
-다음 차례: **재리뷰(Claude)**. R3·R4 diff·독립 테스트와 예상 직후 결론 미노출을 확인한다. 병합하지 않음.
-
-Codex (GPT-6)
-
-### PR #24 Claude 재리뷰 (2026-10-04, HEAD `fbbd7c9`) — R1·R2 해결, 사용자 결정 1건 대기
-- diff `14910c1..fbbd7c9`: 코드는 `AppHeader.tsx`(메뉴 단추를 nav 앞으로)와 `HomePage.tsx`(첫 얼굴 퍼즐 h2), 각 test뿐이다.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.48s` · 서버 `91 passed, 1 skipped in 29.99s` · 웹 `22 files, 277 passed` · 빌드 `✓ built in 256ms`.
-- 브라우저 375: 메뉴를 열고 단추에서 Tab을 누르면 `학습실`(nav 안)로 간다. 단추는 x=305·44px로 오른쪽 끝을 유지하고 가로 넘침은 없다. 첫 얼굴 제목 순서는 h1 → h2 `먼저 예상해 보세요`이고, 이어서 하기 얼굴은 h2 → h3이다.
-- **홈 critique 2회차(dual-agent): 26/40**(1회차 27/40). 기록은 `.impeccable/critique/2026-10-04T04-27-29Z__web-src-pages-homepage-tsx.md`(로컬, git 제외).
-  - 좋아진 것: 학습 상세 CTA가 첫 화면 안(y=320)에 들어왔고, 이어서 하기 얼굴이 생겼고, 경로를 이동하면 h1으로 포커스가 가고, 휴대폰 메뉴가 정리됐고, F7이 해결됐다. 검출기 0건, 넘침 없음, 대비 최저 5.33:1.
-  - 점수가 오르지 않은 이유: 새 흐름이 드러낸 P0, 예상 퍼즐이 아직 주 행동으로 보이지 않음, 경계 점선이 각주처럼 보임.
-- **P0 (사용자 결정 필요) — 예상한 직후 판정기에서 답이 보인다.**
-  - 홈에서 예상을 고르면 `#/practice/synthetic-01` 첫 화면에 예시 단추 `예시 01 · HTTPS가 ACL에 막힘`, `예시 02 · 돌아오는 경로 없음`, `예시 03 · ACL을 나가는 방향으로 붙임`이 보인다(`JudgePage.tsx:321` `item.title`).
-  - 제목 문제 자체는 PR #15부터 있었고, PR #21 때 사용자가 범위 밖으로 정했다. 이번 예상 흐름이 답을 바로 옆에 노출하게 만들었다. Claude 설계(b2746fa)가 이 점을 놓쳤다.
-  - 화면만 고치는 방법: 예시 단추 표시를 학습 메타데이터 주제 이름(`lessonByCaseId(id)?.title`, 예 `예시 01 · HTTPS와 입력 ACL`)으로 바꾼다. cases JSON·서버는 그대로다.
-- 비차단 후속:
-  - F9: `.home-puzzle h3`만 스타일이 있어 첫 얼굴 h2가 22.5px다(이어서 하기 얼굴은 18px).
-  - F10: 학습 상세가 h1 → h3(`개념`)으로 건너뛴다.
-  - F11: 진입 카드 라벨이 홈에서 와도 `학습실에서 선택한 실습`이다.
-  - critique P1·P2 디자인 개선(경계 띠, 퍼즐 주 행동, 학습 상세에도 예상 단추)은 다음 설계 대상이다.
-
-### PR #24 Claude 독립 리뷰 (2026-10-04, HEAD `bd199d2`) — 수정 요청 2건
-- 근거: `git diff origin/main...HEAD` 19파일. 엔진·서버 변경 0, 승인 설계 8절 허용 목록 안. 빌드 산출물에 cases JSON(`missing-return-route`, `hand_first`) 문자열이 없다.
-- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 6.24s` · 서버 `91 passed, 1 skipped in 30.63s` · 웹 `22 files, 274 passed` · 빌드 `✓ built in 930ms`.
-- 브라우저(임시 SQLite, localhost)로 직접 확인:
-  - 빈 첫 진입에서 `막힐 것 같다`를 누르면 `#/practice/synthetic-01`로 가고, 포커스가 h1으로 옮겨진다. 진입 카드에 `내 예상: 막힘`이 보이고 입력은 그대로다.
-  - `구성 불러오기`를 누르면 주소가 `#/`로 바뀌고 받은 답은 "안 된다"·kind `self`가 된다. 알림은 `HTTPS와 입력 ACL 실습을 시작했습니다`로, F7이 해결됐다.
-  - 판정하면 배너가 `✓ 내 예상이 NetProof 계산과 같습니다`로 나온다(엔진 comparison 그대로).
-  - 홈으로 가면 이어서 하기 얼굴이 나오고 h1에 포커스가 간다. 요약은 `10.10.10.10 → 10.20.20.5 · TCP 443 · 내 예상 막힘 · 장비 3대 · ACL 1개`이고, 퍼즐은 `새 실습 시작하기`(h2) 아래에 있다.
-  - 375: `#/learn/https-acl`의 `판정기에서 열기` 위치가 y=320으로 첫 화면 안이다(이전 y≈1248). 메뉴 단추는 오른쪽 끝(x=305, 44px)이고 펼치면 세로 목록이다. 가로 넘침은 없다.
-- 설계 대조:
-  - 1)~7)이 반영됐다. 예상은 App 상태에만 두고, caseId가 일치할 때만 전달하고, 불러온 뒤 지운다.
-  - PathStrip은 위치·방향만 그린다. 메타데이터는 테스트에서 cases JSON과 대조하고, `learning.ts`에 cases import가 없음을 검사한다.
-  - ADR-001 위반 없음. 정답·채점 표시 없음.
-- **R1 (수정 요청) — 휴대폰 메뉴를 열면 키보드로 메뉴 항목에 갈 수 없다.** 직접 재현함.
-  - `web/src/components/AppHeader.tsx`가 `메뉴` 단추를 계정 영역 뒤, 즉 `nav` **뒤**로 옮겼다. 375에서 메뉴를 열고 단추에 포커스를 둔 채 Tab을 누르면 포커스가 본문 `이어서 하기`로 간다(`inHeader: false`). 메뉴 항목은 DOM상 단추 앞에 있어 Shift+Tab으로 로그인을 지나 거슬러 가야 한다. PR #23(단추가 nav 앞)에서 생긴 회귀다.
-  - 고칠 것: DOM 순서는 로고 → `메뉴` 단추 → `nav` → 계정으로 되돌린다. 오른쪽 끝 배치는 지금 CSS 그리드(`grid-column: 3`)가 그대로 맡는다. `AppHeader.test.tsx`에 "단추가 nav보다 앞" 순서 검사를 추가한다.
-- **R2 (수정 요청, 작음) — 첫 얼굴 홈에서 제목 단계가 h1 → h3으로 건너뛴다.**
-  - `HomePage.tsx`의 `GuessPuzzle`은 항상 `<h3>먼저 예상해 보세요</h3>`다. 이어서 하기 얼굴에서는 h2 `새 실습 시작하기` 아래라 맞지만, 첫 얼굴에서는 h1 바로 아래다.
-  - 고칠 것: 첫 얼굴에서는 h2로 렌더링한다(예: `GuessPuzzle`에 heading 단계 prop). `HomePage.test.tsx`에 두 얼굴의 제목 순서 검사를 추가한다.
-- 홈 `/impeccable critique` 재실행(설계 10절)은 **R1·R2 반영 후 재리뷰 때** 최종 코드로 한 번 돌려 27/40과 비교한다.
-
-### PR #24 Codex R1·R2 수정 / 재실행 (2026-10-04)
-
-- `codex/home-ux`에서 `git pull`(Already up to date), AGENTS/HANDOFF의 현재 과제 리뷰 기록과 최신 [Claude] 코멘트를 읽었다. 수정 전 HEAD `14910c1`.
-- R1: AppHeader DOM을 로고→메뉴 단추→nav→계정으로 복구했다. 기존 CSS grid는 그대로이며 메뉴를 시각적으로 오른쪽 끝에 둔다. 단추가 nav보다 앞임과 전체 DOM 순서를 확인하는 회귀 테스트를 추가했다(이전 계정→단추 검사 제거).
-- R2: GuessPuzzle 제목 단계를 prop으로 받아 첫 얼굴은 h2, 이어서 하기 얼굴은 기존 h2(새 실습 시작하기) 아래 h3를 유지한다. 두 얼굴의 제목 순서 테스트 2개 추가.
-- 테스트 먼저 추가한 실행에서는 R1 DOM 순서와 R2 첫 얼굴 단계 **2 failed / 9 passed**. 코드 수정 뒤 같은 대상 테스트 **11 passed**. 최초 대상 명령에 web/ 접두사를 중복해 No test files found가 발생한 것은 명령 경로 오류이며, src/...로 바로잡아 실행했다.
-- 코드 변경은 `AppHeader.tsx`·`AppHeader.test.tsx`·`HomePage.tsx`·`HomePage.test.tsx` 네 파일뿐. CSS·App·Judge·엔진·서버·cases·expect·의존성 불변. F5/F6와 PR20 사용자 수동 QA 대기는 그대로 둔다.
-- 네 명령을 worktree에서 직접 재실행했다. engine/server는 해당 디렉터리에서 실행했고 PYTHONPATH는 이 worktree를 지정했다. 서버는 NETPROOF_TEST_DATABASE_URL 제거 후 임시 SQLite 테스트만 사용했다. 종료 코드 모두0, 기존2 xfail/1 skip 유지. 이번 결과: 엔진326+2 xfail(4.43s), 서버91+1 skip(30.83s), 웹277(690ms), 빌드286ms.
-
-### `cd engine && ../.venv/Scripts/python -m pytest -q`
-
-```text
-........................................................................ [ 21%]
-........................................................................ [ 43%]
-........................................................................ [ 65%]
-........................................................................ [ 87%]
-......................................xx                                 [100%]
-326 passed, 2 xfailed in 4.43s
-```
-
-종료 코드: 0.
-
-### `cd server && ../.venv/Scripts/python -m pytest -q`
-
-```text
-.......................................................................s [ 78%]
-....................                                                     [100%]
-91 passed, 1 skipped in 30.83s
-```
-
-종료 코드: 0.
-
-### `npm --prefix web test`
-
-```text
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
-
-
- Test Files  22 passed (22)
-      Tests  277 passed (277)
-   Start at  13:15:53
-   Duration  690ms (transform 67%, import 20%, tests 8%, worker 5%)
-
-  Transform  transforming modules took 3.53s · 67% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-종료 코드: 0.
-
-### `npm --prefix web run build`
-
-```text
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 53 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.62 kB │ gzip:   0.45 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-A9w8bL2W.css                            76.59 kB │ gzip:  21.77 kB
-dist/assets/index-DyZ681-n.js                            333.35 kB │ gzip: 100.50 kB
-
-✓ built in 286ms
-```
-
-종료 코드: 0.
-
-#### 375×812 실제 키보드 확인
-- Codex in-app Chromium, 새 임시 SQLite, `127.0.0.1:5187`의 수정 production build. 기존 사용자 탭/서버는 건드리지 않았다.
-- 첫 얼굴: 메뉴 직접 클릭→activeElement=BUTTON(메뉴), aria-expanded=true→메뉴 단추에서 실제 Tab 키→activeElement=A, text=학습실, href=#/learn, inHeader=true, inNav=true. 리뷰에서 재현한 본문으로 건너뛰는 문제는 재현되지 않았다.
-- 목적지 포트8443 편집 후 홈(이어서 하기 얼굴)에서도 메뉴 열기→Tab→같은 학습실 링크에 포커스. DOM만 검사한 것이 아니라 실제 키 입력으로 두 얼굴 모두 확인했다.
-- 첫 얼굴의 앞 제목: H1 왜 통과하고,어디서 막힐까요?→H2 먼저 예상해 보세요. 이어서 하기: H1 작성하던 입력이 있어요→H2 새 실습 시작하기→H3 먼저 예상해 보세요.
-- 메뉴 시각 위치 x=289.796875/right=344px, 높이44px. 로그인 right=277.796875px, 로고 x=16px: 메뉴가 오른쪽 끝인 배치는 유지된다. scrollWidth360 ≤ 375, console error/warn0.
-- 학습실 링크에서 Escape→메뉴 단추로 포커스 복귀, aria-expanded=false. 캡처 `r1-tab-375.png`·`r1-tab-resume-375.png`는 저장소 밖 `C:/Users/dora2/.codex/visualizations/home-ux-2026-10-04`에 보존.
-- 임시 QA 탭 닫음·viewport reset, QA 서버 종료 및5187 listen 없음 확인. 정확한 임시 qa.db와 빈 디렉터리 삭제(합성 데이터만 제거). 사용자 실제 DB/사례 미사용.
-- 이번 재실행은 375의 R1·R2에 한정한다. 이전1280/320·라이트/다크 전체 흐름을 이번에 다시 확인했다고 쓰지 않는다. critique 재실행은 Claude 재리뷰 때. 실제200% 확대·물리폰·실제 스크린리더·실장비·PG는 여전히 미확인.
-
-다음 차례: **재리뷰(Claude)**. R1·R2 diff/테스트와 375 키보드 순서를 독립 확인하고 홈 critique를 최종 코드로 재실행한다. 병합하지 않음.
-
-Codex (GPT-6)
-
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #24 홈·학습실 개선 (병합 완료, `b8bb8e8`)**: 홈 예상 퍼즐(synthetic-01)·이어서 하기 얼굴·PathStrip 경로 그림·학습 상세 먼저·포커스 이동·말 다듬기·휴대폰 헤더. 리뷰 R1(메뉴 키보드 순서)·R2(제목 단계) → critique 2회차 26/40에서 P0(예상 직후 예시 단추 제목이 답 노출) 발견 → 사용자 결정으로 R3(예시 단추 주제 이름)·R4(F9~F11) → Claude 재리뷰 PASS(`575f902`) → 사용자 병합. 남은 P1·P2는 이번 과제.
 - **PR #23 홈·학습실·헤더 MVP (병합 완료, `82975e6`)**: 공개 홈·학습실 3주제·모바일 헤더·현재 입력 안내·명시적 실습 불러오기. 설계는 사용자 요청으로 Codex가 맡음(일회). Claude 독립 리뷰 PASS(`179d46e`) → 사용자 병합. 후속 F7(실습 알림 "실습" 중복, 이번 2절에서 처리), F8(낡은 지시, 이번 문서 정리로 처리), 실제 200% 확대 미확인. 병합 뒤 홈 critique 27/40 → 이번 과제.
 - **PR #22 문서 정리 (병합 완료, `b3f145b`)**: PR #21 병합 반영·수동 QA 절차 기록. Claude 문서 리뷰 PASS.
 - **PR #21 판정기 화면 개선 (병합 완료, `388a9cf`)**: 비교 배너·한 단계 되돌리기·blur 안내·결과 접기·접근성·스크롤 겹침 정리. R1(trim/옥텟 앞자리0) 수정 `79086d2` → Claude 재리뷰 PASS `5056cb0` → 사용자 지시로 병합. F5 빈 템플릿 첫 예시 알림, F6 조사 "을"은 비차단 후속. PR #20 수동 QA는 별도다.
@@ -855,13 +189,14 @@ Codex (GPT-6)
 **위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
 
 - [x] **홈·학습실·헤더 MVP(2026-10-04 추가)** — ①② PR #23 병합(`82975e6`).
-- [ ] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② **승인 b2746fa·구현/테스트 완료, Claude 리뷰 대기 — 브랜치 codex/home-ux**
+- [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
+- [ ] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② **설계 완료, 사용자 승인 대기 — 브랜치 codex/home-ux2**
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- PR #24는 Claude 재리뷰 PASS(`40df78d`). 다음은 사용자 병합 결정이다. 병합 뒤 새 작업은 Claude 설계와 사용자 승인 후 새 codex 브랜치에서 시작한다.
-- 홈은 정답·계산 결과·expect를 보이지 않는다. 예상은 학생이 직접 고른 받은 답(`kind: "self"`)일 뿐이며 비교는 엔진 `comparison`이 한다. cases JSON은 테스트에서만 import한다.
-- 진입·주소만으로 입력을 바꾸지 않는다. 입력 변경은 "구성 불러오기" 직접 클릭 때만이며 기존 되돌리기 규칙을 따른다.
+- **Codex(사용자 승인 뒤):** `codex/home-ux2`에서 `git pull`, `AGENTS.md`와 이 문서를 읽고 "작업 정의" 1)~7) 범위 안에서만 구현·테스트한다. 승인 전이면 멈춘다.
+- 홈·학습은 정답·계산 결과·expect를 보이지 않는다. 예상은 학생이 직접 고른 받은 답(`kind: "self"`)이고 비교는 엔진 `comparison`이 한다. cases JSON은 테스트에서만 import한다.
+- 진입·주소·진입 카드 라디오만으로 입력을 바꾸지 않는다. 입력 변경은 "구성 불러오기" 직접 클릭 때만이며 기존 되돌리기 규칙을 따른다.
 - 다음 우선 확인은 아래 **사용자 수동 QA**다. 미확인을 PASS로 적지 않는다. 코드·배포·병합은 자동 진행하지 않는다.
 - 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다. 화면이 판정·비교를 다시 계산하면 설계 위반이다.
 
@@ -886,4 +221,4 @@ Codex (GPT-6)
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 홈·학습실 개선 설계: Claude (Claude Opus 5.5). 구현·테스트: Codex (GPT-6).
+현재 홈·학습 2차 설계: Claude (Claude Opus 5.5).
