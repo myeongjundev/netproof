@@ -27,7 +27,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 승인: **사용자 승인 완료 — 설계 `b2746fa`(2026-10-04 이번 구현 요청).**
 - 단계: **Claude R1·R2 리뷰 요청 → Codex 수정·재테스트 완료 → Claude 재리뷰 → 사용자 병합 결정.**
 - PR: **[#24 홈·학습실 UX 개선](https://github.com/myeongjundev/netproof/pull/24)** — main 대상, 구현 `dd6f2cd`, OPEN(미병합).
-- 다음 차례: **재리뷰(Claude) — PR #24 R1·R2 수정 확인.** 병합하지 않는다.
+- 다음 차례: **사용자 — P0(예시 단추가 답을 드러냄)를 이 PR에서 고칠지 결정.** R1·R2는 재리뷰에서 해결 확인. 병합하지 않는다.
 - **판정·엔진은 그대로다.** 화면 표시와 흐름만 바꾼다. 엔진·서버·API·저장 데이터·기존 expect를 바꾸지 않는다. 홈은 정답·채점·완료 표시를 만들지 않는다.
 
 ## 작업 정의
@@ -365,6 +365,23 @@ dist/assets/index-mMtmlsd0.js                            333.33 kB │ gzip: 100
 구현·테스트: Codex (GPT-6).
 
 ## 현재 과제 리뷰 기록
+### PR #24 Claude 재리뷰 (2026-10-04, HEAD `fbbd7c9`) — R1·R2 해결, 사용자 결정 1건 대기
+- diff `14910c1..fbbd7c9`: 코드는 `AppHeader.tsx`(메뉴 단추를 nav 앞으로)와 `HomePage.tsx`(첫 얼굴 퍼즐 h2), 각 test뿐이다.
+- Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 3.48s` · 서버 `91 passed, 1 skipped in 29.99s` · 웹 `22 files, 277 passed` · 빌드 `✓ built in 256ms`.
+- 브라우저 375: 메뉴를 열고 단추에서 Tab을 누르면 `학습실`(nav 안)로 간다. 단추는 x=305·44px로 오른쪽 끝을 유지하고 가로 넘침은 없다. 첫 얼굴 제목 순서는 h1 → h2 `먼저 예상해 보세요`이고, 이어서 하기 얼굴은 h2 → h3이다.
+- **홈 critique 2회차(dual-agent): 26/40**(1회차 27/40). 기록은 `.impeccable/critique/2026-10-04T04-27-29Z__web-src-pages-homepage-tsx.md`(로컬, git 제외).
+  - 좋아진 것: 학습 상세 CTA가 첫 화면 안(y=320)에 들어왔고, 이어서 하기 얼굴이 생겼고, 경로를 이동하면 h1으로 포커스가 가고, 휴대폰 메뉴가 정리됐고, F7이 해결됐다. 검출기 0건, 넘침 없음, 대비 최저 5.33:1.
+  - 점수가 오르지 않은 이유: 새 흐름이 드러낸 P0, 예상 퍼즐이 아직 주 행동으로 보이지 않음, 경계 점선이 각주처럼 보임.
+- **P0 (사용자 결정 필요) — 예상한 직후 판정기에서 답이 보인다.**
+  - 홈에서 예상을 고르면 `#/practice/synthetic-01` 첫 화면에 예시 단추 `예시 01 · HTTPS가 ACL에 막힘`, `예시 02 · 돌아오는 경로 없음`, `예시 03 · ACL을 나가는 방향으로 붙임`이 보인다(`JudgePage.tsx:321` `item.title`).
+  - 제목 문제 자체는 PR #15부터 있었고, PR #21 때 사용자가 범위 밖으로 정했다. 이번 예상 흐름이 답을 바로 옆에 노출하게 만들었다. Claude 설계(b2746fa)가 이 점을 놓쳤다.
+  - 화면만 고치는 방법: 예시 단추 표시를 학습 메타데이터 주제 이름(`lessonByCaseId(id)?.title`, 예 `예시 01 · HTTPS와 입력 ACL`)으로 바꾼다. cases JSON·서버는 그대로다.
+- 비차단 후속:
+  - F9: `.home-puzzle h3`만 스타일이 있어 첫 얼굴 h2가 22.5px다(이어서 하기 얼굴은 18px).
+  - F10: 학습 상세가 h1 → h3(`개념`)으로 건너뛴다.
+  - F11: 진입 카드 라벨이 홈에서 와도 `학습실에서 선택한 실습`이다.
+  - critique P1·P2 디자인 개선(경계 띠, 퍼즐 주 행동, 학습 상세에도 예상 단추)은 다음 설계 대상이다.
+
 ### PR #24 Claude 독립 리뷰 (2026-10-04, HEAD `bd199d2`) — 수정 요청 2건
 - 근거: `git diff origin/main...HEAD` 19파일. 엔진·서버 변경 0, 승인 설계 8절 허용 목록 안. 빌드 산출물에 cases JSON(`missing-return-route`, `hand_first`) 문자열이 없다.
 - Claude 직접 실행: 엔진 `326 passed, 2 xfailed in 6.24s` · 서버 `91 passed, 1 skipped in 30.63s` · 웹 `22 files, 274 passed` · 빌드 `✓ built in 930ms`.
