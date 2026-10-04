@@ -14,6 +14,17 @@ it("첫 헤더는 홈 로고·학습실·기존 판정기와 접힌 메뉴를 �
   expect(html).toContain('aria-controls=');
   expect(html).not.toContain("내 실습");
 });
+it("메뉴 단추는 nav보다 앞에 있어 펼친 항목으로 Tab 이동할 수 있다", () => {
+  const html = renderToStaticMarkup(createElement(AppHeader, { route: { page: "home" }, user: null, checked: true, onLogout: () => {} }));
+  const brand = html.indexOf('class="brand"');
+  const button = html.indexOf('class="ghost header-menu-toggle"');
+  const nav = html.indexOf("<nav ");
+  const account = html.indexOf('class="who header-account"');
+  for (const index of [brand, button, nav, account]) expect(index).toBeGreaterThanOrEqual(0);
+  expect(brand).toBeLessThan(button);
+  expect(button).toBeLessThan(nav);
+  expect(nav).toBeLessThan(account);
+});
 it.each(["user", "reviewer"] as const)("대시보드는 검토자에게만, 로그인 표시는 기존대로: %s", role => {
   const html = renderToStaticMarkup(createElement(AppHeader, { route: { page: "judge" }, user: { ...user, role }, checked: true, onLogout: () => {} }));
   expect(html.includes('href="#/dashboard"')).toBe(role === "reviewer");

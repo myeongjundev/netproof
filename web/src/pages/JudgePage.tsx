@@ -9,7 +9,7 @@ import type { Suggestion, SuggestionTarget } from "../types";
 import { aclSelection } from "../components/AclEvidence";
 import { blankDraft, caseJson, endpoints, fromCase, toNetwork } from "../draft";
 import { practiceTasks, type PracticeTask } from "../practice";
-import { lessonByCaseId, practiceDraft, practiceEntry, type ExampleStatus } from "../learning";
+import { lessonByCaseId, practiceDraft, practiceEntry, practiceStartLabel, type ExampleStatus, type PracticeGuess } from "../learning";
 import { go } from "../router";
 import { decodeShare, encodeShare } from "../share";
 import type { CaseItem, Claim, Draft, Network, User, Verdict } from "../types";
@@ -21,10 +21,12 @@ interface Props {
   setDraft: (update: (current: Draft) => Draft) => void;
   share?: string;
   practiceId?: string;
+  practiceGuess?: PracticeGuess;
+  onPracticeLoaded?: () => void;
   titleHint?: string;
 }
 
-export function JudgePage({ user, draft, setDraft, share, practiceId, titleHint }: Props) {
+export function JudgePage({ user, draft, setDraft, share, practiceId, practiceGuess, onPracticeLoaded, titleHint }: Props) {
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [examplesStatus, setExamplesStatus] = useState<ExampleStatus>("loading");
   const [examplesRequest, setExamplesRequest] = useState(0);
@@ -143,9 +145,10 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, titleHint 
   }, [setDraft]);
 
   const startPractice = (nextTask: PracticeTask, example: CaseItem) => {
-    load(practiceDraft(example), `${nextTask.title} 실습을 시작했습니다`);
+    load(practiceDraft(example, nextTask.case_id === practiceId ? practiceGuess : undefined), practiceStartLabel(nextTask));
     setTask(nextTask);
     setTitle(nextTask.title);
+    onPracticeLoaded?.();
     if (practiceId) {
       window.history.replaceState(null, "", "#/");
       window.dispatchEvent(new HashChangeEvent("hashchange"));
@@ -296,13 +299,14 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, titleHint 
     }}>
       <h1 className="sr-only">판정기</h1>
       {entryLesson && entry && <section className="panel practice-entry" aria-labelledby="practice-entry-title">
-        <p className="home-eyebrow">학습실에서 선택한 실습 · 합성 구성</p>
+        <p className="home-eyebrow">연습용 네트워크 실습</p>
         <h2 id="practice-entry-title">{entryLesson.title}</h2><p>{entryLesson.task.question}</p>
+        {practiceGuess && <p className="practice-guess">내 예상: {practiceGuess === "PASS" ? "통과" : "막힘"}</p>}
         <p className="hint">지금 입력은 아직 바꾸지 않았습니다. 실습 구성은 버튼을 눌러 불러옵니다.</p>
-        {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>실습 구성 불러오기</button></>}
+        {entry.kind === "loading" && <><p role="status">실습 구성을 불러오는 중…</p><button type="button" className="ghost" disabled>구성 불러오기</button></>}
         {entry.kind === "error" && <><p role="alert">실습 구성을 가져오지 못했습니다.</p><button type="button" className="ghost" onClick={() => setExamplesRequest(value => value + 1)}>다시 시도</button></>}
         {entry.kind === "missing" && <p role="status">이 실습 구성은 현재 제공되지 않습니다.</p>}
-        {entry.kind === "ready" && <button type="button" className="primary" onClick={() => startPractice(entryLesson.task, entry.example)}>실습 구성 불러오기</button>}
+        {entry.kind === "ready" && <button type="button" className="primary" onClick={() => startPractice(entryLesson.task, entry.example)}>구성 불러오기</button>}
         <a href="#/">판정기로 이동</a>
       </section>}
       <div className="page-head">
@@ -317,7 +321,7 @@ export function JudgePage({ user, draft, setDraft, share, practiceId, titleHint 
           {examples.map((item) => (
             <button key={item.id} type="button" className="ghost small" onClick={() => load(fromCase(item), `예시 ${item.id.replace("synthetic-", "")}을 불러왔습니다`)}>
               예시 {item.id.replace("synthetic-", "")}
-              {item.title ? ` · ${item.title}` : ""}
+              {lessonByCaseId(item.id)?.title ? ` · ${lessonByCaseId(item.id)?.title}` : ""}
             </button>
           ))}
           <button type="button" className="ghost small" onClick={() => load(blankDraft(), "처음 구성을 불러왔습니다")}>
