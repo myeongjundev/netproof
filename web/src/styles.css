@@ -484,6 +484,12 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .practice-import button { min-height: 44px; }
 .home-page a:focus-visible, .learning-page a:focus-visible, .app-header a:focus-visible, .practice-page a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 900px) {
+  .practice-page { gap: 12px; }
+  .practice-config { gap: 8px; }
+  .practice-page .layout { gap: 12px; }
+  .practice-prediction { padding: 10px 16px; }
+  .practice-problem h1 { margin: 2px 0 4px; }
+  .practice-problem .hint { margin-top: 2px; }
   .practice-problem { grid-template-columns: 1fr; gap: 10px; }
   .practice-problem h1 { font-size: 23px; }
   .practice-intro { align-items: flex-start; flex-wrap: wrap; }

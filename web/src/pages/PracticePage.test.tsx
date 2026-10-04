@@ -73,7 +73,8 @@ it.each(examples)("$id는 ①→②→③→판정하기→④ 순서와 통신�
   expect(positions.every(n => n >= 0)).toBe(true); expect(positions).toEqual([...positions].sort((a,b) => a-b));
   expect(html).not.toMatch(/q-claim|claim-label|누구의 답인지|확인할 통신과 받은 답|예시를 불러와도 됩니다/);
   expect(html).toContain("③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다.");
-  expect(html).toContain("고른 예상은 계산에 쓰지 않고 결과와 나란히 비교만 합니다.");
+  expect(html).toContain("예상은 계산에 쓰지 않고 비교만 합니다.");
+  expect(html).not.toContain("고른 예상은 계산에 쓰지 않고 결과와 나란히 비교만 합니다.");
   expect(html).not.toMatch(/정답은 통과|정답은 막힘|채점|완료 표시|expect/);
 });
 it.each([null, "1"])("첫 안내 줄은 저장값 %s를 따른다", value => {
@@ -88,7 +89,8 @@ it("②의 접기 안에 확인할 것·통신·편집기만 넣고 ③은 밖�
   draft.acls.push({ name: " ", text: "" }, { ...draft.acls[0], name: " 101 " });
   const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", draft, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   const inside = html.slice(html.indexOf('<details class="mobile-fold'), html.indexOf("</details>"));
-  expect(inside).toContain("구성 펼쳐 보기 · 장비 3대 · ACL 1개 · 확인할 것 3가지");
+  expect(inside).toContain("<summary>구성 펼쳐 보기 · 장비 3대 · ACL 1개</summary>");
+  expect(inside).not.toContain("확인할 것 3가지");
   expect(inside).toContain("확인할 것</h3>"); expect(inside).toContain('id="flow-title"'); expect(inside).toContain('id="network-title"');
   expect(inside).not.toContain("③ 내 예상"); expect(inside).not.toMatch(/<details[^>]*\bopen\b/);
   expect(html.indexOf('id="practice-config-title"')).toBeLessThan(html.indexOf('<details class="mobile-fold'));

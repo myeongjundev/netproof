@@ -165,7 +165,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
         <section className="inputs practice-config" aria-labelledby="practice-config-title">
           <div className="panel-head"><h2 id="practice-config-title" tabIndex={-1} ref={configTitle}>② 구성 살펴보기</h2><button type="button" className="ghost small" onClick={reset}>처음 상태로</button></div>
           <details className="mobile-fold practice-config-fold" ref={configFold}>
-            <summary>구성 펼쳐 보기 · 장비 {network!.devices.length}대 · ACL {Object.keys(network!.acls).length}개 · 확인할 것 {lesson.task.checkpoints.length}가지</summary>
+            <summary>구성 펼쳐 보기 · 장비 {network!.devices.length}대 · ACL {Object.keys(network!.acls).length}개</summary>
             <div><h3 className="practice-check-title">확인할 것</h3><ul className="practice-checkpoints">{lesson.task.checkpoints.map(point => <li key={point}>{point}</li>)}</ul></div>
           <FlowForm flow={draft.flow} claim={draft.claim} endpoints={endpoints(draft)} hideClaim onFlow={flow => update({ flow })} onClaim={claim => update({ claim })} />
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={devices => update({ devices })} onAcls={acls => update({ acls })}
@@ -176,7 +176,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
         <div className="output">
           <section className="panel practice-prediction" aria-labelledby="practice-guess-title"><h2 id="practice-guess-title">③ 내 예상</h2>
             <PracticeGuessPicker caseId={caseId} guess={draft.claim.expected ?? undefined} onChange={expected => update({ claim: expected ? { expected, kind: "self", source: "", text: "" } : { ...EMPTY_CLAIM } })} />
-            <p className="hint below">고른 예상은 계산에 쓰지 않고 결과와 나란히 비교만 합니다.</p></section>
+            <p className="hint below">예상은 계산에 쓰지 않고 비교만 합니다.</p></section>
           <div className="judge"><button type="button" className="primary" onClick={judge} disabled={loading}>{loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}</button><span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span></div>
           <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
           <div className="practice-import"><p className="hint">ACL 점검·수정 후보·사례 저장은 판정기에서 할 수 있습니다.</p><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
