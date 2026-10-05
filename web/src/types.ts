@@ -44,6 +44,15 @@ export interface PolicyMatrix {
   totals: Record<Result | PolicyState | "checks", number>;
 }
 
+export interface ChangeImpact {
+  status: "OK" | "INVALID"; problems: string[]; limit_exceeded: boolean; engine_version: string; mode: Mode;
+  services: (MatrixService & { key: string })[];
+  changes: { src: string; dst: string; src_device: string; dst_device: string; service: string;
+    kind: "opened" | "closed" | "other"; before: Pick<Verdict, "result" | "reason" | "decisive">;
+    after: Pick<Verdict, "result" | "reason" | "decisive"> }[];
+  totals: Record<"checks" | "changed" | "opened" | "closed" | "other" | "not_compared", number>;
+}
+
 export interface Iface {
   name: string;
   ip: string;

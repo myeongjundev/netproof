@@ -4,6 +4,7 @@ import type { MatrixSpec, PolicyMatrix } from "./types";
 import type { Observation } from "./types";
 import type { AclAudit } from "./types";
 import type { Suggestion, SuggestionTarget } from "./types";
+import type { ChangeImpact, MatrixService } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -60,6 +61,8 @@ export const api = {
   verify: (network: Network, flow: Flow, claim: Claim) =>
     call<Verdict>("POST", "/api/verify", { network, flow, claim: claim.expected ? claim : null }),
   policyMatrix: (network: Network, spec: MatrixSpec) => call<PolicyMatrix>("POST", "/api/policy-matrix", { network, spec }),
+  changeImpact: (before: Network, after: Network, flow: Flow, services: MatrixService[]) =>
+    call<ChangeImpact>("POST", "/api/change-impact", { before, after, flow, services }),
   aclAudit: (network: Network) => call<AclAudit>("POST", "/api/acl-audit", { network }),
   suggest: (network: Network, flow: Flow, target: SuggestionTarget) => call<Suggestion>("POST", "/api/suggest", { network, flow, target }),
   examples: () => call<CaseItem[]>("GET", "/api/examples"),

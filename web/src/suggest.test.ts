@@ -20,6 +20,9 @@ describe("suggestion display (no decision or application)", () => {
     expect(editDescription({ ...edit, anchor_before: null, direction: "out", path: "return" })).toBe("101 · 맨 끝에 넣기 → 새 4번 줄 · R1 g0/0 out · 돌아오는 길");
   });
   it("states all attachment sites, even a single site", () => {
+    expect(sharedDescription(edit)).toBe("101 ACL은 1곳에 붙어 있어 이 줄은 모든 곳에 적용됩니다: R1 g0/0 in");
+    expect(sharedDescription({ ...edit, acl: "abc" })).toMatch(/^abc ACL은 /);
+    expect(sharedDescription(edit)).not.toContain("은(는)");
     expect(sharedDescription(edit)).toContain("1곳에 붙어");
     expect(sharedDescription({ ...edit, shared_by: [...edit.shared_by, { device: "R2", interface: "e", direction: "out" }] })).toContain("2곳에 붙어 있어 이 줄은 모든 곳에 적용됩니다: R1 g0/0 in, R2 e out");
   });

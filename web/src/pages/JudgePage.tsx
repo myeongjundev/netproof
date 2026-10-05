@@ -15,6 +15,10 @@ import { decodeShare, encodeShare } from "../share";
 import { scrollTo } from "../motion";
 import type { CaseItem, Claim, Draft, Network, User, Verdict } from "../types";
 import type { AclAudit as AuditResult } from "../types";
+import { advanceChange, type ChangeHistory } from "../changeView";
+import { ChangePanel } from "../components/ChangePanel";
+import { defaultMatrixSpec } from "../policyMatrix";
+import type { ChangeImpact } from "../types";
 
 interface Props {
   user: User | null;
@@ -76,9 +80,14 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
   contextNow.current = { title };
   const imported = useRef<Props["pendingImport"]>(null);
   const [needsJudge, setNeedsJudge] = useState(false);
+  const [changeHistory, setChangeHistory] = useState<ChangeHistory>({ last: null, before: null });
+  const [impact, setImpact] = useState<ChangeImpact | null>(null);
+  const [impactError, setImpactError] = useState<string | null>(null);
+  const [impactLoading, setImpactLoading] = useState(false);
+  const impactRevision = useRef(0);
 
   // 다른 화면의 같은 result-title로 늦은 요청이 초점을 옮기지 않게 한다.
-  useEffect(() => () => { revision.current += 1; }, []);
+  useEffect(() => () => { revision.current += 1; impactRevision.current += 1; }, []);
 
   useEffect(() => {
     let active = true;
@@ -105,9 +114,13 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
       previousSnapshot.current = snapshot;
       suggestRevision.current += 1;
       setSuggestLoading(false);
+      impactRevision.current += 1;
+      setImpactLoading(false);
     }
   }, [snapshot]);
   const update = (patch: Partial<Draft>) => {
+    impactRevision.current += 1;
+    setImpactLoading(false);
     if (!removing.current) setUndo(null);
     removing.current = false;
     setDraft((current) => ({ ...current, ...patch }));
@@ -121,6 +134,8 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
     if (!undo) return;
     revision.current += 1;
     suggestRevision.current += 1;
+    impactRevision.current += 1;
+    setImpactLoading(false);
     setLoading(false);
     setSuggestLoading(false);
     setDraft(() => structuredClone(undo.draft));
@@ -132,8 +147,14 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
   const load = useCallback((next: Draft, label?: string) => {
     const current = draftNow.current;
     const input = (item: Draft) => JSON.stringify({ network: toNetwork(item), flow: item.flow, claim: item.claim });
-    const hasInput = hasCurrentInput(current);
-    setUndo(label && hasInput && input(current) !== input(next) ? { draft: structuredClone(current), label, ...contextNow.current } : null);
+    const changedInput = input(current) !== input(next);
+    const hasInput = hasCurrentInput(current) || contextNow.current.title.trim() !== "";
+    setUndo(label && hasInput && changedInput ? { draft: structuredClone(current), label, ...contextNow.current } : null);
+    setChangeHistory(history => advanceChange(history, null));
+    impactRevision.current += 1;
+    setImpact(null);
+    setImpactError(null);
+    setImpactLoading(false);
     revision.current += 1;
     suggestRevision.current += 1;
     setSuggestTarget(null);
@@ -152,7 +173,7 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
     if (!label) setAuditRequested(false);
     setLoading(false);
     setError(null);
-    setTitle("");
+    if (changedInput) setTitle("");
     setSaveError(null);
   }, [setDraft]);
 
@@ -201,6 +222,8 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
   const judge = async () => {
     if (loading) return;
     const started = ++revision.current;
+    impactRevision.current += 1;
+    setImpactLoading(false);
     suggestRevision.current += 1;
     setSuggestTarget(null);
     setSuggestResult(null);
@@ -218,14 +241,19 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
         hasAcls ? api.aclAudit(network) : Promise.resolve(null),
       ]);
       if (started !== revision.current) return;
+      if (verification.status === "fulfilled") {
+        setChangeHistory(history => advanceChange(history, { network, flow: structuredClone(draft.flow), verdict: verification.value }));
+        setImpact(null);
+        setImpactError(null);
+        setJudgedNetwork(network);
+        setJudgedClaim(structuredClone(draft.claim));
+        setJudged(snapshot);
+        setNeedsJudge(false);
+      }
       setVerdict(verification.status === "fulfilled" ? verification.value : null);
       setError(verification.status === "rejected" ? message(verification.reason) : null);
       setAudit(inspection.status === "fulfilled" ? inspection.value : null);
       setAuditError(inspection.status === "rejected" ? message(inspection.reason) : null);
-      setJudgedNetwork(network);
-      setJudgedClaim(structuredClone(draft.claim));
-      setJudged(snapshot);
-      setNeedsJudge(false);
     } catch (e) {
       if (started === revision.current) setError(message(e));
     } finally {
@@ -233,6 +261,24 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
         setLoading(false);
         focusJudgeResult(() => started === revision.current);
       }
+    }
+  };
+
+  const calculateImpact = async () => {
+    if (stale || loading || impactLoading || !changeHistory.before || !changeHistory.last) return;
+    const started = ++impactRevision.current;
+    const requestedSnapshot = snapshot;
+    const current = () => started === impactRevision.current && latestSnapshot.current === requestedSnapshot;
+    setImpactLoading(true);
+    setImpactError(null);
+    try {
+      const result = await api.changeImpact(structuredClone(changeHistory.before.network),
+        structuredClone(changeHistory.last.network), structuredClone(changeHistory.last.flow), defaultMatrixSpec().services);
+      if (current()) setImpact(result);
+    } catch (error) {
+      if (current()) setImpactError(message(error));
+    } finally {
+      if (current()) setImpactLoading(false);
     }
   };
 
@@ -383,6 +429,7 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
           </div>
           <div className="follow">
             <ResultPanel verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
+            <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
             {auditRequested && Object.keys(toNetwork(draft).acls).length > 0 && <AclAudit result={audit} error={auditError} stale={stale} loading={loading} onShow={showAcl} />}
             {!loading && verdict && (verdict.result === "PASS" || verdict.result === "DENY") && (!stale || suggestResult !== null) &&
               <SuggestPanel target={suggestTarget} result={suggestResult} error={suggestError} loading={suggestLoading} stale={stale}
