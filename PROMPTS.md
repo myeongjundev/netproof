@@ -3,6 +3,30 @@
 `<N>`(이슈/PR 번호), `<작업명>`만 바꿔서 해당 LLM 채널에 붙여넣습니다.
 **각 단계가 끝나면 사용자가 GitHub에서 커밋·PR이 실제로 올라왔는지 확인한 뒤 다음 단계로 넘깁니다.**
 
+## 0. 새 PC(학원 등)에서 이어가기 — Claude
+```
+한국어로 답해 줘. 이 PC는 집이 아닌 새 PC(학원)이고, 공용일 수 있다.
+
+1) 시작 점검
+- git switch main, git pull --ff-only 후 CLAUDE.md, HANDOFF.md, docs/work-summary-2026-10-04_06.md를 읽어라. 규칙과 현재 상태는 HANDOFF.md가 기준이다.
+- .venv나 web/node_modules가 없으면 docs/work-summary-2026-10-04_06.md의 "학원 PC에서 이어가기"대로 설치하라.
+- 네 명령(엔진 pytest, 서버 pytest, npm --prefix web test, npm --prefix web run build)을 직접 실행하고 결과 줄을 보여 줘. 기대값: 엔진 350 passed·2 xfailed, 서버 140 passed·1 skipped, 웹 417 passed, 빌드 성공.
+
+2) 지킬 것
+- 너는 설계·리뷰·문서만 한다. 제품 코드 구현은 Codex 몫이다. 리뷰 때는 코드를 고치지 말고 첫 줄이 [Claude]인 PR 코멘트를 남겨라.
+- 최종 PASS/DENY는 engine/만 정한다(ADR-001). 앱 안에 LLM을 넣지 않는다(ADR-002).
+- 공개 저장소다. 비밀값 커밋, --force 푸시, 승인 없는 main 푸시는 하지 마라. 병합은 내가 정한다.
+- 이 PC에는 운영 DB 주소(DATABASE_URL)를 입력하거나 저장하지 마라. 검토자 지정(make-reviewer)은 집 PC에서 한다.
+- 수동 QA 결과는 내가 docs/qa-manual.md에 직접 적는다. 네가 대신 완료로 바꾸지 마라.
+
+3) 오늘 할 일 고르기
+HANDOFF의 "다음 차례"를 세 줄로 요약하고, 아래 중 무엇부터 할지 물어봐 줘.
+- 배포 6단계: https://netproof-vert.vercel.app 에서 내가 가입, 사례 저장, 게시판 확인, 로그아웃(너는 안내만)
+- 수동 QA D(Graylog·Wazuh): 로그를 켠 로컬 NetProof 서버(docs/security-logs.md, scripts/qa_local.py)로 수업 환경에 보내기
+- 수동 QA E(Docker n8n): examples/n8n 워크플로 가져오기. HTTP Request 주소를 https://netproof-vert.vercel.app/api/verify 로 바꿔도 된다
+- 다음 기능 설계: 로드맵 4번 원인 태그·통계(HANDOFF "남은 작업")
+```
+
 ## 1. 설계 — Claude
 ```
 git pull 후 CLAUDE.md와 HANDOFF.md를 읽어라.
