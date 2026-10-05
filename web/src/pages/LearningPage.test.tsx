@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LearningPage } from "./LearningPage";
 import { LESSONS } from "../learning";
+import { TOOL_TOPICS, TOOL_NOTICE, SECURITY_EXAMPLE, SECURITY_DOC } from "../toolTopics";
 
 it("목록의 세 연습 주제는 축소 구성도와 상세 링크를 보인다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
@@ -35,4 +36,49 @@ it("없는 주제도 학습실 틀 안에서 복귀 경로를 보인다", () => 
   const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: "missing", onGuess: () => {} }));
   expect(html).toContain('class="learning-page"'); expect(html).toContain("<h1>없는 학습 주제");
   expect(html).toContain('href="#/learn"'); expect(html).not.toContain("HTTPS");
+});
+
+it("실습 카드 뒤의 도구 카드 두 개는 그림 없이 공부 링크를 보인다", () => {
+  const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
+  expect(html.indexOf("보안 운영 도구</h2>")).toBeGreaterThan(html.indexOf("실습 열기 →"));
+  for (const topic of TOOL_TOPICS) {
+    expect(html).toContain(`href="#/learn/${topic.id}"`);
+    expect(html).toContain(topic.title);
+    expect(html).toContain(topic.description);
+  }
+  expect(html.match(/공부하기 →/g)).toHaveLength(2);
+  expect(html.match(/path-strip-small/g)).toHaveLength(3);
+});
+
+it.each(TOOL_TOPICS)("$id 도구 화면은 승인 원고·절·출처만 보이고 실습 UI는 없다", topic => {
+  const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: topic.id, onGuess: () => { throw new Error("unexpected guess"); } }));
+  const headings = [...html.matchAll(/<h([1-6])\b[^>]*>(.*?)<\/h\1>/g)].map(([, level, title]) => [level, title]);
+  expect(headings).toEqual([["1", topic.title], ["2", "개념"], ["2", "쉬운 비유"], ["2", "NetProof 로그로 해 보기"], ["2", "NetProof 로그 예"], ["2", "확인할 것"], ["2", "다른 주제"]]);
+  expect(html).toContain("학습실 · 보안 운영 도구");
+  expect(html).toContain(`이 주제에서 볼 것: ${topic.focus}`);
+  expect(html).toContain(TOOL_NOTICE);
+  expect(html).toContain(`문서 기준: ${topic.version}, ${topic.checked} 확인.`);
+  expect(html).toContain(SECURITY_DOC);
+  const escape = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
+  expect(html).toContain(`<pre><code>${escape(SECURITY_EXAMPLE)}</code></pre>`);
+  for (const point of [...topic.concepts, ...topic.steps, ...topic.checkpoints, topic.analogy]) expect(html).toContain(escape(point));
+  for (const source of topic.sources) expect(html).toContain(`href="${source.href}" target="_blank" rel="noreferrer"`);
+  expect(html).not.toMatch(/path-strip|home-puzzle|실습 열기|예상 없이|type="radio"/);
+  for (const item of [...LESSONS, ...TOOL_TOPICS]) expect(html).toContain(`href="#/learn/${item.id}"`);
+});
+
+it.each(LESSONS)("$id 실습의 다른 주제에도 도구 링크가 있다", lesson => {
+  const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: lesson.id, onGuess: () => {} }));
+  for (const topic of TOOL_TOPICS) expect(html).toContain(`href="#/learn/${topic.id}"`);
+});
+
+it("F26 CSS는 휴대폰에만 적용하고 로그아웃 단추 최소 높이 44px를 유지한다", async () => {
+  const { readFileSync } = await vi.importActual<{ readFileSync(path: URL, encoding: "utf8"): string }>("node:fs");
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  const mobile = css.split("@media (max-width: 960px) {")[1].split("@media (max-width: 720px) {")[0];
+  expect(mobile).toContain("flex-wrap: nowrap;");
+  expect(mobile).toContain(".app-header .header-nickname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }");
+  expect(mobile).toContain(".app-header .header-account > button { flex-shrink: 0; }");
+  expect(css.split("@media (max-width: 720px) {")[1]).toContain(".app-header .header-account .badge { display: none; }");
+  expect(css).toContain(".app-header .header-menu-toggle, .app-header .header-account > .ghost-link, .app-header .header-account > button { min-height: 44px; }");
 });

@@ -42,6 +42,11 @@ it("사례 목록에만 질의 문자열을 허용한다", () => {
   expect(parseRoute("#/cases/12?actual=PASS")).toEqual({ page: "missing" });
 });
 
+it.each(["graylog", "wazuh"])("도구 %s도 학습실 주소로 연다", lessonId => {
+  expect(parseRoute(`#/learn/${lessonId}`)).toEqual({ page: "learn", lessonId });
+  expect(parseRoute(`#/learn/${lessonId}?x=1`)).toEqual({ page: "missing" });
+});
+
 it("모르는 주소나 숫자가 아닌 사례 번호는 없는 화면이다", () => {
   expect(parseRoute("#/cases/abc")).toEqual({ page: "missing" });
   expect(parseRoute("#/admin")).toEqual({ page: "missing" });

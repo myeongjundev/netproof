@@ -11,7 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.pool import NullPool
 from werkzeug.exceptions import HTTPException
 
-from . import auth, cases
+from . import auth, cases, security_log
 from .models import ROLE_REVIEWER, ROLE_USER, User, db, ensure_case_indexes
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -55,9 +55,12 @@ def create_app(overrides: dict | None = None) -> Flask:
         SECURE_COOKIES=os.environ.get("NETPROOF_SECURE_COOKIES", "0") == "1",
         CASES_DIR=str(ROOT / "cases"),
         WEB_DIST=str(ROOT / "web" / "dist"),
+        SECURITY_LOG=os.environ.get("NETPROOF_SECURITY_LOG"),
+        SECURITY_SYSLOG=os.environ.get("NETPROOF_SYSLOG"),
     )
     if overrides:
         app.config.update(overrides)
+    security_log.configure(app)
     local_sqlite = app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite:///")
     if local_sqlite:
         Path(app.config["SQLALCHEMY_DATABASE_URI"].removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
