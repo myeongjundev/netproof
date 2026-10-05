@@ -54,7 +54,21 @@ confirm을 대체하거나 우회한 검사는 이 항목의 근거가 아닙니
 - [ ] 학습실 Graylog·Wazuh 주제의 공식 출처·문서 기준을 확인하고, 로그에 비밀번호/없는 닉네임이 없음을 확인한다
 - [ ] 종료는 Ctrl+C로 하고 환경 변수를 해제한다. 실제 수집·검색·경보의 통과/문제/미확인은 사람이 아래에 기록한다
 
-## E. 사람이 남기는 기록
+## E. n8n — 수업 Docker 환경 수동 확인
+
+**사용자 확인 대기. AI의 로컬 NetProof API·스크립트 대역 검사는 실제 n8n 가져오기·실행 완료가 아닙니다.**
+
+- [ ] [n8n 연결 문서](n8n.md)를 읽고 합성 request.json만 준비한다. 비밀값·웹훅 주소·자격 증명은 저장소나 캡처에 남기지 않는다
+- [ ] 믿을 수 있는 네트워크에서 일반 NetProof 서버를 --host 0.0.0.0 --port 4820으로 켠다. Windows 방화벽은 개인 네트워크만 허용한다. QA 도구 주소는 바꾸지 않는다
+- [ ] 수업 Docker n8n에 examples/n8n/netproof-verify.workflow.json을 가져와 네 노드·연결을 확인한다
+- [ ] HTTP Request 주소 host.docker.internal:4820을 확인한다. Linux는 host-gateway 옵션을 추가하고 GET /api/examples로 연결을 확인한다
+- [ ] 테스트 이벤트 대기 → 테스트 URL에 request.json 전송 → DENY·DISAGREE와 응답 문장을 확인한다. 실행 기록에서 각 노드의 입력·출력을 확인한다
+- [ ] AI 답을 DENY로 바꾸면 AGREE, AI 답이 없으면 NO_CLAIM이다. 비교는 NetProof comparison을 그대로 쓰는지 확인한다
+- [ ] 워크플로 게시(publish) 뒤 운영 URL(/webhook/netproof-verify)에서도 응답을 확인한다
+- [ ] 선택 알림: notify가 true일 때만 Discord·Slack 또는 Graylog GELF HTTP로 메시지가 오는지 확인한다(미사용이면 미확인/미사용 기록). 실제 웹훅 주소는 기록하지 않는다
+- [ ] 끝나면 Ctrl+C로 NetProof 서버를 끈다. 실제 가져오기·연결·응답·게시·알림 결과는 사람이 아래에 기록한다
+
+## F. 사람이 남기는 기록
 
 | 항목 | 기록 |
 | --- | --- |
@@ -65,6 +79,7 @@ confirm을 대체하거나 우회한 검사는 이 항목의 근거가 아닙니
 | B 통과/문제/미확인 | |
 | C 통과/문제/미확인 | |
 | D 실제 수집·검색·경보 통과/문제/미확인 | |
+| E n8n 가져오기·연결·응답·게시·선택 알림 통과/문제/미확인 | |
 | 문제와 재현 순서 | |
 
 결과는 PR 코멘트나 HANDOFF '사용자 수동 QA' 절에 사람이 적습니다. AI가 대신 완료로 바꾸지 않습니다. 비밀번호·쿠키·토큰은 적지 않습니다.

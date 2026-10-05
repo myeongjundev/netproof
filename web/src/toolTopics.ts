@@ -1,4 +1,4 @@
-export const TOOL_NOTICE = "NetProof는 Graylog·Wazuh를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요.";
+export const TOOL_NOTICE = "NetProof는 이 도구를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요.";
 export const SECURITY_DOC = "https://github.com/myeongjundev/netproof/blob/main/docs/security-logs.md";
 export const SECURITY_EXAMPLE = '{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_author","user_id":2,"src_ip":"127.0.0.1","failed_count":3,"time":"2026-10-05T03:10:00Z"}';
 export const TOOL_TOPICS = [
@@ -10,6 +10,8 @@ export const TOOL_TOPICS = [
     "version": "Graylog 7.1",
     "checked": "2026-10-05",
     "category": "보안 운영 도구",
+    "doc": { "label": "연결 설정 전체: docs/security-logs.md", "href": SECURITY_DOC },
+    "example": { "title": "NetProof 로그 예", "text": SECURITY_EXAMPLE },
     "concepts": [
       "입력(Input): 로그를 받는 창구입니다. Syslog(UDP·TCP), GELF, Beats처럼 받는 방식마다 입력을 하나씩 만듭니다.",
       "스트림(Stream): 조건에 맞는 메시지만 골라 모은 흐름입니다. 예를 들어 NetProof 메시지만 따로 볼 수 있습니다.",
@@ -57,6 +59,8 @@ export const TOOL_TOPICS = [
     "version": "Wazuh 4.14",
     "checked": "2026-10-05",
     "category": "보안 운영 도구",
+    "doc": { "label": "연결 설정 전체: docs/security-logs.md", "href": SECURITY_DOC },
+    "example": { "title": "NetProof 로그 예", "text": SECURITY_EXAMPLE },
     "concepts": [
       "에이전트(Agent): 서버나 PC에 설치해 로그 파일 등을 읽고 Wazuh 서버로 보냅니다.",
       "Wazuh 서버: 디코더와 규칙으로 로그를 분석해 경보를 만듭니다. 에이전트 없이 syslog를 직접 받을 수도 있습니다.",
@@ -98,6 +102,77 @@ export const TOOL_TOPICS = [
       {
         "label": "remote",
         "href": "https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/remote.html"
+      }
+    ]
+  },
+  {
+    "id": "n8n",
+    "title": "n8n — 노드를 이어 자동화하기",
+    "description": "트리거와 노드를 이어 반복 작업을 자동으로 처리하는 워크플로 도구",
+    "focus": "AI 답을 받은 n8n 워크플로가 NetProof에 검증을 요청하고, 결과를 돌려주는 과정",
+    "version": "n8n 2.41",
+    "checked": "2026-10-05",
+    "category": "업무 자동화",
+    "concepts": [
+      "워크플로(Workflow): 노드를 연결해 만든 자동화 흐름입니다. 실행될 때마다 앞 노드의 결과가 다음 노드로 넘어갑니다.",
+      "노드(Node): 한 단계의 일을 합니다. 데이터를 받거나, 가공하거나, 다른 서비스로 보냅니다.",
+      "트리거(Trigger): 워크플로를 시작하는 노드입니다. 웹훅(Webhook) 트리거는 정해진 주소로 요청이 오면 시작합니다.",
+      "표현식(Expression): {{ $json.body.flow }}처럼 앞 노드의 데이터를 꺼내 매개변수에 넣습니다.",
+      "HTTP Request 노드: 다른 서비스의 API를 부릅니다. NetProof의 /api/verify도 이 노드로 부릅니다.",
+      "실행 기록(Executions): 실행마다 노드별 입력과 출력을 남겨, 어디서 무엇이 바뀌었는지 볼 수 있습니다."
+    ],
+    "analogy": "공장 조립 라인처럼, 물건이 컨베이어를 따라 작업대를 하나씩 지나며 처리되는 것과 같습니다.",
+    "steps": [
+      "NetProof를 --host 0.0.0.0으로 켭니다. Docker 안의 n8n이 PC의 NetProof에 닿게 하려는 것입니다(연결 문서 참고).",
+      "예시 워크플로(examples/n8n)를 n8n에 가져오고, HTTP Request 노드의 주소가 http://host.docker.internal:4820/api/verify인지 확인합니다.",
+      "웹훅 노드에서 테스트 이벤트를 기다리게 한 뒤, 예시 요청(request.json)을 테스트 URL로 보냅니다.",
+      "응답 문장과 실행 기록에서 노드별 입력·출력을 확인합니다."
+    ],
+    "doc": {
+      "label": "연결 설정 전체: docs/n8n.md",
+      "href": "https://github.com/myeongjundev/netproof/blob/main/docs/n8n.md"
+    },
+    "example": {
+      "title": "응답 예",
+      "text": "{\"message\":\"≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다\",\"comparison\":\"DISAGREE\",\"result\":\"DENY\",\"reason\":\"정방향: ACL 101(g0/0 in) 1번 규칙에서 차단\",\"problems\":[],\"notify\":true}"
+    },
+    "checkpoints": [
+      "예시 요청의 AI 답(통과)에 대해 ≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다가 응답으로 오나요?",
+      "결과 문장 노드는 NetProof가 준 comparison을 그대로 쓰고, 직접 비교하지 않나요?",
+      "워크플로를 게시(publish)한 뒤에는 테스트 URL 대신 운영 URL(/webhook/…)로 보내나요?"
+    ],
+    "sources": [
+      {
+        "label": "Understand workflows",
+        "href": "https://docs.n8n.io/build/understand-workflows"
+      },
+      {
+        "label": "Work with nodes",
+        "href": "https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes"
+      },
+      {
+        "label": "Expressions",
+        "href": "https://docs.n8n.io/code/expressions/"
+      },
+      {
+        "label": "Executions",
+        "href": "https://docs.n8n.io/workflows/executions/"
+      },
+      {
+        "label": "Webhook",
+        "href": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook"
+      },
+      {
+        "label": "HTTP Request",
+        "href": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest"
+      },
+      {
+        "label": "Respond to Webhook",
+        "href": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook"
+      },
+      {
+        "label": "Install with Docker",
+        "href": "https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker"
       }
     ]
   }

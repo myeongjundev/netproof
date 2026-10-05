@@ -38,29 +38,34 @@ it("없는 주제도 학습실 틀 안에서 복귀 경로를 보인다", () => 
   expect(html).toContain('href="#/learn"'); expect(html).not.toContain("HTTPS");
 });
 
-it("실습 카드 뒤의 도구 카드 두 개는 그림 없이 공부 링크를 보인다", () => {
+it("실습 카드 뒤의 수업 도구 카드 세 개는 그림 없이 공부 링크를 보인다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
-  expect(html.indexOf("보안 운영 도구</h2>")).toBeGreaterThan(html.indexOf("실습 열기 →"));
+  expect(html.indexOf("수업 도구</h2>")).toBeGreaterThan(html.indexOf("실습 열기 →"));
+  expect(html).toContain('aria-label="수업 도구"');
   for (const topic of TOOL_TOPICS) {
     expect(html).toContain(`href="#/learn/${topic.id}"`);
     expect(html).toContain(topic.title);
     expect(html).toContain(topic.description);
   }
-  expect(html.match(/공부하기 →/g)).toHaveLength(2);
+  expect(html.match(/공부하기 →/g)).toHaveLength(3);
   expect(html.match(/path-strip-small/g)).toHaveLength(3);
 });
 
 it.each(TOOL_TOPICS)("$id 도구 화면은 승인 원고·절·출처만 보이고 실습 UI는 없다", topic => {
   const html = renderToStaticMarkup(createElement(LearningPage, { lessonId: topic.id, onGuess: () => { throw new Error("unexpected guess"); } }));
   const headings = [...html.matchAll(/<h([1-6])\b[^>]*>(.*?)<\/h\1>/g)].map(([, level, title]) => [level, title]);
-  expect(headings).toEqual([["1", topic.title], ["2", "개념"], ["2", "쉬운 비유"], ["2", "NetProof 로그로 해 보기"], ["2", "NetProof 로그 예"], ["2", "확인할 것"], ["2", "다른 주제"]]);
-  expect(html).toContain("학습실 · 보안 운영 도구");
+  expect(headings).toEqual([["1", topic.title], ["2", "개념"], ["2", "쉬운 비유"], ["2", topic.id === "n8n" ? "NetProof로 해 보기" : "NetProof 로그로 해 보기"], ["2", topic.example.title], ["2", "확인할 것"], ["2", "다른 주제"]]);
+  expect(html).toContain(`학습실 · ${topic.category}`);
   expect(html).toContain(`이 주제에서 볼 것: ${topic.focus}`);
   expect(html).toContain(TOOL_NOTICE);
   expect(html).toContain(`문서 기준: ${topic.version}, ${topic.checked} 확인.`);
-  expect(html).toContain(SECURITY_DOC);
+  expect(html).toContain(`href="${topic.doc.href}" target="_blank" rel="noreferrer"`);
+  expect(html).toContain(`${topic.doc.label} ↗`);
+  if (topic.id !== "n8n") {
+    expect(topic.doc.href).toBe(SECURITY_DOC); expect(topic.example.text).toBe(SECURITY_EXAMPLE);
+  }
   const escape = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
-  expect(html).toContain(`<pre><code>${escape(SECURITY_EXAMPLE)}</code></pre>`);
+  expect(html).toContain(`<pre><code>${escape(topic.example.text)}</code></pre>`);
   for (const point of [...topic.concepts, ...topic.steps, ...topic.checkpoints, topic.analogy]) expect(html).toContain(escape(point));
   for (const source of topic.sources) expect(html).toContain(`href="${source.href}" target="_blank" rel="noreferrer"`);
   expect(html).not.toMatch(/path-strip|home-puzzle|실습 열기|예상 없이|type="radio"/);
