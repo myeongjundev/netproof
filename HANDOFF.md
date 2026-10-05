@@ -29,8 +29,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 같은 PR의 작은 후속: **F27**(서버 pytest가 worktree 엔진을 쓰게), **F29**(서버 테스트가 로그 환경 변수를 끄게). 둘 다 테스트 설정 한두 줄이다.
 - 브랜치: `codex/n8n-example`(origin/main `0a53519` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 설계: `fbfc5a0`, 사용자 승인 완료(2026-10-05).
-- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 수정·재테스트 완료 → Claude 재리뷰 → 사용자 병합 결정.**
-- 다음 차례: **재리뷰(Claude).** PR #34 R1 네 가지 수정·재테스트 완료. 새 링크 2개 HTTP 200·본문 확인, 두 로그 환경 변수를 켠 서버 전체 실행에서도 지정 파일 미생성·UDP 0개. 병합은 사용자 결정이다.
+- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 수정·재테스트 완료(`c0bd1be`) → Claude 재리뷰 PASS([코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5994528893)) → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 병합 결정.** Claude가 R1 네 가지와 네 명령을 다시 확인했다. 두 로그 환경 변수를 켠 채 `PYTHONPATH` 없이 서버 테스트 전체를 돌려도 로그 파일 0개·UDP 0개, 번들에 새 링크만 있음. 실제 수업 Docker n8n 확인은 수동 QA E(사람).
 - **판정·엔진·서버 API는 그대로다.** 맞고 틀림은 NetProof가 준 `comparison`만 쓴다(ADR-001). NetProof는 LLM을 부르지 않는다(ADR-002). AI 답은 밖(웹훅 요청)에서 온다.
 
 ## 작업 정의
@@ -193,7 +193,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   3. conftest autouse로 두 로그 환경 변수를 매 테스트 전에 제거. 기존 app overrides 유지. app fixture를 쓰지 않는 테스트와 자식 프로세스에서 변수 부재 회귀 검사를 추가.
   4. 문서 Docker 이미지를 n8nio/n8n으로 변경.
 - 엔진·서버 앱/API·scripts/qa_local.py·워크플로/요청 JSON·cases/expect·의존성·배포물은 변경하지 않았다.
-- 다음 차례: **재리뷰(Claude)**. 병합하지 않았다. 수동 QA A/B/C/D/E는 사용자 대기 그대로다.
+- (Codex 기록 당시 다음 차례는 재리뷰(Claude)였다. 재리뷰 PASS 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
 
 ### 새 출처 링크 확인
 
@@ -638,7 +638,7 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
-3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 수정·재테스트 완료 → 재리뷰(Claude) 대기**
+3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 → **PR #34 Claude 재리뷰 PASS, 사용자 병합 결정 대기**
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
@@ -669,7 +669,7 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude(재리뷰):** PR #34 R1 네 가지 변경과 위 재실행 기록을 확인한다. 원고는 승인된 확인 문장 하나·출처 두 개만 바꿨다. F29는 autouse 제거와 기존 app overrides를 함께 유지하며 두 로그 환경 변수를 켠 서버 전체 실행에서도 지정 파일 미생성·UDP 0개다. 병합은 사용자 결정이다.
+- **사용자:** PR #34 병합 결정. 병합 뒤 다음 기능 4번(원인 태그·통계)은 로드맵에 "배포 뒤"로 적혀 있다. 그래서 먼저 배포(사람 트랙: Vercel·Supabase 가입·비밀값, 10-19 사용자 테스트 전 공개 URL)를 할지, 5번(불일치 사례 → 회귀 테스트 내보내기)으로 갈지 사용자가 정한다. 수동 QA A~E는 사람이 확인한다.
 - **리뷰 원칙:** 맞고 틀림은 NetProof의 `comparison`만 쓴다. 예시 JSON에 자격 증명·비밀값을 넣지 않는다. 노드 구성·typeVersion·원고의 다른 문장은 바꾸지 않는다(R1에서 승인한 확인 문장·출처만 변경).
 - **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F27·F29는 이번 과제에서 구현·테스트했다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
