@@ -3,13 +3,15 @@
 `<N>`(이슈/PR 번호), `<작업명>`만 바꿔서 해당 LLM 채널에 붙여넣습니다.
 **각 단계가 끝나면 사용자가 GitHub에서 커밋·PR이 실제로 올라왔는지 확인한 뒤 다음 단계로 넘깁니다.**
 
-## 0. 새 PC(학원 등)에서 이어가기 — Claude
+## 0. 새 PC(학원 등)·Orca에서 이어가기 — Claude
+Orca는 작업(에이전트)마다 git worktree를 따로 만든다. 과제 하나에 worktree 하나를 쓰고, 그 안에서 설계(Claude) → 구현(Codex) → 리뷰(Claude)를 차례로 한다. 같은 브랜치는 두 worktree에서 동시에 열 수 없다.
 ```
-한국어로 답해 줘. 이 PC는 집이 아닌 새 PC(학원)이고, 공용일 수 있다.
+한국어로 답해 줘. 이 PC는 집이 아닌 새 PC(학원)이고, 공용일 수 있다. Orca가 만든 git worktree 안일 수 있다.
 
 1) 시작 점검
-- git switch main, git pull --ff-only 후 CLAUDE.md, HANDOFF.md, docs/work-summary-2026-10-04_06.md를 읽어라. 규칙과 현재 상태는 HANDOFF.md가 기준이다.
-- .venv나 web/node_modules가 없으면 docs/work-summary-2026-10-04_06.md의 "학원 PC에서 이어가기"대로 설치하라.
+- git fetch origin 후 지금 폴더 경로와 브랜치를 알려 줘. main 폴더면 git pull --ff-only를 하라. worktree면 main으로 바꾸지 마라(다른 폴더가 main을 쓰고 있다). 새 작업 브랜치는 origin/main에서 만든다.
+- origin/main 기준의 CLAUDE.md, HANDOFF.md, docs/work-summary-2026-10-04_06.md를 읽어라. 규칙과 현재 상태는 HANDOFF.md가 기준이다.
+- 이 폴더에 .venv나 web/node_modules가 없으면 docs/work-summary-2026-10-04_06.md의 "학원 PC에서 이어가기"대로 설치하라. worktree마다 따로 필요하다.
 - 네 명령(엔진 pytest, 서버 pytest, npm --prefix web test, npm --prefix web run build)을 직접 실행하고 결과 줄을 보여 줘. 기대값: 엔진 350 passed·2 xfailed, 서버 140 passed·1 skipped, 웹 417 passed, 빌드 성공.
 
 2) 지킬 것
