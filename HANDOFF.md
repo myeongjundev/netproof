@@ -29,8 +29,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 같은 PR의 작은 후속: **F27**(서버 pytest가 worktree 엔진을 쓰게), **F29**(서버 테스트가 로그 환경 변수를 끄게). 둘 다 테스트 설정 한두 줄이다.
 - 브랜치: `codex/n8n-example`(origin/main `0a53519` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 설계: `fbfc5a0`, 사용자 승인 완료(2026-10-05).
-- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료 → Claude 리뷰(다음 차례) → 사용자 병합 결정.**
-- 다음 차례: **리뷰(Claude).** 네 명령·로컬 API·브라우저 확인 완료. 실제 n8n은 수동 QA E 대기. 병합하지 않는다.
+- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 → Claude 재리뷰 → 사용자 병합 결정.**
+- 다음 차례: **Codex — R1.** PR #34 코멘트의 네 가지만 고친다. (1) 404인 n8n 출처 두 개(Expressions·Executions)를 새 주소로(`toolTopics.ts`·test·`docs/n8n.md`), (2) 원고 확인 문장 하나, (3) F29 보강: `server/tests/conftest.py` autouse로 `NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG` 제거(+테스트), (4) `docs/n8n.md` Docker 이미지 `n8nio/n8n`. 1·3은 Claude 설계 실수이고 Claude가 변경을 승인했다. 네 명령 재실행, 병합하지 않는다.
 - **판정·엔진·서버 API는 그대로다.** 맞고 틀림은 NetProof가 준 `comparison`만 쓴다(ADR-001). NetProof는 LLM을 부르지 않는다(ADR-002). AI 답은 밖(웹훅 요청)에서 온다.
 
 ## 작업 정의
@@ -234,7 +234,7 @@ computer-use 스킬의 브라우저 API로 학습실 첫 화면 → 각 도구 �
 - 정상 QA 서버 종료 후 `Temporary DB removed: True`, 4883 LISTEN 수 0 확인. 만든 QA 탭을 닫고 viewport override를 reset했다.
 - 공식 문서 조회에서 승인 출처 중 `https://docs.n8n.io/code/expressions/`·`https://docs.n8n.io/workflows/executions/`는 Page Not Found로 반환됐다. 나머지 6개 n8n 출처와 Graylog GELF 문서는 읽혔다. 승인 원고·출처 목록은 임의 변경하지 않았다. 링크 갱신 여부는 Claude 리뷰에서 확인할 사항이다. 브라우저에서 각 외부 링크 도착 페이지까지 모두 확인한 것은 아니다.
 - **미확인/사람 대기:** 실제 Docker n8n 가져오기·host.docker.internal/LAN 연결·테스트/운영 웹훅·게시·Discord/Slack/Graylog 알림(QA E), Graylog/Wazuh 실제 수집(QA D), 기존 QA A/B/C, 실제 휴대폰·다크·스크린리더·PostgreSQL. 자동 검사/API 확인을 수동 QA 통과로 바꾸지 않았다.
-- **다음 차례: 리뷰(Claude).** 커밋·푸시 후 main 대상 PR을 연다. 병합하지 않는다.
+- (Codex 기록 당시 다음 차례는 리뷰(Claude)였다. 리뷰 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
@@ -449,7 +449,7 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
-3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → 리뷰(Claude)**
+3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 대기**
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
@@ -480,7 +480,7 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude:** 승인 fbfc5a0 작업1)~8)/부록 구현과 완료 기록을 리뷰한다. 노드 구성·스크립트·응답 예·F27/F29·출처 링크를 확인한다. 다음 차례 리뷰(Claude), 병합은 사용자 결정이다.
+- **Codex(R1):** PR #34 Claude 코멘트의 R1 네 가지만 고치고 네 명령을 다시 실행한다. 바뀐 링크 두 개가 열리는지와, 두 로그 환경 변수를 켠 채 서버 테스트 전체를 돌려도 파일·UDP가 없는지를 기록한다. 그 뒤 Claude 재리뷰, 병합은 사용자 결정이다.
 - **리뷰 원칙:** 맞고 틀림은 NetProof의 `comparison`만 쓴다. 예시 JSON에 자격 증명·비밀값을 넣지 않는다. 노드 구성·typeVersion·원고 문장은 바꾸지 않는다.
 - **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F27·F29는 이번 과제에서 구현·테스트했다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
