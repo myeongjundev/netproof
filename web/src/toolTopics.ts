@@ -137,7 +137,7 @@ export const TOOL_TOPICS = [
       "text": "{\"message\":\"≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다\",\"comparison\":\"DISAGREE\",\"result\":\"DENY\",\"reason\":\"정방향: ACL 101(g0/0 in) 1번 규칙에서 차단\",\"problems\":[],\"notify\":true}"
     },
     "checkpoints": [
-      "예시 요청의 AI 답(통과)에 대해 ≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다가 응답으로 오나요?",
+      "예시 요청(AI 답 통과)을 보내면 \"≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다\"라는 응답이 오나요?",
       "결과 문장 노드는 NetProof가 준 comparison을 그대로 쓰고, 직접 비교하지 않나요?",
       "워크플로를 게시(publish)한 뒤에는 테스트 URL 대신 운영 URL(/webhook/…)로 보내나요?"
     ],
@@ -151,12 +151,12 @@ export const TOOL_TOPICS = [
         "href": "https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes"
       },
       {
-        "label": "Expressions",
-        "href": "https://docs.n8n.io/code/expressions/"
+        "label": "Expressions for data transformation",
+        "href": "https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation"
       },
       {
-        "label": "Executions",
-        "href": "https://docs.n8n.io/workflows/executions/"
+        "label": "Understand executions",
+        "href": "https://docs.n8n.io/build/understand-workflows/understand-executions"
       },
       {
         "label": "Webhook",

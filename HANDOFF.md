@@ -29,8 +29,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 같은 PR의 작은 후속: **F27**(서버 pytest가 worktree 엔진을 쓰게), **F29**(서버 테스트가 로그 환경 변수를 끄게). 둘 다 테스트 설정 한두 줄이다.
 - 브랜치: `codex/n8n-example`(origin/main `0a53519` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
 - 설계: `fbfc5a0`, 사용자 승인 완료(2026-10-05).
-- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 → Claude 재리뷰 → 사용자 병합 결정.**
-- 다음 차례: **Codex — R1.** PR #34 코멘트의 네 가지만 고친다. (1) 404인 n8n 출처 두 개(Expressions·Executions)를 새 주소로(`toolTopics.ts`·test·`docs/n8n.md`), (2) 원고 확인 문장 하나, (3) F29 보강: `server/tests/conftest.py` autouse로 `NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG` 제거(+테스트), (4) `docs/n8n.md` Docker 이미지 `n8nio/n8n`. 1·3은 Claude 설계 실수이고 Claude가 변경을 승인했다. 네 명령 재실행, 병합하지 않는다.
+- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 수정·재테스트 완료 → Claude 재리뷰 → 사용자 병합 결정.**
+- 다음 차례: **재리뷰(Claude).** PR #34 R1 네 가지 수정·재테스트 완료. 새 링크 2개 HTTP 200·본문 확인, 두 로그 환경 변수를 켠 서버 전체 실행에서도 지정 파일 미생성·UDP 0개. 병합은 사용자 결정이다.
 - **판정·엔진·서버 API는 그대로다.** 맞고 틀림은 NetProof가 준 `comparison`만 쓴다(ADR-001). NetProof는 LLM을 부르지 않는다(ADR-002). AI 답은 밖(웹훅 요청)에서 온다.
 
 ## 작업 정의
@@ -120,7 +120,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ### 5) 작은 후속 F27·F29 — 테스트 설정
 - F27: `server/pyproject.toml`의 pytest `pythonpath`를 `[".", "../engine/src"]`로 한다. worktree에서도 `PYTHONPATH` 없이 그 worktree의 엔진을 쓴다.
-- F29: `server/tests/conftest.py`의 앱 생성 overrides 두 곳에 `"SECURITY_LOG": None, "SECURITY_SYSLOG": None`을 더한다.
+- F29: `server/tests/conftest.py`의 앱 생성 overrides 두 곳에 `"SECURITY_LOG": None, "SECURITY_SYSLOG": None`을 더한다. R1 승인 보강: autouse fixture로 각 테스트 전에 `NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG`를 제거해 app fixture를 쓰지 않는 QA 테스트와 자식 프로세스도 보호한다.
 
 ### 6) 범위 밖 · 허용 파일
 - 하지 않는 것:
@@ -180,10 +180,199 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 예 제목 `응답 예`, 내용: 2)의 예시 요청에 대한 실제 응답 JSON 한 줄(`message`·`comparison`·`result`·`reason`·`problems`·`notify`). Codex는 서버 테스트로 얻은 값을 그대로 쓴다.
 - 연결 문서: `연결 설정 전체: docs/n8n.md` → `https://github.com/myeongjundev/netproof/blob/main/docs/n8n.md`
 - 확인할 것:
-  - `예시 요청의 AI 답(통과)에 대해 ≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다가 응답으로 오나요?`
+  - `예시 요청(AI 답 통과)을 보내면 "≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다"라는 응답이 오나요?`
   - `결과 문장 노드는 NetProof가 준 comparison을 그대로 쓰고, 직접 비교하지 않나요?`
   - `워크플로를 게시(publish)한 뒤에는 테스트 URL 대신 운영 URL(/webhook/…)로 보내나요?`
-- 출처: `Understand workflows` https://docs.n8n.io/build/understand-workflows · `Work with nodes` https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes · `Expressions` https://docs.n8n.io/code/expressions/ · `Executions` https://docs.n8n.io/workflows/executions/ · `Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook · `HTTP Request` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest · `Respond to Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook · `Install with Docker` https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker
+- 출처: `Understand workflows` https://docs.n8n.io/build/understand-workflows · `Work with nodes` https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes · `Expressions for data transformation` https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation · `Understand executions` https://docs.n8n.io/build/understand-workflows/understand-executions · `Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook · `HTTP Request` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest · `Respond to Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook · `Install with Docker` https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker
+
+## 완료 내용 / 테스트 결과 (2026-10-05 · Codex R1 재실행)
+
+- 처리 근거: [PR #34 Claude R1](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834). 요청한 네 가지만 수정했다.
+  1. n8n 출처 두 개의 이름·주소를 toolTopics.ts·test·docs/n8n.md에서 변경.
+  2. 확인 문장을 승인된 새 문장 하나로 변경·원고 고정 테스트 갱신.
+  3. conftest autouse로 두 로그 환경 변수를 매 테스트 전에 제거. 기존 app overrides 유지. app fixture를 쓰지 않는 테스트와 자식 프로세스에서 변수 부재 회귀 검사를 추가.
+  4. 문서 Docker 이미지를 n8nio/n8n으로 변경.
+- 엔진·서버 앱/API·scripts/qa_local.py·워크플로/요청 JSON·cases/expect·의존성·배포물은 변경하지 않았다.
+- 다음 차례: **재리뷰(Claude)**. 병합하지 않았다. 수동 QA A/B/C/D/E는 사용자 대기 그대로다.
+
+### 새 출처 링크 확인
+
+2026-10-05 공식 문서 조회로 제목·본문을 확인하고, PowerShell Invoke-WebRequest GET으로 다음 두 주소의 HTTP 200·HTML title을 직접 확인했다. 실제 브라우저 UI 확인이나 n8n 실행 확인으로 대신 기록하지 않는다.
+
+- [Expressions for data transformation](https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation) — HTTP 200, title: Expressions for data transformation | Build | n8n Docs.
+- [Understand executions](https://docs.n8n.io/build/understand-workflows/understand-executions) — HTTP 200, title: Understand executions | Build | n8n Docs.
+
+### 외부 로그 환경 변수 차단 확인
+
+저장소 밖 일회성 점검 도구에서 임시 폴더의 존재하지 않는 로그 파일과 127.0.0.1의 임의 UDP 포트를 각각 NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG로 지정하고 서버 pytest 전체를 자식 프로세스로 실행했다. 수신기는 테스트 시작 전 자체 UDP 송수신으로 동작을 확인했다. 테스트 종료 뒤 지정 로그 파일은 미생성, 수신 UDP는 0개였다. 임시 폴더·수신 소켓 정리 완료.
+
+PYTHONPATH·NETPROOF_TEST_DATABASE_URL·DATABASE_URL을 자식 환경에서 제거해 worktree 엔진과 임시 SQLite만 사용했다. 아래 서버 명령은 server 작업 디렉터리에서 같은 venv python을 subprocess로 직접 실행한 출력 전체다. 보안 로그 기능 자체를 시험하는 테스트의 별도 임시 파일·별도 UDP 수신기는 정상 사용하며, 이 확인은 외부 환경 변수로 지정한 대상으로 새는 부작용이 없다는 뜻이다. 비밀번호·로그 본문은 출력하거나 기록하지 않았다.
+
+점검 도구 최초 실행은 Windows subprocess의 상대 실행 파일 경로 해석으로 WinError 2가 나 테스트를 시작하지 못했다. 저장소 밖 점검 도구에서 같은 worktree venv의 절대 경로로 고친 뒤 아래 서버 전체 실행·파일/UDP 검사를 재실행했다. 제품 코드나 테스트 기대값으로 우회하지 않았다.
+
+### F27 엔진 경로 재확인 (PYTHONPATH 없이)
+
+`cd server && ../.venv/Scripts/python -m pytest -q -s tests/test_n8n_example.py::test_engine_comes_from_this_worktree`
+
+```text
+Imported engine: C:\gov\project\skt aleph\netproof-judge-ux\engine\src\netproof_engine\__init__.py
+.
+1 passed in 0.15s
+```
+
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 20%]
+........................................................................ [ 40%]
+........................................................................ [ 61%]
+........................................................................ [ 81%]
+..............................................................xx         [100%]
+350 passed, 2 xfailed in 6.77s
+```
+
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 51%]
+..........s..........................................................    [100%]
+140 passed, 1 skipped in 44.07s
+External log probe: {"both_log_environment_variables_set": true, "receiver_preflight": true, "file_exists": false, "udp_packets": 0, "pytest_exit": 0, "PYTHONPATH_set": false, "loopback_only": true}
+```
+
+### `npm --prefix web test`
+
+```text
+
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  31 passed (31)
+      Tests  417 passed (417)
+   Start at  21:25:22
+   Duration  1.44s (transform 68%, import 21%, tests 7%, worker 4%)
+
+  Transform  transforming modules took 9.63s · 68% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### `npm --prefix web run build`
+
+```text
+
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 59 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
+dist/assets/index-D1dnOq1Z.js                            356.73 kB │ gzip: 107.81 kB
+
+✓ built in 580ms
+```
+
+구현·검증: Codex (GPT-5)
 
 ## 완료 내용 / 테스트 결과 (2026-10-05 · Codex)
 
@@ -449,7 +638,7 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
-3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 대기**
+3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 수정·재테스트 완료 → 재리뷰(Claude) 대기**
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
@@ -480,8 +669,8 @@ dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex(R1):** PR #34 Claude 코멘트의 R1 네 가지만 고치고 네 명령을 다시 실행한다. 바뀐 링크 두 개가 열리는지와, 두 로그 환경 변수를 켠 채 서버 테스트 전체를 돌려도 파일·UDP가 없는지를 기록한다. 그 뒤 Claude 재리뷰, 병합은 사용자 결정이다.
-- **리뷰 원칙:** 맞고 틀림은 NetProof의 `comparison`만 쓴다. 예시 JSON에 자격 증명·비밀값을 넣지 않는다. 노드 구성·typeVersion·원고 문장은 바꾸지 않는다.
+- **Claude(재리뷰):** PR #34 R1 네 가지 변경과 위 재실행 기록을 확인한다. 원고는 승인된 확인 문장 하나·출처 두 개만 바꿨다. F29는 autouse 제거와 기존 app overrides를 함께 유지하며 두 로그 환경 변수를 켠 서버 전체 실행에서도 지정 파일 미생성·UDP 0개다. 병합은 사용자 결정이다.
+- **리뷰 원칙:** 맞고 틀림은 NetProof의 `comparison`만 쓴다. 예시 JSON에 자격 증명·비밀값을 넣지 않는다. 노드 구성·typeVersion·원고의 다른 문장은 바꾸지 않는다(R1에서 승인한 확인 문장·출처만 변경).
 - **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F27·F29는 이번 과제에서 구현·테스트했다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify만 부른다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.

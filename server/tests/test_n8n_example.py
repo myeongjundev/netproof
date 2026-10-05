@@ -1,7 +1,10 @@
 """승인 n8n 예시를 실제 익명 verify API와 대조한다."""
 import copy
 import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from uuid import UUID
 
@@ -136,3 +139,16 @@ def test_f29_app_fixture_ignores_security_log_environment(monkeypatch, tmp_path,
     assert app.config["SECURITY_LOG"] is None
     assert app.config["SECURITY_SYSLOG"] is None
     assert not log.parent.exists()
+
+
+def test_f29_autouse_removes_inherited_log_environment_from_child():
+    # app fixture를 쓰지 않는 QA 도구와 그 자식 프로세스까지 보호한다.
+    names = ("NETPROOF_SECURITY_LOG", "NETPROOF_SYSLOG")
+    assert all(name not in os.environ for name in names)
+    child = subprocess.run(
+        [sys.executable, "-c",
+         "import json, os; print(json.dumps([name in os.environ for name in "
+         "('NETPROOF_SECURITY_LOG', 'NETPROOF_SYSLOG')]))"],
+        check=True, capture_output=True, text=True,
+    )
+    assert json.loads(child.stdout) == [False, False]

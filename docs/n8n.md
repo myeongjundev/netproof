@@ -56,7 +56,7 @@ Docker 안의 n8n은 PC의 NetProof에 `host.docker.internal`로 닿습니다. D
 
 ```bash
 docker volume create n8n_data
-docker run -it --rm --name n8n -p 5678:5678 --add-host host.docker.internal:host-gateway -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+docker run -it --rm --name n8n -p 5678:5678 --add-host host.docker.internal:host-gateway -v n8n_data:/home/node/.n8n n8nio/n8n
 ```
 
 수업의 시간대·기타 설치 옵션은 [공식 Docker 설치 문서](https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker)를 따릅니다. NetProof는 n8n을 설치하거나 실행하지 않습니다.
@@ -186,8 +186,8 @@ Graylog GELF HTTP 입력 — 주소: `http://<Graylog 주소>:12201/gelf`
 
 - [Understand workflows](https://docs.n8n.io/build/understand-workflows)
 - [Work with nodes](https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes)
-- [Expressions](https://docs.n8n.io/code/expressions/)
-- [Executions](https://docs.n8n.io/workflows/executions/)
+- [Expressions for data transformation](https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation)
+- [Understand executions](https://docs.n8n.io/build/understand-workflows/understand-executions)
 - [Webhook](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook)
 - [HTTP Request](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest)
 - [Respond to Webhook](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook)
