@@ -1,0 +1,117 @@
+{
+  "name": "NetProof AI 답 검증",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "netproof-verify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "06967435-2d48-4d41-a740-016412561e65",
+      "name": "NetProof 검증 요청 받기",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c63fbca6-d965-41de-9099-c141a7c44e52"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:4820/api/verify",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-NetProof",
+              "value": "1"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ network: $json.body.network, flow: $json.body.flow, claim: { kind: 'ai', expected: $json.body.ai_expected, source: 'n8n', text: $json.body.ai_text || '' } }) }}",
+        "options": {}
+      },
+      "id": "831e6053-3a42-4f42-9531-b658f590ad43",
+      "name": "NetProof /api/verify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// NetProof가 준 comparison을 그대로 쓴다. 이 노드는 문장만 만든다.\nconst TITLE = { PASS: '통과', DENY: '막힘', INVALID: '입력 오류', UNSUPPORTED: '판정 불가' };\nconst request = $('NetProof 검증 요청 받기').first().json.body;\nreturn $input.all().map(({ json: verdict }) => {\n  const answer = `AI 답(${TITLE[request.ai_expected] ?? '없음'})과`;\n  const message = verdict.comparison === 'AGREE' ? `= ${answer} NetProof 계산이 같습니다`\n    : verdict.comparison === 'DISAGREE' ? `≠ ${answer} NetProof 계산(${TITLE[verdict.result]})이 다릅니다`\n    : `NetProof 계산 ${TITLE[verdict.result] ?? verdict.result}`;\n  return { json: { message, comparison: verdict.comparison, result: verdict.result, reason: verdict.reason,\n    problems: verdict.problems, notify: verdict.comparison === 'DISAGREE' } };\n});"
+      },
+      "id": "2f4b4eb2-4724-4c49-a6fa-a88bff041b06",
+      "name": "결과 문장 만들기",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      },
+      "id": "21101c17-7110-4f79-9257-871d4011ad8c",
+      "name": "결과 돌려주기",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "NetProof 검증 요청 받기": {
+      "main": [
+        [
+          {
+            "node": "NetProof /api/verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NetProof /api/verify": {
+      "main": [
+        [
+          {
+            "node": "결과 문장 만들기",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "결과 문장 만들기": {
+      "main": [
+        [
+          {
+            "node": "결과 돌려주기",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

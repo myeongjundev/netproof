@@ -54,14 +54,21 @@ class Api:
         return self.post("/api/cases", body)
 
 
+@pytest.fixture(autouse=True)
+def disable_inherited_security_log_environment(monkeypatch):
+    """QA 도구를 직접 만드는 테스트도 외부 로그 대상으로 쓰지 않는다."""
+    monkeypatch.delenv("NETPROOF_SECURITY_LOG", raising=False)
+    monkeypatch.delenv("NETPROOF_SYSLOG", raising=False)
+
+
 @pytest.fixture
 def app(tmp_path):
     """기본은 임시 SQLite. NETPROOF_TEST_DATABASE_URL을 주면 같은 테스트를 PostgreSQL에서 돌린다(매번 표를 새로 만든다)."""
     url = os.environ.get("NETPROOF_TEST_DATABASE_URL")
     if not url:
-        return create_app({"SQLALCHEMY_DATABASE_URI": f"sqlite:///{tmp_path / 'test.db'}", "TESTING": True})
+        return create_app({"SQLALCHEMY_DATABASE_URI": f"sqlite:///{tmp_path / 'test.db'}", "TESTING": True, "SECURITY_LOG": None, "SECURITY_SYSLOG": None})
     url = database_url(url)
-    app = create_app({"SQLALCHEMY_DATABASE_URI": url, "SQLALCHEMY_ENGINE_OPTIONS": engine_options(url), "TESTING": True})
+    app = create_app({"SQLALCHEMY_DATABASE_URI": url, "SQLALCHEMY_ENGINE_OPTIONS": engine_options(url), "TESTING": True, "SECURITY_LOG": None, "SECURITY_SYSLOG": None})
     with app.app_context():
         db.drop_all()
     app.test_cli_runner().invoke(args=["init-db"])

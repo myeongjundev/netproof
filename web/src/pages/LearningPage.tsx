@@ -1,7 +1,7 @@
 import { LESSONS, lessonById } from "../learning";
 import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
-import { TOOL_TOPICS, TOOL_NOTICE, SECURITY_DOC, SECURITY_EXAMPLE, toolTopicById } from "../toolTopics";
+import { TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
 
 function OtherTopics({ current }: { current?: string }) {
   return <section className="learning-other"><h2>다른 주제</h2><nav aria-label="다른 주제">{[...LESSONS, ...TOOL_TOPICS].map(item => <a className="ghost-link" href={`#/learn/${item.id}`} key={item.id} aria-current={item.id === current ? "page" : undefined}>{item.title}{item.id === current ? " · 보는 중" : ""}</a>)}</nav></section>;
@@ -12,15 +12,15 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
   const tool = lessonId ? toolTopicById(lessonId) : undefined;
   if (tool) return <div className="learning-page">
     <article className="panel learning-detail tool-topic" aria-labelledby="lesson-title">
-      <div className="home-section-head"><div><p className="home-eyebrow">학습실 · 보안 운영 도구</p><h1 id="lesson-title">{tool.title}</h1></div><a href="#/home">홈으로</a></div>
+      <div className="home-section-head"><div><p className="home-eyebrow">학습실 · {tool.category}</p><h1 id="lesson-title">{tool.title}</h1></div><a href="#/home">홈으로</a></div>
       <p className="learning-question">이 주제에서 볼 것: {tool.focus}</p>
       <h2>개념</h2><ul>{tool.concepts.map(point => <li key={point}>{point}</li>)}</ul>
       <h2>쉬운 비유</h2><p>{tool.analogy}</p>
-      <h2>NetProof 로그로 해 보기</h2><ol>{tool.steps.map(point => <li key={point}>{point}</li>)}</ol>
-      <h2>NetProof 로그 예</h2><pre><code>{SECURITY_EXAMPLE}</code></pre>
+      <h2>{tool.id === "n8n" ? "NetProof로 해 보기" : "NetProof 로그로 해 보기"}</h2><ol>{tool.steps.map(point => <li key={point}>{point}</li>)}</ol>
+      <h2>{tool.example.title}</h2><pre><code>{tool.example.text}</code></pre>
       <h2>확인할 것</h2><ul>{tool.checkpoints.map(point => <li key={point}>{point}</li>)}</ul>
       <div className="learning-source"><p>출처: 공식 문서</p><ul>{tool.sources.map(source => <li key={source.href}><a href={source.href} target="_blank" rel="noreferrer">{source.label} ↗</a></li>)}</ul>
-        <a href={SECURITY_DOC} target="_blank" rel="noreferrer">연결 설정 전체: docs/security-logs.md ↗</a>
+        <a href={tool.doc.href} target="_blank" rel="noreferrer">{tool.doc.label} ↗</a>
         <p>{TOOL_NOTICE} 문서 기준: {tool.version}, {tool.checked} 확인.</p></div>
       <OtherTopics current={lessonId} />
     </article>
@@ -45,7 +45,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
       <span className="home-eyebrow">{item.category}</span><span className="learning-card-title">{item.title}</span><PathStrip {...item.path} size="small" /><span>{item.task.question}</span><span>실습 열기 →</span>
     </a>)}</nav>
     <p className="home-description">확인할 주제를 선택하세요. 연습용 네트워크로 실습합니다.</p>
-    <section><h2>보안 운영 도구</h2><nav className="learning-cards" aria-label="보안 운영 도구">{TOOL_TOPICS.map(item => <a className="learning-card" href={`#/learn/${item.id}`} key={item.id}>
+    <section><h2>수업 도구</h2><nav className="learning-cards" aria-label="수업 도구">{TOOL_TOPICS.map(item => <a className="learning-card" href={`#/learn/${item.id}`} key={item.id}>
       <span className="home-eyebrow">{item.category}</span><span className="learning-card-title">{item.title}</span><span>{item.description}</span><span>공부하기 →</span>
     </a>)}</nav></section>
   </div>;

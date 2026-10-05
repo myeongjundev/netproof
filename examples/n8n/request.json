@@ -1,0 +1,57 @@
+{
+  "network": {
+    "devices": [
+      {
+        "id": "PC1",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.10.10.10/24"
+          }
+        ],
+        "gateway": "10.10.10.1"
+      },
+      {
+        "id": "R1",
+        "kind": "router",
+        "interfaces": [
+          {
+            "name": "g0/0",
+            "ip": "10.10.10.1/24",
+            "acl_in": "101"
+          },
+          {
+            "name": "g0/1",
+            "ip": "10.20.20.1/24"
+          }
+        ]
+      },
+      {
+        "id": "SRV",
+        "kind": "host",
+        "interfaces": [
+          {
+            "name": "eth0",
+            "ip": "10.20.20.5/24"
+          }
+        ],
+        "gateway": "10.20.20.1"
+      }
+    ],
+    "acls": {
+      "101": [
+        "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+        "access-list 101 permit ip any any"
+      ]
+    }
+  },
+  "flow": {
+    "src": "10.10.10.10",
+    "dst": "10.20.20.5",
+    "proto": "tcp",
+    "dst_port": 443
+  },
+  "ai_expected": "PASS",
+  "ai_text": "PC1에서 SRV의 HTTPS(TCP 443)에 접속할 수 있습니다."
+}

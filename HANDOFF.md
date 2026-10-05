@@ -17,280 +17,208 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **보안 로그를 Graylog·Wazuh로 보내기 + 학습실 도구 주제 두 개 + F26** — 로드맵 "F5·F6 다음 기능 순서" 2번(운영·④). 공부 주제는 사용자 요청이다.
-  - 서버에는 로그인 잠금(5번 실패 → 10분, 설정의 비밀번호 확인도 같음)이 있지만 기록은 남기지 않는다. 수업 도구인 Graylog·Wazuh로 볼 수 있는 보안 로그를 만든다.
-  - 학습실 주제는 모두 네트워크 실습과 묶여 있다(구성 그림·실습 열기). 도구를 공부하는 주제는 새 종류의 화면이 필요하다.
-  - F26(PR #32 리뷰): 로그인하면 휴대폰 헤더가 68px에서 98.6px가 되어, 360×800 실습 01의 ③ 안내 문장(739.8–759.9)이 고정 줄(734.2) 아래로 들어간다.
+- 작업: **n8n 연동 예시 + 학습실 n8n 주제** — 로드맵 "F5·F6 다음 기능 순서" 3번(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심).
+  - NetProof 쪽 코드는 바꾸지 않는다. `POST /api/verify`는 로그인 없이 `X-NetProof: 1` 헤더와 `{network, flow, claim}`을 받아 엔진의 `result`·`reason`·`comparison`(AGREE·DISAGREE·NO_CLAIM)을 돌려준다(64KB·구성 크기 제한).
+  - 수업은 Docker로 설치한 n8n을 쓴다. n8n 문서에 따르면 컨테이너 안의 n8n은 PC의 서비스에 `host.docker.internal`로 닿고, 그 서비스는 `0.0.0.0`에 열려 있어야 한다(Linux는 `--add-host host.docker.internal:host-gateway`도 필요). QA 도구(`scripts/qa_local.py`)는 일부러 127.0.0.1에만 열리므로, n8n 시연은 일반 서버를 `--host 0.0.0.0`으로 띄운다. `/api/verify`는 계정이 필요 없다.
 - 사용자 결정(2026-10-05):
-  - 공부 주제는 **도구별 두 주제**(Graylog, Wazuh)로 나눈다. 주제마다 개념과 "NetProof 로그로 해 보기"를 담는다.
-  - 로그는 **파일과 syslog 둘 다**로 보낸다. 각각 환경 변수로 켠다.
-  - **F26을 이번 과제에 함께** 넣는다.
-- Claude 조사(2026-10-05, 공식 문서): Graylog 7.1, Wazuh 4.14(최신 4.14.8, 2026-09-23 배포). 근거와 링크는 아래 6)·부록에 있다.
-- 브랜치: `codex/security-logs`(origin/main `baf6501` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **설계 `8071dee` 사용자 승인 → Codex 구현·테스트 완료(`b90fae6`) → Claude 리뷰 PASS([PR #33 코멘트](https://github.com/myeongjundev/netproof/pull/33#issuecomment-5988469649)) → 사용자 병합 결정.**
-- 다음 차례: **사용자 — 병합 결정.** Claude가 네 명령, 원고·설정 예시 글자 대조, 실제 QA 서버 로그(파일 10줄 = UDP 10개, 비밀번호 0건), 브라우저(학습실 두 주제, F26 360·375 로그인 헤더 68px·③ 위치 PR #30과 같음)로 확인했다. 실제 Graylog·Wazuh 수집은 수동 QA D(사람).
-- **판정·엔진은 그대로다.** 로그인 응답(상태 코드·문장·시간 맞춤)도 그대로다. 로그는 운영자가 보는 기록일 뿐 화면이나 API 응답을 바꾸지 않는다.
+  - **AI 답은 웹훅으로 받는다**(AI API 키 없이 동작).
+  - **결과는 웹훅 응답으로 돌려주고, 불일치 알림은 선택**(문서로 붙이는 법을 보인다).
+  - **학습실에 n8n 주제를 넣는다**(Graylog·Wazuh와 같은 형식).
+  - **수업 n8n은 Docker 설치**다.
+- Claude 조사(2026-10-05, 공식 문서·n8n 소스): n8n 최신 안정 2.41.6(베타 2.42.2). 노드 typeVersion은 웹훅 최대 2.2, HTTP Request 최대 4.5, Respond to Webhook 최대 1.5다. 예시는 **오래전부터 있는 버전**(웹훅 2, HTTP Request 4.2, Code 2, Respond to Webhook 1.1)을 써서 조금 오래된 n8n에서도 가져오게 한다.
+- 같은 PR의 작은 후속: **F27**(서버 pytest가 worktree 엔진을 쓰게), **F29**(서버 테스트가 로그 환경 변수를 끄게). 둘 다 테스트 설정 한두 줄이다.
+- 브랜치: `codex/n8n-example`(origin/main `0a53519` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
+- 설계: `fbfc5a0`, 사용자 승인 완료(2026-10-05).
+- 단계: **Claude 설계·사용자 승인 완료 → Codex 구현·테스트 완료(`1de8a15`) → Claude 리뷰 R1 수정 요청([PR #34 코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834)) → Codex R1 수정·재테스트 완료(`c0bd1be`) → Claude 재리뷰 PASS([코멘트](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5994528893)) → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 병합 결정.** Claude가 R1 네 가지와 네 명령을 다시 확인했다. 두 로그 환경 변수를 켠 채 `PYTHONPATH` 없이 서버 테스트 전체를 돌려도 로그 파일 0개·UDP 0개, 번들에 새 링크만 있음. 실제 수업 Docker n8n 확인은 수동 QA E(사람).
+- **판정·엔진·서버 API는 그대로다.** 맞고 틀림은 NetProof가 준 `comparison`만 쓴다(ADR-001). NetProof는 LLM을 부르지 않는다(ADR-002). AI 답은 밖(웹훅 요청)에서 온다.
 
 ## 작업 정의
 - 목표:
-  1. 환경 변수를 켜면 서버가 로그인 성공·실패·잠금과 설정의 비밀번호 확인 실패를 한 줄짜리 JSON 로그로 남긴다(파일, syslog 또는 둘 다). 끄면 아무것도 쓰지 않는다.
-  2. 비밀번호는 어떤 경우에도 기록하지 않는다. 없는 닉네임으로 시도한 문자열도 기록하지 않는다.
-  3. `docs/security-logs.md`만 보고 수업 환경의 Graylog·Wazuh에 연결할 수 있다.
-  4. 학습실에 Graylog 주제와 Wazuh 주제가 생긴다.
-  5. 로그인한 휴대폰 헤더가 로그아웃 상태와 같은 높이(한 줄)가 된다.
+  1. `examples/n8n`의 워크플로를 n8n에 가져와 주소만 확인하면, 예시 요청을 보냈을 때 `≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다` 같은 결과가 웹훅 응답으로 온다.
+  2. `docs/n8n.md`만 보고 Docker n8n에서 NetProof에 연결하고, 시험하고, 불일치 알림을 붙일 수 있다.
+  3. 학습실에 n8n 주제가 생긴다.
+  4. 예시 요청과 워크플로의 핵심이 테스트로 고정된다(실제 n8n 실행은 사람이 확인).
 
-### 1) 보안 로그 — 서버
-- 새 파일 `server/netproof_api/security_log.py`. 표준 라이브러리 `logging`만 쓰고 새 의존성은 없다.
-  - `configure(app)`: `app.config["SECURITY_LOG"]`(파일 경로)와 `app.config["SECURITY_SYSLOG"]`(`호스트:포트`)를 읽어 로거 `netproof.security`(propagate 끔)에 처리기를 단다. 다시 부르면 이전 처리기를 닫고 바꾼다(테스트에서 `create_app`을 여러 번 불러도 줄이 겹치지 않고, Windows에서 파일이 잠기지 않게).
-  - 파일: `FileHandler(경로, encoding="utf-8")`, 상위 폴더가 없으면 만든다. 한 줄에 사건 하나.
-  - syslog: `SysLogHandler(address=(호스트, 포트), facility=LOG_AUTH)`, UDP, `append_nul = False`. 본문은 JSON 한 줄 그대로다(앞에 프로그램 이름을 붙이지 않는다).
-  - 포맷은 `%(message)s`다. `호스트:포트` 형식이 틀리면 앱 시작에서 분명한 오류로 멈춘다.
-  - **둘 다 꺼져 있으면 아무 데도 쓰지 않는다.** 처리기가 없는 로거는 Python의 lastResort가 표준 오류로 경고를 찍으므로 `NullHandler`를 달거나 바로 돌아간다.
-  - `event(이름, 수준, **필드)`: 값이 None인 필드는 뺀 뒤 `json.dumps(…, ensure_ascii=False, separators=(",", ":"))`로 쓴다. 공통 필드 `app`이 맨 앞(`"netproof"`)이고 `time`(UTC, `2026-10-05T03:10:00Z` 꼴)이 붙는다.
-- `server/netproof_api/__init__.py`의 `create_app`: `SECURITY_LOG=os.environ.get("NETPROOF_SECURITY_LOG")`, `SECURITY_SYSLOG=os.environ.get("NETPROOF_SYSLOG")`를 config에 넣고(overrides로 바꿀 수 있음) `configure(app)`를 부른다. `scripts/qa_local.py`로 켤 때도 환경 변수가 그대로 들어간다.
-- 사건(`event` 값)과 필드. `src_ip`는 `request.remote_addr`다.
+### 1) 예시 워크플로 — `examples/n8n/netproof-verify.workflow.json`(새 파일)
+- 노드 네 개를 한 줄로 잇는다. 노드 이름이 연결의 열쇠이므로 그대로 쓴다.
 
-  | event | 언제 | 수준 | 필드 |
-  | --- | --- | --- | --- |
-  | `login_success` | 로그인 성공 | INFO | `nickname`, `user_id`, `src_ip` |
-  | `login_failure` | 로그인 실패 | WARNING | `reason`(`unknown_user`·`bad_password`·`locked`), `src_ip`. 계정이 있으면 `nickname`·`user_id`. `bad_password`면 `failed_count`(올린 뒤 값), `locked`면 `locked_until` |
-  | `account_locked` | 실패가 5번이 되어 잠금이 시작될 때 | WARNING | `via`(`login`·`settings`), `nickname`, `user_id`, `src_ip`, `failed_count`(5), `locked_until` |
-  | `password_check_failure` | 설정 화면의 지금 비밀번호 확인 실패 | WARNING | `reason`(`bad_password`·`locked`), `nickname`, `user_id`, `src_ip`. `bad_password`면 `failed_count`, `locked`면 `locked_until` |
+  | 순서 | 이름 | type | typeVersion | parameters |
+  | --- | --- | --- | --- | --- |
+  | 1 | `NetProof 검증 요청 받기` | `n8n-nodes-base.webhook` | 2 | `httpMethod: "POST"`, `path: "netproof-verify"`, `responseMode: "responseNode"`, `options: {}`. 노드에 `webhookId`(UUID v4)를 둔다 |
+  | 2 | `NetProof /api/verify` | `n8n-nodes-base.httpRequest` | 4.2 | 아래 |
+  | 3 | `결과 문장 만들기` | `n8n-nodes-base.code` | 2 | `jsCode`: 아래 스크립트 |
+  | 4 | `결과 돌려주기` | `n8n-nodes-base.respondToWebhook` | 1.1 | `respondWith: "firstIncomingItem"`, `options: {}` |
 
-  - 다섯 번째 실패는 `login_failure`(또는 `password_check_failure`) 다음에 `account_locked`를 남긴다.
-  - `unknown_user`에는 시도한 닉네임을 넣지 않는다(비밀번호를 닉네임 칸에 잘못 넣은 경우가 남지 않게).
-- `server/netproof_api/auth.py`는 위 지점에서 `event`만 부른다. 응답의 상태 코드·문장·더미 해시 시간 맞춤·잠금 규칙은 바꾸지 않는다. 가입·로그아웃·비밀번호 변경·계정 삭제 기록은 이번 범위가 아니다.
-- `.gitignore`에 `logs/`를 더한다. 문서의 예시 경로는 `logs/security.jsonl`이다.
-- 로그 예(합성):
+- HTTP Request 노드 parameters:
 
-  ```text
-  {"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_author","user_id":2,"src_ip":"127.0.0.1","failed_count":3,"time":"2026-10-05T03:10:00Z"}
+  ```json
+  {
+    "method": "POST",
+    "url": "http://host.docker.internal:4820/api/verify",
+    "sendHeaders": true,
+    "specifyHeaders": "keypair",
+    "headerParameters": { "parameters": [{ "name": "X-NetProof", "value": "1" }] },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ network: $json.body.network, flow: $json.body.flow, claim: { kind: 'ai', expected: $json.body.ai_expected, source: 'n8n', text: $json.body.ai_text || '' } }) }}",
+    "options": {}
+  }
   ```
+- Code 노드 스크립트(문장만 만든다. 판정·비교를 계산하지 않는다):
 
-### 2) 연결 문서 — `docs/security-logs.md`(새 파일)
-- 1절 무엇을 남기나: 위 표와 로그 예, "비밀번호·없는 닉네임 문자열은 남기지 않는다", 기본은 꺼짐.
-- 2절 켜는 법: PowerShell과 bash 예. 예: `NETPROOF_SECURITY_LOG=logs/security.jsonl`, `NETPROOF_SYSLOG=192.168.0.10:1514`로 `scripts/qa_local.py`를 실행하고 합성 계정으로 비밀번호를 다섯 번 틀린다. syslog 대상은 하나다(보통 파일 → Wazuh 에이전트, syslog → Graylog).
-- 3절 Graylog(7.1 기준):
-  1. Syslog UDP 입력을 만든다. 포트는 예를 들어 1514다(1024보다 작은 포트는 관리자 권한이 필요할 수 있다).
-  2. 파이프라인 규칙을 만들어 NetProof 메시지가 들어오는 스트림(예: Default Stream)에 연결한다. syslog 머리말이 붙어도 JSON 부분만 꺼내도록 `regex`에 그룹 이름을 준다.
+  ```js
+  // NetProof가 준 comparison을 그대로 쓴다. 이 노드는 문장만 만든다.
+  const TITLE = { PASS: '통과', DENY: '막힘', INVALID: '입력 오류', UNSUPPORTED: '판정 불가' };
+  const request = $('NetProof 검증 요청 받기').first().json.body;
+  return $input.all().map(({ json: verdict }) => {
+    const answer = `AI 답(${TITLE[request.ai_expected] ?? '없음'})과`;
+    const message = verdict.comparison === 'AGREE' ? `= ${answer} NetProof 계산이 같습니다`
+      : verdict.comparison === 'DISAGREE' ? `≠ ${answer} NetProof 계산(${TITLE[verdict.result]})이 다릅니다`
+      : `NetProof 계산 ${TITLE[verdict.result] ?? verdict.result}`;
+    return { json: { message, comparison: verdict.comparison, result: verdict.result, reason: verdict.reason,
+      problems: verdict.problems, notify: verdict.comparison === 'DISAGREE' } };
+  });
+  ```
+- `connections`는 1 → 2 → 3 → 4(`main` 출력 0 → 입력 0)다. 최상위는 `name: "NetProof AI 답 검증"`, `nodes`, `connections`, `settings: { "executionOrder": "v1" }`, `pinData: {}`다. 노드 `id`는 UUID v4, `position`은 `[0,0]`·`[240,0]`·`[480,0]`·`[720,0]`이다.
+- 자격 증명·외부 서비스 주소·비밀값은 넣지 않는다.
 
-     ```text
-     rule "netproof security json"
-     when
-       contains(to_string($message.message), "\"app\":\"netproof\"")
-     then
-       let found = regex("(\\{.*\\})", to_string($message.message), ["json"]);
-       set_fields(fields: to_map(parse_json(to_string(found["json"]))), prefix: "netproof_");
-     end
-     ```
-  3. 검색: `netproof_event:login_failure`, `netproof_event:account_locked`.
-  4. 알림 예: 이벤트 정의에서 검색 `netproof_event:login_failure`를 2분 동안 `netproof_src_ip`로 묶어 개수 5 이상이면 이벤트를 만든다(화면 위치는 버전마다 달라 공식 문서 링크로 안내한다).
-- 4절 Wazuh(4.14 기준):
-  - 가(기본) 에이전트가 파일을 읽는다. NetProof를 실행하는 PC의 에이전트 `ossec.conf`:
+### 2) 예시 요청 — `examples/n8n/request.json`(새 파일)
+- `network`·`flow`는 `cases/synthetic-01-https-acl.json`의 값 그대로(합성 자료)다. 여기에 `"ai_expected": "PASS"`, `"ai_text": "PC1에서 SRV의 HTTPS(TCP 443)에 접속할 수 있습니다."`를 더한다.
+- 기대 결과: NetProof `DENY`·`DISAGREE`, 응답 `message`는 `≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다`.
 
-    ```xml
-    <localfile>
-      <location>NetProof 로그 파일의 전체 경로</location>
-      <log_format>json</log_format>
-    </localfile>
-    ```
-  - 나(선택) 서버가 syslog를 직접 받는다. 서버 `ossec.conf`(syslog는 `allowed-ips`가 꼭 있어야 한다):
+### 3) 연결 문서 — `docs/n8n.md`(새 파일)
+- 1절 무엇을 하나: 흐름(요청 → 웹훅 → HTTP Request → 결과 문장 → 응답). 맞고 틀림은 NetProof의 `comparison`만 쓴다. NetProof는 LLM을 부르지 않고, AI 답은 요청에 담겨 온다.
+- 2절 요청 형식: 웹훅 본문(`network`, `flow`, `ai_expected`(PASS·DENY), `ai_text`(선택)). NetProof API(`POST /api/verify`, `Content-Type: application/json`, `X-NetProof: 1`, 본문 `{network, flow, claim}`, 응답 필드, 64KB 제한과 422).
+- 3절 NetProof 켜기(Docker n8n):
+  - PowerShell `.venv/Scripts/python -m flask --app server/wsgi.py run --host 0.0.0.0 --port 4820`, bash는 `.venv/bin/python`.
+  - 주의: `0.0.0.0`은 같은 네트워크의 다른 기기에도 열린다. 믿을 수 있는 네트워크에서만 쓰고, 끝나면 Ctrl+C로 끈다. Windows 방화벽 창에서는 개인 네트워크만 허용한다.
+  - n8n 컨테이너: Docker Desktop은 `host.docker.internal`이 자동이다. Linux는 `docker run`에 `--add-host host.docker.internal:host-gateway`를 더한다(공식 문서 예시 명령과 함께).
+  - 연결 확인: n8n에서 HTTP Request 노드로 `GET http://host.docker.internal:4820/api/examples`를 실행해 예시 목록이 오면 연결된 것이다.
+- 4절 가져오기: n8n 편집기에서 파일로 워크플로를 가져오고, HTTP Request 노드의 주소(호스트·포트)를 확인한다.
+- 5절 시험: 웹훅 노드에서 테스트 이벤트를 기다리게 한 뒤 `request.json`을 테스트 URL(`http://localhost:5678/webhook-test/netproof-verify`)로 보낸다. bash `curl -s -X POST … -H "Content-Type: application/json" -d @examples/n8n/request.json`, PowerShell `Invoke-RestMethod -Method Post -Uri … -ContentType 'application/json' -InFile examples/n8n/request.json`. 워크플로를 게시(publish)하면 운영 URL(`/webhook/netproof-verify`)을 쓴다.
+- 6절 결과 읽기: `message` 세 가지(AGREE·DISAGREE·NO_CLAIM, 앱 배너와 같은 문장)와 `reason`·`problems`. HTTP Request 노드가 422 등으로 실패하면 실행 기록에서 이유를 본다.
+- 7절 불일치 알림 붙이기(선택): `결과 문장 만들기` 뒤에 IF 노드(`{{ $json.notify }}`가 true)를 두고, 참 쪽에 HTTP Request 노드 하나를 단다. 본문은 `={{ JSON.stringify({ … }) }}` 꼴로 쓴다.
+  - Discord 웹훅: `POST <웹훅 주소>`, `{ content: $json.message }`
+  - Slack Incoming Webhook: `POST <웹훅 주소>`, `{ text: $json.message }`
+  - Graylog GELF HTTP 입력: `POST http://<Graylog 주소>:12201/gelf`, `{ version: '1.1', host: 'n8n', short_message: $json.message, _netproof_comparison: $json.comparison, _netproof_result: $json.result }`
+  - 웹훅 주소는 비밀값처럼 다루고 저장소·캡처에 남기지 않는다.
+- 8절 한계: n8n 2.41 기준이고 예시 노드는 오래된 typeVersion이다. 실제 n8n 가져오기·실행은 AI가 확인하지 못했다(수동 QA E). `0.0.0.0` 노출, `/api/verify`는 익명.
+- 공식 문서 링크: 부록의 n8n 출처와 같은 목록, Graylog GELF(`https://go2docs.graylog.org/current/getting_in_log_data/gelf.html`).
 
-    ```xml
-    <remote>
-      <connection>syslog</connection>
-      <port>514</port>
-      <protocol>udp</protocol>
-      <allowed-ips>NetProof를 실행한 PC 주소</allowed-ips>
-    </remote>
-    ```
-  - 서버 `/var/ossec/etc/rules/local_rules.xml`:
+### 4) 학습실 n8n 주제 — 웹
+- `web/src/toolTopics.ts`:
+  - 주제마다 `doc: { label, href }`와 `example: { title, text }`를 갖게 바꾼다. Graylog·Wazuh는 지금 값 그대로 옮긴다(`연결 설정 전체: docs/security-logs.md`, `NetProof 로그 예` + 지금 로그 예).
+  - 공통 안내를 `NetProof는 이 도구를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요.`로 바꾼다(도구 이름 뒤 조사를 피한다).
+  - 세 번째 주제 n8n을 더한다(부록 원고 그대로).
+- `LearningPage.tsx`:
+  - 도구 주제 머리를 `학습실 · {분류}`로 한다(Graylog·Wazuh는 `보안 운영 도구`, n8n은 `업무 자동화`).
+  - 예 제목·내용과 연결 문서 링크를 데이터에서 그린다.
+  - 학습실 첫 화면의 도구 묶음 제목과 aria-label을 `수업 도구`로 바꾼다(카드의 분류 표시는 그대로).
+- 실습 주제·라우터 규칙은 그대로다(`#/learn/n8n`은 지금 규칙으로 열린다).
 
-    ```xml
-    <group name="netproof,authentication,">
-      <rule id="100200" level="5">
-        <decoded_as>json</decoded_as>
-        <field name="app">^netproof$</field>
-        <field name="event">^login_failure$</field>
-        <description>NetProof: 로그인 실패</description>
-        <group>authentication_failed,</group>
-      </rule>
-      <rule id="100201" level="10">
-        <decoded_as>json</decoded_as>
-        <field name="app">^netproof$</field>
-        <field name="event">^account_locked$</field>
-        <description>NetProof: 실패가 반복돼 계정이 잠김</description>
-        <mitre><id>T1110</id></mitre>
-      </rule>
-      <rule id="100202" level="10" frequency="5" timeframe="120">
-        <if_matched_sid>100200</if_matched_sid>
-        <same_field>src_ip</same_field>
-        <description>NetProof: 같은 주소에서 로그인 실패가 반복됨</description>
-        <mitre><id>T1110</id></mitre>
-      </rule>
-      <rule id="100203" level="5">
-        <decoded_as>json</decoded_as>
-        <field name="app">^netproof$</field>
-        <field name="event">^password_check_failure$</field>
-        <description>NetProof: 설정에서 비밀번호 확인 실패</description>
-      </rule>
-    </group>
-    ```
-  - 확인: 서버에서 `/var/ossec/bin/wazuh-logtest`에 1절의 로그 한 줄을 붙여, JSON 디코더와 규칙 100200이 맞는지 먼저 본다. syslog(나)로 받을 때도 같은 방법으로 디코딩을 확인한다.
-- 5절 한계:
-  - 로컬 시연용이다. 배포 환경은 켜지 않는다(기본 꺼짐).
-  - UDP syslog는 암호화되지 않고 잃어버릴 수 있다.
-  - 프록시 뒤에서는 `remote_addr`가 프록시 주소가 된다(ProxyFix는 범위 밖).
-  - Graylog·Wazuh 실제 수집은 AI가 확인하지 못했다. 사람이 수업 환경에서 확인한다(수동 QA D).
+### 5) 작은 후속 F27·F29 — 테스트 설정
+- F27: `server/pyproject.toml`의 pytest `pythonpath`를 `[".", "../engine/src"]`로 한다. worktree에서도 `PYTHONPATH` 없이 그 worktree의 엔진을 쓴다.
+- F29: `server/tests/conftest.py`의 앱 생성 overrides 두 곳에 `"SECURITY_LOG": None, "SECURITY_SYSLOG": None`을 더한다. R1 승인 보강: autouse fixture로 각 테스트 전에 `NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG`를 제거해 app fixture를 쓰지 않는 QA 테스트와 자식 프로세스도 보호한다.
 
-### 3) 학습실 도구 주제 두 개 — 웹
-- 새 파일 `web/src/toolTopics.ts`에 두 주제의 데이터(아래 부록 원고 그대로)를 둔다. 실습 주제(`learning.ts`)와 섞지 않는다.
-- 주소는 `#/learn/graylog`, `#/learn/wazuh`다. `router.ts`의 `/learn/:id`가 실습 주제와 도구 주제를 모두 받는다. 없는 id는 지금처럼 없는 주제 화면이다.
-- 학습실 첫 화면: 지금 실습 카드 아래에 `보안 운영 도구` 제목과 카드 두 개(분류·제목·한 줄 설명·`공부하기 →`)를 둔다. 경로 그림은 없다.
-- 도구 주제 화면(`LearningPage`):
-  - 머리: `학습실 · 보안 운영 도구`, 제목, `홈으로`.
-  - `이 주제에서 볼 것: …`
-  - `개념`(목록), `쉬운 비유`, `NetProof 로그로 해 보기`(번호 목록), `NetProof 로그 예`(1절 로그 예를 `<pre><code>`로), `확인할 것`(목록)
-  - 출처 칸: 공식 문서 링크(새 창, `rel="noreferrer"`), `연결 설정 전체: docs/security-logs.md`(GitHub 링크), 안내 `NetProof는 Graylog·Wazuh를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요. 문서 기준: {도구} {버전}, 2026-10-05 확인.`
-  - `다른 주제`: 실습 주제와 도구 주제를 모두 보인다(실습 주제 화면의 `다른 주제`에도 도구 주제를 더한다).
-  - 경로 그림·예상 퍼즐·실습 열기 단추는 없다.
-- 스타일은 기존 학습 화면 클래스를 다시 쓴다. 로그 예의 `<pre>`는 가로로 넘치지 않게 줄바꿈한다(`white-space: pre-wrap; overflow-wrap: anywhere`).
-
-### 4) F26 — 로그인한 휴대폰 헤더를 한 줄로 (CSS만)
-- 960px 이하(지금 헤더가 격자로 바뀌는 구간):
-  - `.app-header .header-account { flex-wrap: nowrap; }`
-  - `.app-header .header-nickname { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }`
-- 720px 이하: 헤더의 역할 표시(`.header-account .badge`)를 숨긴다. 역할은 설정 화면에서 보인다.
-- 로그아웃 단추의 최소 높이 44px는 그대로다. 961px 이상은 바뀌지 않는다.
-- 목표: 로그인한 360×800·375×812에서 헤더 높이가 68px(로그아웃과 같음)이고, 실습 01·02·03의 ③ 위치가 PR #30 기록과 같다. 20자 닉네임도 한 줄(말줄임)이고 가로 넘침 0이다.
-
-### 5) 범위 밖 · 허용 파일
+### 6) 범위 밖 · 허용 파일
 - 하지 않는 것:
-  - 판정·엔진, 로그인 응답·잠금 규칙 변경, 배포 환경 로깅
-  - GELF, TCP·TLS syslog, syslog 대상 여러 개, 가입·로그아웃·비밀번호 변경·계정 삭제 기록
-  - Graylog·Wazuh 설치 스크립트·docker-compose·대시보드 만들기, 요청 제한·ProxyFix
-  - 새 의존성, DB 변경, 헤더 마크업 변경(F26은 CSS만)
+  - 엔진·서버 API·응답 변경, NetProof 안에서 LLM 호출, `scripts/qa_local.py`의 주소 변경
+  - n8n 설치 스크립트·docker-compose, 자격 증명이 필요한 노드를 예시 JSON에 넣기(알림은 문서로만)
+  - 새 의존성, DB
 - 허용 파일:
-  - 서버: 신규 `server/netproof_api/security_log.py`, `server/netproof_api/__init__.py`(config·configure 호출), `server/netproof_api/auth.py`(`event` 호출만), 신규 `server/tests/test_security_log.py`
-  - 웹: 신규 `web/src/toolTopics.ts`·test, `web/src/router.ts`·test, `web/src/pages/LearningPage.tsx`·test, `web/src/styles.css`(F26·도구 주제만)
-  - 문서·설정: 신규 `docs/security-logs.md`, `docs/qa-manual.md`(D 절 신설, C에 F26 한 줄), `.gitignore`(`logs/`), `HANDOFF.md`, `decisions/ai-work-log.md`
-- 읽기만: `engine/`, `cases/`, `scripts/qa_local.py`, 다른 서버 모듈, `AppHeader.tsx`(마크업 그대로).
-- 다음을 바꾸고 싶으면 **먼저 요청한다**: 사건 이름·필드, 비밀번호·없는 닉네임을 남기지 않는 원칙, 부록 원고의 사실 문장, F26의 역할 표시 숨김.
+  - 신규: `examples/n8n/netproof-verify.workflow.json`, `examples/n8n/request.json`, `docs/n8n.md`, `server/tests/test_n8n_example.py`, `web/src/n8nExample.test.ts`
+  - 수정: `web/src/toolTopics.ts`·test, `web/src/pages/LearningPage.tsx`·test, `server/pyproject.toml`(F27), `server/tests/conftest.py`(F29), `docs/qa-manual.md`(E 절 신설, 기록 표 한 줄), `HANDOFF.md`, `decisions/ai-work-log.md`
+- 읽기만: `engine/`, `server/netproof_api/`, `cases/`, `scripts/`.
+- 다음을 바꾸고 싶으면 **먼저 요청한다**: 노드 구성·이름·typeVersion, Code 스크립트의 문장, 요청 필드 이름, 부록 원고의 사실 문장.
 
-### 6) 위험
-- **비밀번호·개인정보가 로그에 남음** → 비밀번호는 어떤 필드에도 넣지 않고, 없는 닉네임 문자열도 넣지 않는다. 테스트로 로그 전체에 비밀번호 문자열이 없음을 확인한다.
-- **꺼 놓았는데 표준 오류로 찍힘(lastResort)** → NullHandler 또는 바로 돌아가기. 테스트로 확인한다.
-- **로그 줄 위조(줄바꿈 넣기)** → JSON 인코딩이 제어 문자를 이스케이프한다. 닉네임은 계정이 있을 때만 넣는다.
-- **syslog 형식이 도구와 안 맞음** → Graylog 규칙은 머리말이 있어도 JSON만 꺼낸다. Wazuh는 파일(가)을 기본으로 하고 syslog(나)는 `wazuh-logtest`로 먼저 확인한다. 실제 수집은 수동 QA D로 사람이 확인한다.
-- **원고가 틀림** → 공식 문서(Graylog 7.1, Wazuh 4.14)만 근거로, 확인 날짜와 버전을 화면에 적는다. Claude가 리뷰에서 다시 본다.
-- **F26으로 역할이 안 보임** → 720px 이하에서만 숨기고, 설정 화면에는 남는다.
+### 7) 위험
+- **수업 n8n에서 가져오기 실패(버전 차이)** → 오래된 typeVersion을 쓰고, 문서에 노드 네 개를 손으로 만드는 값(주소·헤더·본문 식·스크립트)을 함께 둔다. 실제 확인은 수동 QA E.
+- **결과 문장이 비교를 다시 계산함** → `comparison`만 쓴다. 테스트에 모순된 응답(결과 PASS·AI 답 PASS인데 DISAGREE)을 넣어 문장이 `다릅니다`로 나오는지 확인한다.
+- **`0.0.0.0`으로 네트워크에 열림** → 문서에 주의, 시연 뒤 끄기, 방화벽은 개인 네트워크만.
+- **예시가 실제 응답과 어긋남** → 서버 테스트로 `request.json`을 워크플로와 같은 모양으로 바꿔 실제 `/api/verify`에 보내 확인한다.
 
-### 7) 완료 조건 · 테스트
-- 서버(`test_security_log.py`):
-  - 파일: 성공·없는 닉네임·틀린 비밀번호·5번째 실패(`login_failure` 다음 `account_locked`)·잠긴 동안 시도·설정 확인 실패·설정에서 잠금. 줄마다 JSON, 공백 없는 꼴(`"app":"netproof"`), None 필드 없음, `time` 꼴.
-  - 비밀번호 문자열이 로그 전체에 없음, `unknown_user`에 닉네임 없음.
-  - syslog: 127.0.0.1의 임시 UDP 소켓으로 받은 데이터그램이 `<PRI>` 뒤에 파일과 같은 JSON 한 줄이고 NUL 바이트가 없다. PRI는 auth 시설에 실패 36·성공 38이다.
-  - 꺼짐: 파일이 생기지 않고 표준 오류에도 아무것도 없다. 로그인 응답은 지금 테스트 그대로 통과한다.
-  - `create_app`을 두 번 불러도 줄이 한 번만 쓰인다. `NETPROOF_SYSLOG` 형식이 틀리면 시작 오류.
+### 8) 완료 조건 · 테스트
+- 서버(`test_n8n_example.py`):
+  - `request.json`을 워크플로의 본문 식과 같은 모양(`claim.kind='ai'`, `source='n8n'`)으로 바꿔 `POST /api/verify` → 200, `DENY`·`DISAGREE`. `ai_expected`를 `DENY`로 → `AGREE`. `ai_expected`가 없으면 → `NO_CLAIM`.
+  - 워크플로 JSON: 노드 네 개의 type·typeVersion·이름, 연결 1→2→3→4, 웹훅 `POST`·`netproof-verify`·`responseNode`, HTTP 노드 `POST`·주소가 `/api/verify`로 끝남·헤더 `X-NetProof: 1`·본문 식에 `kind: 'ai'`와 `ai_expected`, Respond `firstIncomingItem`, 자격 증명 키 없음.
+  - n8n 주제의 `응답 예`가 실제 응답으로 만든 문장·`reason`과 같다.
 - 웹:
-  - `toolTopics.test.ts`: id 두 개가 실습 id와 겹치지 않음, 출처가 `https://go2docs.graylog.org/`·`https://documentation.wazuh.com/`로 시작, 버전·확인 날짜 있음.
-  - `router.test.ts`: `#/learn/graylog`·`#/learn/wazuh` → 학습실 주제, 없는 id → 없는 주제.
-  - `LearningPage.test.tsx`(SSR): 첫 화면에 도구 카드 두 개와 주소, 주제 화면의 절 제목·로그 예·출처 링크(`target="_blank" rel="noreferrer"`)·안내 문장, 경로 그림·실습 열기가 없음, `다른 주제`에 두 종류가 다 있음.
-- 네 명령의 실제 출력 전체를 이 문서에 붙인다:
+  - `n8nExample.test.ts`: 워크플로의 `jsCode`를 `$input`·`$` 대역으로 실행해 AGREE·DISAGREE·NO_CLAIM 문장과 `notify`를 확인하고, 모순 응답에서도 `comparison`대로 나오는지 본다.
+  - `toolTopics.test.ts`: n8n 출처가 `https://docs.n8n.io/`로 시작, 세 주제의 `doc`·`example`·버전·확인 날짜, 공통 안내 문장.
+  - `LearningPage.test.tsx`: 첫 화면 `수업 도구`에 카드 세 개, n8n 주제의 머리 `학습실 · 업무 자동화`·절·예·연결 문서 링크(`docs/n8n.md`), Graylog·Wazuh는 지금과 같은 예·링크.
+- 네 명령의 실제 출력 전체를 이 문서에 붙인다. F27 뒤에는 서버 테스트를 `PYTHONPATH` 없이 돌리고, 불러온 엔진 경로가 worktree인지 적는다:
   ```text
   cd engine && ../.venv/Scripts/python -m pytest -q
   cd server && ../.venv/Scripts/python -m pytest -q
   npm --prefix web test
   npm --prefix web run build
   ```
-  - worktree의 서버 테스트는 `PYTHONPATH=<worktree>/engine/src`로 돌리고, 불러온 엔진 경로를 적는다(F27 전까지).
-- 브라우저·로컬 확인(실제 브라우저, `scripts/qa_local.py`, 라이트):
-  - 로그: 두 환경 변수를 켜고 127.0.0.1의 UDP 수신기(임시 스크립트)를 띄운 뒤 합성 계정으로 비밀번호를 다섯 번 틀린다. 파일 줄과 받은 데이터그램을 비밀번호 없이 기록한다.
-  - 학습실 첫 화면과 두 주제 화면(375×812·1280×800): 카드·절·로그 예 줄바꿈·출처 링크, 가로 넘침 0.
-  - F26: 로그인한 360×800·375×812 헤더 높이, 실습 01·02·03의 ③ 위치(PR #30 기록과 비교), 20자 닉네임 말줄임, 1280 헤더 변화 없음.
-  - console error 0.
-- `docs/qa-manual.md`에 D 절(수업 환경 Graylog·Wazuh에서 `docs/security-logs.md` 순서대로 수집·검색·경보 확인)을 사람 대기로 더한다. AI가 완료로 바꾸지 않는다.
+- 로컬·브라우저 확인(라이트, 375×812·1280×800): 학습실 첫 화면 카드 세 개, n8n·Graylog·Wazuh 주제 화면(예 줄바꿈·링크), 가로 넘침 0, console error 0. `request.json`을 로컬 서버의 `/api/verify`에 워크플로와 같은 본문으로 보내 결과를 기록한다.
+- `docs/qa-manual.md`에 E 절(수업 Docker n8n에서 가져오기 → 연결 확인 → 테스트 URL 응답 → 게시 뒤 운영 URL → 선택 알림)을 사람 대기로 더한다. AI가 완료로 바꾸지 않는다.
 - 작업 로그 한 줄, 다음 차례를 리뷰(Claude)로 바꿔 커밋·푸시하고 PR을 연다. 병합하지 않는다.
 
-### 부록 — 학습실 원고 (Codex는 문장을 그대로 옮긴다)
-**공통**
-- 분류: `보안 운영 도구`
-- 화면 안내: `NetProof는 Graylog·Wazuh를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요.`
-- 로그 예: 1)의 로그 예 한 줄. 연결 설정 링크: `https://github.com/myeongjundev/netproof/blob/main/docs/security-logs.md`
-
-**Graylog** (`id: "graylog"`, 문서 기준 `Graylog 7.1`, 확인 `2026-10-05`)
-- 제목: `Graylog — 로그를 모으고 찾기`
-- 한 줄 설명: `여러 곳의 로그를 한곳에 모아 검색하고 알림을 만드는 도구`
-- 이 주제에서 볼 것: `NetProof 로그인 기록이 Graylog에 들어와 필드로 나뉘고, 검색과 알림으로 이어지는 과정`
+### 부록 — 학습실 n8n 원고 (Codex는 문장을 그대로 옮긴다)
+- `id: "n8n"`, 분류 `업무 자동화`, 문서 기준 `n8n 2.41`, 확인 `2026-10-05`
+- 제목: `n8n — 노드를 이어 자동화하기`
+- 한 줄 설명: `트리거와 노드를 이어 반복 작업을 자동으로 처리하는 워크플로 도구`
+- 이 주제에서 볼 것: `AI 답을 받은 n8n 워크플로가 NetProof에 검증을 요청하고, 결과를 돌려주는 과정`
 - 개념:
-  - `입력(Input): 로그를 받는 창구입니다. Syslog(UDP·TCP), GELF, Beats처럼 받는 방식마다 입력을 하나씩 만듭니다.`
-  - `스트림(Stream): 조건에 맞는 메시지만 골라 모은 흐름입니다. 예를 들어 NetProof 메시지만 따로 볼 수 있습니다.`
-  - `파이프라인(Pipeline): 들어온 메시지를 규칙으로 고칩니다. NetProof처럼 JSON으로 온 로그는 규칙으로 풀어 필드로 나눕니다.`
-  - `검색(Search): 필드와 값으로 메시지를 찾습니다. 예: netproof_event:login_failure`
-  - `이벤트 정의(Event Definition)와 알림: 검색 결과가 정한 기준을 넘으면 이벤트를 만들고 알림을 보냅니다. 예: 2분 안에 같은 주소에서 로그인 실패 5번.`
-  - `대시보드(Dashboard): 자주 보는 검색 결과를 표와 그래프로 고정해 둡니다.`
-- 쉬운 비유: `여러 지점에서 온 택배를 한 창구에서 받아 목적지별 칸에 나누고, 송장을 보고 바로 찾아 주는 물류 센터와 같습니다.`
-- NetProof 로그로 해 보기:
-  1. `Graylog에서 Syslog UDP 입력을 만듭니다. 포트는 예를 들어 1514를 씁니다(1024보다 작은 포트는 관리자 권한이 필요할 수 있습니다).`
-  2. `NetProof를 NETPROOF_SYSLOG=<Graylog 주소>:1514로 켭니다. 로컬 QA 도구와 합성 계정을 씁니다.`
-  3. `연결 설정 문서의 파이프라인 규칙을 만들고, NetProof 메시지가 들어오는 스트림에 연결합니다.`
-  4. `합성 계정으로 비밀번호를 다섯 번 틀린 뒤 netproof_event:login_failure와 netproof_event:account_locked를 검색합니다.`
+  - `워크플로(Workflow): 노드를 연결해 만든 자동화 흐름입니다. 실행될 때마다 앞 노드의 결과가 다음 노드로 넘어갑니다.`
+  - `노드(Node): 한 단계의 일을 합니다. 데이터를 받거나, 가공하거나, 다른 서비스로 보냅니다.`
+  - `트리거(Trigger): 워크플로를 시작하는 노드입니다. 웹훅(Webhook) 트리거는 정해진 주소로 요청이 오면 시작합니다.`
+  - `표현식(Expression): {{ $json.body.flow }}처럼 앞 노드의 데이터를 꺼내 매개변수에 넣습니다.`
+  - `HTTP Request 노드: 다른 서비스의 API를 부릅니다. NetProof의 /api/verify도 이 노드로 부릅니다.`
+  - `실행 기록(Executions): 실행마다 노드별 입력과 출력을 남겨, 어디서 무엇이 바뀌었는지 볼 수 있습니다.`
+- 쉬운 비유: `공장 조립 라인처럼, 물건이 컨베이어를 따라 작업대를 하나씩 지나며 처리되는 것과 같습니다.`
+- NetProof로 해 보기:
+  1. `NetProof를 --host 0.0.0.0으로 켭니다. Docker 안의 n8n이 PC의 NetProof에 닿게 하려는 것입니다(연결 문서 참고).`
+  2. `예시 워크플로(examples/n8n)를 n8n에 가져오고, HTTP Request 노드의 주소가 http://host.docker.internal:4820/api/verify인지 확인합니다.`
+  3. `웹훅 노드에서 테스트 이벤트를 기다리게 한 뒤, 예시 요청(request.json)을 테스트 URL로 보냅니다.`
+  4. `응답 문장과 실행 기록에서 노드별 입력·출력을 확인합니다.`
+- 예 제목 `응답 예`, 내용: 2)의 예시 요청에 대한 실제 응답 JSON 한 줄(`message`·`comparison`·`result`·`reason`·`problems`·`notify`). Codex는 서버 테스트로 얻은 값을 그대로 쓴다.
+- 연결 문서: `연결 설정 전체: docs/n8n.md` → `https://github.com/myeongjundev/netproof/blob/main/docs/n8n.md`
 - 확인할 것:
-  - `다섯 번째 실패 뒤 account_locked 기록이 한 번 생기나요?`
-  - `화면의 오류 문장은 같아도 로그의 netproof_reason은 bad_password·unknown_user·locked로 다른가요?`
-  - `없는 닉네임으로 시도한 기록에는 닉네임이 남지 않나요?`
-- 출처: `What is Graylog` https://go2docs.graylog.org/current/what_is_graylog/what_is_graylog.htm · `Syslog Inputs` https://go2docs.graylog.org/current/getting_in_log_data/syslog_inputs.html · `Streams` https://go2docs.graylog.org/current/making_sense_of_your_log_data/streams.html · `Functions Reference` https://go2docs.graylog.org/current/making_sense_of_your_log_data/functions_index.html
+  - `예시 요청(AI 답 통과)을 보내면 "≠ AI 답(통과)과 NetProof 계산(막힘)이 다릅니다"라는 응답이 오나요?`
+  - `결과 문장 노드는 NetProof가 준 comparison을 그대로 쓰고, 직접 비교하지 않나요?`
+  - `워크플로를 게시(publish)한 뒤에는 테스트 URL 대신 운영 URL(/webhook/…)로 보내나요?`
+- 출처: `Understand workflows` https://docs.n8n.io/build/understand-workflows · `Work with nodes` https://docs.n8n.io/build/understand-workflows/workflow-components/work-with-nodes · `Expressions for data transformation` https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation · `Understand executions` https://docs.n8n.io/build/understand-workflows/understand-executions · `Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook · `HTTP Request` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest · `Respond to Webhook` https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.respondtowebhook · `Install with Docker` https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker
 
-**Wazuh** (`id: "wazuh"`, 문서 기준 `Wazuh 4.14`, 확인 `2026-10-05`)
-- 제목: `Wazuh — 규칙으로 공격 징후 찾기`
-- 한 줄 설명: `에이전트가 보낸 로그를 디코더와 규칙으로 분석해 경보를 만드는 보안 플랫폼`
-- 이 주제에서 볼 것: `NetProof 로그인 실패가 Wazuh 규칙에 걸려 레벨이 붙은 경보가 되는 과정`
-- 개념:
-  - `에이전트(Agent): 서버나 PC에 설치해 로그 파일 등을 읽고 Wazuh 서버로 보냅니다.`
-  - `Wazuh 서버: 디코더와 규칙으로 로그를 분석해 경보를 만듭니다. 에이전트 없이 syslog를 직접 받을 수도 있습니다.`
-  - `인덱서와 대시보드: 인덱서는 경보를 저장해 검색할 수 있게 하고, 대시보드는 그것을 웹 화면으로 보여 줍니다.`
-  - `디코더(Decoder): 로그 한 줄에서 필드를 뽑습니다. 한 줄짜리 JSON 로그는 기본 JSON 디코더가 필드로 풀어 줍니다.`
-  - `규칙(Rule)과 레벨: 조건에 맞는 로그에 0~16 레벨을 붙여 경보로 만듭니다. 직접 만든 규칙은 서버의 local_rules.xml에 100000~120000번대 ID로 둡니다.`
-  - `빈도 규칙: frequency와 timeframe으로 "짧은 시간에 여러 번"을 잡습니다. 반복된 로그인 실패는 MITRE ATT&CK의 무차별 대입(T1110)에 해당합니다.`
-- 쉬운 비유: `건물 곳곳의 출입 기록을 관제실이 규칙표와 비교해, 짧은 시간에 같은 문을 여러 번 잘못 연 기록이 있으면 경보를 울리는 것과 같습니다.`
-- NetProof 로그로 해 보기:
-  1. `NetProof를 NETPROOF_SECURITY_LOG=<로그 파일 경로>로 켭니다.`
-  2. `같은 PC의 Wazuh 에이전트 설정(ossec.conf)에 그 파일을 log_format json으로 추가하고 에이전트를 다시 시작합니다.`
-  3. `서버의 local_rules.xml에 연결 설정 문서의 NetProof 규칙을 넣고 서버를 다시 시작합니다.`
-  4. `서버에서 wazuh-logtest에 로그 한 줄을 붙여 디코딩과 규칙 일치를 먼저 확인합니다.`
-  5. `합성 계정으로 비밀번호를 다섯 번 틀린 뒤 대시보드에서 NetProof 경보를 찾습니다.`
-- 확인할 것:
-  - `로그인 실패(규칙 100200, 레벨 5)와 계정 잠금(100201, 레벨 10)이 따로 보이나요?`
-  - `같은 주소에서 2분 안에 다섯 번 실패하면 빈도 규칙(100202)이 울리나요?`
-  - `경보의 필드에 비밀번호가 없나요?`
-- 출처: `Components` https://documentation.wazuh.com/current/getting-started/components/index.html · `localfile` https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/localfile.html · `Rules syntax` https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/rules.html · `Testing decoders and rules` https://documentation.wazuh.com/current/user-manual/ruleset/testing.html · `remote` https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/remote.html
+## 완료 내용 / 테스트 결과 (2026-10-05 · Codex R1 재실행)
 
-## 완료 내용 / 테스트 결과 (2026-10-05 · Codex)
+- 처리 근거: [PR #34 Claude R1](https://github.com/myeongjundev/netproof/pull/34#issuecomment-5992198834). 요청한 네 가지만 수정했다.
+  1. n8n 출처 두 개의 이름·주소를 toolTopics.ts·test·docs/n8n.md에서 변경.
+  2. 확인 문장을 승인된 새 문장 하나로 변경·원고 고정 테스트 갱신.
+  3. conftest autouse로 두 로그 환경 변수를 매 테스트 전에 제거. 기존 app overrides 유지. app fixture를 쓰지 않는 테스트와 자식 프로세스에서 변수 부재 회귀 검사를 추가.
+  4. 문서 Docker 이미지를 n8nio/n8n으로 변경.
+- 엔진·서버 앱/API·scripts/qa_local.py·워크플로/요청 JSON·cases/expect·의존성·배포물은 변경하지 않았다.
+- (Codex 기록 당시 다음 차례는 재리뷰(Claude)였다. 재리뷰 PASS 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
 
-- 승인 설계 `8071dee` 작업 정의 1)~7) 및 부록 원고만 구현했다. 기존 `codex/security-logs`에서 git pull(Already up to date) 뒤 AGENTS/HANDOFF를 읽었다.
-- 표준 logging 기반 `netproof.security`: UTF-8 JSONL·UDP LOG_AUTH(append_nul=False) 독립 opt-in, 처리기 교체/종료, propagate=False·NullHandler·off 조기 반환, 설정 형식 시작 검증. 명시된 필드만 허용하고 None·비밀번호/쿠키 같은 비허용 필드를 빼며 unknown_user는 nickname/user_id도 방어적으로 제외한다. app이 첫 필드, UTC time, 제어 문자 JSON 이스케이프를 확인했다.
-- auth는 event 호출과 그 호출용 조건만 추가했다. 기존 반환·더미 해시·실패 횟수 재설정/10분 잠금·문장·상태 코드·DB는 그대로다. 다섯 번째 실패의 failed_count는 재설정 전 값 5로 기록하고 실패 사건 다음 잠금 사건을 남긴다.
-- Graylog·Wazuh 원고를 부록에서 그대로 옮긴 별도 toolTopics, 주소·학습실 카드·도구 상세·두 종류의 다른 주제를 구현했다. 도구 화면에는 구성 그림·예상·실습 단추가 없다. 원고 일치 검사와 기존 실습 SSR 회귀를 유지했다. 지정 공식 문서 9개가 열림을 확인했으며 사실 문장을 바꾸지 않았다.
-- 연결 문서·logs/ 제외·QA D 신설(C에 F26 한 줄)을 반영했다. 기존 사람 기록 절은 E로 이동했다. 실제 수집 완료로 체크하지 않았다.
-- F26은 CSS만 수정했다. 960px 이하 계정 nowrap/닉네임 말줄임, 720px 이하 역할 숨김. **20자 닉네임에서 기본 설계 CSS만으로 로그아웃 단추가 세로로 줄바꿈되어 118.5625px가 되는 실측 결함**을 발견해, 같은 960px 이하에 `header-account > button { flex-shrink: 0; }`를 보강했다. 단추 44px 최소 높이·헤더 마크업·넓은 화면 규칙은 그대로다.
-- 신규 서버 18개·웹 12개. 파일/UDP 두 출력·각각 하나만 켬·초기 off와 재설정 off·Windows 처리기 종료/중복 없음·잘못된 주소 9종·원고/SSR/주소/CSS 회귀를 검사했다.
-- 초기 off 테스트가 열린 파일을 지우려 해 WinError32가 났다. off configure로 처리기를 먼저 닫은 뒤 삭제하는 테스트 준비 순서로 바로잡았다. QA RAM IPC의 Windows 메시지 형식 오독은 외부 검증 도구에서 복구했다(비밀번호 출력/저장 없음). 추가 원고/CSS 검사에서 node:fs 타입 오류·Vitest 기본 CSS 비활성화를 발견해, 원고는 테스트 전용 raw import, CSS는 vi.importActual의 명시 타입으로 읽도록 수정했다. 의존성/tsconfig 변경 없이 전체 테스트·빌드를 다시 통과했다. 최종 배포 번들 해시는 실제 브라우저 확인 때와 같다(index-CQWvs7G8.css/index-BykmFCca.js).
-- 엔진·cases/expect·의존성·AppHeader 마크업·배포 설정·다른 서버 모듈 불변. `git diff --check` 오류 없음. (Codex 기록 당시 다음 차례는 리뷰(Claude)였다. 리뷰 PASS 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
+### 새 출처 링크 확인
 
-### 네 명령 실행 환경
+2026-10-05 공식 문서 조회로 제목·본문을 확인하고, PowerShell Invoke-WebRequest GET으로 다음 두 주소의 HTTP 200·HTML title을 직접 확인했다. 실제 브라우저 UI 확인이나 n8n 실행 확인으로 대신 기록하지 않는다.
 
-Windows PowerShell에서 engine/server를 각각 workdir로 지정하고 요청한 명령을 직접 실행했다(`&&` 표기는 요청한 명령 그대로). 모든 exit code 0. 기존 2 xfail·1 skip 유지. 공유 venv 설치를 바꾸지 않고 서버 검사 프로세스에서 다음 환경 설정만 적용했다. 로깅 환경도 제거해 관계없는 검사에 파일/네트워크 출력이 생기지 않게 했다.
+- [Expressions for data transformation](https://docs.n8n.io/build/work-with-data/transform-data/expressions-for-data-transformation) — HTTP 200, title: Expressions for data transformation | Build | n8n Docs.
+- [Understand executions](https://docs.n8n.io/build/understand-workflows/understand-executions) — HTTP 200, title: Understand executions | Build | n8n Docs.
 
-```powershell
-$env:PYTHONPATH = 'C:/gov/project/skt aleph/netproof-judge-ux/engine/src'
-Remove-Item Env:NETPROOF_TEST_DATABASE_URL -ErrorAction SilentlyContinue
-Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
-Remove-Item Env:NETPROOF_SECURITY_LOG -ErrorAction SilentlyContinue
-Remove-Item Env:NETPROOF_SYSLOG -ErrorAction SilentlyContinue
-../.venv/Scripts/python -c 'import netproof_engine; print(netproof_engine.__file__)'
+### 외부 로그 환경 변수 차단 확인
+
+저장소 밖 일회성 점검 도구에서 임시 폴더의 존재하지 않는 로그 파일과 127.0.0.1의 임의 UDP 포트를 각각 NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG로 지정하고 서버 pytest 전체를 자식 프로세스로 실행했다. 수신기는 테스트 시작 전 자체 UDP 송수신으로 동작을 확인했다. 테스트 종료 뒤 지정 로그 파일은 미생성, 수신 UDP는 0개였다. 임시 폴더·수신 소켓 정리 완료.
+
+PYTHONPATH·NETPROOF_TEST_DATABASE_URL·DATABASE_URL을 자식 환경에서 제거해 worktree 엔진과 임시 SQLite만 사용했다. 아래 서버 명령은 server 작업 디렉터리에서 같은 venv python을 subprocess로 직접 실행한 출력 전체다. 보안 로그 기능 자체를 시험하는 테스트의 별도 임시 파일·별도 UDP 수신기는 정상 사용하며, 이 확인은 외부 환경 변수로 지정한 대상으로 새는 부작용이 없다는 뜻이다. 비밀번호·로그 본문은 출력하거나 기록하지 않았다.
+
+점검 도구 최초 실행은 Windows subprocess의 상대 실행 파일 경로 해석으로 WinError 2가 나 테스트를 시작하지 못했다. 저장소 밖 점검 도구에서 같은 worktree venv의 절대 경로로 고친 뒤 아래 서버 전체 실행·파일/UDP 검사를 재실행했다. 제품 코드나 테스트 기대값으로 우회하지 않았다.
+
+### F27 엔진 경로 재확인 (PYTHONPATH 없이)
+
+`cd server && ../.venv/Scripts/python -m pytest -q -s tests/test_n8n_example.py::test_engine_comes_from_this_worktree`
+
+```text
+Imported engine: C:\gov\project\skt aleph\netproof-judge-ux\engine\src\netproof_engine\__init__.py
+.
+1 passed in 0.15s
 ```
-
-불러온 엔진 경로는 아래 서버 출력 첫 줄이다. pytest 결과를 중간 출력까지 합쳐 모두 기록했다.
 
 ### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
@@ -300,16 +228,16 @@ Remove-Item Env:NETPROOF_SYSLOG -ErrorAction SilentlyContinue
 ........................................................................ [ 61%]
 ........................................................................ [ 81%]
 ..............................................................xx         [100%]
-350 passed, 2 xfailed in 6.24s
+350 passed, 2 xfailed in 6.77s
 ```
 
 ### `cd server && ../.venv/Scripts/python -m pytest -q`
 
 ```text
-C:\gov\project\skt aleph\netproof-judge-ux\engine\src\netproof_engine\__init__.py
-........................................................................ [ 54%]
-..........s.................................................             [100%]
-131 passed, 1 skipped in 43.84s
+........................................................................ [ 51%]
+..........s..........................................................    [100%]
+140 passed, 1 skipped in 44.07s
+External log probe: {"both_log_environment_variables_set": true, "receiver_preflight": true, "file_exists": false, "udp_packets": 0, "pytest_exit": 0, "PYTHONPATH_set": false, "loopback_only": true}
 ```
 
 ### `npm --prefix web test`
@@ -323,12 +251,12 @@ C:\gov\project\skt aleph\netproof-judge-ux\engine\src\netproof_engine\__init__.p
  RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
 
 
- Test Files  30 passed (30)
-      Tests  404 passed (404)
-   Start at  13:38:12
-   Duration  1.15s (transform 68%, import 22%, tests 7%, worker 3%)
+ Test Files  31 passed (31)
+      Tests  417 passed (417)
+   Start at  21:25:22
+   Duration  1.44s (transform 68%, import 21%, tests 7%, worker 4%)
 
-  Transform  transforming modules took 8.07s · 68% of tracked time, re-done on every run
+  Transform  transforming modules took 9.63s · 68% of tracked time, re-done on every run
              persist transforms across runs with fsModuleCache: true
              learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
 ```
@@ -439,75 +367,217 @@ dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
 dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
 dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
 dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
-dist/assets/index-BykmFCca.js                            353.06 kB │ gzip: 106.48 kB
+dist/assets/index-D1dnOq1Z.js                            356.73 kB │ gzip: 107.81 kB
 
-✓ built in 453ms
+✓ built in 580ms
 ```
 
-### 실제 로컬 파일·UDP 및 브라우저 로그인
+구현·검증: Codex (GPT-5)
 
-원본 `scripts/qa_local.py --port 4881`를 임시 SQLite로 실행하고 두 환경 변수를 켰다. NETPROOF_SYSLOG 대상은 임시 UDP 수신기의 **127.0.0.1** 주소이며 외부 전송은 하지 않았다. 로그 경로도 OS 임시 폴더였다. 도구 콘솔 비밀번호는 외부 래퍼가 RAM에서만 받아 로컬 IPC로 브라우저에 전달했다.
+## 완료 내용 / 테스트 결과 (2026-10-05 · Codex)
 
-실제 Chrome 로그인 단추로 qa_reviewer 비밀번호를 5번 틀림 → 잠긴 계정에 맞는 비밀번호로 시도 → qa_author 정상 로그인. 화면 실패 문장은 기존과 같았다. 아래 파일 8줄과 UDP 8개가 모두 대응한다. UDP는 각 파일 JSON 앞에 <PRI>만 붙고 NUL이 없었다. PRI 순서는 36×7, 38×1. 정상 비밀번호와 틀린 비밀번호 문자열이 기록 전체에 없음을 RAM 값과 대조했다. 서버 traceback 0. 없는 닉네임·설정 실패/잠금·off는 자동 테스트로 검증했으며 실제 수집 도구 검증으로 바꾸어 주장하지 않는다.
+- 승인 설계 `fbfc5a0` 작업 1)~8)과 부록을 구현했다. 예시는 승인한 네 노드·이름·typeVersion·연결·parameters·Code 문장 그대로이며 UUID v4 id/webhookId와 지정 position을 갖는다. network·flow는 합성 사례01과 깊은 비교로 일치한다. 엔진·API·cases·expect·라우터·CSS·의존성·배포물은 고치지 않았다.
+- 예시 JSON에는 자격 증명·비밀번호·키·토큰·외부 알림 주소가 없다. Code는 엔진 comparison만 쓰고 reason/problems·result를 그대로 옮긴다. 불일치 알림은 문서로만 설명했다.
+- 학습실에 n8n 주제를 추가했다. 원고·출처·버전·날짜는 부록 그대로다. Graylog·Wazuh 원고/예/링크를 유지하고 doc·example로 옮겼으며, 공통 안내·도구 묶음 제목만 승인 문구로 바꿨다. 테스트는 과제마다 교체되는 HANDOFF에 의존하지 않도록 승인 원고 고정값과 대조한다.
+- F27: pytest pythonpath `[".", "../engine/src"]`. 서버 테스트 실행 프로세스에서 PYTHONPATH를 제거했으며 NETPROOF_TEST_DATABASE_URL도 제거해 임시 SQLite만 사용했다. F29: SQLite·PostgreSQL 앱 fixture 두 overrides에 SECURITY_LOG/SECURITY_SYSLOG None. 환경 변수에 로그 경로/잘못된 syslog 주소가 있어도 fixture가 꺼지는 것을 회귀 테스트로 확인했다(PostgreSQL 실연결은 미확인).
+- 새 서버 테스트 8개: worktree 엔진 import, 실제 verify의 세 비교, 응답 예 대조, 합성 요청 고정, 전체 노드 구성/승인 parameters/비밀값 키 없음, F29. 웹 새 검증: 워크플로의 jsCode·HTTP 본문 표현식을 실제로 실행하고 AGREE/DISAGREE/NO_CLAIM·INVALID/UNSUPPORTED·모순 응답·다중 항목·무변형을 확인한다. n8n 라우트와 세 주제/상세를 확인한다.
+- 첫 targeted 서버 실행은 승인 코드 추출 정규식이 첫 줄 들여쓰기를 삼킨 테스트 준비 문제와 CRLF/LF 대조 때문에 1건 실패했다. 추출·개행을 바로잡고, 최종 테스트는 승인 상수를 고정해 전체 재실행했다. 노드 구성·스크립트의 문장·비교 의미·엔진은 맞춰 고치지 않았다.
+- 네 명령 모두 직접 실행: 엔진 **350 passed, 2 xfailed(5.58s)**, 서버 **139 passed, 1 skipped(39.87s)**, 웹 **417 passed/31 files(1.07s)**, 빌드 성공 **442ms**. 전체 출력은 아래에 생략 없이 붙였다. 기존 xfail/skip은 별도 과제다.
 
-파일 JSONL(합성 계정·localhost만):
+### F27 엔진 경로 확인 (PYTHONPATH 없이)
 
-```jsonl
-{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":1,"time":"2026-10-05T04:26:10Z"}
-{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":2,"time":"2026-10-05T04:26:21Z"}
-{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":3,"time":"2026-10-05T04:26:21Z"}
-{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":4,"time":"2026-10-05T04:26:22Z"}
-{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":5,"time":"2026-10-05T04:26:23Z"}
-{"app":"netproof","event":"account_locked","via":"login","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":5,"locked_until":"2026-10-05T04:36:23Z","time":"2026-10-05T04:26:23Z"}
-{"app":"netproof","event":"login_failure","reason":"locked","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","locked_until":"2026-10-05T04:36:23Z","time":"2026-10-05T04:26:35Z"}
-{"app":"netproof","event":"login_success","nickname":"qa_author","user_id":1,"src_ip":"127.0.0.1","time":"2026-10-05T04:26:36Z"}
-```
-
-받은 UDP 데이터그램(동일 JSON, 앞에 실제 PRI):
+별도 직접 실행: 서버 폴더에서 `../.venv/Scripts/python -m pytest tests/test_n8n_example.py -q -s`. 전체 서버 실행에도 경로 assert가 포함된다.
 
 ```text
-<36>{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":1,"time":"2026-10-05T04:26:10Z"}
-<36>{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":2,"time":"2026-10-05T04:26:21Z"}
-<36>{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":3,"time":"2026-10-05T04:26:21Z"}
-<36>{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":4,"time":"2026-10-05T04:26:22Z"}
-<36>{"app":"netproof","event":"login_failure","reason":"bad_password","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":5,"time":"2026-10-05T04:26:23Z"}
-<36>{"app":"netproof","event":"account_locked","via":"login","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","failed_count":5,"locked_until":"2026-10-05T04:36:23Z","time":"2026-10-05T04:26:23Z"}
-<36>{"app":"netproof","event":"login_failure","reason":"locked","nickname":"qa_reviewer","user_id":2,"src_ip":"127.0.0.1","locked_until":"2026-10-05T04:36:23Z","time":"2026-10-05T04:26:35Z"}
-<38>{"app":"netproof","event":"login_success","nickname":"qa_author","user_id":1,"src_ip":"127.0.0.1","time":"2026-10-05T04:26:36Z"}
+Imported engine: C:\gov\project\skt aleph\netproof-judge-ux\engine\src\netproof_engine\__init__.py
+........
+8 passed in 0.64s
 ```
 
-### 실제 브라우저 · 학습실 (라이트)
+실행 전 process-only 설정은 `Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue`, `Remove-Item Env:NETPROOF_TEST_DATABASE_URL -ErrorAction SilentlyContinue`, `$env:PYTHONIOENCODING='utf-8'`다. editable 설치를 바꾸거나 PYTHONPATH를 지정하지 않았다.
 
-1280×800·375×812에서 학습실 첫 화면과 Graylog/Wazuh 각각의 카드·절 제목·로그 예·공식 출처 target=_blank/rel=noreferrer·버전/확인일·다른 주제를 확인했다. 도구 화면에 경로 그림·예상 퍼즐·실습 열기 없음. 원본 QA 375는 innerWidth=375/clientWidth=360에서 넘침 0이었다. 최종 빌드에서는 아래 휴대폰 폭 맞춤 환경에서도 다시 확인했다.
+### 로컬 API 확인
 
-- 1280(clientWidth 1265): 두 로그 예 pre clientWidth=scrollWidth=842, pre-wrap.
-- 375(clientWidth 375): 두 로그 예 pre clientWidth=scrollWidth=301, pre-wrap. 실제 화면에서 줄바꿈 캡처 확인.
-- 첫 화면·두 주제 여섯 조합 모두 가로 넘침 0px, 수집 console error 0건.
+저장소 밖 QA helper에서 실제 create_app을 호출하되 새 OS 임시 SQLite·로그 off·127.0.0.1:4883만 사용했다. DATABASE_URL에 의존하지 않았다. Docker 접근용 0.0.0.0은 문서에서만 설명했으며 실제 LAN에 열지 않았다. 요청은 워크플로와 같은 claim(kind ai·source n8n·text) 형태다.
 
-### F26 실측 · PR #30 기준 비교
+```jsonl
+{"http":200,"ai_expected":"PASS","result":"DENY","comparison":"DISAGREE","problems":[],"reason":"정방향: ACL 101(g0/0 in) 1번 규칙에서 차단"}
+{"http":200,"ai_expected":"DENY","result":"DENY","comparison":"AGREE","problems":[],"reason":"정방향: ACL 101(g0/0 in) 1번 규칙에서 차단"}
+{"http":200,"ai_expected":null,"result":"DENY","comparison":"NO_CLAIM","problems":[],"reason":"정방향: ACL 101(g0/0 in) 1번 규칙에서 차단"}
+```
 
-4882는 저장소 밖 QA 전용 WSGI 래퍼+같은 seeded_qa/현재 앱을 사용했다. HTML에 `@media(max-width:900px){::-webkit-scrollbar{width:0;height:0}}`만 주입해 휴대폰 흉내의 화면 폭=내용 폭을 맞췄다. 실제 휴대폰/네이티브 기기 에뮬레이션은 아니며 저장소 소스·API 응답은 변조하지 않았다. 로깅은 이 추가 서버에서 off였다.
+### 실제 Chrome 브라우저 확인 (라이트)
 
-20자 합성 닉네임으로 로그인, 첫 방문 안내 닫음·② 접음·scrollY=0. 전 행 헤더 68px, 가로 넘침 0, 역할 badge 숨김. 닉네임 scrollWidth=259 > clientWidth(360은80, 375는95), white-space=nowrap/text-overflow=ellipsis로 실제 말줄임. 아래 세 라디오/라벨의 y는 각각 모두 같은 값이다.
+computer-use 스킬의 브라우저 API로 학습실 첫 화면 → 각 도구 상세를 실제 조작·관찰했다. 도구 카드 세 개(Graylog·Wazuh·n8n), 분류/제목/개념/비유/해 보기/예/확인할 것/공식 출처/연결 문서 링크, 다른 주제를 확인했다. 도구 상세에는 예상 라디오·실습 단추가 없다. n8n 응답 예는 로컬 API 결과와 같고 Graylog·Wazuh 예는 이전 합성 로그 그대로다. 링크 target=_blank·rel=noreferrer와 승인 href를 확인했다.
 
-| 크기 · 실습 | ③ 제목 위~아래 | 각 라디오 위~아래 | 안내 위~아래 | 칸 위~아래 | 고정 줄 시작 |
-| --- | --- | --- | --- | --- | --- |
-| 375×812 · 01 | 602.671875~629.015625 | 635.015625~679.015625 | 689.015625~709.156250 | 591.671875~720.156250 | 746.203125 |
-| 375×812 · 02 | 582.718750~609.062500 | 615.062500~659.062500 | 669.062500~689.203125 | 571.718750~700.203125 | 746.203125 |
-| 375×812 · 03 | 602.671875~629.015625 | 635.015625~679.015625 | 689.015625~709.156250 | 591.671875~720.156250 | 746.203125 |
-| 360×800 · 01 | 622.812500~649.156250 | 655.156250~699.156250 | 709.156250~729.296875 | 611.812500~740.296875 | 734.203125 |
-| 360×800 · 02 | 582.718750~609.062500 | 615.062500~659.062500 | 669.062500~689.203125 | 571.718750~700.203125 | 734.203125 |
-| 360×800 · 03 | 602.671875~629.015625 | 635.015625~679.015625 | 689.015625~709.156250 | 591.671875~720.156250 | 734.203125 |
+| 화면 | viewport | document clientWidth / scrollWidth | 예 pre clientWidth / scrollWidth | 줄바꿈 |
+| --- | --- | --- | --- | --- |
+| 학습실 목록 | 375×812 | 360 / 360 | — | 카드 세 개 세로 |
+| n8n·Graylog·Wazuh 각각 | 375×812 | 360 / 360 | 286 / 286 | pre-wrap |
+| 학습실 목록 | 1280×800 | 1265 / 1265 | — | 카드 세 개 가로 |
+| n8n·Graylog·Wazuh 각각 | 1280×800 | 1265 / 1265 | 842 / 842 | pre-wrap |
 
-PR #30 재리뷰 기준과 일치한다. 360×800 실습01은 **안내 아래729.296875 < 고정734.203125**이며, 기존 기준대로 칸 아래 여백 약6px은 고정 줄에 닿는다. 375 세 칸 전체는 위에 있다. 이를 혼동해 360 실습01 칸 전체 통과라고 적지 않는다.
+- 모든 화면 가로 넘침 0, 콘솔 error 목록 `[]`. 375는 데스크톱 Chrome의 viewport override이며 15px 비겹침 스크롤바가 있으므로 실제 내용 폭은 360이다. 실제 휴대폰으로 확인했다고 쓰지 않는다.
+- 마지막 빌드 뒤 reload해 `index-BxueM_2L.js`·`index-CQWvs7G8.css` 로드, 라이트·넘침 0·console error 0을 다시 확인했다. 앞 QA와 최종 번들 해시가 같다.
+- 캡처·실측 JSON은 저장소 밖 `C:/Users/dora2/.codex/visualizations/n8n-{learning,cards,example}-375.png`·`n8n-browser-positions.json`에 보관한다(커밋하지 않음).
+- 정상 QA 서버 종료 후 `Temporary DB removed: True`, 4883 LISTEN 수 0 확인. 만든 QA 탭을 닫고 viewport override를 reset했다.
+- 공식 문서 조회에서 승인 출처 중 `https://docs.n8n.io/code/expressions/`·`https://docs.n8n.io/workflows/executions/`는 Page Not Found로 반환됐다. 나머지 6개 n8n 출처와 Graylog GELF 문서는 읽혔다. 승인 원고·출처 목록은 임의 변경하지 않았다. 링크 갱신 여부는 Claude 리뷰에서 확인할 사항이다. 브라우저에서 각 외부 링크 도착 페이지까지 모두 확인한 것은 아니다.
+- **미확인/사람 대기:** 실제 Docker n8n 가져오기·host.docker.internal/LAN 연결·테스트/운영 웹훅·게시·Discord/Slack/Graylog 알림(QA E), Graylog/Wazuh 실제 수집(QA D), 기존 QA A/B/C, 실제 휴대폰·다크·스크린리더·PostgreSQL. 자동 검사/API 확인을 수동 QA 통과로 바꾸지 않았다.
+- (Codex 기록 당시 다음 차례는 리뷰(Claude)였다. 리뷰 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
 
-설정 화면은 375에서도 등급 ‘일반’이 보이고 헤더만 숨김을 확인했다. 1280은 F26의 matchMedia(max-width:960px)=false, 새 헤더 CSS 미적용(변경 diff도 모두960/720 이하)·역할 보임·로그아웃 높이44px이다. 기본 qa_author 헤더72px, 기존 긴 닉네임 줄바꿈은 유지돼 20자 헤더74.5px였다. 1280 기존 브랜치 별도 빌드와의 픽셀 대조는 하지 않았으며 CSS 범위와 현재 실측으로 넓은 화면 규칙 불변을 확인했다.
+### `cd engine && ../.venv/Scripts/python -m pytest -q`
 
-QA 서버 둘 정상 종료·각 임시 DB 폴더 removed=True·임시 보안 로그 폴더 removed=True·4881/4882 LISTEN 0. 검증 탭 닫음·viewport 해제·RAM 자격 해제. 캡처/검증 도구는 저장소 밖에 보관했다. 다크·실제 휴대폰·스크린리더·PostgreSQL은 이번 미검증이다. **사용자 수동 QA A/B/C 및 신설 D는 대기**이며 실제 Graylog/Wazuh 설치·수집·검색·경보는 확인하지 않았다.
+```text
+........................................................................ [ 20%]
+........................................................................ [ 40%]
+........................................................................ [ 61%]
+........................................................................ [ 81%]
+..............................................................xx         [100%]
+350 passed, 2 xfailed in 5.58s
+```
 
-Codex (GPT-5)
+### `cd server && ../.venv/Scripts/python -m pytest -q`
+
+```text
+........................................................................ [ 51%]
+..........s.........................................................     [100%]
+139 passed, 1 skipped in 39.87s
+```
+
+### `npm --prefix web test`
+
+```text
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof-judge-ux/web
+
+
+ Test Files  31 passed (31)
+      Tests  417 passed (417)
+   Start at  14:36:40
+   Duration  1.07s (transform 69%, import 20%, tests 8%, worker 3%)
+
+  Transform  transforming modules took 7.54s · 69% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+### `npm --prefix web run build`
+
+```text
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 59 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.62 kB │ gzip:   0.45 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
+dist/assets/index-BxueM_2L.js                            356.61 kB │ gzip: 107.78 kB
+
+✓ built in 442ms
+```
+
+구현·검증: Codex (GPT-5)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #33 보안 로그·학습실 도구 주제·F26 (병합 완료, `0a53519`)**: 환경 변수로 켜는 보안 로그(`NETPROOF_SECURITY_LOG` 파일, `NETPROOF_SYSLOG` UDP. login_success·login_failure·account_locked·password_check_failure, 비밀번호·없는 닉네임 미기록, 꺼지면 아무 데도 안 씀), `docs/security-logs.md`(Graylog 7.1 파이프라인, Wazuh 4.14 규칙 100200~100203), 학습실 Graylog·Wazuh 주제, F26(로그인한 휴대폰 헤더 한 줄). Claude 독립 리뷰 PASS(실제 QA 서버 로그 파일 10줄 = UDP 10개, 비밀번호 0건). 수동 QA D(수업 환경 Graylog·Wazuh)는 사람 대기.
 - **PR #32 변경 전/후 판정 비교 (병합 완료, `baf6501`)**: 같은 통신을 구성만 바꿔 다시 판정하면 판정기·실습의 결과 아래에 직전 판정과 지금 판정을 나란히 보인다(받은 답만 바꾸면 기준 유지, 통신 변경·불러오기는 해제). `다른 통신 영향 계산`은 엔진 `change_impact`(`policy_matrix` 두 번, 판정한 통신 제외, opened·closed·other·not_compared)와 `POST /api/change-impact`. 후속 F24(저장 제목)·F25(`은(는)`) 포함. Claude 독립 리뷰 PASS(엔진 무작위 대조 3,000회 불일치 0). 후속 F26은 이번 과제, F27(서버 pytest 경로)·F28(응답 크기)은 남음.
 - **PR #31 판정기 알림·조사 정리 F5·F6 (병합 완료, `74c5255`)**: 손대지 않은 빈 템플릿에서는 불러오기 되돌리기 알림을 띄우지 않는다(`hasCurrentInput` 재사용). 조사 일곱 곳을 고정 낱말 뒤 조사로 바꿨다(예시 주제 알림·ACL 삭제·ACL 점검 두 문장·로그인 안내·계정 삭제·비교 배너 `과`). Claude 독립 리뷰 PASS(사례 목록 실패 시 `사례가`까지 실브라우저 확인). 후속 F24(저장 제목)·F25(`은(는)`)는 변경 전/후 과제에 넣었다.
 - **PR #30 휴대폰 구성 접기 + 실습 후속 (병합 완료, `63515a6`)**: 900px 이하에서 실습 ②와 사례 상세 네트워크 구성을 CSS 접기(`.mobile-fold`, 넓은 화면은 요약 줄 숨김·펼침), `입력에서 보기`는 접기를 먼저 엶. F19 안내 뒤 ② 제목 포커스, F20 바뀐 것 없는 처음 상태로 무시, F21 실습 삭제 되돌리기, F22 홈 문구, F23 옛 문서 정리. R1(사용자 결정)으로 폭 360 대응: 요약 줄에서 확인할 것 개수 뺌, ③ 안내 `예상은 계산에 쓰지 않고 비교만 합니다.`, 휴대폰 실습 간격. Claude 재리뷰 PASS(360×800·375×812 실습 01·02·03의 ③ 제목·라디오·안내가 고정 줄 위, 1280 무변화).
@@ -567,8 +637,8 @@ Codex (GPT-5)
 **F5·F6 다음 기능 순서 (2026-10-05 사용자 합의 — 아래 4·5주차 목록의 순서를 대신한다)**
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
-2. [ ] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) — 운영·④ **+ 학습실에 Graylog·Wazuh 공부 주제**(개념 설명·NetProof 로그가 어떻게 보이는지·공식 문서 출처) — **PR #33 Claude 리뷰 PASS, 사용자 병합 결정 대기 — `codex/security-logs`**(F26 포함). 실제 수집 QA D는 사람 대기
-3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심)
+2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
+3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심) **→ 설계(2026-10-05, `codex/n8n-example`: 웹훅 입력·웹훅 응답·학습실 n8n 주제·Docker n8n, F27·F29 포함) → 사용자 승인(fbfc5a0) → 구현·테스트 완료 → Claude 리뷰 R1 → Codex R1 → **PR #34 Claude 재리뷰 PASS, 사용자 병합 결정 대기**
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
@@ -599,8 +669,9 @@ Codex (GPT-5)
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **사용자:** PR #33 병합 결정. 병합 뒤 다음 과제는 "F5·F6 다음 기능 순서" 3번(n8n 연동 예시: AI 답 → `/api/verify` → 결과 알림 워크플로) 설계다. 수동 QA D(수업 환경 Graylog·Wazuh)는 사람이 확인한다.
-- **남은 후속:** F27 `server/pyproject.toml`의 pytest `pythonpath`에 `../engine/src` 추가. F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F29 `server/tests/conftest.py`의 앱 생성에 `SECURITY_LOG`·`SECURITY_SYSLOG`를 None으로 넣어 개발자 셸의 로그 환경 변수가 테스트에 섞이지 않게 함(F27과 함께 권장).
+- **사용자:** PR #34 병합 결정. 병합 뒤 다음 기능 4번(원인 태그·통계)은 로드맵에 "배포 뒤"로 적혀 있다. 그래서 먼저 배포(사람 트랙: Vercel·Supabase 가입·비밀값, 10-19 사용자 테스트 전 공개 URL)를 할지, 5번(불일치 사례 → 회귀 테스트 내보내기)으로 갈지 사용자가 정한다. 수동 QA A~E는 사람이 확인한다.
+- **리뷰 원칙:** 맞고 틀림은 NetProof의 `comparison`만 쓴다. 예시 JSON에 자격 증명·비밀값을 넣지 않는다. 노드 구성·typeVersion·원고의 다른 문장은 바꾸지 않는다(R1에서 승인한 확인 문장·출처만 변경).
+- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F27·F29는 이번 과제에서 구현·테스트했다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify만 부른다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
@@ -613,6 +684,7 @@ Codex (GPT-5)
 - 원칙: 임시 DB·합성 계정/사례만 쓴다. 실제 기본 확인창을 대체·우회하지 않는다. 비밀번호·쿠키·토큰을 기록하지 않는다. 확인한 항목만 완료로 바꾼다.
 - C에 변경 전/후 항목을 더했다(PR #32). `판정기로 가져가기` 항목은 빈 판정기에서 알림이 없다는 점(PR #31 F5)을 반영해 고쳤다(PR #32 리뷰).
 - D(수업 환경의 Graylog·Wazuh 실제 수집·검색·경보)는 체크리스트에 신설했고 **사용자 확인 대기**다. AI의 로컬 파일·UDP 확인은 실제 도구 수집 확인이 아니다.
+- E(수업 Docker n8n에서 예시 워크플로 가져오기·실행)는 체크리스트에 신설했고 **사용자 확인 대기**다. AI의 API·스크립트 대역 검사는 실제 n8n 실행 확인이 아니다.
 
 ## 주의사항 / 미해결 이슈
 - 관계없는 줄바꿈 변경 금지.
@@ -625,8 +697,8 @@ Codex (GPT-5)
 - 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 되돌아온다. 점검은 `parse_acl` 결과만 쓰므로 새 숫자 변환을 만들지 않는다.
 - 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
 - PR #15·#16·#17의 다른 후속(위 이전 과제 기록)은 이번 범위가 아니다. PR #15 후속 "예시 버튼 제목이 풀이 원인을 드러냄"은 PR #24의 사용자 승인 R3로 JudgePage 예시 단추 표시만 수정했다. 이번에도 cases JSON·서버·다른 화면의 제목은 그대로다.
-- **worktree에서 서버 테스트:** 공유 venv의 editable 엔진은 주 작업 폴더를 가리킨다. 엔진을 바꾼 브랜치는 `PYTHONPATH=<worktree>/engine/src`로 서버 테스트를 돌리고, 불러온 경로를 확인한다(F27로 고치기 전까지).
+- **worktree에서 서버 테스트(F27):** server/pyproject.toml의 pythonpath에 ../engine/src를 추가해 PYTHONPATH 없이 해당 worktree 엔진을 쓴다. 이번 전체 실행과 경로 assert로 확인했다.
 - **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 보안 로그·학습실 도구 주제·F26 설계: Claude (Claude Opus 5.5). 구현·검증: Codex (GPT-5).
+현재 n8n 연동 예시·학습실 n8n·F27/F29 설계: Claude (Claude Opus 5.5). 구현·검증: Codex (GPT-5).
