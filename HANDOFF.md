@@ -27,8 +27,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - **F26을 이번 과제에 함께** 넣는다.
 - Claude 조사(2026-10-05, 공식 문서): Graylog 7.1, Wazuh 4.14(최신 4.14.8, 2026-09-23 배포). 근거와 링크는 아래 6)·부록에 있다.
 - 브랜치: `codex/security-logs`(origin/main `baf6501` 기반), worktree `C:/gov/project/skt aleph/netproof-judge-ux`.
-- 단계: **설계 `8071dee` 사용자 승인 → Codex 구현·테스트 완료 → Claude 리뷰 대기 → 사용자 병합 결정.**
-- 다음 차례: **리뷰(Claude)**. 병합하지 않는다.
+- 단계: **설계 `8071dee` 사용자 승인 → Codex 구현·테스트 완료(`b90fae6`) → Claude 리뷰 PASS([PR #33 코멘트](https://github.com/myeongjundev/netproof/pull/33#issuecomment-5988469649)) → 사용자 병합 결정.**
+- 다음 차례: **사용자 — 병합 결정.** Claude가 네 명령, 원고·설정 예시 글자 대조, 실제 QA 서버 로그(파일 10줄 = UDP 10개, 비밀번호 0건), 브라우저(학습실 두 주제, F26 360·375 로그인 헤더 68px·③ 위치 PR #30과 같음)로 확인했다. 실제 Graylog·Wazuh 수집은 수동 QA D(사람).
 - **판정·엔진은 그대로다.** 로그인 응답(상태 코드·문장·시간 맞춤)도 그대로다. 로그는 운영자가 보는 기록일 뿐 화면이나 API 응답을 바꾸지 않는다.
 
 ## 작업 정의
@@ -275,7 +275,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - F26은 CSS만 수정했다. 960px 이하 계정 nowrap/닉네임 말줄임, 720px 이하 역할 숨김. **20자 닉네임에서 기본 설계 CSS만으로 로그아웃 단추가 세로로 줄바꿈되어 118.5625px가 되는 실측 결함**을 발견해, 같은 960px 이하에 `header-account > button { flex-shrink: 0; }`를 보강했다. 단추 44px 최소 높이·헤더 마크업·넓은 화면 규칙은 그대로다.
 - 신규 서버 18개·웹 12개. 파일/UDP 두 출력·각각 하나만 켬·초기 off와 재설정 off·Windows 처리기 종료/중복 없음·잘못된 주소 9종·원고/SSR/주소/CSS 회귀를 검사했다.
 - 초기 off 테스트가 열린 파일을 지우려 해 WinError32가 났다. off configure로 처리기를 먼저 닫은 뒤 삭제하는 테스트 준비 순서로 바로잡았다. QA RAM IPC의 Windows 메시지 형식 오독은 외부 검증 도구에서 복구했다(비밀번호 출력/저장 없음). 추가 원고/CSS 검사에서 node:fs 타입 오류·Vitest 기본 CSS 비활성화를 발견해, 원고는 테스트 전용 raw import, CSS는 vi.importActual의 명시 타입으로 읽도록 수정했다. 의존성/tsconfig 변경 없이 전체 테스트·빌드를 다시 통과했다. 최종 배포 번들 해시는 실제 브라우저 확인 때와 같다(index-CQWvs7G8.css/index-BykmFCca.js).
-- 엔진·cases/expect·의존성·AppHeader 마크업·배포 설정·다른 서버 모듈 불변. `git diff --check` 오류 없음. 다음 차례 **리뷰(Claude)**, 병합하지 않는다.
+- 엔진·cases/expect·의존성·AppHeader 마크업·배포 설정·다른 서버 모듈 불변. `git diff --check` 오류 없음. (Codex 기록 당시 다음 차례는 리뷰(Claude)였다. 리뷰 PASS 뒤 다음 차례는 위 "현재 작업 상태"를 따른다.)
 
 ### 네 명령 실행 환경
 
@@ -567,7 +567,7 @@ Codex (GPT-5)
 **F5·F6 다음 기능 순서 (2026-10-05 사용자 합의 — 아래 4·5주차 목록의 순서를 대신한다)**
 수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
-2. [ ] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) — 운영·④ **+ 학습실에 Graylog·Wazuh 공부 주제**(개념 설명·NetProof 로그가 어떻게 보이는지·공식 문서 출처) — 승인 `8071dee`, `codex/security-logs` 구현·테스트 완료(F26 포함) **→ 리뷰(Claude) 대기, 실제 수집 QA D는 사람 대기**
+2. [ ] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) — 운영·④ **+ 학습실에 Graylog·Wazuh 공부 주제**(개념 설명·NetProof 로그가 어떻게 보이는지·공식 문서 출처) — **PR #33 Claude 리뷰 PASS, 사용자 병합 결정 대기 — `codex/security-logs`**(F26 포함). 실제 수집 QA D는 사람 대기
 3. [ ] n8n 연동 예시(AI 답 → `/api/verify` → 결과 알림 워크플로, 문서·예시 중심)
 4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤, 배포 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
@@ -599,9 +599,8 @@ Codex (GPT-5)
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude:** 승인 `8071dee` 작업 정의 1)~7) 및 부록 구현을 리뷰한다. off/비밀값 제외·5회 사건 순서·원고 일치·F26 긴 닉네임 보강과 위 실측/한계를 중점 확인한다.
-- **리뷰 기준:** 비밀번호와 없는 닉네임 문자열은 어떤 로그에도 남기지 않는다. 로그를 꺼 두면 파일·표준 오류 어디에도 쓰지 않는다. 로그인 응답은 바꾸지 않는다. 원고의 사실 문장은 바꾸지 않는다.
-- **남은 후속(PR #32 리뷰):** F27 `server/pyproject.toml`의 pytest `pythonpath`에 `../engine/src` 추가. F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F26은 이번 과제다.
+- **사용자:** PR #33 병합 결정. 병합 뒤 다음 과제는 "F5·F6 다음 기능 순서" 3번(n8n 연동 예시: AI 답 → `/api/verify` → 결과 알림 워크플로) 설계다. 수동 QA D(수업 환경 Graylog·Wazuh)는 사람이 확인한다.
+- **남은 후속:** F27 `server/pyproject.toml`의 pytest `pythonpath`에 `../engine/src` 추가. F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB). F29 `server/tests/conftest.py`의 앱 생성에 `SECURITY_LOG`·`SECURITY_SYSLOG`를 None으로 넣어 개발자 셸의 로그 환경 변수가 테스트에 섞이지 않게 함(F27과 함께 권장).
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify만 부른다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
