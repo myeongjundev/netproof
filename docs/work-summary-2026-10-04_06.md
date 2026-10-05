@@ -129,6 +129,7 @@ npm --prefix web ci
 ```
 
 - 이미 받아 둔 폴더가 있으면 `git switch main`과 `git pull --ff-only`를 한 뒤 아래 두 설치 명령만 다시 실행한다.
+- Orca를 쓰면 작업마다 git worktree가 따로 생긴다. worktree에서는 `main`으로 바꾸지 않고(다른 폴더가 `main`을 쓰고 있다), `.venv`와 `web/node_modules` 설치는 worktree마다 한다. 과제 하나에 worktree 하나를 쓰고, 그 안에서 설계(Claude) → 구현(Codex) → 리뷰(Claude)를 차례로 한다.
 - 가상환경은 activate하지 않고 `.venv\Scripts\python`으로 바로 쓴다. 스크립트 실행 제한이 걸린 PC에서도 막히지 않는다.
 
 확인 명령은 아래 넷이다. 엔진 `350 passed, 2 xfailed`, 서버 `140 passed, 1 skipped`, 웹 `417 passed`, 빌드 성공이 나오면 준비가 끝난 것이다.
