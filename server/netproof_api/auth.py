@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 import secrets
 from datetime import timedelta
@@ -20,6 +21,7 @@ from argon2.exceptions import InvalidHashError, VerificationError
 from flask import Blueprint, current_app, g, jsonify, request
 
 from .models import ROLE_USER, Case, Session, User, db, utcnow
+from .security_log import event
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -149,6 +151,9 @@ def login():
             hasher.verify(_DUMMY_HASH, password)
         except VerificationError:
             pass
+        event("login_failure", logging.WARNING, reason="unknown_user" if user is None else "locked",
+              nickname=user.nickname if user else None, user_id=user.id if user else None,
+              src_ip=request.remote_addr, locked_until=user.locked_until if user else None)
         return error(401, LOGIN_FAILED)
     try:
         hasher.verify(user.password_hash, password)
@@ -158,12 +163,19 @@ def login():
             user.locked_until = now + timedelta(minutes=LOCK_MINUTES)
             user.failed_logins = 0
         db.session.commit()
+        event("login_failure", logging.WARNING, reason="bad_password", nickname=user.nickname,
+              user_id=user.id, src_ip=request.remote_addr,
+              failed_count=MAX_FAILED if user.locked_until and user.locked_until > now else user.failed_logins)
+        if user.locked_until and user.locked_until > now:
+            event("account_locked", logging.WARNING, via="login", nickname=user.nickname,
+                  user_id=user.id, src_ip=request.remote_addr, failed_count=MAX_FAILED, locked_until=user.locked_until)
         return error(401, LOGIN_FAILED)
     user.failed_logins = 0
     user.locked_until = None
     if hasher.check_needs_rehash(user.password_hash):
         user.password_hash = hasher.hash(password)
     db.session.commit()
+    event("login_success", logging.INFO, nickname=user.nickname, user_id=user.id, src_ip=request.remote_addr)
     return _start_session(user)
 
 
@@ -194,6 +206,8 @@ def _check_current_password(user: User):
     password = str((request.get_json(silent=True) or {}).get("current_password") or "")
     now = utcnow()
     if user.locked_until and user.locked_until > now:
+        event("password_check_failure", logging.WARNING, reason="locked", nickname=user.nickname,
+              user_id=user.id, src_ip=request.remote_addr, locked_until=user.locked_until)
         return error(429, "비밀번호가 여러 번 틀려 잠시 잠겼습니다. 잠시 뒤에 다시 하세요")
     try:
         hasher.verify(user.password_hash, password)
@@ -203,6 +217,12 @@ def _check_current_password(user: User):
             user.locked_until = now + timedelta(minutes=LOCK_MINUTES)
             user.failed_logins = 0
         db.session.commit()
+        event("password_check_failure", logging.WARNING, reason="bad_password", nickname=user.nickname,
+              user_id=user.id, src_ip=request.remote_addr,
+              failed_count=MAX_FAILED if user.locked_until and user.locked_until > now else user.failed_logins)
+        if user.locked_until and user.locked_until > now:
+            event("account_locked", logging.WARNING, via="settings", nickname=user.nickname,
+                  user_id=user.id, src_ip=request.remote_addr, failed_count=MAX_FAILED, locked_until=user.locked_until)
         return error(400, "지금 비밀번호가 맞지 않습니다")
     user.failed_logins = 0
     return None

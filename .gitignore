@@ -6,6 +6,7 @@ __pycache__/
 instance/
 node_modules/
 dist/
+logs/
 
 # 비밀값 (DATABASE_URL 등)
 .env

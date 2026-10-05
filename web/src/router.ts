@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { lessonById, lessonByCaseId } from "./learning";
+import { toolTopicById } from "./toolTopics";
 
 export type Route =
   | { page: "home" }
@@ -20,7 +21,7 @@ export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#/, "") || "/";
   if (path === "/home") return { page: "home" };
   if (path === "/learn") return { page: "learn" };
-  if (path.startsWith("/learn/") && lessonById(path.slice(7))) return { page: "learn", lessonId: path.slice(7) };
+  if (path.startsWith("/learn/") && (lessonById(path.slice(7)) || toolTopicById(path.slice(7)))) return { page: "learn", lessonId: path.slice(7) };
   if (path.startsWith("/practice/") && lessonByCaseId(path.slice(10))) return { page: "practice", caseId: path.slice(10) };
   if (path === "/") return { page: "judge" };
   if (path === "/matrix") return { page: "matrix" };
