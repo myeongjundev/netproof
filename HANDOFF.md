@@ -19,12 +19,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **원인 태그·통계("가장 많이 틀린 원인 Top 5")** — 로드맵 「F5·F6 다음 기능 순서」 4번, 순환 고리 ⑤. 배포가 끝나서 다음 후보였다.
 - 브랜치: `codex/cause-tags`(origin/main `88bddf2`에서 만듦, Orca worktree). 승인 범위 안 구현·테스트·문서 갱신 완료.
-- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현·검증 → Claude 리뷰(R1·R2) → Codex 수정·재검증 완료 → Claude 재리뷰 대기.**
-- 다음 차례: **Claude(재리뷰).**
-- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41), 구현 커밋 `5ca7561`. 리뷰 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111). 병합하지 않았다.
-  1. 이 브랜치에서 `git pull` 후 PR의 `[Codex]` R1·R2 수정 결과와 diff를 확인한다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
-  2. 원인 표시는 PASS·DENY에만 있고 판정 카드 제목 안에 있는지, UNSUPPORTED·INVALID 설명은 유지되는지 직접 재현한다. `ResultPanel`·CSS·판정 경로 변경은 없다.
-  3. 비차단 참고 4건도 모두 반영했다. 아래 명령을 직접 실행해 재리뷰하고, 병합은 사용자에게 맡긴다.
+- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현 → Claude 리뷰(R1·R2) → Codex 수정 → Claude 재리뷰 PASS(`aa29f2a`) → 사용자 최종 확인·병합 대기.**
+- 다음 차례: **사용자(최종 확인·병합, PROMPTS 5단계).**
+- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41) — 구현 `5ca7561`, 수정 `aa29f2a`. 리뷰 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111), 재리뷰 PASS [#issuecomment-6008655698](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008655698). 병합하지 않았다.
+  1. 브랜치를 받아 테스트와 완료 조건 명령을 **직접** 실행해 기대 출력과 비교한다(아래 「테스트 결과」·「리뷰 기록」).
+  2. PR diff에 비밀값이 없는지 본다. 두 LLM이 "동의"한 항목도 직접 실행 결과로 확인한다.
+  3. 병합(`gh pr merge 41 --merge`). `main`에 병합하면 바로 운영에 나가므로, 병합 뒤 공개 주소에서 대시보드와 사례 상세를 한 번 본다.
 - 구현 메모: 엔진 순수 함수 `cause`와 9개 태그, 검토자 대시보드 Top 5·복귀 수·제외 수, 상세 원인 표시. DB 표·열·판정 경로·사례 JSON·verify API·사례 목록은 변경하지 않았다.
 - 집계 분모: 전체 불일치 `disagree_total` + 세 제외 = 전체 사례 수. Top 5 + 그 외 + 분류 못 함 = 실제 집계 분모 `denominator`. 상한 초과 때는 최근 2,000건 비율과 전체 불일치 수를 구분해 보인다(아래 테스트·semantics §13).
 - QA: 기본 `seeded_qa()` 4건은 유지하고 CLI에서 `seed_cause_example()`로 복귀 불일치 1건을 더해 총 5건이다. 검증은 허용된 `server/tests/test_dashboard.py`에 추가했으며 `test_qa_local.py` 변경·범위 확장은 하지 않았다.
@@ -194,7 +194,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   리뷰 재현을 위해 하네스에서만 목적지 `8.8.8.8`, 출발지 `10.99.99.99`, TCP 80 통과 사례를 추가해 총 8건 × 두 크기를 확인했다(기본 CLI 5건은 그대로). API의 판정 불가 원인 값은 리뷰 재현과 같고, 화면은 원인·방향을 표시하지 않는다. PASS·DENY 태그는 판정 카드의 실제 h2 안에 있고 카드 경계 1개, 복귀 이유 문장 1회, 원인 쪽 방향 반복 없음. 캡처 육안 확인. 대시보드 3종·분모 3·비교 불가 제외 2 및 QA DB를 비운 0건 상태도 확인했다. QA 서버·브라우저·임시 DB/프로필 정상 정리, 4863/9233 listen 0. CSS/응답 대역 없음. 사용자 수동 QA A~E는 대기 유지.
 - 변경 범위: 지정 파일 안에서만 변경. `git diff --numstat -- cases engine/src/netproof_engine/verify.py engine/src/netproof_engine/trace.py engine/src/netproof_engine/acl.py engine/src/netproof_engine/model.py` 출력 없음. `git diff --check` 오류 없음.
 
-### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 수정 요청)
+### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 1차 수정 요청 → **재리뷰 PASS**)
 - 판정: **수정 요청 2건(R1·R2) + 비차단 참고 4건.** 지적은 PR 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111)에 파일:줄·재현 명령과 함께 남겼다.
 - **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `382 passed, 2 xfailed`, 서버 `149 passed, 1 skipped`, 웹 `434 passed`(32 files), 빌드 성공, 완료 조건 3의 왕복 3줄 동일. 변경 파일은 「변경 범위」 안에만 있고 `verify.py`·`trace.py`·`acl.py`·`model.py`·`cases/*.json`은 0줄이다.
 - 독립 확인 ①: `trace.py`의 drop 사유 7곳(110·121·128·139·148·156·162)이 고정 문자열 5개 + ACL `hop.detail` 2개뿐이고 `cause.py`가 전부 덮는다 → 정상 저장된 DENY는 모두 분류되고 `other`는 옛·깨진 JSON에서만 나온다.
@@ -203,6 +203,15 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **R2** 같은 줄 — 원인 줄이 「받은 답」과 「판정」 패널 **사이 빈 바닥**에 떠 있어 받은 답의 부속처럼 읽히고, 바로 아래 판정 패널의 `복귀 방향: 경로 없음`과 같은 말이 두 번 나온다. `ResultPanel`은 판정기·실습·정책 검증과 공유라 고치지 말고 `CaseDetailPage` 안에서 해결한다.
 - 비차단 참고: ① `cases.py:394` 안 쓰는 `Case.id`·`Case.result` 선택(테스트 SQL 단언이 묶여 있음) ② `cases.py:376~377` 도달하지 않는 `else` 분기 ③ `test_dashboard.py:142·176` 영어 주석 ④ 불일치 0건이면 머리글만 있는 빈 표(배포 직후 실제 상태).
 - 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
+
+**재리뷰 (`aa29f2a`, 2026-10-06) — PASS.** 코멘트 [#issuecomment-6008655698](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008655698).
+- 직접 실행: 엔진 `382 passed, 2 xfailed`, 서버 `149 passed, 1 skipped`, 웹 `440 passed`(434→440), 빌드 성공, 왕복 3줄 동일 — Codex가 적은 수와 모두 같다. 금지 파일 변경 0줄, `git diff --check` 0줄, 공유 `ResultPanel.tsx` 무변경(`title`은 기본값 `"판정"`인 기존 입력이라 판정기·실습·정책 검증 화면은 그대로).
+- **R1 해결**: `qa_local.py`의 실제 시드에 판정 불가(모델 밖 목적지)·입력 오류(모델 밖 출발지) 2건을 더한 저장소 밖 임시 하네스로 실브라우저 확인 — 두 사례의 상세에 원인·방향이 전혀 없고 제목은 기본 `판정`, 기존 판정 불가·입력 오류 설명은 유지된다.
+- **R2 해결**: 떠 있던 `<p>`가 사라지고 `div.case-calculation`의 자식이 받은 답·판정 두 패널뿐이다. 태그는 판정 카드 제목(`판정 · 원인 태그(통계): 경로 없음`)에 들어갔고 `복귀 방향: 경로 없음`은 한 번만 나온다.
+- 집계 추가 확인: 위 2건이 들어간 실제 대시보드에서 **전체 7 = 불일치 2 + AGREE 1 + NO_CLAIM 2 + NOT_COMPARABLE 2**, 두 사례는 Top 5 분모·`분류 못 함` 어디에도 없다(설계의 "UNSUPPORTED·INVALID는 분모 밖"이 실제 저장 경로에서 성립).
+- 레이아웃: 1280×900·375×812에서 대시보드·사례 상세 모두 넘치는 요소 0, 콘솔 메시지 0, 페이지 오류 0. 375에서 길어진 제목도 한 줄(305×26).
+- 비차단 참고 4건 모두 반영(안 쓰던 SELECT 열·도달하지 않던 분기·영어 주석·빈 표). 되돌아간 곳 없음.
+- 임시 QA 서버·브라우저·임시 폴더는 정리했다(4871·4872 LISTENING 없음). 하네스는 저장소 밖에 두어 커밋하지 않았다.
 
 ### Codex 리뷰 반영 (2026-10-06)
 - **R1 반영:** PASS·DENY일 때만 태그 표시. 실제 모델 밖 목적지/출발지로 저장된 UNSUPPORTED·INVALID를 두 크기에서 재현했고, API 원인 값은 그대로지만 화면 원인·방향은 숨겨지고 기존 판정 불가/입력 오류 설명은 유지된다. 웹 표시 함수와 실제 판정 블록 렌더링 회귀로 확인했다.
