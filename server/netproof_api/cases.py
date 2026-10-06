@@ -371,10 +371,8 @@ def dashboard():
         if comparison == "DISAGREE":
             causes["disagree_total"] += count
             causes["claim_kinds"][claim_kind or "unknown"] += count
-        elif comparison in ("AGREE", "NO_CLAIM", "NOT_COMPARABLE"):
-            causes["excluded"][comparison.lower()] += count
         else:
-            causes["excluded"]["not_comparable"] += count
+            causes["excluded"][comparison.lower()] += count
         board["confirmed"] += count if confirmed else 0
         if result in ("UNSUPPORTED", "INVALID"):
             board[result.lower()] += count
@@ -392,10 +390,10 @@ def dashboard():
         Case.actual_result.in_(ACTUAL_RESULTS), Case.result != Case.actual_result,
     ).options(joinedload(Case.owner)).order_by(Case.created_at.desc(), Case.id.desc()).limit(20).all()
     rows = Case.query.filter(Case.comparison == "DISAGREE").with_entities(
-        Case.id, Case.result, Case.verdict,
+        Case.verdict,
     ).order_by(Case.created_at.desc(), Case.id.desc()).limit(CAUSE_LIMIT).all()
     stats = {tag: {"tag": tag, "count": 0, "return_count": 0} for tag in CAUSE_TAGS}
-    for _case_id, _result, verdict in rows:
+    for (verdict,) in rows:
         classified = cause(verdict)
         stat = stats[classified["tag"]]
         stat["count"] += 1

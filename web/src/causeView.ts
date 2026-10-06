@@ -1,4 +1,4 @@
-import type { Cause } from "./types";
+import type { Cause, Result } from "./types";
 
 export const causeNames = {
   acl_rule: "ACL 규칙에서 차단",
@@ -20,6 +20,6 @@ export function causeRatio(count: number, denominator: number): string {
   return denominator === 0 ? "—" : `${Math.round(count / denominator * 100)}%`;
 }
 
-export function causeText(value: Cause): string {
-  return `${causeName(value.tag)} · ${value.direction === "return" ? "복귀 방향" : "정방향"}`;
+export function caseCauseText(result: Result, value: Cause): string | null {
+  return result === "PASS" || result === "DENY" ? `원인 태그(통계): ${causeName(value.tag)}` : null;
 }

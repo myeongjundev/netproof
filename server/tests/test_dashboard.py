@@ -139,7 +139,7 @@ def assert_cause_partition(board):
 
 
 def test_causes_sort_ties_rest_other_and_exclusions(app, reviewer):
-    # 8 known tags, 2 unclassified; no actual result or review confirmation.
+    # 알려진 원인 8종·분류 못 함 2건. 실제 결과·검토 확인은 없다.
     verdicts = [blocked(step="acl_in", seq=1), blocked(step="acl_out"),
                 blocked("경로 없음", "return"), blocked("기본 게이트웨이 없음"),
                 blocked("다음 홉 없음"), blocked("호스트가 전달하지 않음"),
@@ -173,7 +173,7 @@ def test_causes_empty(reviewer):
 
 @pytest.mark.parametrize("count,limited", [(2000, False), (2001, True)])
 def test_causes_limit_recent_timestamp_then_id_and_projection(app, reviewer, count, limited):
-    # Newer timestamp beats larger id. At equal timestamps, larger id wins.
+    # 생성 시각이 더 최근이면 작은 ID도 먼저 센다. 같은 시각이면 큰 ID가 먼저다.
     add_cause_rows(app, [blocked("경로 없음", "return")], created_at=datetime(2026, 10, 7))
     add_cause_rows(app, [blocked(step="acl_in", seq=1)] * (count - 1))
     statements = []
@@ -191,9 +191,10 @@ def test_causes_limit_recent_timestamp_then_id_and_projection(app, reviewer, cou
     assert stats["disagree_total"] == count and stats["limited"] is limited
     assert stats["top"] == [{"tag": "acl_rule", "count": 1999, "return_count": 0},
                             {"tag": "no_route", "count": 1, "return_count": 1}]
-    sql, parameters = next((sql, params) for sql, params in statements if sql.startswith("SELECT cases.id AS cases_id, cases.result"))
+    sql, parameters = next((sql, params) for sql, params in statements if sql.startswith("SELECT cases.verdict AS cases_verdict"))
     assert "cases.verdict" in sql and "LIMIT" in sql and "2000" in str(parameters)
     assert all(f"cases.{key}" not in sql for key in ("network", "flow", "claim"))
+    assert all(f"cases.{key}" not in sql.partition("FROM")[0] for key in ("id", "result"))
     assert "cases.comparison =" in sql and "DISAGREE" in parameters
     assert "cases.created_at DESC, cases.id DESC" in sql
 
@@ -218,9 +219,12 @@ def test_detail_cause_from_saved_verdict_and_list_unchanged(api):
 
 def test_causes_use_saved_comparison_without_rejudging(app, reviewer, monkeypatch):
     add_cause_rows(app, [{"result": "PASS"}])
+    add_cause_rows(app, [{"result": "DENY"}], comparison="OLD_VALUE")
     monkeypatch.setattr("netproof_api.cases.verify", lambda *args: pytest.fail("must not rejudge"))
     board = reviewer.get("/api/dashboard").get_json()
     assert board["causes"]["top"] == [{"tag": "no_block", "count": 1, "return_count": 0}]
+    assert board["causes"]["excluded"]["not_comparable"] == 1
+    assert_cause_partition(board)
 
 
 def test_legacy_verdict_missing_result_is_other_in_dashboard_and_detail(app, reviewer):

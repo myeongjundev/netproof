@@ -19,15 +19,16 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **원인 태그·통계("가장 많이 틀린 원인 Top 5")** — 로드맵 「F5·F6 다음 기능 순서」 4번, 순환 고리 ⑤. 배포가 끝나서 다음 후보였다.
 - 브랜치: `codex/cause-tags`(origin/main `88bddf2`에서 만듦, Orca worktree). 승인 범위 안 구현·테스트·문서 갱신 완료.
-- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현·검증 → Claude 리뷰 완료(수정 요청 2건) → Codex 수정 대기.**
-- 다음 차례: **Codex Sol(수정).**
+- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현·검증 → Claude 리뷰(R1·R2) → Codex 수정·재검증 완료 → Claude 재리뷰 대기.**
+- 다음 차례: **Claude(재리뷰).**
 - PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41), 구현 커밋 `5ca7561`. 리뷰 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111). 병합하지 않았다.
-  1. 이 브랜치에서 `git pull` 후 `[Claude]` 코멘트의 **R1·R2**를 고친다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
-  2. 항목마다 재현 명령을 다시 실행해 결과를 `[Codex]` 코멘트로 남긴다. 동의하지 않는 항목은 고치지 말고 실행 결과로 반박한다.
-  3. 비차단 참고 4건은 고치든 다음 과제로 적든 둘 중 하나를 고른다. 「다음 차례」를 Claude(재리뷰)로 바꿔 커밋·푸시한다.
+  1. 이 브랜치에서 `git pull` 후 PR의 `[Codex]` R1·R2 수정 결과와 diff를 확인한다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
+  2. 원인 표시는 PASS·DENY에만 있고 판정 카드 제목 안에 있는지, UNSUPPORTED·INVALID 설명은 유지되는지 직접 재현한다. `ResultPanel`·CSS·판정 경로 변경은 없다.
+  3. 비차단 참고 4건도 모두 반영했다. 아래 명령을 직접 실행해 재리뷰하고, 병합은 사용자에게 맡긴다.
 - 구현 메모: 엔진 순수 함수 `cause`와 9개 태그, 검토자 대시보드 Top 5·복귀 수·제외 수, 상세 원인 표시. DB 표·열·판정 경로·사례 JSON·verify API·사례 목록은 변경하지 않았다.
 - 집계 분모: 전체 불일치 `disagree_total` + 세 제외 = 전체 사례 수. Top 5 + 그 외 + 분류 못 함 = 실제 집계 분모 `denominator`. 상한 초과 때는 최근 2,000건 비율과 전체 불일치 수를 구분해 보인다(아래 테스트·semantics §13).
 - QA: 기본 `seeded_qa()` 4건은 유지하고 CLI에서 `seed_cause_example()`로 복귀 불일치 1건을 더해 총 5건이다. 검증은 허용된 `server/tests/test_dashboard.py`에 추가했으며 `test_qa_local.py` 변경·범위 확장은 하지 않았다.
+- 리뷰 반영: 상세의 `CaseCalculation`이 기존 `ResultPanel.title` 입력만 사용해 `판정 · 원인 태그(통계): …`를 표시한다. 판정 불가에는 제목 `판정`만 유지한다. 태그에 방향을 중복하지 않는다. SQL은 사용되는 verdict만 선택하고, 도달하지 않는 분기·영어 주석·빈 표도 정리했다.
 - 배포 후속(사람 대기, 이번 과제와 별개): ① 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계), 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계) ② Vercel `DATABASE_URL`을 **Production에만** 두기 ③ 검토자 지정 뒤 임시 비밀 파일 삭제. 공개 주소는 **https://netproof-vert.vercel.app**(`main` `1fef9b6`, 2026-10-06 배포). 상세는 아래 「배포 구성」·「공개 주소 점검」·「비밀값 처리」.
 
 ## 작업 정의 — 원인 태그·통계 (설계: Claude Opus 5 · **사용자 승인 2026-10-06**)
@@ -61,7 +62,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 제외(각각 수를 화면에 적는다): `AGREE`, `NO_CLAIM`(답 없음), `NOT_COMPARABLE`(`UNSUPPORTED`·`INVALID`). **분모 + 세 제외 = 전체 사례 수**여야 한다(서버 테스트 불변식).
 - 정렬: 건수 내림차순, 같으면 위 표 순서(결정적). 6위 이하는 `그 외 N건` 한 줄로 합친다. 분모 0이면 비율은 `—`.
 - **오탐·미탐(혼동 행렬)과 다른 축이다.** `DISAGREE`에서 오탐·미탐을 유도하지 않고, 실제 결과·검토 확인을 분모 조건으로 쓰지 않는다(§10 규칙 유지).
-- 성능: `DISAGREE` 행만 `(id, result, verdict)`로 읽어 Python에서 센다. 상한 2,000건을 두고 넘으면 최근 2,000건만 세고 화면에 **최근 2,000건만 집계**라고 적는다(조용히 자르지 않는다).
+- 성능: `DISAGREE` 행의 `verdict`만 읽어 Python에서 센다(리뷰 비차단 참고 1 반영: 쓰지 않는 id·result 선택 제거). 상한 2,000건을 두고 넘으면 최근 2,000건만 세고 화면에 **최근 2,000건만 집계**라고 적는다(조용히 자르지 않는다).
 
 ### 변경 범위 (만질 파일)
 | 파일 | 변경 |
@@ -129,7 +130,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
    → `01-https-acl {'tag': 'acl_rule', 'direction': 'forward'}` · `02-missing-return-route {'tag': 'no_route', 'direction': 'return'}` · `03-acl-out {'tag': 'acl_rule', 'direction': 'forward'}`
 4. `npm --prefix web test` → 기준 `417 passed`에서 추가분만 늘어난다. `npm --prefix web run build` 성공.
 5. 서버 테스트가 **분모 + `AGREE` + `NO_CLAIM` + `NOT_COMPARABLE` = 전체 사례 수**와 **Top 5 + `그 외` + `other` = 분모**를 확인한다(테스트 출력으로 근거를 낸다).
-6. 화면: `.venv/Scripts/python scripts/qa_local.py`로 띄워 `qa_reviewer`로 로그인 → `#/dashboard`의 「가장 많이 틀린 원인」 표에 **원인 두 종류 이상**(ACL 규칙에서 차단 / 경로 없음 `복귀 1건`)과 분모·제외 줄이 보인다. 사례 상세에 `원인: …` 한 줄이 보인다. **1280×800·375×812에서 가로 넘침 0, 콘솔 오류 0.**
+6. 화면: `.venv/Scripts/python scripts/qa_local.py`로 띄워 `qa_reviewer`로 로그인 → `#/dashboard`의 「가장 많이 틀린 원인」 표에 **원인 두 종류 이상**(ACL 규칙에서 차단 / 경로 없음 `복귀 1건`)과 분모·제외 줄이 보인다. PASS·DENY 상세의 판정 카드 제목에 원인 태그가 보이고, UNSUPPORTED·INVALID는 원인·방향이 숨겨진다(R1·R2 반영). **1280×800·375×812에서 가로 넘침 0, 콘솔 오류 0.**
 7. `git diff main...`에 「건드리지 않을 것」의 파일이 없다. `verify.py`·`trace.py`와 `cases/*.json`은 변경 0줄.
 8. `HANDOFF.md`·`docs/semantics.md` §13·`decisions/ai-work-log.md`를 갱신한다.
 
@@ -143,14 +144,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   ........................................................................ [ 75%]
   ........................................................................ [ 93%]
   ......................xx                                                 [100%]
-  382 passed, 2 xfailed in 4.32s
+  382 passed, 2 xfailed in 8.67s
   ```
 - `cd server && ../.venv/Scripts/python -m pytest -q`:
   ```text
   ........................................................................ [ 48%]
   ...................s.................................................... [ 96%]
   ......                                                                   [100%]
-  149 passed, 1 skipped in 26.79s
+  149 passed, 1 skipped in 36.51s
   ```
 - 엔진 왕복 확인(완료 조건 3):
   ```text
@@ -161,9 +162,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - `npm --prefix web test`(출력 요약 줄):
   ```text
   Test Files  32 passed (32)
-       Tests  434 passed (434)
-    Start at  11:43:42
-    Duration  2.75s (transform 59%, import 23%, tests 13%, worker 4%)
+       Tests  440 passed (440)
+    Start at  12:10:37
+    Duration  2.27s (transform 58%, import 22%, tests 16%, worker 5%)
   ```
 - `npm --prefix web run build`(폰트 자산 목록 생략, 실제 출력 줄):
   ```text
@@ -171,20 +172,26 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   vite v8.3.1 building client environment for production...
   ✓ 60 modules transformed.
   dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
-  dist/assets/index-CSAdkAWj.js                            359.88 kB │ gzip: 108.66 kB
-  ✓ built in 264ms
+  dist/assets/index-CsAMlWl2.js                            359.94 kB │ gzip: 108.69 kB
+  ✓ built in 330ms
   ```
-- 서버 추가 회귀: 정렬·동률·Top 5 이후 합·분류 못 함·세 제외·분모 불변식, 상한 2,000/2,001 경계·날짜/ID 순서, SQL이 DISAGREE의 세 열만 선택·LIMIT 적용, 상세/목록 호환·옛 JSON·재판정 없음·QA 합성 사례/정리. 기존 140건 + 9건.
+- 서버 추가 회귀: 정렬·동률·Top 5 이후 합·분류 못 함·세 제외·분모 불변식, 상한 2,000/2,001 경계·날짜/ID 순서, SQL이 DISAGREE의 verdict만 선택·LIMIT 적용, 상세/목록 호환·옛 JSON/comparison·재판정 없음·QA 합성 사례/정리. 기존 140건 + 9건.
+- 웹 표시 회귀: `causeView.test.ts` 23건. UNSUPPORTED·INVALID는 원인/방향 숨김 + 기존 설명 유지, PASS·DENY의 실제 렌더링은 판정 제목 안에 태그 + 복귀 방향 문장 1회.
 - 화면 확인(완료 조건 6): `scripts/qa_local.py`의 실제 `main()`을 호출하는 비커밋 QA 하네스로 임시 SQLite·127.0.0.1 서버 실행. stdout의 임시 비밀번호는 브라우저 프로세스 RAM에서만 읽어 UI 로그인, 서버 종료만 QA 전용 WSGI 처리로 연결했다. Chromium headless·라이트, 실제 배포 번들, CSS/응답 대역 없음. 주요 실제 출력:
   ```text
-  Dashboard 1280x800 overflow=0 tags=ACL/no_route return=1
-  Case 5 1280x800 overflow=0 원인: 경로 없음 · 복귀 방향
-  Dashboard 375x812 overflow=0 tags=ACL/no_route return=1
-  Case 5 375x812 overflow=0 원인: 경로 없음 · 복귀 방향
+  R1 모델 밖 목적지 UNSUPPORTED {'direction': 'forward', 'tag': 'other'}
+  R1 모델 밖 출발지 INVALID {'direction': 'forward', 'tag': 'other'}
+  R1 UNSUPPORTED 1280x800 cause=hidden direction=hidden overflow=0
+  R1 INVALID 375x812 cause=hidden direction=hidden overflow=0
+  R2 Case 5 DENY 1280x800 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 경로 없음
+  R2 Case 5 DENY 375x812 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 경로 없음
+  R2 Case 8 PASS 375x812 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 막는 곳 없음(통과)
+  C4 1280x800 empty-cause-table=hidden zero-message=visible overflow=0
+  C4 375x812 empty-cause-table=hidden zero-message=visible overflow=0
   Console errors=0
   QA server/browser cleaned
   ```
-  사례 5건 × 두 크기 모두 상세 원인·방향과 overflow=0 확인. API: 전체 5·불일치/분모 2·AI 답 2, ACL 규칙 1·복귀 0 / 경로 없음 1·복귀 1, 제외 AGREE 1·NO_CLAIM 2·NOT_COMPARABLE 0. 화면 각 50%, 캡처 육안 확인. QA 서버·브라우저·임시 DB/프로필 정상 정리, 4863/9233 listen 0. 사용자 수동 QA A~E는 대기 유지.
+  리뷰 재현을 위해 하네스에서만 목적지 `8.8.8.8`, 출발지 `10.99.99.99`, TCP 80 통과 사례를 추가해 총 8건 × 두 크기를 확인했다(기본 CLI 5건은 그대로). API의 판정 불가 원인 값은 리뷰 재현과 같고, 화면은 원인·방향을 표시하지 않는다. PASS·DENY 태그는 판정 카드의 실제 h2 안에 있고 카드 경계 1개, 복귀 이유 문장 1회, 원인 쪽 방향 반복 없음. 캡처 육안 확인. 대시보드 3종·분모 3·비교 불가 제외 2 및 QA DB를 비운 0건 상태도 확인했다. QA 서버·브라우저·임시 DB/프로필 정상 정리, 4863/9233 listen 0. CSS/응답 대역 없음. 사용자 수동 QA A~E는 대기 유지.
 - 변경 범위: 지정 파일 안에서만 변경. `git diff --numstat -- cases engine/src/netproof_engine/verify.py engine/src/netproof_engine/trace.py engine/src/netproof_engine/acl.py engine/src/netproof_engine/model.py` 출력 없음. `git diff --check` 오류 없음.
 
 ### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 수정 요청)
@@ -196,6 +203,13 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - **R2** 같은 줄 — 원인 줄이 「받은 답」과 「판정」 패널 **사이 빈 바닥**에 떠 있어 받은 답의 부속처럼 읽히고, 바로 아래 판정 패널의 `복귀 방향: 경로 없음`과 같은 말이 두 번 나온다. `ResultPanel`은 판정기·실습·정책 검증과 공유라 고치지 말고 `CaseDetailPage` 안에서 해결한다.
 - 비차단 참고: ① `cases.py:394` 안 쓰는 `Case.id`·`Case.result` 선택(테스트 SQL 단언이 묶여 있음) ② `cases.py:376~377` 도달하지 않는 `else` 분기 ③ `test_dashboard.py:142·176` 영어 주석 ④ 불일치 0건이면 머리글만 있는 빈 표(배포 직후 실제 상태).
 - 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
+
+### Codex 리뷰 반영 (2026-10-06)
+- **R1 반영:** PASS·DENY일 때만 태그 표시. 실제 모델 밖 목적지/출발지로 저장된 UNSUPPORTED·INVALID를 두 크기에서 재현했고, API 원인 값은 그대로지만 화면 원인·방향은 숨겨지고 기존 판정 불가/입력 오류 설명은 유지된다. 웹 표시 함수와 실제 판정 블록 렌더링 회귀로 확인했다.
+- **R2 반영:** `CaseDetailPage`의 지역 `CaseCalculation`이 `ResultPanel`의 기존 title 입력으로 태그를 판정 카드 제목에 표시한다. 받은 답과 판정 사이 바닥 문장을 없앴고 방향 반복도 없앴다. `ResultPanel`·CSS는 변경하지 않았다. QA #5의 `복귀 방향: 경로 없음` 문장 1회, 태그는 판정 카드 안, 가로 넘침·콘솔 오류 0.
+- **비차단 참고 4건 모두 반영:** verdict만 SELECT(열 단언 갱신), SQL로 정규화한 comparison은 DISAGREE 외 모두 제외로 집계해 도달하지 않는 분기를 정리(옛 comparison 회귀 추가), 주석 2곳 한국어, Top 행이 없으면 표 숨김(실제 QA 0건 상태 재현).
+- 재현 명령: `npm --prefix web test -- --run src/causeView.test.ts`, `cd server && ../.venv/Scripts/python -m pytest -q tests/test_dashboard.py`, 위 네 전체 명령. 실브라우저는 리뷰 코멘트의 모델 밖 목적지/출발지 입력 + 임시 QA 서버/Chromium으로 두 크기에서 재현했다.
+- 다음 차례: Claude 재리뷰. 구현·반영: Codex (GPT-6).
 
 ## 배포 기록 (2026-10-06)
 
@@ -293,7 +307,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
-4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ **← 구현·검증 완료(2026-10-06), Claude 리뷰 대기**
+4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ **← R1·R2 수정·재검증 완료(2026-10-06), Claude 재리뷰 대기**
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤

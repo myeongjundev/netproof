@@ -80,7 +80,7 @@ export function DashboardPage() {
         {data.causes.limited && <p className="notice">최근 {data.causes.limit.toLocaleString("ko-KR")}건만 집계합니다. 비율은 이 사례들 기준입니다.</p>}
         <p className="hint">전체 불일치의 받은 답 종류: AI 답 {data.causes.claim_kinds.ai}건 · 사람 예상 {data.causes.claim_kinds.self}건 · 종류 미정 {data.causes.claim_kinds.unknown}건</p>
         {data.causes.denominator === 0 && <p className="hint">불일치 사례가 없습니다. 비율 —</p>}
-        <table className="confusion-table">
+        {data.causes.top.length > 0 && <table className="confusion-table">
           <caption>받은 답과 NetProof 판정의 불일치 원인</caption>
           <colgroup><col style={{ width: "46%" }} /><col style={{ width: "16%" }} /><col style={{ width: "16%" }} /><col style={{ width: "22%" }} /></colgroup>
           <thead><tr><th scope="col">원인</th><th scope="col">건수</th><th scope="col">비율</th><th scope="col">복귀</th></tr></thead>
@@ -88,7 +88,7 @@ export function DashboardPage() {
             <th scope="row">{causeName(row.tag)}</th><td>{row.count}건</td>
             <td>{causeRatio(row.count, data.causes.denominator)}</td><td>복귀 {row.return_count}건</td>
           </tr>)}</tbody>
-        </table>
+        </table>}
         <p className="hint">그 외 {data.causes.rest}건 · {causeRatio(data.causes.rest, data.causes.denominator)}</p>
         <p className="hint">분류 못 함 {data.causes.other.count}건 · {causeRatio(data.causes.other.count, data.causes.denominator)} · 복귀 {data.causes.other.return_count}건</p>
         <p className="hint">제외: 일치(AGREE) {data.causes.excluded.agree}건 · 답 없음(NO_CLAIM) {data.causes.excluded.no_claim}건 · 비교 불가(NOT_COMPARABLE) {data.causes.excluded.not_comparable}건</p>

@@ -190,10 +190,12 @@ PASS는 현재 ACL drop 앞(암묵적 deny면 끝)에 permit을 넣고 최대 4�
 
 return이 객체이고 delivered가 false이면 방향은 `return`(복귀 방향), 나머지는 `forward`(정방향)다. 원인과 방향은 별도 값이다. 각 Top 5 행은 복귀 건수를 함께 보인다. 키 누락이나 다른 JSON 형태는 예외 대신 `other`로 두고, 알 수 없는 사유를 추측하지 않는다. UNSUPPORTED·INVALID는 원인 통계 분모에 포함하지 않는다.
 
+사례 상세의 원인 표시는 저장된 결과가 PASS·DENY일 때만 보인다. UNSUPPORTED·INVALID는 원인·방향을 표시하지 않고 기존 판정 불가·입력 오류 설명을 유지한다. 판정 카드 제목에 `판정 · 원인 태그(통계): …`로 분류 이름을 표시하며, 방향은 엔진의 기존 설명·경로에서 확인한다. 태그에 방향을 다시 붙이지 않는다. 분류 못 한 PASS·DENY의 태그는 `분류 못 함`이다.
+
 검토자 전용 `GET /api/dashboard`의 causes는 저장된 `comparison=DISAGREE`(받은 답 ≠ NetProof 판정)만 센다. AI 답과 사람 예상은 한 분모이며, 전체 불일치의 claim.kind별 건수를 별도로 보인다(종류 미정 포함). 실제 결과나 검토 확인 여부는 조건이 아니다. 오탐·미탐은 실제 결과와 비교하는 별도 축이므로 DISAGREE로 유도하지 않는다.
 
 제외는 AGREE·NO_CLAIM·NOT_COMPARABLE로 서로 겹치지 않는다. 전체 불일치(`disagree_total`) + 세 제외 수 = 전체 사례 수다. 알 수 없는 옛 comparison은 비교 불가로 센다. 정상 저장에서 UNSUPPORTED·INVALID는 받은 답이 있으면 NOT_COMPARABLE, 없으면 NO_CLAIM이다(기존 compare 규칙).
 
-불일치 행의 id·result·verdict만 읽으며, created_at 내림차순·id 내림차순으로 최근 최대 2,000건을 분류한다. 상한 초과 시 `limited=true`이고 화면에 **최근 2,000건만 집계**를 적는다. 비율 분모(`denominator`)는 실제 집계한 수이며, 전체 불일치와 종류별 수·제외 수는 상한 없이 집계한다. 따라서 상한 초과에도 전체 사례 분할과 최근 표의 비율을 구분할 수 있다.
+불일치 행의 verdict만 읽으며, created_at 내림차순·id 내림차순으로 최근 최대 2,000건을 분류한다. 상한 초과 시 `limited=true`이고 화면에 **최근 2,000건만 집계**를 적는다. 비율 분모(`denominator`)는 실제 집계한 수이며, 전체 불일치와 종류별 수·제외 수는 상한 없이 집계한다. 따라서 상한 초과에도 전체 사례 분할과 최근 표의 비율을 구분할 수 있다.
 
 분류 가능한 원인은 건수 내림차순, 동률은 위 표 순서로 정렬한다. Top 5 이후는 `그 외`로 합치고, `other`는 별도 `분류 못 함` 줄로 표시한다. **Top 5 건수 합 + 그 외 + 분류 못 함 = denominator**다. 분모 0이면 비율은 `—`다. DB 표·열은 추가하지 않고 사례 목록과 POST /api/verify 응답은 그대로다.
