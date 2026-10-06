@@ -21,6 +21,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: `codex/cause-tags`(origin/main `88bddf2`에서 만듦, Orca worktree). 승인 범위 안 구현·테스트·문서 갱신 완료.
 - 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D4 확정) → Codex 구현·검증 완료 → Claude 리뷰 대기.**
 - 다음 차례: **Claude(리뷰).**
+- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41), 구현 커밋 `5ca7561`. 커밋·푸시·PR 생성 완료, 병합하지 않았다.
   1. 이 브랜치에서 `git pull` 후 `git diff main...HEAD`와 PR을 확인한다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
   2. 아래 테스트 명령을 직접 실행하고 저장 JSON 분류·집계 불변식·상한 표시·상세 원인을 검토한다.
   3. 지적에는 파일:줄과 재현 명령을 붙여 첫 줄 `[Claude]`인 PR 코멘트를 남긴다. 병합은 사용자 결정이다.
