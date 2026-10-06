@@ -188,7 +188,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 변경 범위: 지정 파일 안에서만 변경. `git diff --numstat -- cases engine/src/netproof_engine/verify.py engine/src/netproof_engine/trace.py engine/src/netproof_engine/acl.py engine/src/netproof_engine/model.py` 출력 없음. `git diff --check` 오류 없음.
 
 ### 리뷰 기록 (Claude가 채운다)
-- 
+- 리뷰 대기.
 
 ## 배포 기록 (2026-10-06)
 
