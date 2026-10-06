@@ -19,12 +19,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **원인 태그·통계("가장 많이 틀린 원인 Top 5")** — 로드맵 「F5·F6 다음 기능 순서」 4번, 순환 고리 ⑤. 배포가 끝나서 다음 후보였다.
 - 브랜치: `codex/cause-tags`(origin/main `88bddf2`에서 만듦, Orca worktree). 승인 범위 안 구현·테스트·문서 갱신 완료.
-- 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D4 확정) → Codex 구현·검증 완료 → Claude 리뷰 대기.**
-- 다음 차례: **Claude(리뷰).**
-- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41), 구현 커밋 `5ca7561`. 커밋·푸시·PR 생성 완료, 병합하지 않았다.
-  1. 이 브랜치에서 `git pull` 후 `git diff main...HEAD`와 PR을 확인한다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
-  2. 아래 테스트 명령을 직접 실행하고 저장 JSON 분류·집계 불변식·상한 표시·상세 원인을 검토한다.
-  3. 지적에는 파일:줄과 재현 명령을 붙여 첫 줄 `[Claude]`인 PR 코멘트를 남긴다. 병합은 사용자 결정이다.
+- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현·검증 → Claude 리뷰 완료(수정 요청 2건) → Codex 수정 대기.**
+- 다음 차례: **Codex Sol(수정).**
+- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41), 구현 커밋 `5ca7561`. 리뷰 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111). 병합하지 않았다.
+  1. 이 브랜치에서 `git pull` 후 `[Claude]` 코멘트의 **R1·R2**를 고친다. `main`으로 바꾸거나 새 브랜치를 만들지 않는다.
+  2. 항목마다 재현 명령을 다시 실행해 결과를 `[Codex]` 코멘트로 남긴다. 동의하지 않는 항목은 고치지 말고 실행 결과로 반박한다.
+  3. 비차단 참고 4건은 고치든 다음 과제로 적든 둘 중 하나를 고른다. 「다음 차례」를 Claude(재리뷰)로 바꿔 커밋·푸시한다.
 - 구현 메모: 엔진 순수 함수 `cause`와 9개 태그, 검토자 대시보드 Top 5·복귀 수·제외 수, 상세 원인 표시. DB 표·열·판정 경로·사례 JSON·verify API·사례 목록은 변경하지 않았다.
 - 집계 분모: 전체 불일치 `disagree_total` + 세 제외 = 전체 사례 수. Top 5 + 그 외 + 분류 못 함 = 실제 집계 분모 `denominator`. 상한 초과 때는 최근 2,000건 비율과 전체 불일치 수를 구분해 보인다(아래 테스트·semantics §13).
 - QA: 기본 `seeded_qa()` 4건은 유지하고 CLI에서 `seed_cause_example()`로 복귀 불일치 1건을 더해 총 5건이다. 검증은 허용된 `server/tests/test_dashboard.py`에 추가했으며 `test_qa_local.py` 변경·범위 확장은 하지 않았다.
@@ -187,8 +187,15 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   사례 5건 × 두 크기 모두 상세 원인·방향과 overflow=0 확인. API: 전체 5·불일치/분모 2·AI 답 2, ACL 규칙 1·복귀 0 / 경로 없음 1·복귀 1, 제외 AGREE 1·NO_CLAIM 2·NOT_COMPARABLE 0. 화면 각 50%, 캡처 육안 확인. QA 서버·브라우저·임시 DB/프로필 정상 정리, 4863/9233 listen 0. 사용자 수동 QA A~E는 대기 유지.
 - 변경 범위: 지정 파일 안에서만 변경. `git diff --numstat -- cases engine/src/netproof_engine/verify.py engine/src/netproof_engine/trace.py engine/src/netproof_engine/acl.py engine/src/netproof_engine/model.py` 출력 없음. `git diff --check` 오류 없음.
 
-### 리뷰 기록 (Claude가 채운다)
-- 리뷰 대기.
+### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 수정 요청)
+- 판정: **수정 요청 2건(R1·R2) + 비차단 참고 4건.** 지적은 PR 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111)에 파일:줄·재현 명령과 함께 남겼다.
+- **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `382 passed, 2 xfailed`, 서버 `149 passed, 1 skipped`, 웹 `434 passed`(32 files), 빌드 성공, 완료 조건 3의 왕복 3줄 동일. 변경 파일은 「변경 범위」 안에만 있고 `verify.py`·`trace.py`·`acl.py`·`model.py`·`cases/*.json`은 0줄이다.
+- 독립 확인 ①: `trace.py`의 drop 사유 7곳(110·121·128·139·148·156·162)이 고정 문자열 5개 + ACL `hop.detail` 2개뿐이고 `cause.py`가 전부 덮는다 → 정상 저장된 DENY는 모두 분류되고 `other`는 옛·깨진 JSON에서만 나온다.
+- 독립 확인 ②(실브라우저 Chromium + 임시 SQLite QA 서버): 1280×800·375×812 대시보드 `scrollWidth == clientWidth == 뷰포트`, 넘치는 요소 0, 콘솔·페이지 오류 0, 표 수치가 체크리스트와 일치(ACL 규칙에서 차단 1·경로 없음 1(복귀 1)·각 50%·분모 2·전체 5·제외 1/2/0).
+- **R1** `web/src/pages/CaseDetailPage.tsx:143` — `UNSUPPORTED`·`INVALID` 사례에도 `원인: 분류 못 함 · 정방향`이 뜬다. 판정하지 못한 사례에 원인과 추적한 적 없는 방향을 단언한다(설계 "UNSUPPORTED·INVALID는 태그가 아니다", 「추측하지 않는다」·「표시 ≠ 판정」). QA 합성 5건이 모두 PASS/DENY라 화면 확인에서 걸리지 않았다.
+- **R2** 같은 줄 — 원인 줄이 「받은 답」과 「판정」 패널 **사이 빈 바닥**에 떠 있어 받은 답의 부속처럼 읽히고, 바로 아래 판정 패널의 `복귀 방향: 경로 없음`과 같은 말이 두 번 나온다. `ResultPanel`은 판정기·실습·정책 검증과 공유라 고치지 말고 `CaseDetailPage` 안에서 해결한다.
+- 비차단 참고: ① `cases.py:394` 안 쓰는 `Case.id`·`Case.result` 선택(테스트 SQL 단언이 묶여 있음) ② `cases.py:376~377` 도달하지 않는 `else` 분기 ③ `test_dashboard.py:142·176` 영어 주석 ④ 불일치 0건이면 머리글만 있는 빈 표(배포 직후 실제 상태).
+- 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
 
 ## 배포 기록 (2026-10-06)
 
