@@ -112,3 +112,146 @@ def test_mismatches_cap_order_and_fixed_query_count(app, reviewer):
     aggregate = next(sql for sql in large if "GROUP BY" in sql)
     assert all(f"cases.{key}" not in aggregate for key in ("network", "flow", "verdict"))
     assert any("LIMIT" in sql and "JOIN users" in sql for sql in large)
+
+
+def add_cause_rows(app, verdicts, comparison="DISAGREE", kind="ai", created_at=None):
+    with app.app_context():
+        owner = User.query.first()
+        db.session.add_all([Case(owner_id=owner.id, title=f"원인 {i}", network={}, flow={},
+                                claim={"kind": kind, "expected": "PASS"}, verdict=verdict,
+                                result=verdict.get("result", "DENY") if isinstance(verdict, dict) else "DENY",
+                                comparison=comparison, engine_version="0.1.4",
+                                created_at=created_at or datetime(2026, 10, 6))
+                           for i, verdict in enumerate(verdicts)])
+        db.session.commit()
+
+
+def blocked(reason=None, direction="forward", step=None, seq=None):
+    return {"result": "DENY", direction: {"delivered": False, "reason": reason},
+            "decisive": {"step": step, "rule_seq": seq} if step else None}
+
+
+def assert_cause_partition(board):
+    stats = board["causes"]
+    assert stats["disagree_total"] + sum(stats["excluded"].values()) == board["total"]
+    assert sum(row["count"] for row in stats["top"]) + stats["rest"] + stats["other"]["count"] == stats["denominator"]
+    assert sum(stats["claim_kinds"].values()) == stats["disagree_total"]
+
+
+def test_causes_sort_ties_rest_other_and_exclusions(app, reviewer):
+    # 알려진 원인 8종·분류 못 함 2건. 실제 결과·검토 확인은 없다.
+    verdicts = [blocked(step="acl_in", seq=1), blocked(step="acl_out"),
+                blocked("경로 없음", "return"), blocked("기본 게이트웨이 없음"),
+                blocked("다음 홉 없음"), blocked("호스트가 전달하지 않음"),
+                blocked("라우팅 루프"), {"result": "PASS"}, {}, []]
+    add_cause_rows(app, verdicts)
+    add_cause_rows(app, [blocked("라우팅 루프", "return")] * 2, kind="self")
+    add_cause_rows(app, [blocked("경로 없음", "return")], kind=None)
+    for comparison in ("AGREE", "NO_CLAIM", "NOT_COMPARABLE"):
+        add_cause_rows(app, [{"result": "UNSUPPORTED"}], comparison=comparison)
+    board = reviewer.get("/api/dashboard").get_json()
+    stats = board["causes"]
+    assert_cause_partition(board)
+    assert stats["denominator"] == stats["disagree_total"] == 13
+    assert stats["excluded"] == {"agree": 1, "no_claim": 1, "not_comparable": 1}
+    assert stats["claim_kinds"] == {"ai": 10, "self": 2, "unknown": 1}
+    assert [row["tag"] for row in stats["top"]] == ["routing_loop", "no_route", "acl_rule", "acl_implicit", "no_gateway"]
+    assert stats["top"][:2] == [{"tag": "routing_loop", "count": 3, "return_count": 2},
+                                {"tag": "no_route", "count": 2, "return_count": 2}]
+    assert stats["rest"] == 3 and stats["other"]["count"] == 2
+    assert stats["limited"] is False
+    assert board["confirmed"] == board["confusion"]["axes"][2]["total"] == 0
+
+
+def test_causes_empty(reviewer):
+    board = reviewer.get("/api/dashboard").get_json()
+    assert_cause_partition(board)
+    stats = board["causes"]
+    assert stats["denominator"] == stats["disagree_total"] == stats["rest"] == stats["other"]["count"] == 0
+    assert stats["top"] == [] and stats["limited"] is False
+
+
+@pytest.mark.parametrize("count,limited", [(2000, False), (2001, True)])
+def test_causes_limit_recent_timestamp_then_id_and_projection(app, reviewer, count, limited):
+    # 생성 시각이 더 최근이면 작은 ID도 먼저 센다. 같은 시각이면 큰 ID가 먼저다.
+    add_cause_rows(app, [blocked("경로 없음", "return")], created_at=datetime(2026, 10, 7))
+    add_cause_rows(app, [blocked(step="acl_in", seq=1)] * (count - 1))
+    statements = []
+    with app.app_context():
+        def record(conn, cursor, statement, parameters, context, executemany):
+            statements.append((statement, parameters))
+        event.listen(db.engine, "before_cursor_execute", record)
+        try:
+            board = reviewer.get("/api/dashboard").get_json()
+        finally:
+            event.remove(db.engine, "before_cursor_execute", record)
+    stats = board["causes"]
+    assert_cause_partition(board)
+    assert stats["denominator"] == stats["limit"] == 2000
+    assert stats["disagree_total"] == count and stats["limited"] is limited
+    assert stats["top"] == [{"tag": "acl_rule", "count": 1999, "return_count": 0},
+                            {"tag": "no_route", "count": 1, "return_count": 1}]
+    sql, parameters = next((sql, params) for sql, params in statements if sql.startswith("SELECT cases.verdict AS cases_verdict"))
+    assert "cases.verdict" in sql and "LIMIT" in sql and "2000" in str(parameters)
+    assert all(f"cases.{key}" not in sql for key in ("network", "flow", "claim"))
+    assert all(f"cases.{key}" not in sql.partition("FROM")[0] for key in ("id", "result"))
+    assert "cases.comparison =" in sql and "DISAGREE" in parameters
+    assert "cases.created_at DESC, cases.id DESC" in sql
+
+
+def test_causes_equal_timestamp_boundary_uses_latest_ids(app, reviewer):
+    add_cause_rows(app, [blocked("경로 없음", "return")])
+    add_cause_rows(app, [blocked(step="acl_in", seq=1)] * 2000)
+    board = reviewer.get("/api/dashboard").get_json()
+    assert_cause_partition(board)
+    assert board["causes"]["top"] == [{"tag": "acl_rule", "count": 2000, "return_count": 0}]
+
+
+def test_detail_cause_from_saved_verdict_and_list_unchanged(api):
+    assert api.register("원인작성자").status_code == 201
+    response = api.save_case(claim={"expected": "PASS", "kind": "ai"})
+    assert response.status_code == 201
+    detail = response.get_json()
+    assert detail["cause"] == {"tag": "acl_rule", "direction": "forward"}
+    assert api.get(f"/api/cases/{detail['id']}").get_json()["cause"] == detail["cause"]
+    assert "cause" not in api.get("/api/cases").get_json()[0]
+
+
+def test_causes_use_saved_comparison_without_rejudging(app, reviewer, monkeypatch):
+    add_cause_rows(app, [{"result": "PASS"}])
+    add_cause_rows(app, [{"result": "DENY"}], comparison="OLD_VALUE")
+    monkeypatch.setattr("netproof_api.cases.verify", lambda *args: pytest.fail("must not rejudge"))
+    board = reviewer.get("/api/dashboard").get_json()
+    assert board["causes"]["top"] == [{"tag": "no_block", "count": 1, "return_count": 0}]
+    assert board["causes"]["excluded"]["not_comparable"] == 1
+    assert_cause_partition(board)
+
+
+def test_legacy_verdict_missing_result_is_other_in_dashboard_and_detail(app, reviewer):
+    add_cause_rows(app, [{"decisive": {"step": "acl_in", "rule_seq": 1}}])
+    board = reviewer.get("/api/dashboard").get_json()
+    assert_cause_partition(board)
+    assert board["causes"]["top"] == []
+    assert board["causes"]["other"]["count"] == 1
+    assert reviewer.get("/api/cases/1").get_json()["cause"] == {"tag": "other", "direction": "forward"}
+
+
+def test_qa_cause_example_and_cleanup():
+    from test_qa_local import qa
+
+    with qa.seeded_qa() as environment:
+        directory = environment.directory
+        qa.seed_cause_example(environment)
+        client = environment.app.test_client()
+        response = qa._request(client, "POST", "/api/auth/login", {
+            "nickname": "qa_reviewer", "password": environment.passwords["qa_reviewer"],
+        })
+        assert response["user"]["role"] == "reviewer"
+        board = client.get("/api/dashboard").get_json()
+        assert_cause_partition(board)
+        assert board["total"] == 5 and board["causes"]["denominator"] == 2
+        assert board["causes"]["top"] == [{"tag": "acl_rule", "count": 1, "return_count": 0},
+                                            {"tag": "no_route", "count": 1, "return_count": 1}]
+        assert board["causes"]["excluded"] == {"agree": 1, "no_claim": 2, "not_comparable": 0}
+        assert board["causes"]["claim_kinds"] == {"ai": 2, "self": 0, "unknown": 0}
+    assert not directory.exists()

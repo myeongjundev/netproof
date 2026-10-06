@@ -201,6 +201,7 @@ export interface CasePage {
 }
 
 export interface CaseDetail extends CaseSummary {
+  cause: Cause;
   owner_id: number;
   network: Network;
   flow: Flow;
@@ -214,6 +215,7 @@ export interface CaseDetail extends CaseSummary {
 }
 
 export interface Dashboard {
+  causes: CauseStat;
   total: number;
   confirmed: number;
   unsupported: number;
@@ -235,4 +237,18 @@ export interface ConfusionAxis {
   tn: number;
   total: number;
   excluded: { not_confirmed: number; no_actual: number; no_prediction: number };
+}
+
+export interface Cause { tag: string; direction: "forward" | "return" }
+export interface CauseRow { tag: string; count: number; return_count: number }
+export interface CauseStat {
+  denominator: number;
+  disagree_total: number;
+  top: CauseRow[];
+  rest: number;
+  other: CauseRow;
+  excluded: { agree: number; no_claim: number; not_comparable: number };
+  claim_kinds: { ai: number; self: number; unknown: number };
+  limit: number;
+  limited: boolean;
 }

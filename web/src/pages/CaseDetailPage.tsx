@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, message } from "../api";
+import { caseCauseText } from "../causeView";
 import { ActualBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
 import { CaseNetwork } from "../components/CaseNetwork";
@@ -20,6 +21,21 @@ interface Props {
   id: number;
   user: User;
   onOpenInJudge: (draft: Draft, saveTitle?: string) => void;
+}
+
+export function CaseCalculation({ item }: { item: CaseDetail }) {
+  const cause = caseCauseText(item.result, item.cause);
+  return (
+    <ResultPanel
+      title={cause ? `판정 · ${cause}` : "판정"}
+      verdict={{ ...item.verdict, comparison: item.comparison }}
+      claim={item.claim ?? EMPTY_CLAIM}
+      stale={false}
+      error={null}
+      loading={false}
+      network={item.network}
+    />
+  );
 }
 
 export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
@@ -139,14 +155,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
             </dl>}
             <p className="hint below">받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.</p>
           </section>
-          <ResultPanel
-            verdict={{ ...item.verdict, comparison: item.comparison }}
-            claim={item.claim ?? EMPTY_CLAIM}
-            stale={false}
-            error={null}
-            loading={false}
-            network={item.network}
-          />
+          <CaseCalculation item={item} />
         </div>
 
         <section className="panel" aria-labelledby="actual-title">

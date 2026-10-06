@@ -14,6 +14,8 @@ from netproof_engine import compare, observe, policy_matrix, verify
 from netproof_engine import acl_audit
 from netproof_engine import suggest
 from netproof_engine.change import change_impact
+from netproof_engine import cause
+from netproof_engine.cause import CAUSE_TAGS
 
 from .auth import current_user, error, login_required, reviewer_required
 from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
@@ -22,6 +24,7 @@ bp = Blueprint("cases", __name__, url_prefix="/api")
 
 LIMITS = {"devices": 40, "interfaces": 16, "routes": 100, "acl_lines": 500}
 CLAIM_KINDS = ("ai", "self")
+CAUSE_LIMIT = 2000
 
 
 def _body() -> dict:
@@ -340,7 +343,7 @@ def export_case(case_id: int):
 @bp.get("/dashboard")
 @reviewer_required
 def dashboard():
-    # 저장된 값만 집계한다. 네트워크/판정 JSON을 읽거나 판정을 재계산하지 않는다.
+    # 저장된 값만 집계한다. 원인 분류는 아래에서 저장된 판정 JSON만 읽는다.
     kind = Case.claim["kind"].as_string()
     expected = Case.claim["expected"].as_string()
     # 알 수 없는 값은 미정으로 묶어 집계 행 수도 유한하게 유지한다.
@@ -350,16 +353,26 @@ def dashboard():
         sql_case((Case.result.in_((*ACTUAL_RESULTS, "UNSUPPORTED", "INVALID")), Case.result), else_=None),
         sql_case((Case.actual_result.in_(ACTUAL_RESULTS), Case.actual_result), else_=None),
         Case.confirmed_at.is_not(None),
+        sql_case((Case.comparison.in_(("AGREE", "DISAGREE", "NO_CLAIM", "NOT_COMPARABLE")),
+                  Case.comparison), else_="NOT_COMPARABLE"),
     )
     groups = Case.query.with_entities(*columns, func.count(Case.id)).group_by(*columns).all()
     axes = [{"axis": axis, "tp": 0, "fp": 0, "fn": 0, "tn": 0, "total": 0,
              "excluded": {"not_confirmed": 0, "no_actual": 0, "no_prediction": 0}}
             for axis in ("ai", "self", "engine")]
     board = dict.fromkeys(("total", "confirmed", "unsupported", "invalid"), 0)
+    causes = {"denominator": 0, "disagree_total": 0, "limit": CAUSE_LIMIT, "limited": False,
+              "excluded": {"agree": 0, "no_claim": 0, "not_comparable": 0},
+              "claim_kinds": {"ai": 0, "self": 0, "unknown": 0}}
     cells = {("DENY", "DENY"): "tp", ("DENY", "PASS"): "fp",
              ("PASS", "DENY"): "fn", ("PASS", "PASS"): "tn"}
-    for claim_kind, claim_expected, result, actual, confirmed, count in groups:
+    for claim_kind, claim_expected, result, actual, confirmed, comparison, count in groups:
         board["total"] += count
+        if comparison == "DISAGREE":
+            causes["disagree_total"] += count
+            causes["claim_kinds"][claim_kind or "unknown"] += count
+        else:
+            causes["excluded"][comparison.lower()] += count
         board["confirmed"] += count if confirmed else 0
         if result in ("UNSUPPORTED", "INVALID"):
             board[result.lower()] += count
@@ -376,8 +389,22 @@ def dashboard():
         Case.confirmed_at.is_not(None), Case.result.in_(ACTUAL_RESULTS),
         Case.actual_result.in_(ACTUAL_RESULTS), Case.result != Case.actual_result,
     ).options(joinedload(Case.owner)).order_by(Case.created_at.desc(), Case.id.desc()).limit(20).all()
+    rows = Case.query.filter(Case.comparison == "DISAGREE").with_entities(
+        Case.verdict,
+    ).order_by(Case.created_at.desc(), Case.id.desc()).limit(CAUSE_LIMIT).all()
+    stats = {tag: {"tag": tag, "count": 0, "return_count": 0} for tag in CAUSE_TAGS}
+    for (verdict,) in rows:
+        classified = cause(verdict)
+        stat = stats[classified["tag"]]
+        stat["count"] += 1
+        stat["return_count"] += int(classified["direction"] == "return")
+    ranked = sorted((stats[tag] for tag in CAUSE_TAGS if tag != "other" and stats[tag]["count"]),
+                    key=lambda stat: (-stat["count"], CAUSE_TAGS.index(stat["tag"])))
+    causes.update({"denominator": len(rows), "limited": causes["disagree_total"] > CAUSE_LIMIT,
+                   "top": ranked[:5], "rest": sum(stat["count"] for stat in ranked[5:]),
+                   "other": stats["other"]})
     return jsonify({**board, "confirmed_in_scope": engine["total"], "agree": engine["tp"] + engine["tn"],
                     "ai_confirmed": ai["total"], "ai_wrong": ai["fp"] + ai["fn"],
                     "mismatches_total": engine["fp"] + engine["fn"],
                     "mismatches": [c.summary() for c in mismatches],
-                    "confusion": {"positive": "DENY", "axes": axes}})
+                    "confusion": {"positive": "DENY", "axes": axes}, "causes": causes})
