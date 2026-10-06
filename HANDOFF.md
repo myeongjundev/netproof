@@ -18,14 +18,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 현재 작업 상태
 - 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
-- 단계: **Claude 설계 → 사용자 승인(2026-10-06, D1~D5) → Codex 구현·테스트 → Claude 리뷰 → Codex R1 수정·재검증 완료 → Claude 재리뷰 대기.**
+- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현 → Claude 리뷰(R1) → Codex 수정 `a057d79` → Claude 재리뷰 PASS → 사용자 최종 확인·병합 대기.**
 - 구현 브랜치: `codex/pfsense-stateful`(기준 `origin/main` `640a747`).
 - PR: [#44 pfSense 상태 추적 계산 1단계](https://github.com/myeongjundev/netproof/pull/44). 병합하지 않았다.
-- 다음 차례: **Claude(재리뷰).**
-  1. `git pull` 후 PR #44의 `[Codex]` 수정 결과 코멘트와 아래 「테스트 결과」를 읽는다.
-  2. R1의 상태 없는 복귀 장비가 프로토콜·규칙·기본 정책과 무관하게 UNSUPPORTED인지 재현한다. 기존 ICMP one-way 검사·상태가 있는 복귀·무상태 ACL·경로 계산 유지도 확인한다.
-  3. HANDOFF 「1단계 지원 범위」·UNSUPPORTED 목록과 `docs/semantics.md` §14가 같은 의미인지 확인한다.
-  4. 비차단 참고 3건은 후속 과제로 기록했다. 범위는 그대로이며 `web/`는 0줄이다. 재리뷰 후 최종 판단·병합은 사용자에게 넘긴다.
+- 다음 차례: **사용자(최종 확인·병합, PROMPTS 5단계).**
+  1. 브랜치를 받아 테스트와 완료 조건 명령을 **직접** 실행해 기대 출력과 비교한다(아래 「테스트 결과」·「리뷰 기록」).
+  2. PR diff에 비밀값이 없는지 본다. 두 LLM이 "동의"한 항목도 직접 실행 결과로 확인한다.
+  3. 병합(`gh pr merge 44 --merge`). 이번 과제는 화면 변경이 0줄이라 보이는 화면은 그대로다. 병합 뒤 공개 주소에서 `/api/verify`가 그대로 도는지만 한 번 본다.
+  4. 그다음: **D5(실습 사실 5가지)**를 알려 주면 2단계(실습 연동)를 설계한다. 화면 입력 과제도 후속이다.
 
 구현 시 지시(보존): `origin/main`에서 브랜치를 따고, 「작업 정의」의 변경 범위 안에서만 구현하며, 완료 조건의 명령을 전부 직접 실행해 「테스트 결과」에 붙인다. **D4가 이 과제의 핵심이다** — 모르면 차단으로 단정하지 않고 판정 불가로 둔다.
 - 로드맵과의 관계: 「F5·F6 다음 기능 순서」 5~8번보다 이 과제를 **먼저** 하는 셈이다. 수업에서 실제로 쓰는 장비이므로 사용자가 순서를 바꿔도 된다.
@@ -246,7 +246,7 @@ QA server stopped; temporary SQLite cleaned; no credentials printed
 
 Codex (GPT-6)
 
-### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 수정 요청 1건)
+### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 1차 수정 요청 → **재리뷰 PASS**)
 - 판정: **수정 요청 1건(R1) + 비차단 참고 3건.** 지적은 PR #44 코멘트 [#issuecomment-6009512032](https://github.com/myeongjundev/netproof/pull/44#issuecomment-6009512032)에 파일:줄·재현과 함께 남겼다.
 - **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `463 passed, 2 xfailed`(기존 382 유지 + 81), 서버 `149 passed, 1 skipped`, 웹 `440 passed` **그대로**(화면 변경 0줄). `web/`·`cases/` 변경 0줄.
 - 독립 A/B(Claude 생성기·시드 `20261007`): 병합 전 엔진(`640a747`)을 임시 폴더에 복원해 `stateful`을 쓰지 않는 입력 3,000건의 **전체 verify 사전**을 대조 → **불일치 0**, 분포 `PASS 545 · DENY 1124 · UNSUPPORTED 552 · INVALID 779`. Codex의 3,500건과 별개 생성기로 같은 결론.
@@ -256,6 +256,14 @@ Codex (GPT-6)
   - 구현: `trace(..., returning: bool = False)`를 더하고 `verify`의 복귀 호출에서 `returning=True`. 상태 추적 블록에서 `returning and device.id not in states`면 `Unsupported`. 기존 ICMP 검사는 `one-way` 정방향용으로 남긴다. `test_asymmetric_return_firewall_does_not_inherit_state`의 기대 3개가 모두 `UNSUPPORTED`가 된다.
 - 비차단 참고: ① `firewall_in` 차단의 원인 태그는 `other`(§14에 문서화됨. 실습 사례가 쌓이면 Top 5가 「분류 못 함」이 되므로 방화벽 태그는 후속 후보) ② `model.py:219`가 상태 추적 장비가 있으면 네트워크 JSON의 **추가 최상위 키 전부**를 미지원으로 본다(후속 화면 단계에서 `toNetwork`가 키를 더하면 전부 `UNSUPPORTED`가 되니 먼저 확인) ③ `LIMITATION` 문구가 홉마다 반복돼 `reason`이 길다(엔진은 그대로 두고 화면 단계에서 한 번만).
 - 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
+
+**재리뷰 (`a057d79`, 2026-10-06) — PASS.** 코멘트 [#issuecomment-6009844507](https://github.com/myeongjundev/netproof/pull/44#issuecomment-6009844507).
+- 직접 실행: 엔진 `478 passed, 2 xfailed`(463 → 478), 서버 `149 passed, 1 skipped`, 웹 `440 passed` 그대로 — Codex가 적은 수와 모두 같다. `web/`·`cases/`·`acl.py` 변경 0줄, `git diff --check` 0줄.
+- **R1 해결**: 프로토콜 3종 × `default_in` 3종에서 **명시적 허용 규칙을 넣어도** 전부 `UNSUPPORTED`(수정 전에는 TCP·UDP가 block → DENY, pass → PASS였다). 정상 경로는 그대로다 — session `PASS`(복귀 홉 `send·state·route·deliver`), 기본 정책 미기재 `UNSUPPORTED`, `default_in=block` `DENY`, one-way `PASS`, ICMP one-way 응답 `UNSUPPORTED`, 무상태 ACL 무변화.
+- 부수 변화 확인: 방화벽 **자신이 출발지**인 session은 인바운드 상태가 없어 `DENY` → `UNSUPPORTED`가 됐다. 실제 pfSense는 자기가 연 연결에 상태를 만들므로 DENY 단정이 잘못이던 자리이고, 같은 흐름을 `one-way`로 두면 `PASS`라 pfSense → Graylog 같은 단방향 흐름은 계산된다. 타당한 변화로 본다.
+- 독립 A/B 재확인(수정이 `trace.py`·`verify.py`를 건드려 다시 실행): 두 시드(`20261007`·`55512`) 각 3,000건, 전체 verify 사전 **불일치 0**.
+- 문서 일치 확인: HANDOFF 「1단계 지원 범위」·UNSUPPORTED 목록과 `docs/semantics.md` §14 본문·「지원하지 않는 조건」이 같은 문장으로 통일됐다(Claude 설계 문장이 원인이던 지적이라 문서까지 함께 고쳐졌다).
+- 비차단 참고 3건은 후속 과제로 기록하는 데 동의한다. ②(추가 최상위 키)는 후속 화면 과제의 첫 완료 조건으로 `toNetwork`의 키와 엔진 지원 필드를 대조할 것을 권한다.
 
 ### Codex 수정 기록 (2026-10-06)
 - R1에 동의하고 코드·합성 테스트·설계 문장을 같은 커밋에서 수정했다. 위 「테스트 결과」에 재현 명령과 실제 출력을 남겼다. 다음 차례는 Claude 재리뷰다.
