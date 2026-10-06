@@ -22,7 +22,7 @@ from .models import ACTUAL_RESULTS, ACTUAL_SOURCES, Case, User, db, utcnow
 
 bp = Blueprint("cases", __name__, url_prefix="/api")
 
-LIMITS = {"devices": 40, "interfaces": 16, "routes": 100, "acl_lines": 500}
+LIMITS = {"devices": 40, "interfaces": 16, "routes": 100, "acl_lines": 500, "rules": 500}
 CLAIM_KINDS = ("ai", "self")
 CAUSE_LIMIT = 2000
 
@@ -47,6 +47,11 @@ def _limit_problem(network) -> str | None:
                 items = device.get(key) or []
                 if isinstance(items, list) and len(items) > LIMITS[key]:
                     return f"장비 하나의 {key}는 {LIMITS[key]}개까지입니다"
+            interfaces = device.get("interfaces")
+            if isinstance(interfaces, list):
+                for iface in interfaces:
+                    if isinstance(iface, dict) and isinstance(iface.get("rules_in"), list) and len(iface["rules_in"]) > LIMITS["rules"]:
+                        return f"인터페이스 하나의 rules_in은 {LIMITS['rules']}개까지입니다"
     acls = network.get("acls") or {}
     if isinstance(acls, dict) and sum(len(v) for v in acls.values() if isinstance(v, list)) > LIMITS["acl_lines"]:
         return f"ACL 줄은 모두 합쳐 {LIMITS['acl_lines']}줄까지입니다"

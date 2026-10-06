@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 
 from .acl import Packet
 from .errors import Unsupported
+from .firewall import LIMITATION, evaluate
 from .model import Device, Interface, Network
 
 MAX_HOPS = 32
@@ -14,7 +15,7 @@ MAX_HOPS = 32
 @dataclass(frozen=True)
 class Hop:
     device: str
-    step: str  # send | acl_in | route | acl_out | deliver
+    step: str  # send | acl_in | firewall_in | state | route | acl_out | deliver
     result: str  # ok | drop
     detail: str
     in_if: str | None = None
@@ -30,6 +31,7 @@ class Trace:
     delivered: bool
     hops: list[Hop] = field(default_factory=list)
     reason: str = ""
+    stateful_devices: set[str] = field(default_factory=set)
 
     @property
     def decisive(self) -> Hop | None:
@@ -97,7 +99,7 @@ def _neighbor(network: Network, out_if: Interface, next_ip) -> tuple[Interface |
     return None, f"같은 링크({out_if.network})에서 주소 {next_ip}의 주인 장비를 찾지 못했습니다"
 
 
-def trace(network: Network, pkt: Packet) -> Trace:
+def trace(network: Network, pkt: Packet, *, states: frozenset[str] = frozenset()) -> Trace:
     start = network.owner(pkt.src)
     result = Trace(delivered=False)
     device = network.devices[start.device]
@@ -132,6 +134,28 @@ def trace(network: Network, pkt: Packet) -> Trace:
                 next_ip, detail = device.gateway, f"다른 서브넷이라 기본 게이트웨이({device.gateway})에 보냄"
             result.hops.append(Hop(device.id, "send", "ok", detail, out_if=out_if.name))
         else:
+            if device.stateful:
+                options = network.firewall_unsupported + device.firewall_unsupported + (in_if.firewall_unsupported if in_if else ())
+                if options:
+                    raise Unsupported(f"{device.id}: 지원하지 않는 상태 추적 옵션: {', '.join(options)}. {LIMITATION}")
+                if device.id not in states and pkt.proto == "icmp" and pkt.icmp_type != 8:
+                    raise Unsupported(f"{device.id}: 기존 연결 상태에 기댄 ICMP 응답·오류 패킷은 계산하지 않습니다. {LIMITATION}")
+                if in_if is not None:
+                    if device.id in states:
+                        hop = Hop(device.id, "state", "ok", f"{in_if.name} in: 이 session의 정방향 상태로 허용됨. {LIMITATION}", in_if=in_if.name)
+                    else:
+                        action, rule = evaluate(in_if.rules_in, in_if.default_in, pkt, f"{device.id} {in_if.name} in")
+                        verb = "허용" if action == "pass" else "차단"
+                        detail = (f"{rule.seq}번 규칙에서 {verb}" if rule else f"사용자가 적은 기본 정책({in_if.default_in})으로 {verb}")
+                        hop = Hop(device.id, "firewall_in", "ok" if action == "pass" else "drop",
+                                  f"{in_if.name} in: {detail}. {LIMITATION}", in_if=in_if.name,
+                                  rule=rule.raw if rule else None, rule_seq=rule.seq if rule else None,
+                                  rule_line=rule.line if rule else None)
+                    result.hops.append(hop)
+                    if hop.result == "drop":
+                        result.reason = hop.detail
+                        return result
+                    result.stateful_devices.add(device.id)
             if in_if is not None and in_if.acl_in is not None:
                 hop = _acl_step(network, device, in_if, "in", pkt)
                 result.hops.append(hop)

@@ -18,8 +18,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 현재 작업 상태
 - 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
-- 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D5 확정) → Codex Sol 구현.**
-- 다음 차례: **Codex Sol(구현).**
+- 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D5 확정) → Codex 구현·테스트 완료 → Claude 리뷰 대기.**
+- 구현 브랜치: `codex/pfsense-stateful`(기준 `origin/main` `640a747`).
+- 다음 차례: **Claude(리뷰).** 아래 완료 조건·테스트 출력·diff를 독립 확인하고 PR 코멘트 첫 줄은 `[Claude]`로 남긴다. 병합은 사용자 결정이다.
+
+구현 시 지시(보존):
   1. `origin/main`에서 `codex/pfsense-stateful` 브랜치를 만들어 작업한다(이 문서 PR #42가 먼저 병합돼 있어야 한다).
   2. 아래 「작업 정의」의 **변경 범위 안에서만** 구현하고 테스트를 쓴다. **`web/`는 0줄이다**(D2: 화면은 후속 과제).
   3. **D4가 이번 과제의 핵심이다.** 일치 규칙이 없고 기본 정책도 모르면 `DENY`가 아니라 `UNSUPPORTED`다. 차단으로 단정하지 않는다.
@@ -35,7 +38,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 | 권한 | 로그인 없이 `/api/cases`·`/api/dashboard` 모두 401. `X-NetProof` 없으면 403 |
 | 미확인 | 원인 Top 5 화면은 검토자 계정이 필요해 **운영에서는 아직 못 봤다**(임시 QA 서버에서는 확인함) |
 
-## 작업 정의 — pfSense 상태 추적 계산 1단계 (이슈 #40, 설계: Claude Opus 5, 2026-10-06, 승인 대기)
+## 작업 정의 — pfSense 상태 추적 계산 1단계 (이슈 #40, 설계: Claude Opus 5, 2026-10-06, 사용자 승인 완료)
 
 ### 목표
 수업에서 쓰는 **pfSense를 NetProof가 계산할 수 있게 엔진에 상태 추적(stateful)을 더한다.** 1단계는 **계산 확장만** 하고, 실습 연동(증거 기록·규칙 변경 전후 대조 흐름)은 2단계로 둔다.
@@ -142,7 +145,58 @@ ACL 단계가 아예 없다. 이슈 #40의 「추가 확인할 경계 3」(같�
 11. `docs/semantics.md` §14, `plan.md` ADR-016, `HANDOFF.md`, `decisions/ai-work-log.md` 갱신. 문서에 **실제 pfSense와 대조하지 않았다**를 적는다(D5).
 
 ### 테스트 결과 (Codex가 채운다 — 실제 실행 출력만)
-- 
+- 구현: `Device.stateful`·인터페이스 구조화 규칙/기본 정책, 기존 Rule·PortMatch·decimal_int를 쓰는 firewall 모듈, 정방향 통과 장비의 session 복귀 규칙만 건너뛰는 trace·verify. 기존 반환 키·ACL 동작 유지. 모델 밖 옵션과 기본 정책 미확인은 UNSUPPORTED, 형태·혼용은 INVALID.
+- 서버: 인터페이스당 `rules_in` 최대 500개(기존 ACL 상한과 같은 값). 판정 계산 없음. web/·cases/·기존 expect·DB·배포 구성 변경 없음.
+- 직접 실행한 전체 결과:
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+463 passed, 2 xfailed in 4.48s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+149 passed, 1 skipped in 24.67s
+
+npm --prefix web test
+Test Files  32 passed (32)
+     Tests  440 passed (440)
+  Duration  2.24s (transform 62%, import 21%, tests 13%, worker 4%)
+```
+
+- 엔진 신규 81건(기존 382건 유지). targeted 실행 `python -m pytest -q tests/test_firewall.py tests/test_properties.py`: `86 passed in 1.32s`. 첫 실행은 pytest가 거대한 정수 매개변수의 ID를 문자열로 바꾸다 수집 오류 1건. 해당 매개변수에 명시적 ID를 붙이고 재실행해 통과했다. 기존 숫자 변환 한도를 해제하지 않았다.
+- 무작위 대조: 저장소 밖 점검 스크립트가 `git show 640a747:engine/src/netproof_engine/*.py`로 이전 모듈을 OS 임시 폴더에 복원하고 별도 패키지로 로드했다. 합성 사례 3개에서 seed `20261006`으로 프로토콜·모드·포트·ACL·바인딩·경로·잘못된 게이트웨이를 바꾼 3,500건의 **전체 verify 사전**을 대조했다(판정만 비교하지 않음). 임시 이전 모듈 폴더 정리 완료.
+
+```text
+baseline=640a747, seed=20261006, full_verdict_comparisons=3500, mismatches=0
+{'DENY': 1732, 'INVALID': 282, 'PASS': 381, 'UNSUPPORTED': 1105}
+```
+
+- 영구 속성 테스트는 stateful 생략과 명시적 false의 전체 반환 사전 동일성을 Hypothesis 150회로 고정했다.
+- 로컬 실제 HTTP 확인: `scripts/qa_local.py`의 `seeded_qa()`로 OS 임시 SQLite를 만들고 `make_server(127.0.0.1, 0, ..., threaded=True)`를 띄워 익명 `/api/verify`에 요청했다. `main()`의 비밀번호 출력은 호출하지 않았다. 테스트 환경에서 DATABASE_URL·보안 로그 환경 변수를 제거했고, 비밀번호는 출력·기록하지 않았다. 서버 종료·임시 DB 정리 완료.
+
+```text
+session_pass: HTTP 200, PASS, 정방향 · 복귀 방향 모두 통과
+forward: R1 g0/0 in, firewall_in, rule_seq=1, rule_line=1
+         1번 규칙에서 허용. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
+return:  R1 g0/1 in, state
+         이 session의 정방향 상태로 허용됨. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
+unknown_default: HTTP 200, UNSUPPORTED
+         R1 g0/0 in: 일치 규칙이 없고 기본·자동 규칙을 모릅니다(default_in 미확인).
+explicit_block: HTTP 200, DENY
+         정방향: g0/0 in: 사용자가 적은 기본 정책(block)으로 차단.
+return_only_block: stateless=DENY, stateful=PASS
+synthetic-02 with stateful: DENY, return reason=경로 없음, decisive=R2/route
+rules_in=500: HTTP 200
+rules_in=501: HTTP 422
+malformed rules_in: HTTP 200, INVALID
+QA server stopped; temporary SQLite cleaned; no credentials printed
+```
+
+- API의 기존 반환 키 7개와 추가 comparison 유지도 확인했다. 규칙 원문은 구조화 JSON이며 근거에 적용 번호·인터페이스·방향이 담긴다. UNSUPPORTED는 기존 verify와 같이 traces/decisive가 null이다.
+- 합성 회귀: 첫 일치·주소/프로토콜/포트·미지원 옵션·큰 숫자·입력 형태·ACL 혼용·비대칭 장비·같은 서브넷 직접 통신·요청 간 상태 미보존·복귀 경로 없음.
+- ADR-016과 의미론 §14에 **실제 pfSense 장비와 대조하지 않았다**를 명시했다. D5·실습 연동·화면·사람 수동 QA는 후속이며 완료로 바꾸지 않았다. 화면 변경이 없어 web build는 실행하지 않았다.
+- `git diff --check` 오류 없음. 제품 변경은 승인 파일 안에만 있고 web/·cases/ 변경 0줄. 사용자 제공 이미지 2개는 추적하지 않고 보존했다.
+
+Codex (GPT-6)
 
 ### 리뷰 기록 (Claude가 채운다)
 - 
@@ -276,7 +330,7 @@ ACL 단계가 아예 없다. 이슈 #40의 「추가 확인할 경계 3」(같�
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex Sol:** 위 「다음 차례」 1~4. 결정은 「사용자 결정」 표가 기준이다. 차단으로 단정하지 말고 모르면 판정 불가(D4).
+- **Claude(리뷰):** pfSense 1단계 구현과 위 완료 조건을 독립 확인한다. 결정은 「사용자 결정」 표가 기준이며, 모르면 판정 불가(D4). Codex의 API·합성 테스트는 실제 장비 검증이 아니다.
 - **사용자:** D5(실습 사실)를 확인해 주면 2단계(실습 연동)를 설계한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴다. 원인 태그 규칙은 `docs/semantics.md` §13이 기준이고 바꾸려면 먼저 요청한다. 원인은 판정이 아니다.
 - **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
@@ -315,7 +369,7 @@ ACL 단계가 아예 없다. 이슈 #40의 「추가 확인할 경계 3」(같�
 - 주 작업 폴더(`C:/gov/project/skt aleph/netproof`)는 이제 `main`이다. 2026-10-05까지 `codex/acl-suggest`에 머물러 있어서 공유 venv가 옛 엔진을 불러왔다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 과제(pfSense 상태 추적 1단계) 설계: Claude Opus 5(사용자 승인 2026-10-06). 구현: Codex Sol. 직전 과제(원인 태그·통계) 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), 2026-10-06 병합. 결정·병합: 사용자.
+현재 과제(pfSense 상태 추적 1단계) 설계: Claude Opus 5(사용자 승인 2026-10-06). 구현: Codex (GPT-6), 구현·테스트 완료. 리뷰: Claude 대기. 직전 과제(원인 태그·통계) 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), 2026-10-06 병합. 결정·병합: 사용자.
 이전 배포 작업: 단계 안내·DB 준비 스크립트·공개 주소 점검·문서 Claude (Claude Opus 5.5). 가입·SQL 실행·Vercel 입력·병합: 사용자.
 
 ## 프로젝트 소개·회고 문서 (2026-10-06)

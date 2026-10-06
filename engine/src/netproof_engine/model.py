@@ -5,8 +5,9 @@ from __future__ import annotations
 import ipaddress
 from dataclasses import dataclass, field
 
-from .acl import Acl, parse_acl
+from .acl import Acl, Rule, UnreadLine, parse_acl
 from .errors import Invalid
+from .firewall import parse_rules
 
 KINDS = ("host", "router")
 
@@ -18,6 +19,9 @@ class Interface:
     ip: ipaddress.IPv4Interface
     acl_in: str | None = None
     acl_out: str | None = None
+    rules_in: tuple[Rule | UnreadLine, ...] = ()
+    default_in: str = "unknown"
+    firewall_unsupported: tuple[str, ...] = ()
 
     @property
     def network(self) -> ipaddress.IPv4Network:
@@ -43,6 +47,8 @@ class Device:
     interfaces: list[Interface] = field(default_factory=list)
     routes: list[Route] = field(default_factory=list)
     gateway: ipaddress.IPv4Address | None = None
+    stateful: bool = False
+    firewall_unsupported: tuple[str, ...] = ()
 
     def owns(self, address: ipaddress.IPv4Address) -> bool:
         return any(iface.ip.ip == address for iface in self.interfaces)
@@ -55,6 +61,7 @@ class Device:
 class Network:
     devices: dict[str, Device]
     acls: dict[str, Acl]
+    firewall_unsupported: tuple[str, ...] = ()
 
     def all_interfaces(self) -> list[Interface]:
         return [iface for device in self.devices.values() for iface in device.interfaces]
@@ -86,9 +93,23 @@ def _check_shape(data) -> None:
     ):
         raise Invalid(["acls는 {이름: [규칙 문자열, …]} 형태여야 합니다"])
     for device in data.get("devices") or []:
+        if "stateful" in device and not isinstance(device["stateful"], bool):
+            raise Invalid([f"{device.get('id', '?')}: stateful은 불리언이어야 합니다"])
+        if device.get("stateful") and device.get("kind") != "router":
+            raise Invalid(["stateful은 router 장비에만 지정할 수 있습니다"])
         for key in ("interfaces", "routes"):
             if not is_list_of_dicts(device.get(key) or []):
                 raise Invalid([f"{device.get('id', '?')}: {key} 항목은 객체의 목록이어야 합니다"])
+        for iface in device.get("interfaces") or []:
+            structured = "rules_in" in iface or "default_in" in iface
+            if structured and not device.get("stateful", False):
+                raise Invalid(["rules_in·default_in은 stateful: true 장비에만 지정할 수 있습니다"])
+            if device.get("stateful") and ("acl_in" in iface or "acl_out" in iface):
+                raise Invalid(["상태 추적 장비의 구조화 규칙과 acl_in·acl_out을 섞을 수 없습니다"])
+            if "rules_in" in iface and not is_list_of_dicts(iface["rules_in"]):
+                raise Invalid(["rules_in은 규칙 객체의 목록이어야 합니다"])
+            if "default_in" in iface and iface["default_in"] not in ("pass", "block", "unknown"):
+                raise Invalid(["default_in은 pass·block·unknown만 됩니다"])
 
 
 def load(data: dict) -> Network:
@@ -110,7 +131,11 @@ def load(data: dict) -> Network:
         if kind not in KINDS:
             problems.append(f"{device_id}: 종류는 host·router만 됩니다('{kind}')")
             continue
-        device = Device(device_id, kind)
+        device = Device(device_id, kind, stateful=raw_device.get("stateful", False))
+        if device.stateful:
+            device.firewall_unsupported = tuple(sorted(set(raw_device) - {"id", "kind", "stateful", "interfaces", "routes"}))
+            for route in raw_device.get("routes") or []:
+                device.firewall_unsupported += tuple(f"route.{key}" for key in sorted(set(route) - {"prefix", "next_hop", "out_if"}))
         for raw_if in raw_device.get("interfaces") or []:
             name = str(raw_if.get("name", "")).strip() or "eth0"
             where = f"{device_id} {name}"
@@ -137,6 +162,9 @@ def load(data: dict) -> Network:
                 ip,
                 str(raw_if["acl_in"]) if raw_if.get("acl_in") is not None else None,
                 str(raw_if["acl_out"]) if raw_if.get("acl_out") is not None else None,
+                parse_rules(raw_if.get("rules_in", []), where) if device.stateful else (),
+                raw_if.get("default_in", "unknown") if device.stateful else "unknown",
+                tuple(sorted(set(raw_if) - {"name", "ip", "rules_in", "default_in"})) if device.stateful else (),
             )
             for other in device.interfaces:
                 if other.name == name:
@@ -188,4 +216,5 @@ def load(data: dict) -> Network:
 
     if problems:
         raise Invalid(problems)
-    return Network(devices, acls)
+    options = tuple(sorted(set(data) - {"devices", "acls"})) if any(d.stateful for d in devices.values()) else ()
+    return Network(devices, acls, options)
