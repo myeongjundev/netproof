@@ -2,6 +2,7 @@
 
 import ipaddress
 import random
+import copy
 
 import pytest
 from hypothesis import given, settings
@@ -107,3 +108,16 @@ def test_route_order_does_not_change_verdict(entries, rnd):
     # 가장 긴 접두사의 다음 홉이 RA면 PASS, RB면 RB가 목적지를 몰라 DENY
     longest = max(entries)[1]
     assert baseline["result"] == ("PASS" if longest == "192.168.1.2" else "DENY")
+
+
+@settings(max_examples=150)
+@given(RULE_LINES, st.sampled_from(["tcp", "udp", "icmp"]), ports, st.sampled_from(["session", "one-way"]))
+def test_absent_and_false_stateful_have_identical_full_verdict(lines, proto, port, mode):
+    net = _chain_with_routes([{"prefix": "10.30.30.0/24", "next_hop": "192.168.1.2"}])
+    net["acls"] = {"A": lines}
+    net["devices"][1]["interfaces"][0]["acl_in"] = "A"
+    flow = {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": proto, "dst_port": port, "mode": mode}
+    explicit = copy.deepcopy(net)
+    for item in explicit["devices"]:
+        item["stateful"] = False
+    assert verify(net, flow) == verify(explicit, flow)

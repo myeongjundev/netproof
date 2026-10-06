@@ -85,7 +85,7 @@ def verify(network_data: dict, flow: dict) -> dict:
         forward = trace(network, pkt)
         backward = None
         if forward.delivered and mode == "session":
-            backward = trace(network, _reverse(pkt))
+            backward = trace(network, _reverse(pkt), states=frozenset(forward.stateful_devices), returning=True)
     except Invalid as error:
         return {"result": "INVALID", "reason": "입력이 성립하지 않습니다", "problems": error.problems,
                 "forward": None, "return": None, "decisive": None}
