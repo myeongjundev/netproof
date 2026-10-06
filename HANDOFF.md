@@ -386,3 +386,32 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 현재 과제(원인 태그·통계) 설계: Claude Opus 5(승인 2026-10-06). 구현: Codex (GPT-6). 리뷰: Claude 대기. 결정·병합: 사용자.
 이전 배포 작업: 단계 안내·DB 준비 스크립트·공개 주소 점검·문서 Claude (Claude Opus 5.5). 가입·SQL 실행·Vercel 입력·병합: 사용자.
+
+## 프로젝트 소개·회고 문서 (2026-10-06)
+
+- 사용자 요청: 대화에서 정리한 NetProof 소개와 다섯 단계 회고를 Markdown으로 저장한다. 이번 문서 작업은 사용자가 직접 요청한 별도 범위다.
+- 브랜치: `codex/project-retrospective`, 기준 `main` `329e74c`.
+- 결과물: [프로젝트 소개와 개발 과정 회고](docs/netproof-retrospective-2026-10-06.md).
+- 내용: 문제 발견 → 접근 → 시행착오 → 피드백 반영 → 배운 점, 내부 네트워크 수업 구성, 구현 상태와 pfSense 계획 구분, 설명용 짧은 소개와 근거 링크.
+- 최신화: GitHub에서 PR #41의 병합(`2026-10-06T03:22:38Z`)을 확인해 회고에 반영했다. 공개 사이트의 신규 기능 반영은 이번 작업에서 확인하지 않았다. 위 원인 태그 과제 기록은 별도 이력으로 유지한다.
+- 제품 코드·화면 변경 없음. pfSense 설계나 구현을 수행하지 않았고, 실제 실습·사람의 수동 QA를 완료로 바꾸지 않았다.
+- 다음 단계: 문서 PR 리뷰와 사용자 병합 결정.
+
+실제 실행한 테스트 출력(2026-10-06):
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+382 passed, 2 xfailed in 4.45s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+149 passed, 1 skipped in 26.65s
+
+npm --prefix web test
+Test Files  32 passed (32)
+     Tests  440 passed (440)
+  Duration  2.52s (transform 52%, import 30%, tests 10%, worker 8%)
+```
+
+`git diff --check` 오류 없음. 화면을 변경하지 않아 web build는 실행하지 않았다.
+
+Codex (GPT-6)
