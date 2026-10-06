@@ -196,16 +196,23 @@ def test_missing_return_route_stays_deny():
     assert any(h["step"] == "state" for h in result["return"]["hops"])
 
 
-@pytest.mark.parametrize("default, expected", [(None, "UNSUPPORTED"), ("block", "DENY"), ("pass", "PASS")])
-def test_asymmetric_return_firewall_does_not_inherit_state(default, expected):
+@pytest.mark.parametrize("proto", ["tcp", "udp", "icmp"])
+@pytest.mark.parametrize("allow_rule", [False, True])
+@pytest.mark.parametrize("default, expected", [(None, "UNSUPPORTED"), ("block", "UNSUPPORTED"), ("pass", "UNSUPPORTED")])
+def test_asymmetric_return_firewall_does_not_inherit_state(default, expected, proto, allow_rule):
     net = stateful_network()
+    interface(net, "R1", "g0/0")["rules_in"] = [{"action": "pass", "proto": "ip", "src": "any", "dst": "any"}]
     device(net, "SRV")["gateway"] = "10.20.20.2"
     net["devices"].append({"id": "R2", "kind": "router", "stateful": True, "interfaces": [
         {"name": "lan", "ip": "10.20.20.2/24"}, {"name": "src", "ip": "10.10.10.2/24"}]})
     if default:
         interface(net, "R2", "lan")["default_in"] = default
-    result = verify(net, FLOW)
+    if allow_rule:
+        interface(net, "R2", "lan")["rules_in"] = [{"action": "pass", "proto": "ip", "src": "any", "dst": "any"}]
+    result = verify(net, dict(FLOW, proto=proto))
     assert result["result"] == expected
+    assert "R2: 복귀 패킷이 상태 없는 상태 추적 장비" in result["reason"]
+    assert "기존 연결 상태를 모르므로 판정하지 않습니다" in result["reason"]
     if result["return"]:
         assert not any(h["step"] == "state" for h in result["return"]["hops"])
 
@@ -236,4 +243,9 @@ def test_router_interface_destination_and_source():
     net = stateful_network()
     interface(net, "R1", "g0/0")["rules_in"] = [{"action": "pass", "proto": "ip", "src": "any", "dst": "any"}]
     assert verify(net, dict(FLOW, dst="10.20.20.1"))["result"] == "PASS"
-    assert verify(net, dict(FLOW, src="10.10.10.1", dst="10.20.20.5"))["result"] == "DENY"
+    # 장비 자체에서 시작한 정방향은 인바운드 허용 상태를 만들지 않는다.
+    originated = dict(FLOW, src="10.10.10.1", dst="10.20.20.5")
+    result = verify(net, originated)
+    assert result["result"] == "UNSUPPORTED"
+    assert "R1: 복귀 패킷이 상태 없는 상태 추적 장비" in result["reason"]
+    assert verify(net, dict(originated, mode="one-way"))["result"] == "PASS"

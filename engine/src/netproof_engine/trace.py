@@ -99,7 +99,7 @@ def _neighbor(network: Network, out_if: Interface, next_ip) -> tuple[Interface |
     return None, f"같은 링크({out_if.network})에서 주소 {next_ip}의 주인 장비를 찾지 못했습니다"
 
 
-def trace(network: Network, pkt: Packet, *, states: frozenset[str] = frozenset()) -> Trace:
+def trace(network: Network, pkt: Packet, *, states: frozenset[str] = frozenset(), returning: bool = False) -> Trace:
     start = network.owner(pkt.src)
     result = Trace(delivered=False)
     device = network.devices[start.device]
@@ -135,6 +135,9 @@ def trace(network: Network, pkt: Packet, *, states: frozenset[str] = frozenset()
             result.hops.append(Hop(device.id, "send", "ok", detail, out_if=out_if.name))
         else:
             if device.stateful:
+                if returning and device.id not in states:
+                    raise Unsupported(f"{device.id}: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. "
+                                      f"기존 연결 상태를 모르므로 판정하지 않습니다. {LIMITATION}")
                 options = network.firewall_unsupported + device.firewall_unsupported + (in_if.firewall_unsupported if in_if else ())
                 if options:
                     raise Unsupported(f"{device.id}: 지원하지 않는 상태 추적 옵션: {', '.join(options)}. {LIMITATION}")
