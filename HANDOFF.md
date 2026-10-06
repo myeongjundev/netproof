@@ -17,208 +17,135 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **원인 태그·통계("가장 많이 틀린 원인 Top 5")** — 로드맵 「F5·F6 다음 기능 순서」 4번, 순환 고리 ⑤. 배포가 끝나서 다음 후보였다.
-- 브랜치: `codex/cause-tags`(origin/main `88bddf2`에서 만듦, Orca worktree). 승인 범위 안 구현·테스트·문서 갱신 완료.
-- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현 → Claude 리뷰(R1·R2) → Codex 수정 → Claude 재리뷰 PASS(`aa29f2a`) → 사용자 최종 확인·병합 대기.**
-- 다음 차례: **사용자(최종 확인·병합, PROMPTS 5단계).**
-- PR: [#41 원인 태그와 불일치 원인 Top 5](https://github.com/myeongjundev/netproof/pull/41) — 구현 `5ca7561`, 수정 `aa29f2a`. 리뷰 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111), 재리뷰 PASS [#issuecomment-6008655698](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008655698). 병합하지 않았다.
-  1. 브랜치를 받아 테스트와 완료 조건 명령을 **직접** 실행해 기대 출력과 비교한다(아래 「테스트 결과」·「리뷰 기록」).
-  2. PR diff에 비밀값이 없는지 본다. 두 LLM이 "동의"한 항목도 직접 실행 결과로 확인한다.
-  3. 병합(`gh pr merge 41 --merge`). `main`에 병합하면 바로 운영에 나가므로, 병합 뒤 공개 주소에서 대시보드와 사례 상세를 한 번 본다.
-- 구현 메모: 엔진 순수 함수 `cause`와 9개 태그, 검토자 대시보드 Top 5·복귀 수·제외 수, 상세 원인 표시. DB 표·열·판정 경로·사례 JSON·verify API·사례 목록은 변경하지 않았다.
-- 집계 분모: 전체 불일치 `disagree_total` + 세 제외 = 전체 사례 수. Top 5 + 그 외 + 분류 못 함 = 실제 집계 분모 `denominator`. 상한 초과 때는 최근 2,000건 비율과 전체 불일치 수를 구분해 보인다(아래 테스트·semantics §13).
-- QA: 기본 `seeded_qa()` 4건은 유지하고 CLI에서 `seed_cause_example()`로 복귀 불일치 1건을 더해 총 5건이다. 검증은 허용된 `server/tests/test_dashboard.py`에 추가했으며 `test_qa_local.py` 변경·범위 확장은 하지 않았다.
-- 리뷰 반영: 상세의 `CaseCalculation`이 기존 `ResultPanel.title` 입력만 사용해 `판정 · 원인 태그(통계): …`를 표시한다. 판정 불가에는 제목 `판정`만 유지한다. 태그에 방향을 중복하지 않는다. SQL은 사용되는 verdict만 선택하고, 도달하지 않는 분기·영어 주석·빈 표도 정리했다.
-- 배포 후속(사람 대기, 이번 과제와 별개): ① 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계), 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계) ② Vercel `DATABASE_URL`을 **Production에만** 두기 ③ 검토자 지정 뒤 임시 비밀 파일 삭제. 공개 주소는 **https://netproof-vert.vercel.app**(`main` `1fef9b6`, 2026-10-06 배포). 상세는 아래 「배포 구성」·「공개 주소 점검」·「비밀값 처리」.
+- 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
+- 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D5 확정) → Codex Sol 구현.**
+- 다음 차례: **Codex Sol(구현).**
+  1. `origin/main`에서 `codex/pfsense-stateful` 브랜치를 만들어 작업한다(이 문서 PR #42가 먼저 병합돼 있어야 한다).
+  2. 아래 「작업 정의」의 **변경 범위 안에서만** 구현하고 테스트를 쓴다. **`web/`는 0줄이다**(D2: 화면은 후속 과제).
+  3. **D4가 이번 과제의 핵심이다.** 일치 규칙이 없고 기본 정책도 모르면 `DENY`가 아니라 `UNSUPPORTED`다. 차단으로 단정하지 않는다.
+  4. 「완료 조건」의 명령을 전부 직접 실행해 출력을 「테스트 결과」에 붙이고, 「다음 차례」를 Claude(리뷰)로 바꿔 커밋·푸시한 뒤 PR을 연다.
+- 로드맵과의 관계: 「F5·F6 다음 기능 순서」 5~8번보다 이 과제를 **먼저** 하는 셈이다. 수업에서 실제로 쓰는 장비이므로 사용자가 순서를 바꿔도 된다.
+- 배포 후속(사람 대기, 이번 과제와 별개): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5 포함)를 운영에서 볼 수 없다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
 
-## 작업 정의 — 원인 태그·통계 (설계: Claude Opus 5 · **사용자 승인 2026-10-06**)
+### 병합 뒤 운영 확인 (Claude, 로그인 없이, 2026-10-06)
+| 항목 | 결과 |
+| --- | --- |
+| 번들 | 공개 주소의 `assets/index-CsAMlWl2.js`가 리뷰 때 직접 빌드한 파일과 같다(배포 교체 확인) |
+| 판정 API | `POST /api/verify`(사례 01 + AI 답 PASS) → `result=DENY`, `comparison=DISAGREE` |
+| 권한 | 로그인 없이 `/api/cases`·`/api/dashboard` 모두 401. `X-NetProof` 없으면 403 |
+| 미확인 | 원인 Top 5 화면은 검토자 계정이 필요해 **운영에서는 아직 못 봤다**(임시 QA 서버에서는 확인함) |
+
+## 작업 정의 — pfSense 상태 추적 계산 1단계 (이슈 #40, 설계: Claude Opus 5, 2026-10-06, 승인 대기)
 
 ### 목표
-저장된 사례에서 **받은 답이 NetProof 판정과 어긋난 사례의 원인을 엔진 근거로 분류**해, 대시보드에 「가장 많이 틀린 원인 Top 5」를 건수·비율로 보인다. 사례 상세에는 그 사례의 원인 태그 한 줄을 보인다.
+수업에서 쓰는 **pfSense를 NetProof가 계산할 수 있게 엔진에 상태 추적(stateful)을 더한다.** 1단계는 **계산 확장만** 하고, 실습 연동(증거 기록·규칙 변경 전후 대조 흐름)은 2단계로 둔다.
 
-- 원인은 **새 판단이 아니다.** 이미 저장된 판정 JSON의 결정적 단계(`verdict.decisive`의 `step`·`rule_seq`)와 막힌 방향의 사유(`forward.reason`/`return.reason`)를 **묶어 이름을 붙이는 것**이다. PASS/DENY·`comparison`을 만들거나 바꾸지 않는다(ADR-001, 집계 ≠ 판정 — PR #17 합의).
-- 분류할 수 없으면 **`분류 못 함`으로 둔다.** 그럴듯한 원인을 추측하지 않는다(ACL 점검의 "점검 못 함"과 같은 규칙).
-- 앱 안 LLM은 쓰지 않는다(ADR-002). 정답·채점·점수·완료 표시를 만들지 않고 `cases/*.json`의 `expect`를 읽지도 바꾸지도 않는다(AGENTS.md).
+- 핵심 의미론: 상태 추적은 **복귀 패킷의 규칙 평가만 건너뛴다. 경로 계산은 건너뛰지 않는다.** 복귀 경로가 없으면 상태가 있어도 DENY다(`synthetic-02`가 그대로 DENY여야 한다).
+- pfSense 규칙을 기존 무상태 ACL로 치환해 "pfSense를 지원한다"고 적지 않는다(이슈 #40 요구사항 2). 지원하지 않는 조건은 `UNSUPPORTED`와 이유로 멈춘다.
+- 최종 PASS/DENY는 `engine/`만 정한다(ADR-001). 앱 안 LLM 없음(ADR-002). 사례 정답·채점을 만들지 않고 기존 `cases/*.json`·`expect`를 바꾸지 않는다.
 
-### 원인 태그 (엔진 근거에서 계산, D2 확정)
-| 코드 | 화면 이름 | 엔진 근거 |
-|---|---|---|
-| `acl_rule` | ACL 규칙에서 차단 | `decisive.step`이 `acl_in`·`acl_out`이고 `rule_seq`가 있음 |
-| `acl_implicit` | ACL 암묵적 deny(일치 규칙 없음) | 같은 단계이고 `rule_seq`가 없음 |
-| `no_route` | 경로 없음 | 막힌 방향의 `reason`이 `경로 없음` |
-| `no_gateway` | 기본 게이트웨이 없음 | 같은 자리의 `기본 게이트웨이 없음` |
-| `no_next_hop` | 다음 홉 없음 | 같은 자리의 `다음 홉 없음` |
-| `host_no_forward` | 호스트가 전달하지 않음 | 같은 자리의 `호스트가 전달하지 않음` |
-| `routing_loop` | 라우팅 루프 | 같은 자리의 `라우팅 루프` |
-| `no_block` | 막는 곳 없음(통과) | `result`가 `PASS`(막힌다고 한 답이 틀린 경우) |
-| `other` | 분류 못 함 | 위 어느 것도 아님. 옛 사례·형태가 다른 JSON 포함 |
+### 왜 1·2단계로 나누나
+1. 실습 토폴로지(pfSense)를 **표현할 수 없으면 실습 사례를 저장할 수도 없다.** 계산 확장이 실습 연동의 선행 조건이다.
+2. 2단계 설계에 필요한 **실습 사실이 아직 미확인**이다(아래 D5). 1단계는 그 사실에 의존하지 않도록 범위를 잡았다.
+3. 저장소 규칙상 과제 하나 = 설계 → 구현 → 리뷰 → 병합 한 바퀴다.
 
-- **방향**은 태그를 쪼개지 않고 별도 값으로 둔다. `verdict.return`이 있고 `delivered`가 거짓이면 `복귀 방향`, 아니면 `정방향`. Top 5의 각 행에 `복귀 N건`을 함께 적는다(세션 응답이 막혀 DENY가 되는 자리가 수업에서 가장 잘 틀리는 곳이라 수를 잃지 않는다).
-- `UNSUPPORTED`·`INVALID`는 태그가 아니라 **분모 밖**(`not_comparable`)이다.
-- 화면 문구는 **엔진 문장을 그대로 베끼지 않고** 표의 이름만 쓴다. 엔진 문장이 바뀌어도 조용히 `other`로 새지 않도록, 엔진 테스트가 태그마다 실제 토폴로지를 만들어 왕복 확인한다(완료 조건 3).
+### 이미 되는 것 (코드 0줄 — 확인함)
+같은 서브넷 직접 통신은 **지금도 방화벽을 지나지 않는다.** 모든 것을 막는 pfSense를 같은 링크에 두고 `172.16.50.2 → 172.16.50.10`을 판정한 실제 실행 결과:
 
-### 집계 규칙 (D3 확정)
-- 분모: `comparison = DISAGREE`인 사례(받은 답 ≠ NetProof 판정). AI 답과 사람 예상을 **한 분모**로 세고 `claim.kind`별 건수를 한 줄로 덧붙인다.
-- 제외(각각 수를 화면에 적는다): `AGREE`, `NO_CLAIM`(답 없음), `NOT_COMPARABLE`(`UNSUPPORTED`·`INVALID`). **분모 + 세 제외 = 전체 사례 수**여야 한다(서버 테스트 불변식).
-- 정렬: 건수 내림차순, 같으면 위 표 순서(결정적). 6위 이하는 `그 외 N건` 한 줄로 합친다. 분모 0이면 비율은 `—`.
-- **오탐·미탐(혼동 행렬)과 다른 축이다.** `DISAGREE`에서 오탐·미탐을 유도하지 않고, 실제 결과·검토 확인을 분모 조건으로 쓰지 않는다(§10 규칙 유지).
-- 성능: `DISAGREE` 행의 `verdict`만 읽어 Python에서 센다(리뷰 비차단 참고 1 반영: 쓰지 않는 id·result 선택 제거). 상한 2,000건을 두고 넘으면 최근 2,000건만 세고 화면에 **최근 2,000건만 집계**라고 적는다(조용히 자르지 않는다).
+```
+PASS | 정방향 · 복귀 방향 모두 통과
+홉: [('BOARD', 'send', 'ok'), ('GRAYLOG', 'deliver', 'ok')]
+```
 
-### 변경 범위 (만질 파일)
+ACL 단계가 아예 없다. 이슈 #40의 「추가 확인할 경계 3」(같은 서브넷·L2 통신을 경계 방화벽에서 차단된 것으로 잘못 계산하지 않기)은 **이미 충족**이며, 1단계에서는 이 동작을 회귀 테스트로 고정만 한다.
+
+### 1단계 지원 범위 (D3·D4 확정)
+| 항목 | 1단계에서 하는 것 |
+|---|---|
+| 장비 | `kind: "router"`에 `stateful: true` 한 칸(장비 단위 = pfSense 한 대). 없으면 지금과 **똑같이** 무상태 ACL |
+| 규칙 | 인터페이스의 **들어오는 방향**에서 위에서부터 **1차 일치**, `pass`·`block`, 프로토콜·출발지·목적지·포트 |
+| 일치 없음 | **차단으로 단정하지 않는다.** 사용자가 그 인터페이스의 기본 정책을 적었으면 그대로 계산하고, 안 적었으면 **UNSUPPORTED**(기본·자동 규칙을 모름) — D4 |
+| 입력 모양 | pfSense 화면과 1:1인 **구조화 필드**. 규칙 일치 계산은 기존 `acl.py`를 재사용하고 새 파서·새 숫자 변환을 만들지 않는다(이슈 #7·#9 재발 방지) |
+| 상태 | `mode: session`에서 정방향이 통과하면 복귀 패킷은 **그 장비에서** 규칙을 평가하지 않는다. `one-way`는 상태를 만들지 않는다 |
+| 경로 | 지금과 같다. **상태는 규칙만 건너뛰고 경로는 건너뛰지 않는다** |
+| 근거 표시 | 적용된 규칙 번호·인터페이스·방향, 복귀가 **상태로 허용됨**, 기본 정책을 **사용자가 적었다**는 사실을 결정 단계에 남긴다 |
+
+입력 모양(이 모양으로 고정한다. 섞어 쓰면 `INVALID`):
+
+```json
+{"id": "PFSENSE", "kind": "router", "stateful": true,
+ "interfaces": [{"name": "em1", "ip": "172.16.50.1/24",
+   "rules_in": [{"action": "pass", "proto": "tcp", "src": "172.31.195.0/24", "dst": "172.16.50.2", "dst_port": "5000"}],
+   "default_in": "block"}]}
+```
+
+- `rules_in`·`default_in`은 `stateful: true` 장비에서만 쓴다. 같은 인터페이스에 `acl_in`·`acl_out`과 함께 쓰면 `INVALID`(두 모델을 섞지 않는다).
+- `default_in`을 적지 않으면 `unknown`이고, 일치 규칙이 없을 때 `UNSUPPORTED`가 된다.
+- 복귀 패킷은 **정방향에서 지난 바로 그 상태 추적 장비에서만** 상태로 허용된다. 정방향이 지나지 않은 상태 추적 장비를 복귀가 지나면(비대칭 경로) 그 장비는 규칙을 평가하고, 기본 정책을 모르면 `UNSUPPORTED`다.
+
+**UNSUPPORTED로 멈추는 것(추측하지 않는다)**: 기본 정책 미기재, 모델에 없는 **기존 연결 상태**에 기댄 패킷(`one-way`의 응답 모양 — 예: ICMP `echo-reply`), NAT·포트 전달, floating·그룹 규칙, 스케줄·제한(limiter)·고급 옵션, `reply-to`, 자동 생성 규칙(기본 LAN 허용·anti-lockout 포함), pfSense 설정(XML) 가져오기, IPv6, VLAN·L2, IDS/IPS(Snort·Suricata) 탐지 결과.
+
+### 변경 범위 (만질 파일) — D2에 따라 **엔진 단계만**, 화면은 후속
 | 파일 | 변경 |
 |---|---|
-| `engine/src/netproof_engine/cause.py` (새 파일) | 순수 함수 `cause(verdict) -> {"tag", "direction"}`. 저장된 판정 JSON만 받고 네트워크를 다시 읽거나 판정하지 않는다. 키가 없어도 예외 없이 `other` |
-| `engine/src/netproof_engine/__init__.py` | `cause` 공개(+`__all__`) |
-| `engine/tests/test_cause.py` (새 파일) | 태그 9개 왕복(토폴로지 → `verify` → `cause`), 방향, 빈·깨진 JSON → `other` |
-| `server/netproof_api/cases.py` | `GET /api/dashboard` 응답에 `causes`(Top 5 행·`그 외`·`other`·제외 수·분모·상한 표시) 추가 |
-| `server/netproof_api/models.py` | `Case.detail()`에 `cause` 추가(엔진 함수 호출). `summary()`·목록 응답은 그대로 |
-| `server/tests/test_dashboard.py` | 집계·정렬·동률·제외 불변식·상한 표시 |
-| `web/src/causeView.ts` + `.test.ts` (새 파일) | 코드 → 화면 이름·비율 문구. **태그를 계산하지 않는다**(서버가 준 값만 그린다) |
-| `web/src/types.ts` | `CauseStat` 타입 |
-| `web/src/pages/DashboardPage.tsx` | 「가장 많이 틀린 원인」 섹션(표 + 제외 줄 + 축 설명 한 줄) |
-| `web/src/pages/CaseDetailPage.tsx` | NetProof 계산 블록에 `원인: …` 한 줄 |
-| `scripts/qa_local.py` | 합성 사례 1~2건 추가(원인이 둘 이상 보이게: `synthetic-02`에 AI 답 `PASS`) |
-| `docs/qa-manual.md` | 합성 사례 개수 문구 수정 + 대시보드 Top 5 확인 항목 |
-| `docs/semantics.md` | §13 「원인 태그」 신설(태그 표·방향·분모·제외·분류 못 함) |
+| `engine/src/netproof_engine/model.py` | `Device.stateful`, 인터페이스 `rules_in`·`default_in` 파싱과 형태 검증. 틀린 형태·섞어 쓴 입력은 지금처럼 `INVALID` |
+| `engine/src/netproof_engine/firewall.py` (새 파일) | 구조화 규칙 1차 일치. 주소·포트 일치는 `acl.py`의 기존 계산을 재사용한다 |
+| `engine/src/netproof_engine/trace.py` | 상태 추적 장비의 들어오는 방향 평가, **상태로 허용됨** 홉, 기본 정책 미기재·응답 모양 패킷은 `Unsupported` |
+| `engine/src/netproof_engine/verify.py` | `session` 복귀에서 정방향이 지난 상태 추적 장비의 규칙 평가를 건너뛴다. **반환 키는 바꾸지 않는다** |
+| `engine/tests/test_firewall.py` (새 파일) | 아래 완료 조건의 경계 전부 |
+| `engine/tests/test_properties.py` | `stateful` 없는 입력은 지금 결과와 **완전히 같다**는 무작위 대조 |
+| `server/netproof_api/cases.py` | `LIMITS`에 인터페이스당 `rules` 상한을 더한다(입력 크기 제한만. 판정 로직은 복제하지 않는다) |
+| `docs/semantics.md` | §14 「상태 추적 방화벽」 — 범위·기본 정책·상태가 하는 일과 **하지 않는 일**·UNSUPPORTED 목록·실제 장비 미대조 문장 |
+| `plan.md` | **ADR-016 신설**: 지원 범위 안의 제한된 상태 추적을 더하고 기존 무상태 ACL 동작은 유지한다. 전체 방화벽 모델·설정 파싱은 계속 제외. ADR-005·ADR-008과 Non-Goal을 갱신하되 이력은 남긴다 |
 | `HANDOFF.md`, `decisions/ai-work-log.md` | 상태·기록 |
 
 ### 건드리지 않을 것
-- `engine/verify.py`·`trace.py`·`acl.py`·`model.py` — 판정 경로. `Hop`·`Trace`·`verify()`의 반환 형태를 바꾸지 않는다(API 응답과 이미 저장된 JSON 형태가 따라 바뀐다).
-- `cases/*.json`과 `expect`, 사례 정답·채점.
-- `POST /api/verify` 응답(판정기 화면은 이번에 안 바꾼다. 이미 사유와 결정적 단계를 보인다).
-- `GET /api/cases` 목록·필터·검색 — 원인별 목록 링크는 저장 열이 필요하므로 **다음 과제**.
-- 혼동 행렬(`confusion`) 계산·칸 링크·`actual`·검토 확인 로직, 로그인·세션·보안 헤더·보안 로그.
-- **DB 표·열**(D1의 선택에 따라 필요해질 때만. 아래 절차 참고).
+- **기존 무상태 ACL 의미론과 결과.** `stateful`이 없는 입력의 판정은 한 건도 달라지면 안 된다(무작위 대조로 증명).
+- `cases/*.json`·`expect`·사례 정답·채점.
+- 원인 태그·통계(PR #41), 혼동 행렬, ACL 점검, 수정 후보, 정책 검증의 기존 규칙. 새 태그·새 통계를 이번에 만들지 않는다.
+- **화면(`web/`) 전체.** 이번 과제는 엔진 단계다(D2). 판정기 입력 폼·근거 표시는 후속 과제에서 설계한다. `npm --prefix web test`는 **회귀로만** 돌린다.
+- DB 표·열, 로그인·세션·보안 헤더, 배포 구성.
+- 실제 장비·실습망에 패킷을 보내는 기능(ADR-011, 영구 제외). NetProof는 계산만 한다.
+- pfSense 설정 파일 파서, 장비 실시간 제어, Cloudflare·IDS 연동.
 
-### 사용자 결정 (2026-10-06 승인 — 확정, 추천안 그대로)
+### 사용자 결정 (2026-10-06 승인 — 확정)
 | | 결정 | 구현에 뜻하는 것 |
 |---|---|---|
-| **D1 원인을 누가 정하나** | **엔진 근거에서 계산만.** 사람이 붙이는 태그는 쓰임새를 본 뒤 별도 과제로 미룬다 | 새 열·입력 화면·검토 권한 없음. **DB 표·열 변경 없음**(아래 운영 DB 절차는 이번에 쓰지 않는다) |
-| **D2 태그 목록** | **위 9개 그대로.** 방향은 태그를 쪼개지 않고 행 안에 `복귀 N건` | 태그를 합치거나 늘리지 않는다. 화면 이름도 표의 것을 쓴다 |
-| **D3 "틀림"의 기준** | **받은 답 ≠ NetProof 판정**(`comparison=DISAGREE`). AI 답과 사람 예상은 **한 분모 + 종류별 건수 한 줄** | 실제 결과·검토 확인을 분모 조건으로 쓰지 않는다. 혼동 행렬과 섞지 않는다 |
-| **D4 공개 범위** | **검토자 전용** — 지금 `GET /api/dashboard`에 더한다 | 권한·새 화면·새 경로를 만들지 않는다 |
-
-고르지 않은 선택지(사람 태그, 방향별 18개 태그, 엔진 ≠ 실제 축, 로그인 사용자·비로그인 공개)는 **이번 범위가 아니다.** 필요해지면 설계부터 다시 한다.
+| **D1 ADR** | **ADR-016 신설.** 지원 범위 안의 **제한된** 상태 추적을 더하고 **기존 무상태 ACL 동작은 유지**한다. 전체 방화벽 모델·설정 파싱은 계속 제외 | `plan.md`에 ADR-016을 쓰고 ADR-005·ADR-008·Non-Goal을 갱신한다(이력은 남긴다). `stateful` 없는 입력의 판정은 한 건도 달라지면 안 된다 |
+| **D2 범위** | **이번 과제는 엔진 단계만.** 실습 연동과 **화면 확장**은 후속 | `web/` 변경 0줄. 서버는 입력 크기 제한만. 확인은 엔진과 `POST /api/verify`로 한다 |
+| **D3 입력** | **지원 필드에 한해 pfSense와 대응하는 구조화 입력** | 위 입력 모양으로 고정. 설정 파싱·전체 필드 지원은 하지 않는다 |
+| **D4 기본·자동 규칙** | **추측해서 만들지 않는다.** 다만 판정에 영향을 주는 기본·자동 규칙이나 **기존 연결 상태**를 모델에서 다루지 못하면 **차단으로 단정하지 말고 판정 불가**로 처리한다 | 일치 규칙이 없고 `default_in`도 없으면 `DENY`가 아니라 `UNSUPPORTED`. 응답 모양 `one-way` 패킷도 `UNSUPPORTED` |
+| **D5 실습 사실** | 사용자가 실제 설정을 확인해 제공한다. **확인 전에도 명세와 합성 테스트는 준비하되, 실제 pfSense와 일치한다고 주장하지 않는다** | 완료 조건에 실제 장비 대조를 넣지 않는다. 문서·화면 문구에 미대조를 적는다. 실습 연동(2단계) 설계는 D5를 받은 뒤 |
 
 ### 예상 리스크
-1. **원인이 판정·정답으로 읽힘.** → 섹션 문구에 "집계이며 판정·정답이 아니다", 점수·등급·완료 표시 없음. `docs/semantics.md` §13에 명시.
-2. **엔진 문장이 바뀌면 조용히 `other`로 샌다**(`경로 없음` 등 다섯 사유는 문장 비교다). → 태그마다 실제 토폴로지로 `verify` → `cause` 왕복을 확인하는 엔진 테스트. 문장이 바뀌면 테스트가 깨진다.
-3. **옛 사례·엔진 버전 차이로 JSON 형태가 다름.** → `cause()`는 `.get()`만 쓰고 예외를 올리지 않는다. 모르면 `other`(추측 금지).
-4. **분모 혼동**(혼동 행렬과 섞어 읽기). → 축 설명 한 줄 + 분모·제외를 같은 화면에 표시 + 합 불변식 테스트.
-5. **판정 JSON을 많이 읽어 느려짐**(F28처럼 응답·메모리가 커질 수 있다). → `DISAGREE`만, 필요한 세 열만, 상한 2,000건과 화면 표시.
-6. **방향 판정 실수**(`복귀 방향`을 정방향으로 셈). → `synthetic-02`(복귀 경로 없음)를 고정 회귀로 쓴다.
-7. **QA 합성 사례를 늘리면 기존 체크리스트 문구와 어긋난다.** → `docs/qa-manual.md`를 같은 PR에서 수정.
-8. **DB 변경은 이번 범위가 아니다.** D1에서 (b)·(c)를 고르거나 원인별 목록 필터를 당기면 `cases.cause_tag` 열이 생기고, 그때는 아래 절차가 **먼저** 끝나야 배포할 수 있다.
-
-### DB 변경이 필요해질 때만 (운영 DB 반영 절차)
-읽을 때 계산하는 추천안(D1-a)에서는 **표·열 변경이 없다.** 아래는 D1에서 (b)·(c)를 고르거나 원인별 목록 필터를 넣을 때의 절차다.
-1. Claude는 SQL 문장만 만든다: `ALTER TABLE netproof.cases ADD COLUMN cause_tag varchar(32);`(+ 필요하면 집계용 인덱스). **이 PC에서는 `DATABASE_URL`을 입력·저장하지 않는다.**
-2. 사용자가 Supabase t08 → SQL Editor에서 실행한다. `cases`는 `netproof` 소유이므로 그 권한으로 실행하고 `public` 스키마는 건드리지 않는다.
-3. 배포 순서: **열 추가 → Vercel 배포 → 기존 행 채우기.** 열이 없어도 500이 나지 않는 코드(없으면 읽을 때 계산)여야 미리보기 배포와 운영이 겹쳐도 안전하다.
-4. 기존 행 채우기는 1회 서버 명령으로 하고 사례 내용·`expect`는 바꾸지 않는다.
-5. 되돌릴 때는 코드만 되돌리고 열은 남긴다(열 삭제는 사용자 결정).
-6. 완료 조건에 더한다: 운영 공개 주소에서 대시보드 200과 Top 5 표시, `/api/cases` 목록이 그대로 200.
+1. **"pfSense 지원"으로 과대 표기.** → 화면과 문서에 지원 범위·UNSUPPORTED 표를 함께 둔다. 범위 밖은 판정하지 않고 이유를 적는다.
+2. **기존 판정 회귀.** 상태 추적을 넣으며 무상태 경로를 건드리면 지금까지의 모든 사례가 흔들린다. → `stateful` 없는 입력의 결과 동일성을 무작위 대조로 증명(PR #19·#32에서 쓴 방식).
+3. **ADR을 안 고치고 구현하면 Non-Goal 위반.** → D1이 먼저다. 승인 전에는 Codex로 넘기지 않는다.
+4. **일정.** 4주차 사용자 테스트(10-19~)와 11-01 기능 동결이 있다. 1단계가 커지면 실습 연동(2단계)이 밀린다. → 1단계 범위를 위 표로 묶고 넘치면 UNSUPPORTED로 돌린다.
+5. **실제 pfSense와 대조하지 않았다(D5).** 합성 테스트는 명세와의 일치만 보인다. → 문서·결정 단계 문구에 "실제 장비와 대조하지 않았다"를 적고, 완료 조건에 실제 장비 검증을 넣지 않는다. 실습 대조는 2단계다.
+6. **수업 실제 구성 미확인.** 구성도의 주소만으로 경로·NAT를 단정하지 않는다. → 1단계는 실습 사실에 의존하지 않게 설계했고, 2단계 전에 D5를 확인한다.
+7. **상태를 경로까지 건너뛰는 것으로 오해.** → `synthetic-02`(복귀 경로 없음)를 `stateful: true`로 돌려도 DENY임을 고정 회귀로 둔다.
+8. **DB·배포 영향 없음.** 표·열을 바꾸지 않는다(사례는 기존 `network` JSON에 칸이 늘어날 뿐이다). 운영 DB 작업은 이번 범위에 없다.
 
 ### 완료 조건 (실행 가능한 명령과 기대 출력)
-기준값은 이번 설계 시점에 Claude가 **직접 실행해** 받은 수다(2026-10-06, `codex/cause-tags`, 코드 변경 전).
-1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 기준 `350 passed, 2 xfailed`에서 **기존 350건이 줄지 않고** `test_cause.py` 추가분만 늘어난다.
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 기준 `140 passed, 1 skipped`에서 추가분만 늘어난다.
-3. 엔진 왕복 확인(합성 사례 3건, 기대 출력 고정):
-   ```
-   cd engine && ../.venv/Scripts/python -c "import json; from netproof_engine import verify, cause; [print(n, cause(verify(d['network'], d['flow']))) for n in ('01-https-acl','02-missing-return-route','03-acl-out') for d in [json.load(open('../cases/synthetic-%s.json' % n, encoding='utf-8'))]]"
-   ```
-   → `01-https-acl {'tag': 'acl_rule', 'direction': 'forward'}` · `02-missing-return-route {'tag': 'no_route', 'direction': 'return'}` · `03-acl-out {'tag': 'acl_rule', 'direction': 'forward'}`
-4. `npm --prefix web test` → 기준 `417 passed`에서 추가분만 늘어난다. `npm --prefix web run build` 성공.
-5. 서버 테스트가 **분모 + `AGREE` + `NO_CLAIM` + `NOT_COMPARABLE` = 전체 사례 수**와 **Top 5 + `그 외` + `other` = 분모**를 확인한다(테스트 출력으로 근거를 낸다).
-6. 화면: `.venv/Scripts/python scripts/qa_local.py`로 띄워 `qa_reviewer`로 로그인 → `#/dashboard`의 「가장 많이 틀린 원인」 표에 **원인 두 종류 이상**(ACL 규칙에서 차단 / 경로 없음 `복귀 1건`)과 분모·제외 줄이 보인다. PASS·DENY 상세의 판정 카드 제목에 원인 태그가 보이고, UNSUPPORTED·INVALID는 원인·방향이 숨겨진다(R1·R2 반영). **1280×800·375×812에서 가로 넘침 0, 콘솔 오류 0.**
-7. `git diff main...`에 「건드리지 않을 것」의 파일이 없다. `verify.py`·`trace.py`와 `cases/*.json`은 변경 0줄.
-8. `HANDOFF.md`·`docs/semantics.md` §13·`decisions/ai-work-log.md`를 갱신한다.
+기준값은 PR #41 병합 시점에 Claude가 직접 실행해 받은 수다(2026-10-06).
+1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 기준 `382 passed, 2 xfailed`에서 **기존 382건이 줄지 않고** 추가분만 늘어난다.
+2. `cd server && ../.venv/Scripts/python -m pytest -q` → 기준 `149 passed, 1 skipped`에서 추가분만 늘어난다.
+3. `npm --prefix web test` → **회귀로만** 돌린다. 기준 `440 passed`가 **그대로** 나와야 한다(화면 변경 0줄이므로 숫자가 늘면 범위를 벗어난 것이다).
+4. **회귀 동일성**: `stateful`이 없는 무작위 입력 3,000건 이상에서 이번 변경 전후 판정이 **불일치 0건**(출력 첨부).
+5. **상태 추적 회귀**: `synthetic-02`에 `stateful: true`를 켜도 `DENY`(복귀 경로 없음)이고, 복귀 방향 규칙만 막는 구성은 `stateful: true`에서 `PASS`로 바뀐다. 두 출력 모두 첨부.
+6. **D4 경계(가장 중요)**: 일치 규칙이 없고 `default_in`도 없으면 `DENY`가 **아니라** `UNSUPPORTED`와 이유다. `default_in: "block"`을 적으면 그때 `DENY`다. 두 출력 모두 첨부.
+7. **그 밖의 경계**: 응답 모양 `one-way`(ICMP `echo-reply`), `rules_in`과 `acl_in`을 같은 인터페이스에 섞어 쓰기(`INVALID`), 무상태 장비에 `rules_in`(`INVALID`), 비대칭 경로의 상태 없는 장비. 테스트로 고정한다.
+8. 같은 서브넷 통신이 방화벽을 지나지 않는다는 위 실행 결과를 테스트로 고정한다.
+9. **API 확인**(화면 대신): `scripts/qa_local.py`를 띄워 `POST /api/verify`에 pfSense 장비·규칙이 든 구성을 보내 `PASS`·`DENY`·`UNSUPPORTED` 세 경우의 응답을 받아 붙인다. 근거에 적용 규칙과 **상태로 허용됨**이 들어 있어야 한다.
+10. `git diff main...`에 「건드리지 않을 것」의 파일이 없다. **`web/`와 `cases/*.json`은 변경 0줄.**
+11. `docs/semantics.md` §14, `plan.md` ADR-016, `HANDOFF.md`, `decisions/ai-work-log.md` 갱신. 문서에 **실제 pfSense와 대조하지 않았다**를 적는다(D5).
 
 ### 테스트 결과 (Codex가 채운다 — 실제 실행 출력만)
-- 실행: 2026-10-06, 이 worktree의 `.venv`·`web/node_modules`, Codex (GPT-6). PowerShell에서는 engine/server를 실행 디렉터리로 지정해 같은 명령을 실행했다.
-- `cd engine && ../.venv/Scripts/python -m pytest -q`:
-  ```text
-  ........................................................................ [ 18%]
-  ........................................................................ [ 37%]
-  ........................................................................ [ 56%]
-  ........................................................................ [ 75%]
-  ........................................................................ [ 93%]
-  ......................xx                                                 [100%]
-  382 passed, 2 xfailed in 8.67s
-  ```
-- `cd server && ../.venv/Scripts/python -m pytest -q`:
-  ```text
-  ........................................................................ [ 48%]
-  ...................s.................................................... [ 96%]
-  ......                                                                   [100%]
-  149 passed, 1 skipped in 36.51s
-  ```
-- 엔진 왕복 확인(완료 조건 3):
-  ```text
-  01-https-acl {'tag': 'acl_rule', 'direction': 'forward'}
-  02-missing-return-route {'tag': 'no_route', 'direction': 'return'}
-  03-acl-out {'tag': 'acl_rule', 'direction': 'forward'}
-  ```
-- `npm --prefix web test`(출력 요약 줄):
-  ```text
-  Test Files  32 passed (32)
-       Tests  440 passed (440)
-    Start at  12:10:37
-    Duration  2.27s (transform 58%, import 22%, tests 16%, worker 5%)
-  ```
-- `npm --prefix web run build`(폰트 자산 목록 생략, 실제 출력 줄):
-  ```text
-  > tsc --noEmit && vite build
-  vite v8.3.1 building client environment for production...
-  ✓ 60 modules transformed.
-  dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
-  dist/assets/index-CsAMlWl2.js                            359.94 kB │ gzip: 108.69 kB
-  ✓ built in 330ms
-  ```
-- 서버 추가 회귀: 정렬·동률·Top 5 이후 합·분류 못 함·세 제외·분모 불변식, 상한 2,000/2,001 경계·날짜/ID 순서, SQL이 DISAGREE의 verdict만 선택·LIMIT 적용, 상세/목록 호환·옛 JSON/comparison·재판정 없음·QA 합성 사례/정리. 기존 140건 + 9건.
-- 웹 표시 회귀: `causeView.test.ts` 23건. UNSUPPORTED·INVALID는 원인/방향 숨김 + 기존 설명 유지, PASS·DENY의 실제 렌더링은 판정 제목 안에 태그 + 복귀 방향 문장 1회.
-- 화면 확인(완료 조건 6): `scripts/qa_local.py`의 실제 `main()`을 호출하는 비커밋 QA 하네스로 임시 SQLite·127.0.0.1 서버 실행. stdout의 임시 비밀번호는 브라우저 프로세스 RAM에서만 읽어 UI 로그인, 서버 종료만 QA 전용 WSGI 처리로 연결했다. Chromium headless·라이트, 실제 배포 번들, CSS/응답 대역 없음. 주요 실제 출력:
-  ```text
-  R1 모델 밖 목적지 UNSUPPORTED {'direction': 'forward', 'tag': 'other'}
-  R1 모델 밖 출발지 INVALID {'direction': 'forward', 'tag': 'other'}
-  R1 UNSUPPORTED 1280x800 cause=hidden direction=hidden overflow=0
-  R1 INVALID 375x812 cause=hidden direction=hidden overflow=0
-  R2 Case 5 DENY 1280x800 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 경로 없음
-  R2 Case 5 DENY 375x812 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 경로 없음
-  R2 Case 8 PASS 375x812 cause=inside-calculation-card overflow=0 판정 · 원인 태그(통계): 막는 곳 없음(통과)
-  C4 1280x800 empty-cause-table=hidden zero-message=visible overflow=0
-  C4 375x812 empty-cause-table=hidden zero-message=visible overflow=0
-  Console errors=0
-  QA server/browser cleaned
-  ```
-  리뷰 재현을 위해 하네스에서만 목적지 `8.8.8.8`, 출발지 `10.99.99.99`, TCP 80 통과 사례를 추가해 총 8건 × 두 크기를 확인했다(기본 CLI 5건은 그대로). API의 판정 불가 원인 값은 리뷰 재현과 같고, 화면은 원인·방향을 표시하지 않는다. PASS·DENY 태그는 판정 카드의 실제 h2 안에 있고 카드 경계 1개, 복귀 이유 문장 1회, 원인 쪽 방향 반복 없음. 캡처 육안 확인. 대시보드 3종·분모 3·비교 불가 제외 2 및 QA DB를 비운 0건 상태도 확인했다. QA 서버·브라우저·임시 DB/프로필 정상 정리, 4863/9233 listen 0. CSS/응답 대역 없음. 사용자 수동 QA A~E는 대기 유지.
-- 변경 범위: 지정 파일 안에서만 변경. `git diff --numstat -- cases engine/src/netproof_engine/verify.py engine/src/netproof_engine/trace.py engine/src/netproof_engine/acl.py engine/src/netproof_engine/model.py` 출력 없음. `git diff --check` 오류 없음.
+- 
 
-### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 1차 수정 요청 → **재리뷰 PASS**)
-- 판정: **수정 요청 2건(R1·R2) + 비차단 참고 4건.** 지적은 PR 코멘트 [#issuecomment-6008415111](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008415111)에 파일:줄·재현 명령과 함께 남겼다.
-- **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `382 passed, 2 xfailed`, 서버 `149 passed, 1 skipped`, 웹 `434 passed`(32 files), 빌드 성공, 완료 조건 3의 왕복 3줄 동일. 변경 파일은 「변경 범위」 안에만 있고 `verify.py`·`trace.py`·`acl.py`·`model.py`·`cases/*.json`은 0줄이다.
-- 독립 확인 ①: `trace.py`의 drop 사유 7곳(110·121·128·139·148·156·162)이 고정 문자열 5개 + ACL `hop.detail` 2개뿐이고 `cause.py`가 전부 덮는다 → 정상 저장된 DENY는 모두 분류되고 `other`는 옛·깨진 JSON에서만 나온다.
-- 독립 확인 ②(실브라우저 Chromium + 임시 SQLite QA 서버): 1280×800·375×812 대시보드 `scrollWidth == clientWidth == 뷰포트`, 넘치는 요소 0, 콘솔·페이지 오류 0, 표 수치가 체크리스트와 일치(ACL 규칙에서 차단 1·경로 없음 1(복귀 1)·각 50%·분모 2·전체 5·제외 1/2/0).
-- **R1** `web/src/pages/CaseDetailPage.tsx:143` — `UNSUPPORTED`·`INVALID` 사례에도 `원인: 분류 못 함 · 정방향`이 뜬다. 판정하지 못한 사례에 원인과 추적한 적 없는 방향을 단언한다(설계 "UNSUPPORTED·INVALID는 태그가 아니다", 「추측하지 않는다」·「표시 ≠ 판정」). QA 합성 5건이 모두 PASS/DENY라 화면 확인에서 걸리지 않았다.
-- **R2** 같은 줄 — 원인 줄이 「받은 답」과 「판정」 패널 **사이 빈 바닥**에 떠 있어 받은 답의 부속처럼 읽히고, 바로 아래 판정 패널의 `복귀 방향: 경로 없음`과 같은 말이 두 번 나온다. `ResultPanel`은 판정기·실습·정책 검증과 공유라 고치지 말고 `CaseDetailPage` 안에서 해결한다.
-- 비차단 참고: ① `cases.py:394` 안 쓰는 `Case.id`·`Case.result` 선택(테스트 SQL 단언이 묶여 있음) ② `cases.py:376~377` 도달하지 않는 `else` 분기 ③ `test_dashboard.py:142·176` 영어 주석 ④ 불일치 0건이면 머리글만 있는 빈 표(배포 직후 실제 상태).
-- 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
-
-**재리뷰 (`aa29f2a`, 2026-10-06) — PASS.** 코멘트 [#issuecomment-6008655698](https://github.com/myeongjundev/netproof/pull/41#issuecomment-6008655698).
-- 직접 실행: 엔진 `382 passed, 2 xfailed`, 서버 `149 passed, 1 skipped`, 웹 `440 passed`(434→440), 빌드 성공, 왕복 3줄 동일 — Codex가 적은 수와 모두 같다. 금지 파일 변경 0줄, `git diff --check` 0줄, 공유 `ResultPanel.tsx` 무변경(`title`은 기본값 `"판정"`인 기존 입력이라 판정기·실습·정책 검증 화면은 그대로).
-- **R1 해결**: `qa_local.py`의 실제 시드에 판정 불가(모델 밖 목적지)·입력 오류(모델 밖 출발지) 2건을 더한 저장소 밖 임시 하네스로 실브라우저 확인 — 두 사례의 상세에 원인·방향이 전혀 없고 제목은 기본 `판정`, 기존 판정 불가·입력 오류 설명은 유지된다.
-- **R2 해결**: 떠 있던 `<p>`가 사라지고 `div.case-calculation`의 자식이 받은 답·판정 두 패널뿐이다. 태그는 판정 카드 제목(`판정 · 원인 태그(통계): 경로 없음`)에 들어갔고 `복귀 방향: 경로 없음`은 한 번만 나온다.
-- 집계 추가 확인: 위 2건이 들어간 실제 대시보드에서 **전체 7 = 불일치 2 + AGREE 1 + NO_CLAIM 2 + NOT_COMPARABLE 2**, 두 사례는 Top 5 분모·`분류 못 함` 어디에도 없다(설계의 "UNSUPPORTED·INVALID는 분모 밖"이 실제 저장 경로에서 성립).
-- 레이아웃: 1280×900·375×812에서 대시보드·사례 상세 모두 넘치는 요소 0, 콘솔 메시지 0, 페이지 오류 0. 375에서 길어진 제목도 한 줄(305×26).
-- 비차단 참고 4건 모두 반영(안 쓰던 SELECT 열·도달하지 않던 분기·영어 주석·빈 표). 되돌아간 곳 없음.
-- 임시 QA 서버·브라우저·임시 폴더는 정리했다(4871·4872 LISTENING 없음). 하네스는 저장소 밖에 두어 커밋하지 않았다.
-
-### Codex 리뷰 반영 (2026-10-06)
-- **R1 반영:** PASS·DENY일 때만 태그 표시. 실제 모델 밖 목적지/출발지로 저장된 UNSUPPORTED·INVALID를 두 크기에서 재현했고, API 원인 값은 그대로지만 화면 원인·방향은 숨겨지고 기존 판정 불가/입력 오류 설명은 유지된다. 웹 표시 함수와 실제 판정 블록 렌더링 회귀로 확인했다.
-- **R2 반영:** `CaseDetailPage`의 지역 `CaseCalculation`이 `ResultPanel`의 기존 title 입력으로 태그를 판정 카드 제목에 표시한다. 받은 답과 판정 사이 바닥 문장을 없앴고 방향 반복도 없앴다. `ResultPanel`·CSS는 변경하지 않았다. QA #5의 `복귀 방향: 경로 없음` 문장 1회, 태그는 판정 카드 안, 가로 넘침·콘솔 오류 0.
-- **비차단 참고 4건 모두 반영:** verdict만 SELECT(열 단언 갱신), SQL로 정규화한 comparison은 DISAGREE 외 모두 제외로 집계해 도달하지 않는 분기를 정리(옛 comparison 회귀 추가), 주석 2곳 한국어, Top 행이 없으면 표 숨김(실제 QA 0건 상태 재현).
-- 재현 명령: `npm --prefix web test -- --run src/causeView.test.ts`, `cd server && ../.venv/Scripts/python -m pytest -q tests/test_dashboard.py`, 위 네 전체 명령. 실브라우저는 리뷰 코멘트의 모델 밖 목적지/출발지 입력 + 임시 QA 서버/Chromium으로 두 크기에서 재현했다.
-- 다음 차례: Claude 재리뷰. 구현·반영: Codex (GPT-6).
+### 리뷰 기록 (Claude가 채운다)
+- 
 
 ## 배포 기록 (2026-10-06)
 
@@ -253,6 +180,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #41 원인 태그·통계 (병합 완료, `329e74c`)**: 저장된 판정 JSON만 읽는 엔진 순수 함수 `cause`(태그 9개 + 방향, 네트워크를 다시 읽거나 재판정하지 않음), 검토자 대시보드 「가장 많이 틀린 원인 Top 5」(분모 `comparison=DISAGREE`, 복귀 건수, 그 외·분류 못 함·세 제외, 상한 2,000건 표시), 사례 상세 판정 카드 제목의 `원인 태그(통계)`. `docs/semantics.md` §13 신설. **DB 표·열·판정 경로(`verify.py`·`trace.py`)·`cases/*.json`·`/api/verify`·사례 목록·혼동 행렬은 변경 0줄.** Claude 리뷰 R1(판정 불가 사례에도 원인·방향 표시)·R2(원인 줄이 패널 밖에 떠 있고 판정 문장과 중복) → Codex 수정 `aa29f2a` → **재리뷰 PASS**. 최종 실행: 엔진 382 passed·2 xfailed, 서버 149 passed·1 skipped, 웹 440 passed, 빌드 성공.
+  - 유지되는 합의: **집계 ≠ 판정.** 원인은 엔진 근거를 묶은 이름이고 정답·채점이 아니다. 분류 못 하면 **`분류 못 함`으로 두고 추측하지 않는다.** `UNSUPPORTED`·`INVALID`는 태그도 분모도 아니며 화면에도 원인·방향을 적지 않는다. 원인은 **혼동 행렬(오탐·미탐)과 다른 축**이라 `DISAGREE`에서 오탐·미탐을 유도하지 않는다.
+  - 남은 후속: 원인별 사례 목록 필터는 저장 열이 필요해 넣지 않았다(다음 과제). 사람이 붙이는 원인 태그(설계 D1의 선택지 b)도 별도 과제로 미뤘다.
 - **PR #34 n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 (병합 완료, `1fef9b6`)**: `examples/n8n` 워크플로(웹훅 2 → HTTP Request 4.2 → Code 2 → Respond to Webhook 1.1, `X-NetProof` 헤더, `comparison`만 쓰는 문장)·`request.json`(사례 01 + AI 답 PASS)·`docs/n8n.md`(Docker n8n에서 `host.docker.internal`, 서버는 `--host 0.0.0.0`, 선택 알림), 학습실 n8n 주제와 도구 주제 일반화, F27(server pytest가 worktree 엔진 사용)·F29(서버 테스트가 로그 환경 변수를 끔). Claude 리뷰 R1(n8n 출처 404 두 개 — Claude 설계 실수, 확인 문장, F29 빈틈, Docker 이미지) → 재리뷰 PASS. 수동 QA E(수업 Docker n8n)는 사람 대기.
 - **PR #33 보안 로그·학습실 도구 주제·F26 (병합 완료, `0a53519`)**: 환경 변수로 켜는 보안 로그(`NETPROOF_SECURITY_LOG` 파일, `NETPROOF_SYSLOG` UDP. login_success·login_failure·account_locked·password_check_failure, 비밀번호·없는 닉네임 미기록, 꺼지면 아무 데도 안 씀), `docs/security-logs.md`(Graylog 7.1 파이프라인, Wazuh 4.14 규칙 100200~100203), 학습실 Graylog·Wazuh 주제, F26(로그인한 휴대폰 헤더 한 줄). Claude 독립 리뷰 PASS(실제 QA 서버 로그 파일 10줄 = UDP 10개, 비밀번호 0건). 수동 QA D(수업 환경 Graylog·Wazuh)는 사람 대기.
 - **PR #32 변경 전/후 판정 비교 (병합 완료, `baf6501`)**: 같은 통신을 구성만 바꿔 다시 판정하면 판정기·실습의 결과 아래에 직전 판정과 지금 판정을 나란히 보인다(받은 답만 바꾸면 기준 유지, 통신 변경·불러오기는 해제). `다른 통신 영향 계산`은 엔진 `change_impact`(`policy_matrix` 두 번, 판정한 통신 제외, opened·closed·other·not_compared)와 `POST /api/change-impact`. 후속 F24(저장 제목)·F25(`은(는)`) 포함. Claude 독립 리뷰 PASS(엔진 무작위 대조 3,000회 불일치 0). 후속 F26은 이번 과제, F27(서버 pytest 경로)·F28(응답 크기)은 남음.
@@ -316,7 +246,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
-4. [ ] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ **← R1·R2 수정·재검증 완료(2026-10-06), Claude 재리뷰 대기**
+4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
@@ -346,8 +276,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude:** 위 「다음 차례」 1~3. 결정은 「사용자 결정」 표가 기준이고 거기서 고르지 않은 선택지는 범위 밖이다. 이 브랜치에서 리뷰하고 `main`으로 바꾸지 않는다.
-- **사용자:** 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
+- **Codex Sol:** 위 「다음 차례」 1~4. 결정은 「사용자 결정」 표가 기준이다. 차단으로 단정하지 말고 모르면 판정 불가(D4).
+- **사용자:** D5(실습 사실)를 확인해 주면 2단계(실습 연동)를 설계한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
+- **다음 설계자(Claude):** 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴다. 원인 태그 규칙은 `docs/semantics.md` §13이 기준이고 바꾸려면 먼저 요청한다. 원인은 판정이 아니다.
 - **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
 - **배포 흐름:** `main`에 병합하면 바로 운영에 나간다. 리뷰 원칙은 그대로이고, 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
 - **t08 Postgres 오류:** 배포 전 t08 대시보드에 최근 60분 Postgres 오류 111건이 일정한 간격으로 보였다(NetProof와 무관, 원인 미확인). 사용자가 Supabase Logs에서 확인한다.
@@ -384,7 +315,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 주 작업 폴더(`C:/gov/project/skt aleph/netproof`)는 이제 `main`이다. 2026-10-05까지 `codex/acl-suggest`에 머물러 있어서 공유 venv가 옛 엔진을 불러왔다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 
-현재 과제(원인 태그·통계) 설계: Claude Opus 5(승인 2026-10-06). 구현: Codex (GPT-6). 리뷰: Claude 대기. 결정·병합: 사용자.
+현재 과제(pfSense 상태 추적 1단계) 설계: Claude Opus 5(사용자 승인 2026-10-06). 구현: Codex Sol. 직전 과제(원인 태그·통계) 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), 2026-10-06 병합. 결정·병합: 사용자.
 이전 배포 작업: 단계 안내·DB 준비 스크립트·공개 주소 점검·문서 Claude (Claude Opus 5.5). 가입·SQL 실행·Vercel 입력·병합: 사용자.
 
 ## 프로젝트 소개·회고 문서 (2026-10-06)
