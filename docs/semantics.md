@@ -171,3 +171,29 @@ PASS는 현재 ACL drop 앞(암묵적 deny면 끝)에 permit을 넣고 최대 4�
 - `NO_CANDIDATE`: before를 그대로 보존하고 후보 없음 사유를 준다. `not_decidable`(처음 INVALID/UNSUPPORTED), `not_acl_cause`(ACL 아닌 원인), `no_acl_on_path`(정방향 ACL 없음), `edit_limit`(4줄 초과), `reverify_failed`(재판정 실패), `line_limit`(삽입 후 500줄 초과). 후보 없음은 안전하거나 수정 불가능하다는 증명이 아니다.
 
 화면은 목표 변경·재판정·예시 불러오기에 이전 후보를 지우며 늦은 응답을 버린다. 입력만 바뀌면 이전 결과를 표시하고 원래 줄 이동을 막는다. 자동 적용·복사·입력 반영 버튼은 없다. API는 로그인 없이 사용하며 기존 CSRF·64KB 제한·no-store 정책을 유지한다.
+
+## 13. 원인 태그
+
+원인은 저장된 판정의 결정적 단계와 막힌 방향의 사유를 묶은 이름이다. 집계이며 판정·정답이 아니다. `cause(verdict)`는 네트워크를 읽거나 재판정하지 않으며 PASS/DENY·comparison을 만들거나 바꾸지 않는다. 사례 정답(`expect`)도 읽지 않는다.
+
+| 코드 | 화면 이름 | 저장된 엔진 근거 |
+|---|---|---|
+| `acl_rule` | ACL 규칙에서 차단 | DENY, decisive.step이 acl_in·acl_out, 양의 정수 rule_seq |
+| `acl_implicit` | ACL 암묵적 deny(일치 규칙 없음) | DENY, 같은 단계, rule_seq 없음 |
+| `no_route` | 경로 없음 | DENY, 막힌 방향의 reason이 경로 없음 |
+| `no_gateway` | 기본 게이트웨이 없음 | 같은 자리의 기본 게이트웨이 없음 |
+| `no_next_hop` | 다음 홉 없음 | 같은 자리의 다음 홉 없음 |
+| `host_no_forward` | 호스트가 전달하지 않음 | 같은 자리의 호스트가 전달하지 않음 |
+| `routing_loop` | 라우팅 루프 | 같은 자리의 라우팅 루프 |
+| `no_block` | 막는 곳 없음(통과) | result가 PASS |
+| `other` | 분류 못 함 | 알려진 근거 없음, 옛·깨진 JSON 포함 |
+
+return이 객체이고 delivered가 false이면 방향은 `return`(복귀 방향), 나머지는 `forward`(정방향)다. 원인과 방향은 별도 값이다. 각 Top 5 행은 복귀 건수를 함께 보인다. 키 누락이나 다른 JSON 형태는 예외 대신 `other`로 두고, 알 수 없는 사유를 추측하지 않는다. UNSUPPORTED·INVALID는 원인 통계 분모에 포함하지 않는다.
+
+검토자 전용 `GET /api/dashboard`의 causes는 저장된 `comparison=DISAGREE`(받은 답 ≠ NetProof 판정)만 센다. AI 답과 사람 예상은 한 분모이며, 전체 불일치의 claim.kind별 건수를 별도로 보인다(종류 미정 포함). 실제 결과나 검토 확인 여부는 조건이 아니다. 오탐·미탐은 실제 결과와 비교하는 별도 축이므로 DISAGREE로 유도하지 않는다.
+
+제외는 AGREE·NO_CLAIM·NOT_COMPARABLE로 서로 겹치지 않는다. 전체 불일치(`disagree_total`) + 세 제외 수 = 전체 사례 수다. 알 수 없는 옛 comparison은 비교 불가로 센다. 정상 저장에서 UNSUPPORTED·INVALID는 받은 답이 있으면 NOT_COMPARABLE, 없으면 NO_CLAIM이다(기존 compare 규칙).
+
+불일치 행의 id·result·verdict만 읽으며, created_at 내림차순·id 내림차순으로 최근 최대 2,000건을 분류한다. 상한 초과 시 `limited=true`이고 화면에 **최근 2,000건만 집계**를 적는다. 비율 분모(`denominator`)는 실제 집계한 수이며, 전체 불일치와 종류별 수·제외 수는 상한 없이 집계한다. 따라서 상한 초과에도 전체 사례 분할과 최근 표의 비율을 구분할 수 있다.
+
+분류 가능한 원인은 건수 내림차순, 동률은 위 표 순서로 정렬한다. Top 5 이후는 `그 외`로 합치고, `other`는 별도 `분류 못 함` 줄로 표시한다. **Top 5 건수 합 + 그 외 + 분류 못 함 = denominator**다. 분모 0이면 비율은 `—`다. DB 표·열은 추가하지 않고 사례 목록과 POST /api/verify 응답은 그대로다.

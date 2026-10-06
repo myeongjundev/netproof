@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, message } from "../api";
+import { causeText } from "../causeView";
 import { ActualBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
 import { CaseNetwork } from "../components/CaseNetwork";
@@ -139,6 +140,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
             </dl>}
             <p className="hint below">받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.</p>
           </section>
+          <p className="hint">원인: {causeText(item.cause)}</p>
           <ResultPanel
             verdict={{ ...item.verdict, comparison: item.comparison }}
             claim={item.claim ?? EMPTY_CLAIM}

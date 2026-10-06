@@ -4,6 +4,7 @@ import { ResultBadge } from "../components/Badges";
 import type { Dashboard } from "../types";
 import { caseSearchParams } from "../caseSearch";
 import { axisNames, confusionCellFilters, confusionCells } from "../confusion";
+import { causeName, causeRatio } from "../causeView";
 
 function ratio(part: number, whole: number): string {
   return whole === 0 ? "—" : `${Math.round((part / whole) * 100)}%`;
@@ -71,6 +72,26 @@ export function DashboardPage() {
             <p className="hint">제외: 미확인 {axis.excluded.not_confirmed} · 미정 {axis.excluded.no_actual} · 예측 없음 {axis.excluded.no_prediction}</p>
           </div>)}
         </div>
+      </section>
+      <section className="panel" aria-labelledby="causes-title">
+        <h2 id="causes-title">가장 많이 틀린 원인 Top 5</h2>
+        <p className="hint">받은 답 ≠ NetProof 판정인 사례의 근거를 묶은 집계이며 판정·정답이 아닙니다. 실제 결과·검토 확인을 조건으로 쓰지 않고, 오탐·미탐과 다른 축입니다.</p>
+        <p>전체 사례 {data.total}건 · 불일치 {data.causes.disagree_total}건 · 비율 분모 {data.causes.denominator}건</p>
+        {data.causes.limited && <p className="notice">최근 {data.causes.limit.toLocaleString("ko-KR")}건만 집계합니다. 비율은 이 사례들 기준입니다.</p>}
+        <p className="hint">전체 불일치의 받은 답 종류: AI 답 {data.causes.claim_kinds.ai}건 · 사람 예상 {data.causes.claim_kinds.self}건 · 종류 미정 {data.causes.claim_kinds.unknown}건</p>
+        {data.causes.denominator === 0 && <p className="hint">불일치 사례가 없습니다. 비율 —</p>}
+        <table className="confusion-table">
+          <caption>받은 답과 NetProof 판정의 불일치 원인</caption>
+          <colgroup><col style={{ width: "46%" }} /><col style={{ width: "16%" }} /><col style={{ width: "16%" }} /><col style={{ width: "22%" }} /></colgroup>
+          <thead><tr><th scope="col">원인</th><th scope="col">건수</th><th scope="col">비율</th><th scope="col">복귀</th></tr></thead>
+          <tbody>{data.causes.top.map(row => <tr key={row.tag}>
+            <th scope="row">{causeName(row.tag)}</th><td>{row.count}건</td>
+            <td>{causeRatio(row.count, data.causes.denominator)}</td><td>복귀 {row.return_count}건</td>
+          </tr>)}</tbody>
+        </table>
+        <p className="hint">그 외 {data.causes.rest}건 · {causeRatio(data.causes.rest, data.causes.denominator)}</p>
+        <p className="hint">분류 못 함 {data.causes.other.count}건 · {causeRatio(data.causes.other.count, data.causes.denominator)} · 복귀 {data.causes.other.return_count}건</p>
+        <p className="hint">제외: 일치(AGREE) {data.causes.excluded.agree}건 · 답 없음(NO_CLAIM) {data.causes.excluded.no_claim}건 · 비교 불가(NOT_COMPARABLE) {data.causes.excluded.not_comparable}건</p>
       </section>
       <section className="panel" aria-labelledby="miss-title">
         <h2 id="miss-title">엔진이 실제와 다른 사례</h2>

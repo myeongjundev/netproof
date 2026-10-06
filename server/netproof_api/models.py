@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from flask_sqlalchemy import SQLAlchemy
+from netproof_engine import cause
 
 db = SQLAlchemy()
 
@@ -118,6 +119,7 @@ class Case(db.Model):
             "flow": self.flow,
             "claim": self.claim,
             "verdict": self.verdict,
+            "cause": cause(self.verdict),
             "engine_version": self.engine_version,
             "actual": {"result": self.actual_result, "source": self.actual_source, "note": self.actual_note or ""},
             "confirmed_by": self.confirmer.nickname if self.confirmer else None,

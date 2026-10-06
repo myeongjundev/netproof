@@ -89,6 +89,19 @@ def seeded_qa():
                 db.engine.dispose()
 
 
+def seed_cause_example(environment):
+    """CLI 화면 확인용 복귀 불일치 사례. 기존 기본 QA 시드는 유지한다."""
+    client = environment.app.test_client()
+    session = _request(client, "POST", "/api/auth/login", {
+        "nickname": "qa_author", "password": environment.passwords["qa_author"],
+    })
+    example = next(item for item in _request(client, "GET", "/api/examples") if item["id"] == "synthetic-02")
+    _request(client, "POST", "/api/cases", {
+        "title": "QA AI 답 · 복귀 경로 없음", "network": example["network"], "flow": example["flow"],
+        "claim": {"expected": "PASS", "kind": "ai", "source": "QA 합성 AI 답", "text": "QA 표시용 합성 답"},
+    }, session["csrf"], 201)
+
+
 def _port(raw):
     try:
         value = int(raw)
@@ -115,6 +128,7 @@ def main(argv=None):
     previous = signal.signal(break_signal, _interrupt) if break_signal is not None else None
     try:
         with seeded_qa() as environment:
+            seed_cause_example(environment)
             server = make_server("127.0.0.1", args.port, environment.app, threaded=True)
             try:
                 print(f"QA 주소: http://127.0.0.1:{server.server_port}/", flush=True)
