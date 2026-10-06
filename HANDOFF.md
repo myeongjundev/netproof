@@ -18,16 +18,17 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 현재 작업 상태
 - 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
-- 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D5 확정) → Codex 구현·테스트 완료 → Claude 리뷰 대기.**
+- 단계: **Claude 설계 → 사용자 승인(2026-10-06, D1~D5) → Codex 구현·테스트 → Claude 리뷰(R1 수정 요청) → Codex 수정 대기.**
 - 구현 브랜치: `codex/pfsense-stateful`(기준 `origin/main` `640a747`).
 - PR: [#44 pfSense 상태 추적 계산 1단계](https://github.com/myeongjundev/netproof/pull/44), 구현 커밋 `48af120`. 병합하지 않았다.
-- 다음 차례: **Claude(리뷰).** 아래 완료 조건·테스트 출력·diff를 독립 확인하고 PR 코멘트 첫 줄은 `[Claude]`로 남긴다. 병합은 사용자 결정이다.
+- 다음 차례: **Codex Sol(수정).**
+  1. **`git pull` 먼저 한다.** Claude가 이 브랜치에 「리뷰 기록」을 적어 푸시했다(`C:/SKT aleph/netproof` worktree가 뒤처져 있다).
+  2. PR #44의 `[Claude]` 코멘트와 아래 「리뷰 기록」의 **R1**을 고친다. 복귀 추적에서 상태가 없는 상태 추적 장비를 만나면 프로토콜과 무관하게 **판정 불가**다(D4).
+  3. R1은 **설계 문장도 함께 고친다**: 「1단계 지원 범위」의 비대칭 복귀 문장·UNSUPPORTED 목록과 `docs/semantics.md` §14. 고칠 문장은 「리뷰 기록」에 적어 두었다.
+  4. 비차단 참고 3건은 고치든 다음 과제로 적든 하나를 고른다. 항목마다 재현 명령을 다시 실행해 `[Codex]` 코멘트로 결과를 남기고, 「다음 차례」를 Claude(재리뷰)로 바꿔 커밋·푸시한다. 범위는 그대로이며 `web/`는 0줄이다.
+  5. 동의하지 않는 항목은 고치지 말고 실행 결과로 반박한다.
 
-구현 시 지시(보존):
-  1. `origin/main`에서 `codex/pfsense-stateful` 브랜치를 만들어 작업한다(이 문서 PR #42가 먼저 병합돼 있어야 한다).
-  2. 아래 「작업 정의」의 **변경 범위 안에서만** 구현하고 테스트를 쓴다. **`web/`는 0줄이다**(D2: 화면은 후속 과제).
-  3. **D4가 이번 과제의 핵심이다.** 일치 규칙이 없고 기본 정책도 모르면 `DENY`가 아니라 `UNSUPPORTED`다. 차단으로 단정하지 않는다.
-  4. 「완료 조건」의 명령을 전부 직접 실행해 출력을 「테스트 결과」에 붙이고, 「다음 차례」를 Claude(리뷰)로 바꿔 커밋·푸시한 뒤 PR을 연다.
+구현 시 지시(보존): `origin/main`에서 브랜치를 따고, 「작업 정의」의 변경 범위 안에서만 구현하며, 완료 조건의 명령을 전부 직접 실행해 「테스트 결과」에 붙인다. **D4가 이 과제의 핵심이다** — 모르면 차단으로 단정하지 않고 판정 불가로 둔다.
 - 로드맵과의 관계: 「F5·F6 다음 기능 순서」 5~8번보다 이 과제를 **먼저** 하는 셈이다. 수업에서 실제로 쓰는 장비이므로 사용자가 순서를 바꿔도 된다.
 - 배포 후속(사람 대기, 이번 과제와 별개): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5 포함)를 운영에서 볼 수 없다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
 
@@ -199,8 +200,16 @@ QA server stopped; temporary SQLite cleaned; no credentials printed
 
 Codex (GPT-6)
 
-### 리뷰 기록 (Claude가 채운다)
-- 
+### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 수정 요청 1건)
+- 판정: **수정 요청 1건(R1) + 비차단 참고 3건.** 지적은 PR #44 코멘트 [#issuecomment-6009512032](https://github.com/myeongjundev/netproof/pull/44#issuecomment-6009512032)에 파일:줄·재현과 함께 남겼다.
+- **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `463 passed, 2 xfailed`(기존 382 유지 + 81), 서버 `149 passed, 1 skipped`, 웹 `440 passed` **그대로**(화면 변경 0줄). `web/`·`cases/` 변경 0줄.
+- 독립 A/B(Claude 생성기·시드 `20261007`): 병합 전 엔진(`640a747`)을 임시 폴더에 복원해 `stateful`을 쓰지 않는 입력 3,000건의 **전체 verify 사전**을 대조 → **불일치 0**, 분포 `PASS 545 · DENY 1124 · UNSUPPORTED 552 · INVALID 779`. Codex의 3,500건과 별개 생성기로 같은 결론.
+- 직접 재현한 D4 경계: 기본 정책 미기재 → `UNSUPPORTED`, `default_in=block` → `DENY`(사용자 입력 명시), 정상 session → `PASS`(복귀 홉 `send·state·route·deliver`). API도 `rules_in=500` 200 / `501` 422 / 미기재 `UNSUPPORTED` 확인.
+- **R1**(`trace.py:137~157`, `docs/semantics.md` §14): 복귀 패킷이 **상태 없는** 상태 추적 장비를 지날 때 `default_in`만 보고 `DENY`(또는 `PASS`)를 단정한다. 그 장비의 상태 테이블을 모르므로 **D4(차단으로 단정하지 말고 판정 불가)에 어긋나고**, 같은 상황의 ICMP 응답이 이미 `UNSUPPORTED`인 것과도 비일관이다.
+  - **원인은 Claude의 설계 문장이다**("비대칭 복귀 경로의 다른 장비는 규칙을 평가한다"). 고칠 문장: **「복귀 추적 중에 상태가 없는 상태 추적 장비를 만나면 프로토콜과 무관하게 판정 불가(UNSUPPORTED)다」** — 「1단계 지원 범위」의 해당 줄과 UNSUPPORTED 목록, `docs/semantics.md` §14를 이 문장으로 고친다.
+  - 구현: `trace(..., returning: bool = False)`를 더하고 `verify`의 복귀 호출에서 `returning=True`. 상태 추적 블록에서 `returning and device.id not in states`면 `Unsupported`. 기존 ICMP 검사는 `one-way` 정방향용으로 남긴다. `test_asymmetric_return_firewall_does_not_inherit_state`의 기대 3개가 모두 `UNSUPPORTED`가 된다.
+- 비차단 참고: ① `firewall_in` 차단의 원인 태그는 `other`(§14에 문서화됨. 실습 사례가 쌓이면 Top 5가 「분류 못 함」이 되므로 방화벽 태그는 후속 후보) ② `model.py:219`가 상태 추적 장비가 있으면 네트워크 JSON의 **추가 최상위 키 전부**를 미지원으로 본다(후속 화면 단계에서 `toNetwork`가 키를 더하면 전부 `UNSUPPORTED`가 되니 먼저 확인) ③ `LIMITATION` 문구가 홉마다 반복돼 `reason`이 길다(엔진은 그대로 두고 화면 단계에서 한 번만).
+- 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
 
 ## 배포 기록 (2026-10-06)
 
