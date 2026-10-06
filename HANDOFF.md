@@ -17,263 +17,19 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
-- 단계: **Claude 설계 → 사용자 승인(2026-10-06) → Codex 구현 → Claude 리뷰(R1) → Codex 수정 `a057d79` → Claude 재리뷰 PASS → 사용자 최종 확인·병합 대기.**
-- 구현 브랜치: `codex/pfsense-stateful`(기준 `origin/main` `640a747`).
-- PR: [#44 pfSense 상태 추적 계산 1단계](https://github.com/myeongjundev/netproof/pull/44). 병합하지 않았다.
-- 다음 차례: **사용자(최종 확인·병합, PROMPTS 5단계).**
-  1. 브랜치를 받아 테스트와 완료 조건 명령을 **직접** 실행해 기대 출력과 비교한다(아래 「테스트 결과」·「리뷰 기록」).
-  2. PR diff에 비밀값이 없는지 본다. 두 LLM이 "동의"한 항목도 직접 실행 결과로 확인한다.
-  3. 병합(`gh pr merge 44 --merge`). 이번 과제는 화면 변경이 0줄이라 보이는 화면은 그대로다. 병합 뒤 공개 주소에서 `/api/verify`가 그대로 도는지만 한 번 본다.
-  4. 그다음: **D5(실습 사실 5가지)**를 알려 주면 2단계(실습 연동)를 설계한다. 화면 입력 과제도 후속이다.
-
-구현 시 지시(보존): `origin/main`에서 브랜치를 따고, 「작업 정의」의 변경 범위 안에서만 구현하며, 완료 조건의 명령을 전부 직접 실행해 「테스트 결과」에 붙인다. **D4가 이 과제의 핵심이다** — 모르면 차단으로 단정하지 않고 판정 불가로 둔다.
-- 로드맵과의 관계: 「F5·F6 다음 기능 순서」 5~8번보다 이 과제를 **먼저** 하는 셈이다. 수업에서 실제로 쓰는 장비이므로 사용자가 순서를 바꿔도 된다.
-- 배포 후속(사람 대기, 이번 과제와 별개): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5 포함)를 운영에서 볼 수 없다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
+- **진행 중인 과제 없음.** 직전 과제 「pfSense 상태 추적 계산 1단계」([이슈 #40](https://github.com/myeongjundev/netproof/issues/40))는 **PR #44 병합 완료**(`b050348`, 2026-10-06)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」, 상세는 `decisions/ai-work-log.md`.
+- 다음 차례: **사용자.**
+  1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 **2단계(실습 연동)**를 설계한다.
+  2. 다른 후속 후보: **pfSense 화면 입력**(지금은 엔진·API로만 쓸 수 있다), 로드맵 「F5·F6 다음 기능 순서」 5~8번.
+  3. 배포 후속(사람만 할 수 있는 일): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5)를 운영에서 볼 수 없다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
 
 ### 병합 뒤 운영 확인 (Claude, 로그인 없이, 2026-10-06)
 | 항목 | 결과 |
 | --- | --- |
-| 번들 | 공개 주소의 `assets/index-CsAMlWl2.js`가 리뷰 때 직접 빌드한 파일과 같다(배포 교체 확인) |
-| 판정 API | `POST /api/verify`(사례 01 + AI 답 PASS) → `result=DENY`, `comparison=DISAGREE` |
-| 권한 | 로그인 없이 `/api/cases`·`/api/dashboard` 모두 401. `X-NetProof` 없으면 403 |
-| 미확인 | 원인 Top 5 화면은 검토자 계정이 필요해 **운영에서는 아직 못 봤다**(임시 QA 서버에서는 확인함) |
-
-## 작업 정의 — pfSense 상태 추적 계산 1단계 (이슈 #40, 설계: Claude Opus 5, 2026-10-06, 사용자 승인 완료)
-
-### 목표
-수업에서 쓰는 **pfSense를 NetProof가 계산할 수 있게 엔진에 상태 추적(stateful)을 더한다.** 1단계는 **계산 확장만** 하고, 실습 연동(증거 기록·규칙 변경 전후 대조 흐름)은 2단계로 둔다.
-
-- 핵심 의미론: 상태 추적은 **복귀 패킷의 규칙 평가만 건너뛴다. 경로 계산은 건너뛰지 않는다.** 복귀 경로가 없으면 상태가 있어도 DENY다(`synthetic-02`가 그대로 DENY여야 한다).
-- pfSense 규칙을 기존 무상태 ACL로 치환해 "pfSense를 지원한다"고 적지 않는다(이슈 #40 요구사항 2). 지원하지 않는 조건은 `UNSUPPORTED`와 이유로 멈춘다.
-- 최종 PASS/DENY는 `engine/`만 정한다(ADR-001). 앱 안 LLM 없음(ADR-002). 사례 정답·채점을 만들지 않고 기존 `cases/*.json`·`expect`를 바꾸지 않는다.
-
-### 왜 1·2단계로 나누나
-1. 실습 토폴로지(pfSense)를 **표현할 수 없으면 실습 사례를 저장할 수도 없다.** 계산 확장이 실습 연동의 선행 조건이다.
-2. 2단계 설계에 필요한 **실습 사실이 아직 미확인**이다(아래 D5). 1단계는 그 사실에 의존하지 않도록 범위를 잡았다.
-3. 저장소 규칙상 과제 하나 = 설계 → 구현 → 리뷰 → 병합 한 바퀴다.
-
-### 이미 되는 것 (코드 0줄 — 확인함)
-같은 서브넷 직접 통신은 **지금도 방화벽을 지나지 않는다.** 모든 것을 막는 pfSense를 같은 링크에 두고 `172.16.50.2 → 172.16.50.10`을 판정한 실제 실행 결과:
-
-```
-PASS | 정방향 · 복귀 방향 모두 통과
-홉: [('BOARD', 'send', 'ok'), ('GRAYLOG', 'deliver', 'ok')]
-```
-
-ACL 단계가 아예 없다. 이슈 #40의 「추가 확인할 경계 3」(같은 서브넷·L2 통신을 경계 방화벽에서 차단된 것으로 잘못 계산하지 않기)은 **이미 충족**이며, 1단계에서는 이 동작을 회귀 테스트로 고정만 한다.
-
-### 1단계 지원 범위 (D3·D4 확정)
-| 항목 | 1단계에서 하는 것 |
-|---|---|
-| 장비 | `kind: "router"`에 `stateful: true` 한 칸(장비 단위 = pfSense 한 대). 없으면 지금과 **똑같이** 무상태 ACL |
-| 규칙 | 인터페이스의 **들어오는 방향**에서 위에서부터 **1차 일치**, `pass`·`block`, 프로토콜·출발지·목적지·포트 |
-| 일치 없음 | **차단으로 단정하지 않는다.** 사용자가 그 인터페이스의 기본 정책을 적었으면 그대로 계산하고, 안 적었으면 **UNSUPPORTED**(기본·자동 규칙을 모름) — D4 |
-| 입력 모양 | pfSense 화면과 1:1인 **구조화 필드**. 규칙 일치 계산은 기존 `acl.py`를 재사용하고 새 파서·새 숫자 변환을 만들지 않는다(이슈 #7·#9 재발 방지) |
-| 상태 | `mode: session`에서 정방향이 통과하면 복귀 패킷은 **그 장비에서** 규칙을 평가하지 않는다. `one-way`는 상태를 만들지 않는다 |
-| 경로 | 지금과 같다. **상태는 규칙만 건너뛰고 경로는 건너뛰지 않는다** |
-| 근거 표시 | 적용된 규칙 번호·인터페이스·방향, 복귀가 **상태로 허용됨**, 기본 정책을 **사용자가 적었다**는 사실을 결정 단계에 남긴다 |
-
-입력 모양(이 모양으로 고정한다. 섞어 쓰면 `INVALID`):
-
-```json
-{"id": "PFSENSE", "kind": "router", "stateful": true,
- "interfaces": [{"name": "em1", "ip": "172.16.50.1/24",
-   "rules_in": [{"action": "pass", "proto": "tcp", "src": "172.31.195.0/24", "dst": "172.16.50.2", "dst_port": "5000"}],
-   "default_in": "block"}]}
-```
-
-- `rules_in`·`default_in`은 `stateful: true` 장비에서만 쓴다. 같은 인터페이스에 `acl_in`·`acl_out`과 함께 쓰면 `INVALID`(두 모델을 섞지 않는다).
-- `default_in`을 적지 않으면 `unknown`이고, 일치 규칙이 없을 때 `UNSUPPORTED`가 된다.
-- 복귀 패킷은 **정방향에서 지난 바로 그 상태 추적 장비에서만** 상태로 허용된다. 복귀 추적 중에 상태가 없는 상태 추적 장비를 만나면 프로토콜과 무관하게 판정 불가(`UNSUPPORTED`)다. 규칙·`default_in`이 명시돼 있어도 기존 연결 상태를 모르므로 차단·허용을 단정하지 않는다.
-
-**UNSUPPORTED로 멈추는 것(추측하지 않는다)**: 복귀 추적 중 상태가 없는 상태 추적 장비(프로토콜·규칙·기본 정책과 무관), 기본 정책 미기재, 모델에 없는 **기존 연결 상태**에 기댄 패킷(`one-way`의 응답 모양 — 예: ICMP `echo-reply`), NAT·포트 전달, floating·그룹 규칙, 스케줄·제한(limiter)·고급 옵션, `reply-to`, 자동 생성 규칙(기본 LAN 허용·anti-lockout 포함), pfSense 설정(XML) 가져오기, IPv6, VLAN·L2, IDS/IPS(Snort·Suricata) 탐지 결과.
-
-### 변경 범위 (만질 파일) — D2에 따라 **엔진 단계만**, 화면은 후속
-| 파일 | 변경 |
-|---|---|
-| `engine/src/netproof_engine/model.py` | `Device.stateful`, 인터페이스 `rules_in`·`default_in` 파싱과 형태 검증. 틀린 형태·섞어 쓴 입력은 지금처럼 `INVALID` |
-| `engine/src/netproof_engine/firewall.py` (새 파일) | 구조화 규칙 1차 일치. 주소·포트 일치는 `acl.py`의 기존 계산을 재사용한다 |
-| `engine/src/netproof_engine/trace.py` | 상태 추적 장비의 들어오는 방향 평가, **상태로 허용됨** 홉, 기본 정책 미기재·응답 모양 패킷은 `Unsupported` |
-| `engine/src/netproof_engine/verify.py` | `session` 복귀에서 정방향이 지난 상태 추적 장비의 규칙 평가를 건너뛴다. **반환 키는 바꾸지 않는다** |
-| `engine/tests/test_firewall.py` (새 파일) | 아래 완료 조건의 경계 전부 |
-| `engine/tests/test_properties.py` | `stateful` 없는 입력은 지금 결과와 **완전히 같다**는 무작위 대조 |
-| `server/netproof_api/cases.py` | `LIMITS`에 인터페이스당 `rules` 상한을 더한다(입력 크기 제한만. 판정 로직은 복제하지 않는다) |
-| `docs/semantics.md` | §14 「상태 추적 방화벽」 — 범위·기본 정책·상태가 하는 일과 **하지 않는 일**·UNSUPPORTED 목록·실제 장비 미대조 문장 |
-| `plan.md` | **ADR-016 신설**: 지원 범위 안의 제한된 상태 추적을 더하고 기존 무상태 ACL 동작은 유지한다. 전체 방화벽 모델·설정 파싱은 계속 제외. ADR-005·ADR-008과 Non-Goal을 갱신하되 이력은 남긴다 |
-| `HANDOFF.md`, `decisions/ai-work-log.md` | 상태·기록 |
-
-### 건드리지 않을 것
-- **기존 무상태 ACL 의미론과 결과.** `stateful`이 없는 입력의 판정은 한 건도 달라지면 안 된다(무작위 대조로 증명).
-- `cases/*.json`·`expect`·사례 정답·채점.
-- 원인 태그·통계(PR #41), 혼동 행렬, ACL 점검, 수정 후보, 정책 검증의 기존 규칙. 새 태그·새 통계를 이번에 만들지 않는다.
-- **화면(`web/`) 전체.** 이번 과제는 엔진 단계다(D2). 판정기 입력 폼·근거 표시는 후속 과제에서 설계한다. `npm --prefix web test`는 **회귀로만** 돌린다.
-- DB 표·열, 로그인·세션·보안 헤더, 배포 구성.
-- 실제 장비·실습망에 패킷을 보내는 기능(ADR-011, 영구 제외). NetProof는 계산만 한다.
-- pfSense 설정 파일 파서, 장비 실시간 제어, Cloudflare·IDS 연동.
-
-### 사용자 결정 (2026-10-06 승인 — 확정)
-| | 결정 | 구현에 뜻하는 것 |
-|---|---|---|
-| **D1 ADR** | **ADR-016 신설.** 지원 범위 안의 **제한된** 상태 추적을 더하고 **기존 무상태 ACL 동작은 유지**한다. 전체 방화벽 모델·설정 파싱은 계속 제외 | `plan.md`에 ADR-016을 쓰고 ADR-005·ADR-008·Non-Goal을 갱신한다(이력은 남긴다). `stateful` 없는 입력의 판정은 한 건도 달라지면 안 된다 |
-| **D2 범위** | **이번 과제는 엔진 단계만.** 실습 연동과 **화면 확장**은 후속 | `web/` 변경 0줄. 서버는 입력 크기 제한만. 확인은 엔진과 `POST /api/verify`로 한다 |
-| **D3 입력** | **지원 필드에 한해 pfSense와 대응하는 구조화 입력** | 위 입력 모양으로 고정. 설정 파싱·전체 필드 지원은 하지 않는다 |
-| **D4 기본·자동 규칙** | **추측해서 만들지 않는다.** 다만 판정에 영향을 주는 기본·자동 규칙이나 **기존 연결 상태**를 모델에서 다루지 못하면 **차단으로 단정하지 말고 판정 불가**로 처리한다 | 일치 규칙이 없고 `default_in`도 없으면 `DENY`가 아니라 `UNSUPPORTED`. 응답 모양 `one-way` 패킷도 `UNSUPPORTED` |
-| **D5 실습 사실** | 사용자가 실제 설정을 확인해 제공한다. **확인 전에도 명세와 합성 테스트는 준비하되, 실제 pfSense와 일치한다고 주장하지 않는다** | 완료 조건에 실제 장비 대조를 넣지 않는다. 문서·화면 문구에 미대조를 적는다. 실습 연동(2단계) 설계는 D5를 받은 뒤 |
-
-### 예상 리스크
-1. **"pfSense 지원"으로 과대 표기.** → 화면과 문서에 지원 범위·UNSUPPORTED 표를 함께 둔다. 범위 밖은 판정하지 않고 이유를 적는다.
-2. **기존 판정 회귀.** 상태 추적을 넣으며 무상태 경로를 건드리면 지금까지의 모든 사례가 흔들린다. → `stateful` 없는 입력의 결과 동일성을 무작위 대조로 증명(PR #19·#32에서 쓴 방식).
-3. **ADR을 안 고치고 구현하면 Non-Goal 위반.** → D1이 먼저다. 승인 전에는 Codex로 넘기지 않는다.
-4. **일정.** 4주차 사용자 테스트(10-19~)와 11-01 기능 동결이 있다. 1단계가 커지면 실습 연동(2단계)이 밀린다. → 1단계 범위를 위 표로 묶고 넘치면 UNSUPPORTED로 돌린다.
-5. **실제 pfSense와 대조하지 않았다(D5).** 합성 테스트는 명세와의 일치만 보인다. → 문서·결정 단계 문구에 "실제 장비와 대조하지 않았다"를 적고, 완료 조건에 실제 장비 검증을 넣지 않는다. 실습 대조는 2단계다.
-6. **수업 실제 구성 미확인.** 구성도의 주소만으로 경로·NAT를 단정하지 않는다. → 1단계는 실습 사실에 의존하지 않게 설계했고, 2단계 전에 D5를 확인한다.
-7. **상태를 경로까지 건너뛰는 것으로 오해.** → `synthetic-02`(복귀 경로 없음)를 `stateful: true`로 돌려도 DENY임을 고정 회귀로 둔다.
-8. **DB·배포 영향 없음.** 표·열을 바꾸지 않는다(사례는 기존 `network` JSON에 칸이 늘어날 뿐이다). 운영 DB 작업은 이번 범위에 없다.
-
-### 완료 조건 (실행 가능한 명령과 기대 출력)
-기준값은 PR #41 병합 시점에 Claude가 직접 실행해 받은 수다(2026-10-06).
-1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 기준 `382 passed, 2 xfailed`에서 **기존 382건이 줄지 않고** 추가분만 늘어난다.
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 기준 `149 passed, 1 skipped`에서 추가분만 늘어난다.
-3. `npm --prefix web test` → **회귀로만** 돌린다. 기준 `440 passed`가 **그대로** 나와야 한다(화면 변경 0줄이므로 숫자가 늘면 범위를 벗어난 것이다).
-4. **회귀 동일성**: `stateful`이 없는 무작위 입력 3,000건 이상에서 이번 변경 전후 판정이 **불일치 0건**(출력 첨부).
-5. **상태 추적 회귀**: `synthetic-02`에 `stateful: true`를 켜도 `DENY`(복귀 경로 없음)이고, 복귀 방향 규칙만 막는 구성은 `stateful: true`에서 `PASS`로 바뀐다. 두 출력 모두 첨부.
-6. **D4 경계(가장 중요)**: 일치 규칙이 없고 `default_in`도 없으면 `DENY`가 **아니라** `UNSUPPORTED`와 이유다. `default_in: "block"`을 적으면 그때 `DENY`다. 두 출력 모두 첨부.
-7. **그 밖의 경계**: 응답 모양 `one-way`(ICMP `echo-reply`), `rules_in`과 `acl_in`을 같은 인터페이스에 섞어 쓰기(`INVALID`), 무상태 장비에 `rules_in`(`INVALID`), 비대칭 경로의 상태 없는 장비. 테스트로 고정한다.
-8. 같은 서브넷 통신이 방화벽을 지나지 않는다는 위 실행 결과를 테스트로 고정한다.
-9. **API 확인**(화면 대신): `scripts/qa_local.py`를 띄워 `POST /api/verify`에 pfSense 장비·규칙이 든 구성을 보내 `PASS`·`DENY`·`UNSUPPORTED` 세 경우의 응답을 받아 붙인다. 근거에 적용 규칙과 **상태로 허용됨**이 들어 있어야 한다.
-10. `git diff main...`에 「건드리지 않을 것」의 파일이 없다. **`web/`와 `cases/*.json`은 변경 0줄.**
-11. `docs/semantics.md` §14, `plan.md` ADR-016, `HANDOFF.md`, `decisions/ai-work-log.md` 갱신. 문서에 **실제 pfSense와 대조하지 않았다**를 적는다(D5).
-
-### 테스트 결과 (Codex R1 수정 후 직접 실행, 2026-10-06)
-
-- Claude 리뷰 커밋 `73c68cb`를 기존 `codex/pfsense-stateful` 작업 폴더에서 `git pull`로 받은 뒤 수정했다.
-- R1: 복귀 추적에 `returning=True`를 전달하고 상태가 없는 상태 추적 장비는 규칙·기본 정책을 평가하기 전에 UNSUPPORTED로 멈춘다. 기존 ICMP one-way 검사와 상태가 있는 장비의 복귀·무상태 ACL·경로 계산은 유지한다.
-- 엔진 테스트 463 → 478건: 비대칭 복귀를 프로토콜 3종 × 기본 정책 3종 × 명시 허용 규칙 유무 2종의 18건으로 보강했다(기존 3건 대비 +15). 장비 자체 출발 session도 인바운드 허용 상태가 없어 UNSUPPORTED이며 같은 흐름의 one-way는 PASS다. 기존 사례 파일·expect는 변경하지 않았다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 15%]
-........................................................................ [ 30%]
-........................................................................ [ 45%]
-........................................................................ [ 60%]
-........................................................................ [ 75%]
-........................................................................ [ 90%]
-..............................................xx                         [100%]
-478 passed, 2 xfailed in 5.71s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 48%]
-...................s.................................................... [ 96%]
-......                                                                   [100%]
-149 passed, 1 skipped in 28.33s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/SKT aleph/netproof/web
-
-
- Test Files  32 passed (32)
-      Tests  440 passed (440)
-   Start at  14:09:16
-   Duration  3.00s (transform 62%, import 20%, tests 14%, worker 3%)
-
-  Transform  transforming modules took 12.36s · 62% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-- R1 지정 재현 명령(비대칭 복귀 18건 + 기존 ICMP one-way 응답 5건):
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q tests/test_firewall.py -k "asymmetric_return_firewall_does_not_inherit_state or existing_icmp_state_is_unknown"
-.......................                                                  [100%]
-23 passed, 72 deselected in 0.32s
-```
-
-- 저장소 밖/ignored QA 재현 스크립트 `pfsense-review-repro.py --assert-fixed`로 프로토콜·기본 정책 9조합과 비차단 참고 3건을 직접 확인했다. 수정 전 TCP·UDP는 block → DENY, pass → PASS였으며 ICMP만 UNSUPPORTED였다. 수정 후 출력:
-
-```text
-R1 proto=tcp, default_in=None: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=tcp, default_in=block: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=tcp, default_in=pass: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=udp, default_in=None: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=udp, default_in=block: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=udp, default_in=pass: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=icmp, default_in=None: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=icmp, default_in=block: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-R1 proto=icmp, default_in=pass: UNSUPPORTED | R2: 복귀 패킷이 상태 없는 상태 추적 장비를 지납니다. 기존 연결 상태를 모르므로 판정하지 않습니다. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다
-note1: firewall_in block -> cause tag=other (후속 과제)
-note2: additional top-level metadata -> UNSUPPORTED (화면 확장 전 확인)
-note3: normal session limitation appears in 2 hop details (화면 단계에서 1회 표시)
-```
-
-- 변경 전 `640a747` 엔진을 OS 임시 폴더에 별도 패키지로 복원해 무상태 입력 3,500건의 **전체 verify 사전**을 대조했다. 명령: `.venv/Scripts/python -X utf8 C:/Users/user/AppData/Local/Temp/netproof-pfsense-baseline-20261006.py`. 임시 모듈 폴더 정상 정리.
-
-```text
-baseline=640a747, seed=20261006, full_verdict_comparisons=3500, mismatches=0
-{'DENY': 1732, 'INVALID': 282, 'PASS': 381, 'UNSUPPORTED': 1105}
-```
-
-- 실제 로컬 HTTP: `scripts/qa_local.py`의 `seeded_qa()`와 `make_server(127.0.0.1, 0, ..., threaded=True)`를 사용했다. DATABASE_URL·보안 로그 환경 변수를 제거했으며 비밀번호 출력 경로는 호출하지 않았다. 명령: `.venv/Scripts/python -X utf8 C:/Users/user/AppData/Local/Temp/netproof-pfsense-api-20261006.py`. stdout/stderr 출력:
-
-```text
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 422 -
-127.0.0.1 - - [06/Oct/2026 14:09:21] "POST /api/verify HTTP/1.1" 200 -
-{"case": "session_pass", "status": 200, "result": "PASS", "reason": "정방향 · 복귀 방향 모두 통과", "forward_firewall": [{"acl": null, "detail": "g0/0 in: 1번 규칙에서 허용. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다", "device": "R1", "in_if": "g0/0", "out_if": null, "result": "ok", "rule": "{\"action\": \"pass\", \"dst\": \"10.20.20.5\", \"dst_port\": \"443\", \"proto\": \"tcp\", \"src\": \"10.10.10.0/24\"}", "rule_line": 1, "rule_seq": 1, "step": "firewall_in"}], "return_state": [{"acl": null, "detail": "g0/1 in: 이 session의 정방향 상태로 허용됨. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다", "device": "R1", "in_if": "g0/1", "out_if": null, "result": "ok", "rule": null, "rule_line": null, "rule_seq": null, "step": "state"}]}
-{"case": "unknown_default", "status": 200, "result": "UNSUPPORTED", "reason": "R1 g0/0 in: 일치 규칙이 없고 기본·자동 규칙을 모릅니다(default_in 미확인). 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다", "forward_firewall": [], "return_state": []}
-{"case": "explicit_block", "status": 200, "result": "DENY", "reason": "정방향: g0/0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다", "forward_firewall": [{"acl": null, "detail": "g0/0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다", "device": "R1", "in_if": "g0/0", "out_if": null, "result": "drop", "rule": null, "rule_line": null, "rule_seq": null, "step": "firewall_in"}], "return_state": []}
-return_only_block: stateless=DENY, stateful=PASS
-synthetic-02 with stateful: DENY, return reason=경로 없음, decisive=R2/route
-rules_in=500: HTTP 200
-rules_in=501: HTTP 422
-malformed rules_in: HTTP 200, INVALID
-QA server stopped; temporary SQLite cleaned; no credentials printed
-```
-
-- API의 기존 반환 키와 comparison 유지, 규칙 번호·인터페이스·방향·복귀 상태 근거를 확인했다. 전체 pytest에 첫 일치·혼용 INVALID·미지원 옵션·같은 서브넷 통신·복귀 경로 없음·무상태 ACL 회귀가 포함된다.
-- 최초 수정 후 targeted 실행에서 장비 자체 출발 session의 과거 DENY 기대값 1건이 실패했다(94 passed). 같은 R1 의미론에 맞춰 UNSUPPORTED 이유와 one-way PASS 검사를 추가한 뒤 위 전체 실행·지정 재현 명령이 통과했다.
-- `git diff --check` 오류 없음. `git diff origin/main --name-only`는 승인 파일 11개뿐이며 `git diff origin/main --numstat -- web cases` 출력은 비어 있다. web/·cases/*.json·expect·DB·배포 구성 변경 없음. 사용자 이미지 2개는 미추적 상태로 보존한다.
-- 실제 pfSense 장비와 대조하지 않았다(D5). 화면 변경 0줄이므로 web build는 실행하지 않았다. 실제 장비·화면·실습 연동·사람 수동 QA는 후속이다.
-
-Codex (GPT-6)
-
-### 리뷰 기록 (Claude Opus 5, 2026-10-06 — 1차 수정 요청 → **재리뷰 PASS**)
-- 판정: **수정 요청 1건(R1) + 비차단 참고 3건.** 지적은 PR #44 코멘트 [#issuecomment-6009512032](https://github.com/myeongjundev/netproof/pull/44#issuecomment-6009512032)에 파일:줄·재현과 함께 남겼다.
-- **Codex가 적은 수와 Claude가 직접 실행한 수는 모두 같다**: 엔진 `463 passed, 2 xfailed`(기존 382 유지 + 81), 서버 `149 passed, 1 skipped`, 웹 `440 passed` **그대로**(화면 변경 0줄). `web/`·`cases/` 변경 0줄.
-- 독립 A/B(Claude 생성기·시드 `20261007`): 병합 전 엔진(`640a747`)을 임시 폴더에 복원해 `stateful`을 쓰지 않는 입력 3,000건의 **전체 verify 사전**을 대조 → **불일치 0**, 분포 `PASS 545 · DENY 1124 · UNSUPPORTED 552 · INVALID 779`. Codex의 3,500건과 별개 생성기로 같은 결론.
-- 직접 재현한 D4 경계: 기본 정책 미기재 → `UNSUPPORTED`, `default_in=block` → `DENY`(사용자 입력 명시), 정상 session → `PASS`(복귀 홉 `send·state·route·deliver`). API도 `rules_in=500` 200 / `501` 422 / 미기재 `UNSUPPORTED` 확인.
-- **R1**(`trace.py:137~157`, `docs/semantics.md` §14): 복귀 패킷이 **상태 없는** 상태 추적 장비를 지날 때 `default_in`만 보고 `DENY`(또는 `PASS`)를 단정한다. 그 장비의 상태 테이블을 모르므로 **D4(차단으로 단정하지 말고 판정 불가)에 어긋나고**, 같은 상황의 ICMP 응답이 이미 `UNSUPPORTED`인 것과도 비일관이다.
-  - **원인은 Claude의 설계 문장이다**("비대칭 복귀 경로의 다른 장비는 규칙을 평가한다"). 고칠 문장: **「복귀 추적 중에 상태가 없는 상태 추적 장비를 만나면 프로토콜과 무관하게 판정 불가(UNSUPPORTED)다」** — 「1단계 지원 범위」의 해당 줄과 UNSUPPORTED 목록, `docs/semantics.md` §14를 이 문장으로 고친다.
-  - 구현: `trace(..., returning: bool = False)`를 더하고 `verify`의 복귀 호출에서 `returning=True`. 상태 추적 블록에서 `returning and device.id not in states`면 `Unsupported`. 기존 ICMP 검사는 `one-way` 정방향용으로 남긴다. `test_asymmetric_return_firewall_does_not_inherit_state`의 기대 3개가 모두 `UNSUPPORTED`가 된다.
-- 비차단 참고: ① `firewall_in` 차단의 원인 태그는 `other`(§14에 문서화됨. 실습 사례가 쌓이면 Top 5가 「분류 못 함」이 되므로 방화벽 태그는 후속 후보) ② `model.py:219`가 상태 추적 장비가 있으면 네트워크 JSON의 **추가 최상위 키 전부**를 미지원으로 본다(후속 화면 단계에서 `toNetwork`가 키를 더하면 전부 `UNSUPPORTED`가 되니 먼저 확인) ③ `LIMITATION` 문구가 홉마다 반복돼 `reason`이 길다(엔진은 그대로 두고 화면 단계에서 한 번만).
-- 리뷰에서 코드는 고치지 않았다(CLAUDE.md).
-
-**재리뷰 (`a057d79`, 2026-10-06) — PASS.** 코멘트 [#issuecomment-6009844507](https://github.com/myeongjundev/netproof/pull/44#issuecomment-6009844507).
-- 직접 실행: 엔진 `478 passed, 2 xfailed`(463 → 478), 서버 `149 passed, 1 skipped`, 웹 `440 passed` 그대로 — Codex가 적은 수와 모두 같다. `web/`·`cases/`·`acl.py` 변경 0줄, `git diff --check` 0줄.
-- **R1 해결**: 프로토콜 3종 × `default_in` 3종에서 **명시적 허용 규칙을 넣어도** 전부 `UNSUPPORTED`(수정 전에는 TCP·UDP가 block → DENY, pass → PASS였다). 정상 경로는 그대로다 — session `PASS`(복귀 홉 `send·state·route·deliver`), 기본 정책 미기재 `UNSUPPORTED`, `default_in=block` `DENY`, one-way `PASS`, ICMP one-way 응답 `UNSUPPORTED`, 무상태 ACL 무변화.
-- 부수 변화 확인: 방화벽 **자신이 출발지**인 session은 인바운드 상태가 없어 `DENY` → `UNSUPPORTED`가 됐다. 실제 pfSense는 자기가 연 연결에 상태를 만들므로 DENY 단정이 잘못이던 자리이고, 같은 흐름을 `one-way`로 두면 `PASS`라 pfSense → Graylog 같은 단방향 흐름은 계산된다. 타당한 변화로 본다.
-- 독립 A/B 재확인(수정이 `trace.py`·`verify.py`를 건드려 다시 실행): 두 시드(`20261007`·`55512`) 각 3,000건, 전체 verify 사전 **불일치 0**.
-- 문서 일치 확인: HANDOFF 「1단계 지원 범위」·UNSUPPORTED 목록과 `docs/semantics.md` §14 본문·「지원하지 않는 조건」이 같은 문장으로 통일됐다(Claude 설계 문장이 원인이던 지적이라 문서까지 함께 고쳐졌다).
-- 비차단 참고 3건은 후속 과제로 기록하는 데 동의한다. ②(추가 최상위 키)는 후속 화면 과제의 첫 완료 조건으로 `toNetwork`의 키와 엔진 지원 필드를 대조할 것을 권한다.
-
-### Codex 수정 기록 (2026-10-06)
-- R1에 동의하고 코드·합성 테스트·설계 문장을 같은 커밋에서 수정했다. 위 「테스트 결과」에 재현 명령과 실제 출력을 남겼다. 다음 차례는 Claude 재리뷰다.
-- 비차단 참고 3건은 **후속 과제**로 선택했다(현재 동작을 직접 재현했으며 코드 변경 없음):
-  1. 방화벽 원인 태그: `firewall_in` 차단의 `cause().tag=other`를 확인했다. 실습 사례가 쌓이기 전에 방화벽 태그·통계 분류를 별도 설계한다. 원인 태그는 이번 과제 금지 범위다.
-  2. 추가 최상위 키: 상태 추적 장비가 있는 network에 `metadata`를 넣으면 UNSUPPORTED임을 확인했다. 후속 화면 과제에서 `toNetwork`의 모든 키와 엔진 지원 필드를 먼저 대조한다.
-  3. 미대조 문구: 정상 session의 정방향 방화벽 홉과 복귀 state 홉, 총 2곳에 LIMITATION이 있음을 확인했다. 엔진 근거를 유지하고 후속 화면 설계에서 패널에 한 번 표시하는 방법을 정한다.
-- 실제 장비와의 일치는 미검증이며 D5·사람 수동 QA 대기 상태를 유지했다.
-
-Codex (GPT-6)
+| 새 엔진 반영 | 공개 주소 `POST /api/verify`에 상태 추적 장비(기본 정책 미기재)를 보내 `UNSUPPORTED` + `FW em0 in: 일치 규칙이 없고 기본·자동 규칙을 모릅니다(default_in 미확인)` 수신. 배포 전에는 같은 요청이 `PASS`였다 |
+| 화면 무변경 | 번들이 `assets/index-CsAMlWl2.js`로 **PR #41 때와 같다**(D2대로 `web/` 0줄) |
+| 권한 | 로그인 없이 `/api/cases` 401 |
+| 미확인 | **실제 pfSense 장비와 대조하지 않았다**(D5). 원인 Top 5 화면은 검토자 계정이 필요해 운영에서 아직 못 봤다 |
 
 ## 배포 기록 (2026-10-06)
 
@@ -308,6 +64,9 @@ Codex (GPT-6)
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #44 pfSense 상태 추적 계산 1단계 (병합 완료, `b050348`)**: 엔진에 **제한된 상태 추적**을 더했다(ADR-016 신설). `stateful: true` 장비의 인터페이스에 pfSense 화면과 1:1인 구조화 규칙 `rules_in`·`default_in`, 들어오는 방향 1차 일치, `session` 복귀는 **정방향이 지난 그 장비에서만** 규칙을 건너뛴다. 새 파일 `engine/firewall.py`(일치 계산은 기존 `acl.py` 재사용, 새 파서·새 숫자 변환 없음), `docs/semantics.md` §14, 서버는 `rules_in` 상한 500만. **`web/`·`cases/*.json`·DB·배포 구성 변경 0줄**(D2: 화면은 후속). Claude 리뷰 R1(상태 없는 복귀 장비를 `default_in`만 보고 단정) → Codex 수정 `a057d79` → **재리뷰 PASS**. 최종 실행: 엔진 478 passed·2 xfailed, 서버 149 passed·1 skipped, 웹 440 passed(그대로).
+  - 유지되는 합의: **상태는 규칙만 건너뛰고 경로는 건너뛰지 않는다**(복귀 경로가 없으면 상태가 있어도 DENY). **모르면 차단으로 단정하지 않고 판정 불가**(사용자 D4) — 기본 정책 미기재, 복귀 추적 중 상태 없는 상태 추적 장비(프로토콜·규칙·기본 정책과 무관), 기존 연결 상태에 기댄 패킷, NAT·floating·스케줄·XML 가져오기 등은 `UNSUPPORTED`. 기존 **무상태 ACL 동작은 그대로**(Claude 독립 A/B 6,000건 불일치 0). **실제 pfSense 장비와 대조하지 않았다**(D5).
+  - 남은 후속: ① 2단계 실습 연동(D5 확인 뒤) ② pfSense 화면 입력 ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ④ 네트워크 JSON의 추가 최상위 키가 전부 미지원 처리되는 점(화면 과제에서 `toNetwork` 키를 엔진 지원 필드와 먼저 대조) ⑤ 미대조 문구를 화면 패널에 한 번만 보이기.
 - **PR #41 원인 태그·통계 (병합 완료, `329e74c`)**: 저장된 판정 JSON만 읽는 엔진 순수 함수 `cause`(태그 9개 + 방향, 네트워크를 다시 읽거나 재판정하지 않음), 검토자 대시보드 「가장 많이 틀린 원인 Top 5」(분모 `comparison=DISAGREE`, 복귀 건수, 그 외·분류 못 함·세 제외, 상한 2,000건 표시), 사례 상세 판정 카드 제목의 `원인 태그(통계)`. `docs/semantics.md` §13 신설. **DB 표·열·판정 경로(`verify.py`·`trace.py`)·`cases/*.json`·`/api/verify`·사례 목록·혼동 행렬은 변경 0줄.** Claude 리뷰 R1(판정 불가 사례에도 원인·방향 표시)·R2(원인 줄이 패널 밖에 떠 있고 판정 문장과 중복) → Codex 수정 `aa29f2a` → **재리뷰 PASS**. 최종 실행: 엔진 382 passed·2 xfailed, 서버 149 passed·1 skipped, 웹 440 passed, 빌드 성공.
   - 유지되는 합의: **집계 ≠ 판정.** 원인은 엔진 근거를 묶은 이름이고 정답·채점이 아니다. 분류 못 하면 **`분류 못 함`으로 두고 추측하지 않는다.** `UNSUPPORTED`·`INVALID`는 태그도 분모도 아니며 화면에도 원인·방향을 적지 않는다. 원인은 **혼동 행렬(오탐·미탐)과 다른 축**이라 `DISAGREE`에서 오탐·미탐을 유도하지 않는다.
   - 남은 후속: 원인별 사례 목록 필터는 저장 열이 필요해 넣지 않았다(다음 과제). 사람이 붙이는 원인 태그(설계 D1의 선택지 b)도 별도 과제로 미뤘다.
@@ -375,6 +134,7 @@ Codex (GPT-6)
 2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
 4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
+- [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
 5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④
 6. [ ] 구성도 그림 + 경로 재생 — ②
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
@@ -405,7 +165,8 @@ Codex (GPT-6)
 
 ## 다음 LLM이 확인할 내용
 - **Claude(재리뷰):** pfSense 1단계 R1 수정과 위 완료 조건을 독립 확인한다. 결정은 「사용자 결정」 표가 기준이며, 모르면 판정 불가(D4). Codex의 API·합성 테스트는 실제 장비 검증이 아니다.
-- **사용자:** D5(실습 사실)를 확인해 주면 2단계(실습 연동)를 설계한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
+- **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
+- **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
 - **다음 설계자(Claude):** 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴다. 원인 태그 규칙은 `docs/semantics.md` §13이 기준이고 바꾸려면 먼저 요청한다. 원인은 판정이 아니다.
 - **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
 - **배포 흐름:** `main`에 병합하면 바로 운영에 나간다. 리뷰 원칙은 그대로이고, 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
@@ -454,7 +215,7 @@ Codex (GPT-6)
 - 내용: 문제 발견 → 접근 → 시행착오 → 피드백 반영 → 배운 점, 내부 네트워크 수업 구성, 구현 상태와 pfSense 계획 구분, 설명용 짧은 소개와 근거 링크.
 - 최신화: GitHub에서 PR #41의 병합(`2026-10-06T03:22:38Z`)을 확인해 회고에 반영했다. 공개 사이트의 신규 기능 반영은 이번 작업에서 확인하지 않았다. 위 원인 태그 과제 기록은 별도 이력으로 유지한다.
 - 제품 코드·화면 변경 없음. pfSense 설계나 구현을 수행하지 않았고, 실제 실습·사람의 수동 QA를 완료로 바꾸지 않았다.
-- 다음 단계: 문서 PR 리뷰와 사용자 병합 결정.
+- 상태: `main`에 들어갔다(`5199532`). Claude 확인(2026-10-06): 링크 8개 유효, AI 답 기록 16행(CLCO 12 + qwen3.5:9b 4)·판정 불일치 0건, 합성 사례 3개로 본문과 맞는다. **고칠 곳 두 군데** — ① 「원인 태그·불일치 원인 Top 5」의 "공개 사이트 반영 미확인"은 **반영 확인됨**(번들 해시가 리뷰 때 빌드한 것과 같다) ② "HANDOFF에 병합 대기 문구가 남아 있다"는 PR #42에서 해소됐다. 작성자가 고친다.
 
 실제 실행한 테스트 출력(2026-10-06):
 
