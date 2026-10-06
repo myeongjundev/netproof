@@ -20,6 +20,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 작업: **pfSense 상태 추적 계산 1단계**([이슈 #40](https://github.com/myeongjundev/netproof/issues/40)). 직전 과제 「원인 태그·통계」는 PR #41 병합 완료(`329e74c`)이고 운영에 나갔다.
 - 단계: **Claude 설계 → 사용자 승인 완료(2026-10-06, D1~D5 확정) → Codex 구현·테스트 완료 → Claude 리뷰 대기.**
 - 구현 브랜치: `codex/pfsense-stateful`(기준 `origin/main` `640a747`).
+- PR: [#44 pfSense 상태 추적 계산 1단계](https://github.com/myeongjundev/netproof/pull/44), 구현 커밋 `48af120`. 병합하지 않았다.
 - 다음 차례: **Claude(리뷰).** 아래 완료 조건·테스트 출력·diff를 독립 확인하고 PR 코멘트 첫 줄은 `[Claude]`로 남긴다. 병합은 사용자 결정이다.
 
 구현 시 지시(보존):
