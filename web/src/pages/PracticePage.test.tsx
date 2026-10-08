@@ -276,6 +276,7 @@ it("안내 닫기의 저장이 실패해도 이번 방문 메모리에서는 숨
 const record = (tree: unknown) => find(tree, node => node.type === "section" && node.props["aria-labelledby"] === "practice-record-title");
 const recordHtml = (tree: unknown) => renderToStaticMarkup(record(tree)!);
 const recordTitle = (tree: unknown) => find(record(tree), node => node.type === "input")!;
+const savedNotice = (tree: unknown) => find(tree, node => node.type === "p" && node.props.role === "status");
 
 it("⑤는 판정 전·입력 변경 뒤에는 없고 로그인 전에는 보존 경계를 안내한다", async () => {
   vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
@@ -325,15 +326,29 @@ it("빈 제목은 저장하지 않고 실패 시 제목·구성·예상을 유�
   expect(d.button("저장").props.disabled).toBe(false);
   await d.button("저장").props.onClick(); expect(go).toHaveBeenCalledExactlyOnceWith("/cases/43");
 });
-it.each(["edit", "edit-reset", "unmount"])("저장 중 %s 뒤 늦은 응답은 상세로 이동하지 않는다", async action => {
+it.each(["edit", "edit-reset", "rejudge", "unmount"])("저장 중 %s 뒤 늦은 응답은 이동 없이 저장 사실을 알린다", async action => {
   vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
   let finish!: (saved: CaseDetail) => void;
   vi.spyOn(api, "createCase").mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const d = driver(); await d.button("판정하기").props.onClick(); const pending = d.button("저장").props.onClick();
   if (action === "unmount") (fixture.effects[0]() as () => void)();
+  else if (action === "rejudge") await d.button("판정하기").props.onClick();
   else { d.editPort(80); if (action === "edit-reset") d.button("처음 상태로").props.onClick(); d.render(); }
+  const beforeResponse = [...fixture.states];
   finish({ id: 42 } as CaseDetail); await pending; expect(go).not.toHaveBeenCalled();
-  if (action !== "unmount") { await d.button("다시 판정하기").props.onClick(); expect(d.button("저장").props.disabled).toBe(false); }
+  if (action === "unmount") {
+    expect(fixture.states).toEqual(beforeResponse); expect(savedNotice(d.render())).toBeUndefined();
+  } else {
+    const notice = renderToStaticMarkup(savedNotice(d.render())!);
+    expect(notice).toContain('role="status"'); expect(notice).toContain('href="#/cases/42"');
+    expect(notice).toContain("사례 #42"); expect(notice).toContain("으로 저장했습니다.");
+    expect(notice).toContain("저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.");
+    if (action !== "rejudge") {
+      expect(record(d.render())).toBeUndefined();
+      await d.button("다시 판정하기").props.onClick();
+    }
+    expect(savedNotice(d.render())).toBeDefined(); expect(d.button("저장").props.disabled).toBe(false);
+  }
 });
 it.each(["PASS", "DENY", undefined] as const)("기본 제목은 예상 %s를 표시하고 예상 없음도 저장할 수 있다", async expected => {
   vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());

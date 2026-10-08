@@ -84,6 +84,7 @@ export function PracticePage({ caseId, user, checked, draft, setDraft, onReady, 
   const [title, setTitle] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedCaseId, setSavedCaseId] = useState<number | null>(null);
   // 다음 렌더 전 두 번 클릭해도 저장 요청은 하나만 보낸다.
   const savePending = useRef(false);
   const saveActive = useRef(true);
@@ -206,6 +207,7 @@ export function PracticePage({ caseId, user, checked, draft, setDraft, onReady, 
       const saved = await api.createCase(saveTitle.trim(), structuredClone(toNetwork(draft)),
         structuredClone(draft.flow), structuredClone(draft.claim));
       if (current()) go(`/cases/${saved.id}`);
+      else if (saveActive.current) setSavedCaseId(saved.id);
     } catch (error) {
       if (current()) setSaveError(message(error));
     } finally {
@@ -260,6 +262,7 @@ export function PracticePage({ caseId, user, checked, draft, setDraft, onReady, 
           <div className="judge"><button type="button" className="primary" onClick={judge} disabled={loading}>{loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}</button><span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span></div>
           <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
           <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
+          {savedCaseId !== null && <p className="hint" role="status"><a href={`#/cases/${savedCaseId}`}>사례 #{savedCaseId}</a>으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.</p>}
           {verdict && !stale && <section className="panel save" aria-labelledby="practice-record-title">
             <h2 id="practice-record-title">⑤ 기록하기</h2>
             {!checked ? <p role="status">로그인 여부를 확인하는 중…</p> : user ? <>

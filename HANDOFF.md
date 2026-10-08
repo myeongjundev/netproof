@@ -17,11 +17,45 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. **Claude 설계·사용자 승인(D1~D3)에 따른 Codex 구현·검증 완료(2026-10-08), Claude 리뷰: 수정 요청 R1**. 실습 직접 저장, 저장된 근거의 복습 링크, 계산과 실제 결과 불일치 필터·세 바로가기를 구현했다.
+- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. **Claude R1 수정·재검증 완료(2026-10-08), Claude 재리뷰 대기**. 실습 직접 저장, 저장된 근거의 복습 링크, 계산과 실제 결과 불일치 필터·세 바로가기를 구현했다. 저장 중 편집·재판정 뒤 늦은 성공에도 저장 사실과 사례 링크를 표시한다.
 - 요구사항·현재 연결: [학습 흐름 강화 요구사항](docs/learning-flow-brief-2026-10-08.md). 참고 사이트의 화면 재구성보다 학습·실습·기록·복습 연결 강화를 선택한 것으로 기록했다.
 - 브랜치: `codex/learning-flow`, 기준 `main` `57a9f4d`(#45·#46 병합 완료). 작업 전 git pull, HANDOFF·AGENTS·PROMPTS의 「2. 구현」을 확인하고 main에서 브랜치를 만들었다.
 - PR: [#47 학습·실습·기록·복습 흐름 연결](https://github.com/myeongjundev/netproof/pull/47). main 대상 커밋·푸시 완료, 병합하지 않았다. 요구사항·설계 PR [#46](https://github.com/myeongjundev/netproof/pull/46)은 병합됐다.
-- 다음 차례: **Codex(R1 수정).** Claude 리뷰 결과 수정 요청 1건(R1), 비차단 1건(N1) — 아래 「리뷰 기록」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/47#issuecomment-6049848827). 수정 뒤 Claude 재리뷰, 병합은 사용자 결정.
+- 다음 차례: **Claude 재리뷰.** R1 수정 결과는 아래 「R1 수정 결과」와 PR #47의 [Codex] 코멘트에 기록한다. N1은 설계에서 지정한 배지 재사용 결과로 이번 수정 대상이 아닌 후속 후보다. 병합은 사용자 결정.
+
+### R1 수정 결과 — PR #47 (Codex, 2026-10-08)
+- `PracticePage.tsx`: 저장 성공이 현재 revision과 다르지만 화면에 남아 있으면 이동 대신 `role="status"`에 `사례 #N으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.`와 `#/cases/N` 링크를 표시한다. 안내는 `!stale` 조건 밖에 있어 편집으로 ⑤가 숨겨져도 보이고, 재판정 뒤에도 남는다. 언마운트 뒤에는 이동·상태 변경 없음. N1 문구는 변경하지 않았다.
+- 테스트: 기존 늦은 성공 하네스에 재판정 1개를 추가하고 편집·편집 후 초기화·재판정에서 안내/링크/이동 없음/안내 유지, 언마운트에서 상태 변화 없음을 확인했다. 수정 전 해당 재현은 **3 failed, 1 passed, 43 skipped**; 수정 뒤 전체 실습 **47 passed**.
+
+```text
+npm --prefix web test -- src/pages/PracticePage.test.tsx
+Test Files  1 passed (1)
+Tests  47 passed (47)
+Duration  874ms
+
+cd engine && ../.venv/Scripts/python -m pytest -q
+478 passed, 2 xfailed in 7.75s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+157 passed, 1 skipped in 27.93s
+
+npm --prefix web test
+Test Files  35 passed (35)
+Tests  485 passed (485)
+Duration  3.12s (transform 62%, import 21%, tests 13%, worker 3%)
+
+npm --prefix web run build
+> tsc --noEmit && vite build
+✓ 61 modules transformed.
+dist/assets/index-CQWvs7G8.css  80.94 kB │ gzip: 22.54 kB
+dist/assets/index-BMQjIVBk.js  364.77 kB │ gzip: 109.94 kB
+✓ built in 925ms
+```
+
+- 실브라우저 재현: 임시 SQLite·127.0.0.1:4863 QA 실행 파일의 WSGI 래퍼에서 저장 HTTP 201 응답만 5초 지연(제품 코드·API 변경 없음). 저장 직후 재판정 → 실습 주소 유지·사례 #5 안내/링크·링크로 상세 도착. 저장 직후 포트 8443 편집 → ⑤ 숨김에도 사례 #6 안내/링크 표시. 저장 직후 홈으로 이동 → 응답 뒤에도 홈 유지·안내 없음. 375px 가로 넘침 0·콘솔 오류 0, 1280에서 재판정/편집 확인. 캡처는 미추적 `.venv/learning-flow-r1-notice.jpg`. 검증 뒤 탭 닫기·viewport 초기화, 턴 중단 뒤 4863 리슨 없음 확인.이번 임시 폴더의 qa.db만 확인해 파일과 빈 폴더를 각각 삭제했고 폴더 없음(False)을 확인했다.
+- `git diff --check` 공백 오류 없음. `git diff --stat main... -- engine cases server/netproof_api/models.py vercel.json` 출력 없음. 이번 수정은 실습 컴포넌트·그 테스트·HANDOFF·AI 작업 기록만이다. 사용자 이미지 2개 보존. 실제 장비·사람 수동 QA 상태는 변경하지 않았다.
+
+Codex (GPT-6)
 
 ### 리뷰 기록 — PR #47 (Claude, 2026-10-08)
 - 직접 실행(`a43411d`): 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 484 passed, 빌드 성공(번들 `index-Boesx1qU.js`, Codex와 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음.
