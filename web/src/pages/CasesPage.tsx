@@ -38,7 +38,7 @@ export function CasesPage() {
   }, [filters, page, retry]);
 
   const appliedConditions = appliedFilterText(filters);
-  // 검색어와 바깥의 '내 사례만'은 접히는 일곱 선택 필터 개수에서 제외한다.
+  // 검색어와 바깥의 '내 사례만'은 접히는 선택 필터 개수에서 제외한다.
   const appliedSelectCount = appliedFilterText({ ...filters, mine: false }).length;
 
   return (
@@ -51,8 +51,13 @@ export function CasesPage() {
         </label>
       </div>
       <p className="hint">
-        새 사례는 <a href="#/">판정기</a>에서 판정한 뒤 저장합니다. 실제 결과를 적으면 검토자가 확인합니다.
+        새 사례는 <a href="#/learn">실습</a>이나 <a href="#/">판정기</a>에서 판정한 뒤 저장합니다. 실제 결과를 적으면 검토자가 확인합니다.
       </p>
+      <nav aria-label="다시 살펴보기" className="row-actions" style={{ flexWrap: "wrap" }}>
+        <a href="#/cases?mine=1&claim_kind=self&comparison=DISAGREE">내 예상과 계산이 달랐던 내 사례</a>
+        <a href="#/cases?mine=1&actual_mismatch=1">계산과 실제 결과가 다른 내 사례</a>
+        <a href="#/cases?mine=1&actual=none">실제 결과를 아직 안 적은 내 사례</a>
+      </nav>
       <form className="case-search" role="search" onSubmit={(e) => { e.preventDefault(); changeFilters({ q: search.trim() }); }}>
         <label htmlFor="case-query">사례 검색
           <input id="case-query" type="search" value={search} maxLength={100}
@@ -86,6 +91,9 @@ export function CasesPage() {
           </select></label>
           <label>실제 결과<select value={filters.actual} onChange={(e) => changeFilters({ actual: e.target.value as CaseFilters["actual"] })}>
             <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option><option value="none">미정</option>
+          </select></label>
+          <label>계산과 실제 결과<select value={filters.actual_mismatch} onChange={(e) => changeFilters({ actual_mismatch: e.target.value as CaseFilters["actual_mismatch"] })}>
+            <option value="">전체</option><option value="1">다름</option>
           </select></label>
           <label>받은 답 종류<select value={filters.claim_kind} onChange={(e) => changeFilters({ claim_kind: e.target.value as CaseFilters["claim_kind"] })}>
             <option value="">전체</option><option value="ai">AI 답</option><option value="self">사람 예상</option><option value="none">종류 없음</option>

@@ -101,7 +101,7 @@ export function App() {
   const onGuess = (caseId: string, expected: PracticeGuess) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`); };
   if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} practiceCaseId={practiceCaseId} practiceDraft={practiceCaseId ? practiceDrafts[practiceCaseId] : undefined} />;
   else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} onGuess={onGuess} />;
-  else if (route.page === "practice") page = <PracticePage key={route.caseId} caseId={route.caseId} draft={practiceDrafts[route.caseId]} onReady={preparePractice}
+  else if (route.page === "practice") page = <PracticePage key={route.caseId} caseId={route.caseId} user={user} checked={checked} draft={practiceDrafts[route.caseId]} onReady={preparePractice}
     setDraft={update => setPracticeDrafts(current => current[route.caseId] ? { ...current, [route.caseId]: update(current[route.caseId]) } : current)}
     onImport={next => { setPendingImport(practiceImport(route.caseId, next)); go("/"); }} />;
   else if (route.page === "judge") page = <JudgePage user={user} draft={draft} setDraft={setDraft} share={route.share} titleHint={titleHint} pendingImport={pendingImport} onImportConsumed={consumeImport} />;

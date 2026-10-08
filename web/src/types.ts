@@ -188,6 +188,7 @@ export interface CaseFilters {
   confirmed: "" | "0" | "1";
   source: ActualSource | "none" | "";
   actual: "PASS" | "DENY" | "none" | "";
+  actual_mismatch: "" | "1";
   claim_kind: "ai" | "self" | "none" | "";
   claim_expected: "PASS" | "DENY" | "";
 }

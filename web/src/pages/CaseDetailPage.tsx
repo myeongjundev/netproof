@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { api, message } from "../api";
 import { caseCauseText } from "../causeView";
-import { ActualBadge } from "../components/Badges";
+import { ActualBadge, ComparisonBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
 import { CaseNetwork } from "../components/CaseNetwork";
-import { claimKindText } from "../caseView";
+import { claimKindText, comparisonCaption } from "../caseView";
+import { relatedLesson } from "../reviewView";
 import { EMPTY_CLAIM, fromCase } from "../draft";
 import { cloneTitle } from "../practice";
 import { applyObservation } from "../observe";
@@ -36,6 +37,21 @@ export function CaseCalculation({ item }: { item: CaseDetail }) {
       network={item.network}
     />
   );
+}
+
+export function CaseReview({ item, user }: { item: CaseDetail; user: User }) {
+  const lesson = relatedLesson(item);
+  return <section className="panel" aria-labelledby="case-review-title">
+    <h2 id="case-review-title">다시 살펴보기</h2>
+    {lesson ? <>
+      <p><a href={`#/learn/${lesson.id}`}>관련 개념: {lesson.title} 다시 보기</a></p>
+      <p className="hint">원인 태그로 고른 주제입니다. 정답이나 채점이 아닙니다.</p>
+    </> : <p><a href="#/learn">학습실에서 개념 살펴보기</a></p>}
+    <p>받은 답과 계산: <span className="meta">{comparisonCaption(item)}</span> <ComparisonBadge comparison={item.comparison} /></p>
+    <p>계산과 실제 결과: <ActualBadge item={item} /></p>
+    {item.owner_id === user.id && item.actual.result === null && <p className="hint">실제 결과가 아직 없습니다. 실습망에서 확인한 뒤 아래 실제 결과에 적으세요.</p>}
+    <p className="hint">새 예상으로 다시 풀려면 위의 「복제해 다시 풀기」를 쓰세요.</p>
+  </section>;
 }
 
 export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
@@ -141,6 +157,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
         <p className="hint below">복제는 받은 답을 비운 새 초안입니다. 다시 판정해 저장하면 실제 결과·확인 상태를 물려받지 않는 별개 사례가 됩니다.</p>
       </section>
 
+      <CaseReview item={item} user={user} />
       <CaseNetwork network={item.network} flow={item.flow} />
 
       <div className="layout detail-grid">

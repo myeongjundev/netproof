@@ -55,6 +55,7 @@ export function appliedFilterText(filters: CaseFilters): string[] {
     ...(filters.confirmed ? [`검토 확인 ${filters.confirmed === "1" ? "확인됨" : "미확인"}`] : []),
     ...(filters.source ? [`실제 결과 출처 ${source[filters.source]}`] : []),
     ...(filters.actual ? [`실제 결과 ${actual[filters.actual]}`] : []),
+    ...(filters.actual_mismatch ? ["계산과 실제 결과 다름"] : []),
     ...(filters.claim_kind ? [`받은 답 종류 ${kind[filters.claim_kind]}`] : []),
     ...(filters.claim_expected ? [`받은 답 ${result[filters.claim_expected]}`] : []),
   ];
