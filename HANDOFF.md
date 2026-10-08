@@ -20,7 +20,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 작업: **학습 → 실습 → 기록·복습 흐름 강화**. **Claude 설계·사용자 승인(D1~D3)에 따른 Codex 구현·검증 완료(2026-10-08), Claude 리뷰 대기**. 실습 직접 저장, 저장된 근거의 복습 링크, 계산과 실제 결과 불일치 필터·세 바로가기를 구현했다.
 - 요구사항·현재 연결: [학습 흐름 강화 요구사항](docs/learning-flow-brief-2026-10-08.md). 참고 사이트의 화면 재구성보다 학습·실습·기록·복습 연결 강화를 선택한 것으로 기록했다.
 - 브랜치: `codex/learning-flow`, 기준 `main` `57a9f4d`(#45·#46 병합 완료). 작업 전 git pull, HANDOFF·AGENTS·PROMPTS의 「2. 구현」을 확인하고 main에서 브랜치를 만들었다.
-- PR: 구현 브랜치 커밋·푸시 후 main 대상 PR을 연다. 요구사항·설계 PR [#46](https://github.com/myeongjundev/netproof/pull/46)은 병합됐다.
+- PR: [#47 학습·실습·기록·복습 흐름 연결](https://github.com/myeongjundev/netproof/pull/47). main 대상 커밋·푸시 완료, 병합하지 않았다. 요구사항·설계 PR [#46](https://github.com/myeongjundev/netproof/pull/46)은 병합됐다.
 - 다음 차례: **Claude 리뷰.** 아래 완료 조건 7번의 전체 실브라우저 시나리오를 독립적으로 확인하고 PR 코멘트로 리뷰한다. 병합은 사용자 결정. 다른 채팅으로 자동 메시지를 보내지 않았다.
 - 직전 과제 「pfSense 상태 추적 계산 1단계」([이슈 #40](https://github.com/myeongjundev/netproof/issues/40))는 **PR #44 병합 완료**(`b050348`, 2026-10-06)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」, 상세는 `decisions/ai-work-log.md`.
 - 별도로 남은 사용자 확인:
