@@ -17,11 +17,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. 사용자가 2026-10-08 방향을 선택했다. 현재는 **요구사항 정리 완료, Claude 설계 전**이며 제품 코드 구현은 시작하지 않았다.
+- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. 사용자가 2026-10-08 방향을 선택했다. **Claude 설계 완료·사용자 승인(2026-10-08, D1~D3)** — 아래 「작업 정의 — 학습 흐름 강화」. 제품 코드 구현은 시작하지 않았다.
 - 요구사항·현재 연결: [학습 흐름 강화 요구사항](docs/learning-flow-brief-2026-10-08.md). 참고 사이트의 화면 재구성보다 학습·실습·기록·복습 연결 강화를 선택한 것으로 기록했다.
 - 브랜치: `codex/learning-flow-brief`, 기준 `docs/pfsense-stage1-done` `38d7098`(상태 정리 PR #45). 이번 변경은 요구사항 문서·HANDOFF·AI 작업 기록만이다. 문서 PR은 #45를 기반으로 올리고 병합은 사용자가 결정한다.
 - PR: [#46 학습·실습·기록·복습 흐름 강화 요구사항](https://github.com/myeongjundev/netproof/pull/46). 커밋·푸시 완료, 병합하지 않았다. #45 병합 뒤 main으로 base를 바꾸고 diff를 확인한다.
-- 다음 차례: **Claude(사용자가 전달한 뒤 설계).** 위 요구사항과 현재 코드를 읽고 목표·변경 범위·건드리지 않을 것·리스크·실행 가능한 완료 조건을 작업 정의로 채운다. 설계 승인 뒤 Codex가 구현한다. Claude에게 자동으로 메시지를 보내지 않았다.
+- 다음 차례: **사용자(#45·#46 병합) → Codex(구현).** 설계는 이 브랜치(PR #46)에 Claude가 더했다. 병합 뒤 Codex가 `main`에서 `codex/learning-flow`를 만들어 아래 작업 정의 범위 안에서 구현한다. Codex에게 자동으로 메시지를 보내지 않았다.
 - 직전 과제 「pfSense 상태 추적 계산 1단계」([이슈 #40](https://github.com/myeongjundev/netproof/issues/40))는 **PR #44 병합 완료**(`b050348`, 2026-10-06)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」, 상세는 `decisions/ai-work-log.md`.
 - 별도로 남은 사용자 확인:
   1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 **2단계(실습 연동)**를 설계한다.
@@ -66,6 +66,88 @@ Codex (GPT-6)
 | 화면 무변경 | 번들이 `assets/index-CsAMlWl2.js`로 **PR #41 때와 같다**(D2대로 `web/` 0줄) |
 | 권한 | 로그인 없이 `/api/cases` 401 |
 | 미확인 | **실제 pfSense 장비와 대조하지 않았다**(D5). 원인 Top 5 화면은 검토자 계정이 필요해 운영에서 아직 못 봤다 |
+
+## 작업 정의 — 학습 흐름 강화 (Claude 설계, 2026-10-08 사용자 승인)
+
+요구사항: [docs/learning-flow-brief-2026-10-08.md](docs/learning-flow-brief-2026-10-08.md). 브랜치: `main`(#45·#46 병합 뒤)에서 `codex/learning-flow`.
+
+### 사용자 결정
+| 번호 | 결정 | 고르지 않은 선택지 |
+| --- | --- | --- |
+| D1 | **실습 화면에서 바로 사례 저장**. 기존 `POST /api/cases`를 그대로 쓰고 「판정기로 가져가기」는 유지 | 저장은 판정기에서만, 안내만 강화 |
+| D2 | **사례 ↔ 학습 주제는 저장된 원인 태그로 연결**(DB 무변경, DENY만 연결, 옛 사례에도 적용) | 사례에 학습 주제 열 추가(운영 Supabase 수동 ALTER 필요) |
+| D3 | **「계산 ≠ 실제 결과」 서버 필터를 이번에 추가** | 문구 구분만 하고 필터는 후속 |
+
+### 목표
+처음 온 사람이 개념 → 실습 → 예상과 계산 비교 → **같은 화면에서 사례 기록** → 실제 결과 기록 → **다시 찾아 근거·개념 확인**까지 입력을 다시 쓰지 않고 이어 간다. 「내 예상 ≠ 계산」과 「계산 ≠ 실제 결과」를 다른 말과 다른 조건으로 다룬다. 무엇이 유지되는지(화면 이동·로그인 왕복은 유지, 새로고침은 사라짐)를 사실대로 적는다.
+
+### 변경 범위
+**1. 실습에서 저장 — `web/src/pages/PracticePage.tsx`, `web/src/App.tsx`**
+- `App`이 `PracticePage`에 `user`(와 `checked`)를 넘긴다.
+- 판정 결과가 있고 입력이 그 뒤로 바뀌지 않았을 때(`verdict && !stale`)만 ④·변경 비교 아래에 **`⑤ 기록하기`** 칸을 보인다(`aria-labelledby`가 있는 `section`, 제목 h2).
+  - 로그인함: 제목 입력(기본값 `{lesson.title} 실습 · 내 예상 통과|막힘|없음`, `maxLength=80`, 빈 제목이면 저장 비활성)과 `저장` 단추. 저장은 `api.createCase(title.trim(), toNetwork(draft), draft.flow, draft.claim)` — 판정기 `save`와 같은 호출. 성공하면 `go(/cases/{id})`. 문구: `저장하면 내 사례로 남고, 실제 결과는 사례 화면에서 나중에 적습니다. 판정은 서버가 다시 계산해 저장합니다.`
+  - 저장 중에는 단추를 막는다(두 번 눌러도 요청 1번). 실패하면 오류 문구를 칸 안에 보이고 입력은 그대로 둔다. **응답이 오기 전에 화면을 떠났거나 입력을 바꿨으면 이동하지 않는다**(기존 `revision`/`current()` 패턴 재사용).
+  - 로그인 안 함: `로그인하면 이 실습을 내 사례로 저장할 수 있습니다.` + `#/login` 링크 + `로그인하러 다녀와도 구성과 예상은 남습니다. 판정은 돌아와서 다시 해야 하고, 새로고침하면 입력이 사라집니다.` (App의 `practiceDrafts`·`back` 동작 그대로. 판정 결과를 보존하는 새 상태를 만들지 않는다.)
+  - 로그인 확인 전(`!checked`): 저장 단추·로그인 링크 대신 `로그인 여부를 확인하는 중…`.
+- 「판정기로 가져가기」는 그대로 두고 안내만 `ACL 점검·수정 후보는 판정기에서 할 수 있습니다.`로 바꾼다.
+
+**2. 사례 상세 「다시 살펴보기」 — 새 `web/src/reviewView.ts`(+테스트), `web/src/pages/CaseDetailPage.tsx`**
+- 순수 함수 `relatedLesson(item: Pick<CaseDetail, "result" | "cause" | "verdict">)` → 학습 주제 또는 `null`. 저장된 값만 읽고 재판정하지 않는다. 위에서부터 처음 맞는 줄:
+
+  | 조건 | 주제 |
+  | --- | --- |
+  | `result !== "DENY"` | `null` |
+  | `cause.direction === "return"` | `round-trip` |
+  | `cause.tag`가 `acl_rule`·`acl_implicit`이고 `verdict.decisive.step === "acl_in"` | `https-acl` |
+  | 같은 태그이고 `step === "acl_out"` | `output-acl` |
+  | `cause.tag`가 `no_route`·`no_gateway`·`no_next_hop` | `round-trip` |
+  | 그 밖(`host_no_forward`·`routing_loop`·`other`·방화벽·`decisive` 없음) | `null` |
+- 상세 머리 패널 아래에 `다시 살펴보기` 칸:
+  - 관련 개념: 주제가 있으면 `#/learn/{id}` 링크 `관련 개념: {title} 다시 보기` + `원인 태그로 고른 주제입니다. 정답이나 채점이 아닙니다.` 없으면 `#/learn` `학습실에서 개념 살펴보기`.
+  - 두 비교를 따로 한 줄씩: `받은 답과 계산: …`(저장된 `comparison` 표시 — 기존 `ComparisonBadge`/`comparisonCaption` 재사용), `계산과 실제 결과: …`(기존 `ActualBadge` 재사용). 새 비교 로직을 만들지 않는다.
+  - 작성자이고 `actual.result === null`이면: `실제 결과가 아직 없습니다. 실습망에서 확인한 뒤 아래 실제 결과에 적으세요.`
+  - 새 예상: `새 예상으로 다시 풀려면 위의 「복제해 다시 풀기」를 쓰세요.` (기존 단추·동작 그대로)
+
+**3. 서버 필터 — `server/netproof_api/cases.py`, `server/tests/test_case_search.py`, `docs/semantics.md` §10**
+- `GET /api/cases?actual_mismatch=1`: `result ∈ {PASS, DENY}` AND `actual_result ∈ {PASS, DENY}` AND `result != actual_result`. 검토 확인은 조건이 아니며 다른 필터와 AND. 허용 값은 `1`뿐, 그 밖은 기존처럼 400 `알 수 없는 actual_mismatch 필터입니다`. 기존 배열 응답(page 없음)에도 같은 필터가 적용된다.
+- **`actual_mismatch=1&confirmed=1`의 `total` = 대시보드 `mismatches_total`.** §10에 이 문단과 「`comparison`(받은 답 ↔ 계산)과 다른 축」을 한 문단으로 더한다.
+
+**4. 목록 — `web/src/types.ts`, `web/src/caseSearch.ts`, `web/src/caseView.ts`, `web/src/pages/CasesPage.tsx`(+각 테스트)**
+- `CaseFilters.actual_mismatch: "" | "1"`, `emptyCaseFilters`·`caseSearchParams`·`parseCaseFilters`(허용 값만)·`appliedFilterText`(`계산과 실제 결과 다름`)에 추가. `confusion.ts`의 `confusionCellFilters`는 그대로(새 키는 빈 값).
+- 필터 펼침에 `계산과 실제 결과` 선택(전체/다름). 펼침 요약의 적용 개수에 포함.
+- 게시판 머리에 `다시 살펴보기` 링크 3개(`nav`, 375px에서 줄바꿈):
+  - `내 예상과 계산이 달랐던 내 사례` → `#/cases?mine=1&claim_kind=self&comparison=DISAGREE`
+  - `계산과 실제 결과가 다른 내 사례` → `#/cases?mine=1&actual_mismatch=1`
+  - `실제 결과를 아직 안 적은 내 사례` → `#/cases?mine=1&actual=none`
+
+**5. 문서** — 이 HANDOFF의 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄. 필요하면 `docs/practice.md`에 실습 저장 한 문단.
+
+### 건드리지 않을 것
+- `engine/` 전부, `cases/*.json`과 기존 `expect`, `server/netproof_api/models.py`(DB 표·열), 배포 구성(`vercel.json` 등).
+- `POST /api/verify`·`POST /api/cases`·`GET /api/dashboard`의 요청·응답 형태. 서버가 판정을 다시 계산해 저장하는 규칙.
+- 판정기(`JudgePage`)의 저장·가져오기·되돌리기·링크 복사. 실습 입력과 판정기 입력의 분리.
+- 홈·학습실 화면(처음 방문 흐름은 이미 있다). 기존 주소(`#/practice/:caseId`, `#/cases?...`) 호환.
+- 점수·진도·정답 자동 생성·완료 판정, 새 localStorage 영구 저장.
+
+### 예상 리스크
+| 리스크 | 대응 |
+| --- | --- |
+| 저장 두 번 클릭으로 사례 2개 | 저장 중 비활성 + 테스트(클릭 2번 → `createCase` 1번) |
+| 화면을 떠난 뒤 늦은 응답이 `go()`로 끌고 감 | revision 확인 뒤에만 이동 + 테스트 |
+| 낡은 판정으로 저장했다고 오해 | `!stale`일 때만 칸 표시, 서버 재계산 문구 |
+| 관련 개념을 정답·원인 확정으로 오해 | 「원인 태그로 고른 주제, 정답이나 채점이 아님」 문구, DENY만 연결 |
+| 새 필터 정의가 대시보드와 어긋남 | 같은 데이터로 `total` = `mismatches_total` 테스트 |
+| 로그인 왕복 뒤 판정이 사라진 걸 버그로 봄 | 로그인 전 안내에 「판정은 다시」 명시 |
+| 375px에서 새 칸·링크 넘침 | 리뷰 때 375·1280 실브라우저 확인 |
+
+### 완료 조건 (Codex가 직접 실행해 출력 첨부)
+1. `cd engine && ../.venv/Scripts/python -m pytest -q` → **478 passed, 2 xfailed**(변화 없음).
+2. `cd server && ../.venv/Scripts/python -m pytest -q` → 149 passed·1 skipped에 새 테스트 추가, 실패 0. 새 테스트 최소: ① PASS/DENY 불일치만 나오고 일치·`UNSUPPORTED`·`INVALID`·실제 미정은 빠짐 ② `mine=1`과 AND ③ `actual_mismatch=0`·`x` → 400 ④ 확인 사례 섞인 데이터에서 `actual_mismatch=1&confirmed=1`의 `total` = `/api/dashboard`의 `mismatches_total` ⑤ page 없는 배열 응답에도 적용.
+3. `npm --prefix web test` → 440 passed에 새 테스트 추가, 실패 0. 새 테스트 최소: `relatedLesson` 위 표의 모든 줄(PASS·UNSUPPORTED·INVALID → null, return 우선, acl_in/acl_out, 경로 3종, other·decisive null); `actual_mismatch` 파싱(허용 외 값 무시)·요청 값·적용 문구; 실습 ⑤ 칸이 판정 전·stale일 때 없음, 비로그인 문구·링크, 로그인 시 `createCase`가 실습 draft의 network·flow·claim(`kind: "self"`)으로 1번 호출되고 `#/cases/{id}`로 이동, 실패 시 오류·입력 유지, 언마운트 뒤 응답은 이동 없음; 상세의 관련 개념 링크·없음 링크·실제 결과 없음 안내(작성자만).
+4. `npm --prefix web run build` 성공.
+5. `git diff --stat main... -- engine cases server/netproof_api/models.py vercel.json` → **출력 없음**.
+6. `git diff --check` 공백 오류 없음.
+7. 리뷰(Claude): `scripts/qa_local.py`로 375×812·1280에서 요구사항 문서의 시나리오 5개(비로그인 첫 방문→실습→저장 안내 / 판정기 입력 보존 / 로그인 왕복 뒤 같은 구성·예상으로 저장→상세 / 실제 결과 기록→세 바로가기로 다시 찾기→관련 개념 / 실제 결과 미정·예상 없음·UNSUPPORTED·API 오류) 실브라우저 확인. 수동 QA A~E는 별도로 사람이 한다.
 
 ## 배포 기록 (2026-10-06)
 
