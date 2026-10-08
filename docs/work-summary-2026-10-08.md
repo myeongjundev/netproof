@@ -90,4 +90,4 @@ npm --prefix web run build
 기대값: 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공.
 Claude에게는 「git pull 후 CLAUDE.md, HANDOFF.md, docs/work-summary-2026-10-08.md를 읽고 PR #47 병합 이후를 이어서 하자」라고 시작하면 된다.
 
-참고: 학원 PC 작업 폴더에는 커밋하지 않은 사용자 이미지 2개(`네트워크 2.png`, `호스트 기반으로 작업할 네트워크.png`)가 그대로 있다. 집에서 필요하면 따로 옮겨야 한다.
+참고: 수업 실습망 그림 2장을 `docs/screens/`에 올렸다 — [NIDS·HIDS 표시본](screens/lab-network-nids-hids.png)(원래 `네트워크 2.png`), [호스트 기반 작업 네트워크](screens/lab-network-host-based.png)(원래 `호스트 기반으로 작업할 네트워크.png`). 사용자가 공개 저장소 업로드를 승인했다(2026-10-08).
