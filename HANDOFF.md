@@ -21,7 +21,13 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: `codex/topology-playback`, 승인된 설계 커밋 `00107e4`에서 분기. main 기준 `d7dabff`(PR #50 병합). 설계 PR #51은 아직 열려 있으므로 구현 PR에는 승인된 설계 문서도 포함된다. PR #49는 `cd23e46`으로 병합 완료, 운영 엔진 0.2.0 확인은 Claude의 공개 `/api/policy-matrix` 확인을 사용자에게 전달받은 기록이다.
 - 구현: [승인 설계와 제품 화면](docs/topology-playback-design.md). 판정 당시 network·flow 고정, CIDR 소속 선, 원래 hops 순서와 정방향/복귀 분리, firewall_in/state 표시, 장비12·구간24 상한 fallback, 접근성·재생 타이머 정지를 구현했다. 현재 입력·최종 판정·사례 저장 규칙은 재생으로 바뀌지 않는다.
 - 설계 PR: [#51](https://github.com/myeongjundev/netproof/pull/51). 구현 PR: [#52](https://github.com/myeongjundev/netproof/pull/52), main 대상·리뷰 대기. 자동 병합하지 않는다.
-- 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 로드맵 6번은 구현·검증 완료, 리뷰·병합 대기이므로 체크는 병합 뒤 한다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #52」. #52에 설계 #51 커밋이 포함되어 #52 병합 시 #51도 병합 처리된다. 로드맵 6번 체크는 병합 뒤.
+
+### 리뷰 기록 — PR #52 (Claude, 2026-10-10)
+- 직접 실행(`3766d0f`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 563 passed, 빌드 성공(번들 `index-BHD-u76S.js`, Codex와 같음). 엔진·서버·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
+- 설계 대비: 그림은 CIDR 구간 소속만(게이트웨이·next-hop 선 없음), 강조선은 기록 인터페이스가 같은 구간에 하나씩 맞을 때만, decisive는 모든 필드가 같은 유일한 drop에만(fixture 9건 decisive 키 ⊂ hop 키 확인). 네 화면 스냅샷 전달, `firewall_in`·`state` 표시. 재생 API 호출 없음.
+- 실브라우저(QA 서버 4870, 임시 SQLite, 합성 값): 실습 02 1280 복귀 R2 경로 차단·decisive·PC1 도달 못 함, 재생 1초 간격 1→2→3, 재생 중 편집 → 그 단계에서 정지·조작 5개 비활성·이전 그림 유지, 3초 DOM 변경 0. 실습 01 375 세로 배치·겹침 0·넘침 0·조작 44px·글자 12px·콘솔 오류 0. 강제 종료로 남은 `netproof-qa-*`는 확인 뒤 삭제.
+- **PASS.** 비차단 N1: 복귀에서 막힌 DENY도 처음엔 정방향 「도착」이 선택됨 — decisive가 복귀에서 유일하면 처음 방향을 복귀로(설계 표 변경, 사용자 결정). N2: 가는 길·돌아오는 길 목록 동시 표시 → 선택 방향만.
 - 운영 재판정은 **비밀번호 미확보·사용자 요청으로 보류**. 성공 dry-run·운영 반영·최종 dry-run 보고서는 없다. 재입력을 요구하지 않는다. 추후 사용자 재개 요청과 비밀번호 확보 뒤 deploy.md의 dry-run → 보고서 확인·사용자 승인 → 반영 → 대상 0건 확인을 따른다.
 - 사용자 할 일: Vercel `DATABASE_URL`의 **Production and Preview → Production 전용** 변경. Codex는 Vercel 설정을 바꾸지 않는다.
 
