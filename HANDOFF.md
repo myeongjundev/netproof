@@ -19,7 +19,14 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **불일치 사례 → 회귀 테스트, 엔진 버전별 재판정** — 변경 범위 1~5 구현·직접 검증 완료(2026-10-10). 엔진 0.2.0, known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 100건 단위 rejudge 명령과 배포 절차를 추가했다. 계산 코드·기존 사례·expect·web·DB 표·배포 구성은 불변이다.
 - 브랜치: `codex/rejudge`, 기준 `main` `5aefd44`(PR #48 병합). 커밋·푸시 후 main 대상 PR을 열고 병합하지 않는다.
-- 다음 차례: **Claude(리뷰)** — 완료 조건 7을 재현하고 PR을 리뷰한다. 운영 DB rejudge는 실행하지 않았다. 병합 뒤 사용자 또는 사용자가 허락한 Claude가 배포 절차에 따라 실행한다.
+- PR: [#49 불일치 사례 회귀 테스트·엔진 버전별 재판정](https://github.com/myeongjundev/netproof/pull/49). 병합하지 않았다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/49#issuecomment-6096062979). **병합하면 엔진 버전이 바뀐 배포이므로 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」에 따라 운영 DB에서 `rejudge`를 실행한다**(사용자 또는 사용자가 허락한 Claude). 운영 DB rejudge는 아직 실행하지 않았다.
+
+### 리뷰 기록 — PR #49 (Claude, 2026-10-10)
+- 직접 실행(`b516b91`): 엔진 489 passed·2 xfailed, 서버 164 passed·1 skipped, 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
+- 설계 대비: 엔진 diff는 버전 두 파일·`tests/test_cases.py`뿐(계산 코드 0줄). 형식 검사는 xfail 밖. rejudge는 `_judge`·`_limit_problem` 재사용, 네 칸만 갱신, `id > last_id` 100건 단위, dry-run 롤백, 보고서는 id·결과·비교·버전·고정 사유만.
+- 완료 조건 6·7 독립 재현(임시 SQLite·합성 값·실제 CLI subprocess, 끝난 뒤 삭제): API로 저장·확인한 3건을 `0.1.4`로 바꾸고 #3을 상태 추적 변경 전 PASS로 흉내 → dry-run `대상 3건 · 결과 바뀜 1건 · 비교 바뀜 1건`, `#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE`, `불일치 사라짐 #3 (확인됨)` → 실행 같은 보고서 → dry-run `대상 0건`. 확인 유지, 제목·닉네임 미출력. 불일치 export를 임시로 `cases/`에 넣으면 XFAIL, 엔진과 맞는 사례에 `known_mismatch`를 붙이면 `XPASS(strict)` 실패. 임시 파일은 지우고 커밋하지 않았다.
+- **PASS.** 비차단 N1: export `note`의 조사(`DENY과`)가 값에 따라 틀림 — 조사 없는 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS)` 형식 권장, 후속 가능.
 - 직전 과제 「학습 → 실습 → 기록·복습 흐름 강화」는 **PR #47 병합 완료**(`225a618`, 2026-10-10)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」.
 - 별도로 남은 사용자 확인:
   1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 pfSense **2단계(실습 연동)**를 설계한다. `docs/screens/lab-network-*.png`(PR #47)에 수업 실습망이 pfSense 경계 방화벽으로 그려져 있다.
@@ -510,7 +517,7 @@ Codex (GPT-6)
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Claude(리뷰):** 이번 구현은 아래 테스트 결과와 완료 조건 7을 직접 재현한다. 엔진 변경은 버전 문자열·`tests/test_cases.py`뿐이고, 기존 `cases/`·`expect`·`web/`·DB 표·배포 구성 diff는 0줄이어야 한다.
+- **사용자:** PR #49 병합 뒤 운영 DB `rejudge`(dry-run → 실행 → dry-run 대상 0건)와 보고서 기록. Claude가 실행하려면 허락과 가려진 연결 주소 입력이 필요하다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
