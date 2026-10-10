@@ -260,7 +260,7 @@ export function PracticePage({ caseId, user, checked, draft, setDraft, onReady, 
             <PracticeGuessPicker caseId={caseId} guess={draft.claim.expected ?? undefined} onChange={expected => update({ claim: expected ? { expected, kind: "self", source: "", text: "" } : { ...EMPTY_CLAIM } })} />
             <p className="hint below">예상은 계산에 쓰지 않고 비교만 합니다.</p></section>
           <div className="judge"><button type="button" className="primary" onClick={judge} disabled={loading}>{loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}</button><span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span></div>
-          <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
+          <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} flow={changeHistory.last?.flow} onShowAcl={showAcl} />
           <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
           {savedCaseId !== null && <p className="hint" role="status"><a href={`#/cases/${savedCaseId}`}>사례 #{savedCaseId}</a>으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.</p>}
           {verdict && !stale && <section className="panel save" aria-labelledby="practice-record-title">

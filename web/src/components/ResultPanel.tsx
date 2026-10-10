@@ -1,4 +1,6 @@
-import type { Claim, Hop, Network, Trace, Verdict } from "../types";
+import type { Claim, Flow, Hop, Network, Trace, Verdict } from "../types";
+import { decisivePosition, stepText } from "../tracePlayback";
+import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
 import { comparisonBanner, statusLine } from "../verdictView";
 
@@ -8,14 +10,6 @@ const RESULT_TEXT = {
   UNSUPPORTED: { title: "판정 불가", note: "지원 범위 밖이라 추측하지 않고 멈췄습니다." },
   INVALID: { title: "입력 오류", note: "입력이 성립하지 않아 계산하지 않았습니다." },
 } as const;
-
-const STEP_TEXT: Record<Hop["step"], string> = {
-  send: "보냄",
-  acl_in: "ACL 들어옴",
-  route: "경로",
-  acl_out: "ACL 나감",
-  deliver: "도착",
-};
 
 const COMPARISON_TEXT = {
   AGREE: { mark: "=", line: "받은 답과 계산이 같습니다." },
@@ -33,6 +27,8 @@ function claimLabel(claim: Claim): string {
 const DROP_TEXT: Record<Hop["step"], string> = {
   send: "보내지 못함",
   acl_in: "들어올 때 ACL",
+  firewall_in: "방화벽에서 차단",
+  state: "상태 단계에서 멈춤",
   route: "경로 없음",
   acl_out: "나갈 때 ACL",
   deliver: "받지 못함",
@@ -91,7 +87,7 @@ export function unreachedTarget(trace: Trace): Trace["target"] | null {
     : null;
 }
 
-function Path({ title, trace, decisive }: { title: string; trace: Trace; decisive: Hop | null }) {
+function Path({ title, trace, decisiveIndex }: { title: string; trace: Trace; decisiveIndex?: number }) {
   const target = unreachedTarget(trace);
   return (
     <div className="path">
@@ -99,7 +95,7 @@ function Path({ title, trace, decisive }: { title: string; trace: Trace; decisiv
       <Strip trace={trace} />
       <ol>
         {trace.hops.map((hop, i) => {
-          const isDecisive = decisive !== null && i === trace.hops.length - 1 && hop.result === "drop";
+          const isDecisive = decisiveIndex === i;
           return (
             <li key={i} className={`hop ${hop.result}${isDecisive ? " decisive" : ""}`}>
               <span className="mark" aria-hidden="true">
@@ -108,7 +104,7 @@ function Path({ title, trace, decisive }: { title: string; trace: Trace; decisiv
               <span className="sr-only">{hop.result === "ok" ? "통과" : "막힘"}</span>
               <div>
                 <p className="hop-head">
-                  <strong>{hop.device}</strong> <span className="tag">{STEP_TEXT[hop.step]}</span>
+                  <strong>{hop.device}</strong> <span className="tag">{stepText(hop.step)}</span>
                 </p>
                 <p>{hop.detail}</p>
                 {hop.rule && <code className="rule">{hop.rule}</code>}
@@ -129,13 +125,16 @@ interface Props {
   error: string | null;
   loading: boolean;
   network?: Network | null;
+  flow?: Flow | null;
+  engineVersion?: string;
   onShowAcl?: (acl: string, line: number | null) => void;
   title?: string;
   emptyHint?: string;
 }
 
-export function ResultPanel({ verdict, claim, stale, error, loading, network, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
+export function ResultPanel({ verdict, claim, stale, error, loading, network, flow, engineVersion, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
   const banner = comparisonBanner(verdict, claim);
+  const decisive = verdict ? decisivePosition(verdict) : null;
   const cannotCompare = verdict?.result === "INVALID" || verdict?.result === "UNSUPPORTED";
   return (
     <section className="panel result" aria-labelledby="result-title" aria-busy={loading}>
@@ -182,9 +181,11 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, on
               ))}
             </ul>
           )}
-          {verdict.forward && <Path title="가는 길" trace={verdict.forward} decisive={verdict.decisive} />}
-          {verdict.return && <Path title="돌아오는 길" trace={verdict.return} decisive={verdict.decisive} />}
-          {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale} onShow={onShowAcl} />}
+          {network && flow ? <TracePlayer network={network} flow={flow} verdict={verdict} busy={stale || loading} engineVersion={engineVersion} onShowAcl={onShowAcl} /> : <>
+            {verdict.forward && <Path title="가는 길" trace={verdict.forward} decisiveIndex={decisive?.direction === "forward" ? decisive.index : undefined} />}
+            {verdict.return && <Path title="돌아오는 길" trace={verdict.return} decisiveIndex={decisive?.direction === "return" ? decisive.index : undefined} />}
+          </>}
+          {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale || loading} onShow={onShowAcl} />}
         </>
       )}
     </section>

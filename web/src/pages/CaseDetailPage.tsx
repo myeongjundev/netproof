@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, message } from "../api";
 import { caseCauseText } from "../causeView";
 import { ActualBadge, ComparisonBadge } from "../components/Badges";
@@ -26,15 +26,18 @@ interface Props {
 
 export function CaseCalculation({ item }: { item: CaseDetail }) {
   const cause = caseCauseText(item.result, item.cause);
+  const verdict = useMemo(() => ({ ...item.verdict, comparison: item.comparison }), [item.verdict, item.comparison]);
   return (
     <ResultPanel
       title={cause ? `판정 · ${cause}` : "판정"}
-      verdict={{ ...item.verdict, comparison: item.comparison }}
+      verdict={verdict}
       claim={item.claim ?? EMPTY_CLAIM}
       stale={false}
       error={null}
       loading={false}
       network={item.network}
+      flow={item.flow}
+      engineVersion={item.engine_version}
     />
   );
 }

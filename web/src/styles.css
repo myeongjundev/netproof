@@ -563,3 +563,40 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .change-list { padding-left: 22px; }
 .change-list li { padding-block: 8px; border-bottom: 1px solid var(--line); }
 .change-list p { margin-block: 4px; }
+
+/* Diagram edges show address membership; only recorded trace transitions are highlighted. */
+.trace-player { min-width: 0; margin-top: 18px; }
+.trace-player h3 { margin-top: 0; }
+.trace-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.trace-controls span { color: var(--muted); font-size: 12px; }
+.trace-controls button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--gray-bg); }
+.network-diagram { min-width: 0; }
+.topology-canvas { position: relative; display: flex; gap: 26px; margin: 16px 0; min-width: 0; }
+.topology-canvas.vertical { flex-direction: column; }
+.topology-layer { display: flex; flex: 1; min-width: 0; gap: 12px; align-items: center; justify-content: center; }
+.topology-canvas.horizontal .topology-layer { flex-direction: column; }
+.topology-canvas.vertical .topology-layer { flex-wrap: wrap; }
+.topology-device, .topology-subnet { position: relative; z-index: 1; overflow-wrap: anywhere; word-break: normal; }
+.topology-device { display: grid; gap: 2px; min-width: 0; width: 100%; padding: 10px 8px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); text-align: center; font-size: 12px; }
+.topology-canvas.vertical .topology-device { flex: 1 1 110px; max-width: 240px; }
+.topology-device strong { font-size: 15px; }
+.topology-device[aria-pressed="true"] { background: var(--gray-bg); }
+.topology-device.current { border: 2px solid var(--accent); }
+.topology-device.drop { border-color: var(--deny); }
+.topology-position { min-height: 19px; }
+.topology-subnet { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 6px; font-size: 12px; text-align: center; }
+.topology-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.topology-lines line { stroke: var(--line); stroke-width: 1; }
+.topology-lines line.travelled { stroke: var(--accent); stroke-width: 2; }
+.trace-device-detail { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.trace-device-detail ul { padding-left: 20px; margin-block: 6px; }
+.topology-inventory { margin-block: 12px; }
+.topology-inventory summary { color: var(--accent); }
+.topology-inventory pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; padding: 10px; background: var(--code-bg); border-radius: 6px; font-size: 12px; }
+.trace-step-detail { border-top: 1px solid var(--line); padding-top: 12px; }
+.trace-step-detail p { margin-top: 6px; }
+.trace-step-detail.drop > strong { color: var(--deny); }
+.trace-step-button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.trace-step-button[aria-current="step"] { border-color: var(--accent); color: var(--accent); }
+.trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }
+@media(pointer: coarse) { .trace-player button, .topology-inventory summary { min-height: 44px; } }

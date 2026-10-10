@@ -97,7 +97,7 @@ export interface Claim {
 
 export interface Hop {
   device: string;
-  step: "send" | "acl_in" | "route" | "acl_out" | "deliver";
+  step: "send" | "acl_in" | "firewall_in" | "state" | "route" | "acl_out" | "deliver";
   result: "ok" | "drop";
   detail: string;
   in_if: string | null;

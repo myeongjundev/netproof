@@ -17,11 +17,135 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **PR #49 비차단 N1 — export note 조사 오류 수정**. 사용자가 2026-10-10 운영 재판정 대신 다른 작업을 먼저 진행하도록 요청해, Claude 리뷰에서 제시한 조사 없는 문구를 반영했다.
-- 브랜치: `codex/export-note`, 기준 `main` `cd23e46`(PR #49 병합).
-- 변경: `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N` 형태. PASS→DENY·DENY→PASS 불일치 내보내기에서 문구와 기존 기대값 보존을 시험한다.
-- PR: [#50 불일치 사례 내보내기 설명의 조사 오류 수정](https://github.com/myeongjundev/netproof/pull/50). 병합하지 않았다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #50」.
+- 작업: **로드맵 6번 구성도 그림 + 경로 재생 구현 완료**. 사용자가 2026-10-10 설계 뒤 “구현하자”로 승인했다. 판정기·실습·사례 상세·정책 행렬에 공유 구성도와 방향별 단계 재생을 연결했다.
+- 브랜치: `codex/topology-playback`, 승인된 설계 커밋 `00107e4`에서 분기. main 기준 `d7dabff`(PR #50 병합). 설계 PR #51은 아직 열려 있으므로 구현 PR에는 승인된 설계 문서도 포함된다. PR #49는 `cd23e46`으로 병합 완료, 운영 엔진 0.2.0 확인은 Claude의 공개 `/api/policy-matrix` 확인을 사용자에게 전달받은 기록이다.
+- 구현: [승인 설계와 제품 화면](docs/topology-playback-design.md). 판정 당시 network·flow 고정, CIDR 소속 선, 원래 hops 순서와 정방향/복귀 분리, firewall_in/state 표시, 장비12·구간24 상한 fallback, 접근성·재생 타이머 정지를 구현했다. 현재 입력·최종 판정·사례 저장 규칙은 재생으로 바뀌지 않는다.
+- 설계 PR: [#51](https://github.com/myeongjundev/netproof/pull/51). 구현 PR: [#52](https://github.com/myeongjundev/netproof/pull/52), main 대상·리뷰 대기. 자동 병합하지 않는다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #52」. #52에 설계 #51 커밋이 포함되어 #52 병합 시 #51도 병합 처리된다. 로드맵 6번 체크는 병합 뒤.
+
+### 리뷰 기록 — PR #52 (Claude, 2026-10-10)
+- 직접 실행(`3766d0f`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 563 passed, 빌드 성공(번들 `index-BHD-u76S.js`, Codex와 같음). 엔진·서버·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
+- 설계 대비: 그림은 CIDR 구간 소속만(게이트웨이·next-hop 선 없음), 강조선은 기록 인터페이스가 같은 구간에 하나씩 맞을 때만, decisive는 모든 필드가 같은 유일한 drop에만(fixture 9건 decisive 키 ⊂ hop 키 확인). 네 화면 스냅샷 전달, `firewall_in`·`state` 표시. 재생 API 호출 없음.
+- 실브라우저(QA 서버 4870, 임시 SQLite, 합성 값): 실습 02 1280 복귀 R2 경로 차단·decisive·PC1 도달 못 함, 재생 1초 간격 1→2→3, 재생 중 편집 → 그 단계에서 정지·조작 5개 비활성·이전 그림 유지, 3초 DOM 변경 0. 실습 01 375 세로 배치·겹침 0·넘침 0·조작 44px·글자 12px·콘솔 오류 0. 강제 종료로 남은 `netproof-qa-*`는 확인 뒤 삭제.
+- **PASS.** 비차단 N1: 복귀에서 막힌 DENY도 처음엔 정방향 「도착」이 선택됨 — decisive가 복귀에서 유일하면 처음 방향을 복귀로(설계 표 변경, 사용자 결정). N2: 가는 길·돌아오는 길 목록 동시 표시 → 선택 방향만.
+- 운영 재판정은 **비밀번호 미확보·사용자 요청으로 보류**. 성공 dry-run·운영 반영·최종 dry-run 보고서는 없다. 재입력을 요구하지 않는다. 추후 사용자 재개 요청과 비밀번호 확보 뒤 deploy.md의 dry-run → 보고서 확인·사용자 승인 → 반영 → 대상 0건 확인을 따른다.
+- 사용자 할 일: Vercel `DATABASE_URL`의 **Production and Preview → Production 전용** 변경. Codex는 Vercel 설정을 바꾸지 않는다.
+
+## 작업 정의 — 구성도 그림·경로 재생 (Codex 설계, 2026-10-10)
+
+사용자의 설계 위임은 일반적인 Claude 설계 역할의 예외이며 역할 규칙 자체를 바꾸지 않는다. 2026-10-10 구현 승인을 받았다. 변경 범위는 설계의 웹 타입·공유 결과 패널·새 구성도/재생 컴포넌트·순수 표시/재생 함수·네 페이지·스타일·웹 테스트 및 응답 fixture, 설계 문서·제품 이미지 2장·HANDOFF·작업 로그다. 구현 범위·화면 상태·재생 규칙·완료 조건은 설계 문서가 기준이다.
+
+웹의 공유 결과 패널은 판정기·실습·사례 상세·정책 행렬의 판정 스냅샷을 사용한다. 엔진만 최종 판정을 정한다. engine/server/cases/DB 표·열/배포 변경·pfSense 편집·운영 rejudge는 이 과제 범위 밖이다. 판정 의미가 바뀌지 않아 엔진 버전 0.2.0 유지.
+
+### 테스트 결과 — 구성도·경로 재생 구현 (Codex 직접 실행, 2026-10-10)
+
+아래는 직접 실행한 출력 중 진행 점·빌드 자산 목록을 생략한 부분이다. 서버 테스트와 로컬 QA는 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·보안 로그 변수를 비운 임시 SQLite에서 실행했다. 웹 테스트는 485→563건(+78)이다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 7.27s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+165 passed, 1 skipped in 56.43s
+
+npm --prefix web test
+Test Files  39 passed (39)
+Tests  563 passed (563)
+Duration  1.16s
+
+npm --prefix web run build
+✓ 65 modules transformed.
+dist/assets/index-BHD-u76S.js  378.30 kB │ gzip: 114.17 kB
+✓ built in 227ms
+
+git diff --check
+(오류 없음)
+
+git diff --stat -- engine server cases vercel.json
+(출력 없음)
+
+git diff --numstat -- web/package.json web/package-lock.json
+(출력 없음)
+```
+
+- 순수 표시 시험: 동일 CIDR·겹친 prefix 분리, /0·/32, 빈/비정상/거대 문자열·형식 없는 입력, 중복 id·떨어진 장비·결정적 순서, 장비12/13·구간24/25, 긴 이름, 누락된 인터페이스·없는 장비·같은 장비 단계·재방문. 주소 소속만 표시하며 route/gateway로 연결을 만들지 않는다.
+- 재생 시험: 유일한 decisive와 복귀 실패 방향, 알 수 없는 단계, 첫/마지막 경계·일시정지/이어가기, 방향·장비 선택·busy·숨김·unmount·reduced motion의 타이머 해제, 자동 재개 없음. 판정 스냅샷과 새 응답·행렬 서비스 전환도 시험했다.
+- 응답 fixture 9건은 기존 사례 3건과 메모리에서 만든 PASS/stateful/UNSUPPORTED/one-way/방화벽 DENY/중복 id INVALID다. 현재 엔진을 직접 호출해 원래 기록과 같은 것을 확인했다. `expect`나 실제 결과를 만들지 않았고 cases 파일은 그대로다.
+
+```text
+engine 0.2.0: 9 recorded verify responses match; cases unchanged
+```
+
+실제 빌드·127.0.0.1 QA API·임시 SQLite에서 Playwright로 확인했다. fixture 9건×320/375/1280px×라이트/다크=54개 상태와 장비13개·긴 이름의 3폭 추가 6개 상태에서 넘침·장비 노드 겹침·콘솔 오류가 없었다. 실제 pfSense 장비·운영 배포 검증은 아니다.
+
+```text
+{ screens: 54, failures: [], errors: [] }
+추가 경계 6개: overflow 0, 장비13개 pathMode true
+복귀 state: R1 · 복귀 상태 · 단계 통과
+복귀 route drop: R2 · 경로 · 차단 · 전체 판정을 결정한 단계
+{ reducedDisabled: true }
+{ keyboardStep: 'step' }
+{ replayCalls: [], saveEnabled: true }
+{ playerCount: 1, staleCount: 1, saveCount: 0, blocked: true }
+{ savedCaseVisible: true, version: '저장된 판정 · 엔진 0.2.0', errors: [] }
+{ oldPlayerRemoved: true }
+```
+
+판정기·실습은 실제 verify 호출, 실습은 재생→편집(이전 구성 유지·정지)→재판정→저장→상세, 행렬은 계산→셀 상세→서비스 전환(이전 재생 제거)→새 셀 상세를 확인했다. 방화벽 규칙 원문·복귀 상태 선택과 재생 마지막 정지를 확인했다. 제품 화면 2장을 설계 문서에 추가했다.
+
+QA 서버를 종료하고 남은 task 전용 임시 SQLite 파일과 빈 폴더를 절대 경로로 확인해 삭제했다. 임시 QA/fixture 확인 도구도 삭제했다.
+
+```text
+Test-Path -LiteralPath <task 전용 QA 임시 폴더의 절대 경로>
+False
+```
+
+첫 웹 실행의 비교 불가 테스트는 경로 없는 응답에 방향 단추를 숨기도록 수정한 뒤 통과했다. 추가 원문 fallback 시험의 타입 단언·문구 검사를 고친 뒤 최종 전체 시험과 빌드를 통과했다. 로컬 QA 준비 도구의 Flask 등록 순서 오류는 커밋하지 않은 임시 도구에서 수정했으며 제품 서버는 바꾸지 않았다.
+
+Codex (GPT-6)
+
+### 테스트 결과 — 구성도·경로 재생 설계 (Codex 직접 실행, 2026-10-10)
+
+아래는 직접 실행한 출력 중 진행 점·빌드 자산 목록을 생략한 부분이다. 서버는 DATABASE_URL·외부 PostgreSQL 시험 변수·보안 로그 변수를 비우고 테스트용 SQLite에서 실행했다. 기존 코드 회귀 확인이며, 아직 없는 제품 기능의 테스트 통과를 뜻하지 않는다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 6.45s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+165 passed, 1 skipped in 56.45s
+
+npm --prefix web test
+Test Files  35 passed (35)
+Tests  485 passed (485)
+Duration  1.20s
+
+npm --prefix web run build
+✓ 61 modules transformed.
+dist/assets/index-BMQjIVBk.js  364.77 kB │ gzip: 109.94 kB
+✓ built in 237ms
+
+git diff --check
+(출력 없음)
+
+git diff --stat -- engine server web cases vercel.json
+(출력 없음)
+```
+
+시안은 운영 데이터 없이 기존 사례 3건과 메모리에서 만든 PASS/stateful/UNSUPPORTED 구성의 현재 엔진 verify 응답을 사용했다. Playwright로 6개 사례 × 320/375/736/1280px × 라이트/다크 = 48개 상태를 직접 검사했다. 시안의 저장 상태 알림이 재생 커서를 초기화하던 문제를 고친 뒤 다시 검사한 결과:
+
+```text
+{ states: 48, layoutFailures: [], errors: [] }
+복귀 상태: R1 · 복귀 상태 · 단계 통과, 2 / 4 단계
+복귀 실패: R2 · 경로 · 차단, 목적지 10.10.10.10에 맞는 경로가 없습니다
+{ start: '1 / 2 단계' }
+{ end: '2 / 2 단계', stopped: true }
+{ autoDisabled: true, manualKeyboard: '1 / 2 단계 · 동작 줄이기: 수동 이동' }
+```
+
+이것은 대화 시안의 검사다. 제품의 큰 구성 fallback·네 화면 연결·저장 회귀·타이머 전체 시험은 설계 문서의 구현 완료 조건으로 남아 있다. 대화 시안은 저장소 밖에 있으며 PR에는 실제 확인한 이미지 2장을 넣었다.
+
+Codex (GPT-6)
 
 ### 리뷰 기록 — PR #50 (Claude, 2026-10-10)
 - 직접 실행(`a057828`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
@@ -458,7 +582,9 @@ Codex (GPT-6)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 
-- **PR #49 불일치 회귀 테스트·엔진 버전별 재판정 (병합 완료, `cd23e46`, 2026-10-10)**: 엔진 0.2.0(PR #44 의미 변경 포함), known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 기존 _judge 기반 100건 커밋·멱등 rejudge/dry-run. 확인·actual_*·updated_at 유지. Claude 리뷰 PASS, 엔진489+2xfail·서버164+1skip·웹485·빌드 성공, 임시 SQLite 독립 실연과 xfail/XPASS 확인. 운영 재판정은 보류. 비차단 N1(export note 조사)은 이번 후속 PR로 반영하고 리뷰 대기.
+- **PR #50 export note 조사 오류 수정 (병합 완료, `d7dabff`, 2026-10-10)**: PR #49 비차단 N1을 조사 없는 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N`으로 정리하고 양방향 내보내기 문구·expect 보존을 시험했다. Claude 리뷰 PASS(차단 0). 엔진489+2xfail·서버165+1skip·웹485·빌드 성공. 운영 재판정은 계속 보류.
+
+- **PR #49 불일치 회귀 테스트·엔진 버전별 재판정 (병합 완료, `cd23e46`, 2026-10-10)**: 엔진 0.2.0(PR #44 의미 변경 포함), known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 기존 _judge 기반 100건 커밋·멱등 rejudge/dry-run. 확인·actual_*·updated_at 유지. Claude 리뷰 PASS, 엔진489+2xfail·서버164+1skip·웹485·빌드 성공, 임시 SQLite 독립 실연과 xfail/XPASS 확인. 운영 재판정은 보류. 비차단 N1(export note 조사)은 PR #50으로 해결·병합 완료.
 - **PR #47 학습 → 실습 → 기록·복습 흐름 강화 (병합 완료, `225a618`, 2026-10-10)**: 실습 화면 ⑤ 기록하기(판정 결과가 최신일 때만, 기존 `POST /api/cases`), 사례 상세 「다시 살펴보기」(저장된 원인 태그로 관련 학습 주제, 받은 답↔계산·계산↔실제 두 비교), `GET /api/cases?actual_mismatch=1`(확인 필터와 함께면 대시보드 `mismatches_total`과 같음), 게시판 바로가기 3개. **엔진·`cases/`·DB·배포 구성 변경 0줄.** Claude 리뷰 R1(저장 중 재판정·편집 뒤 조용히 저장돼 다시 누르면 중복 — Claude 설계 누락) → Codex 수정 `64a2460` → 재리뷰 PASS → 최신 커밋 재검증 PASS. 최종 실행: 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공.
   - 유지되는 합의: 실습 입력은 `practiceDrafts`, 저장은 서버 재판정. 관련 개념은 원인 태그로 고른 주제이고 정답·채점이 아니다(DENY만 연결). 「내 예상 ≠ 계산」과 「계산 ≠ 실제 결과」는 다른 조건이다.
   - 남은 비차단 후속: N1 상세에서 미확인 불일치가 `확인 전 · PASS`로만 보임, N2 `사례 #N으로` 조사.
@@ -533,8 +659,8 @@ Codex (GPT-6)
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
 4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
 - [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
-5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구 후속 수정은 리뷰 대기**
-6. [ ] 구성도 그림 + 경로 재생 — ②
+5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구는 PR #50 병합(`d7dabff`)으로 해결**
+6. [ ] 구성도 그림 + 경로 재생 — ② **사용자 설계 승인, 구현·검증 완료(웹563), Claude 리뷰·병합 대기** ([설계·제품 화면](docs/topology-playback-design.md))
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
 8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
 - Kali: 기존 실제 결과 붙여넣기(PR #16, Nmap·ping)가 수업과 맞는다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.

@@ -63,6 +63,16 @@ function driver(auth: { user: User | null; checked: boolean } = { user, checked:
   return { render, button, panel, editPort, setDraft, onReady, onImport, get draft() { return draft; } };
 }
 
+it("경로 재생에는 편집된 flow가 아니라 판정 당시 network·flow를 함께 전달한다", async () => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(response);
+  const d = driver(); await d.button("판정하기").props.onClick();
+  const snapshot = structuredClone({ network: d.panel().props.network, flow: d.panel().props.flow });
+  d.editPort(80);
+  expect(d.panel().props.stale).toBe(true);
+  expect({ network: d.panel().props.network, flow: d.panel().props.flow }).toEqual(snapshot);
+  await d.button("다시 판정하기").props.onClick(); expect(d.panel().props.flow.dst_port).toBe(80);
+});
+
 const impactResponse: ChangeImpact = { status: "OK", problems: [], limit_exceeded: false, engine_version: "test", mode: "session", services: [], changes: [],
   totals: { checks: 9, changed: 0, opened: 0, closed: 0, other: 0, not_compared: 0 } };
 const changePanel = (tree: unknown) => find(tree, node => node.type === ChangePanel)!;

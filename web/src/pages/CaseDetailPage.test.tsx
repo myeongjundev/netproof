@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
-import { CaseReview } from "./CaseDetailPage";
+import { CaseCalculation, CaseReview } from "./CaseDetailPage";
 import { blankDraft, toNetwork } from "../draft";
 import type { CaseDetail, User } from "../types";
 
@@ -14,6 +14,11 @@ const item: CaseDetail = { id: 1, title: "Saved", author: "Test", owner_id: 1, r
     decisive: { device: "R1", step: "acl_in", result: "drop", detail: "saved", in_if: null, out_if: null, rule: null, rule_seq: null } },
   actual: { result: null, source: null, note: "" }, confirmed_by: null, confirmed_at: null };
 const html = (saved = item, viewer = user) => renderToStaticMarkup(createElement(CaseReview, { item: saved, user: viewer }));
+
+it("사례 계산은 저장된 판정과 엔진 버전을 그림에 표시하고 재판정하지 않는다", () => {
+  const markup = renderToStaticMarkup(createElement(CaseCalculation, { item }));
+  expect(markup).toContain("저장된 판정 · 엔진 test"); expect(markup).toContain("전체 구성 원문"); expect(markup).toContain("재생할 경로 없음");
+});
 
 it("관련 개념과 서로 다른 두 비교를 저장된 값으로 표시한다", () => {
   const markup = html();
