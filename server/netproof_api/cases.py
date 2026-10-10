@@ -397,7 +397,7 @@ def export_case(case_id: int):
         exported["known_mismatch"] = {
             "engine_result": case.result,
             "engine_version": case.engine_version,
-            "note": f"엔진 판정 {case.result}과 확인된 실제 결과 {case.actual_result}가 다름 — 사례 #{case.id}",
+            "note": f"엔진 판정({case.result}) ≠ 확인된 실제 결과({case.actual_result}) — 사례 #{case.id}",
         }
     return jsonify(exported)
 

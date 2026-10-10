@@ -17,10 +17,53 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **불일치 사례 → 회귀 테스트, 엔진 버전별 재판정** — 변경 범위 1~5 구현·직접 검증 완료(2026-10-10). 엔진 0.2.0, known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 100건 단위 rejudge 명령과 배포 절차를 추가했다. 계산 코드·기존 사례·expect·web·DB 표·배포 구성은 불변이다.
-- 브랜치: `codex/rejudge`, 기준 `main` `5aefd44`(PR #48 병합). 커밋·푸시 후 main 대상 PR을 열고 병합하지 않는다.
-- PR: [#49 불일치 사례 회귀 테스트·엔진 버전별 재판정](https://github.com/myeongjundev/netproof/pull/49). 병합하지 않았다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/49#issuecomment-6096062979). **병합하면 엔진 버전이 바뀐 배포이므로 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」에 따라 운영 DB에서 `rejudge`를 실행한다**(사용자 또는 사용자가 허락한 Claude). 운영 DB rejudge는 아직 실행하지 않았다.
+- 작업: **PR #49 비차단 N1 — export note 조사 오류 수정**. 사용자가 2026-10-10 운영 재판정 대신 다른 작업을 먼저 진행하도록 요청해, Claude 리뷰에서 제시한 조사 없는 문구를 반영했다.
+- 브랜치: `codex/export-note`, 기준 `main` `cd23e46`(PR #49 병합).
+- 변경: `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N` 형태. PASS→DENY·DENY→PASS 불일치 내보내기에서 문구와 기존 기대값 보존을 시험한다.
+- PR: [#50 불일치 사례 내보내기 설명의 조사 오류 수정](https://github.com/myeongjundev/netproof/pull/50). 병합하지 않았다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #50」.
+
+### 리뷰 기록 — PR #50 (Claude, 2026-10-10)
+- 직접 실행(`a057828`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
+- 코드 변경은 export note 한 줄(조사 없는 `엔진 판정(X) ≠ 확인된 실제 결과(Y) — 사례 #N`). 테스트는 PASS→DENY·DENY→PASS 양방향과 문구 전체를 같음으로 검사. 버전 0.2.0 유지가 §15와 맞다. 비밀값 diff 없음. **PASS.**
+- PR #49는 **병합 완료(`cd23e46`)**. 운영 엔진 `0.2.0`은 Claude가 공개 `/api/policy-matrix`로 확인했다(사용자 전달).
+- 운영 재판정은 **사용자 요청으로 보류**. dry-run 인증 실패 뒤 netproof 계정 비밀번호 미확보로 진행하지 못했고, 성공 보고서·반영·최종 dry-run은 없다. 연결 주소 환경 변수·임시 입력 도구를 정리했다. 사용자가 바쁠 동안 재입력을 요구하지 않는다. 추후 비밀번호 확보 뒤 dry-run → 보고서 확인·사용자 승인 → 반영 → dry-run 대상 0건 절차로 재개한다.
+- 사용자 할 일: Vercel `DATABASE_URL`은 현재 **Production and Preview**에 적용되어 있다. **Production에만** 두도록 사용자가 변경한다. Codex는 Vercel 설정을 바꾸지 않았다.
+
+### 작업 정의 — PR #49 N1 export note 조사
+- 근거: 아래 Claude 리뷰 N1의 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS)` 형식 권장. 기존 작업 정의 범위 3에서 허용한 note 문구 수정이다.
+- 범위: `server/netproof_api/cases.py`의 export note 한 줄, `server/tests/test_rejudge.py`의 양방향 불일치·문구 확인, HANDOFF·작업 로그.
+- 엔진 계산·버전·기존 cases/expect·web·DB 표·rejudge·배포 구성은 그대로다. 운영 DB 작업은 하지 않는다.
+
+### 테스트 결과 — N1 후속 (Codex 직접 실행, 2026-10-10)
+
+서버 테스트는 DATABASE_URL·외부 PostgreSQL 테스트 변수·보안 로그 변수를 비우고 임시 SQLite에서 실행했다. 아래는 실제 출력의 요약이며, 웹 빌드는 자산 목록을 생략했다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 4.37s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+165 passed, 1 skipped in 31.61s
+
+npm --prefix web test
+Test Files  35 passed (35)
+Tests  485 passed (485)
+Duration  1.08s
+
+npm --prefix web run build
+✓ 61 modules transformed.
+✓ built in 672ms
+
+git diff --check
+(출력 없음)
+git diff --stat -- engine web cases server/netproof_api/models.py vercel.json
+(출력 없음)
+```
+
+엔진 응답이 달라지는 변경이 없어 버전은 0.2.0을 유지한다. note 문구 외의 export 형식·expect 규칙·판정 계산·rejudge는 바꾸지 않았다.
+
+Codex (GPT-6)
 
 ### 리뷰 기록 — PR #49 (Claude, 2026-10-10)
 - 직접 실행(`b516b91`): 엔진 489 passed·2 xfailed, 서버 164 passed·1 skipped, 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
@@ -414,6 +457,8 @@ Codex (GPT-6)
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+
+- **PR #49 불일치 회귀 테스트·엔진 버전별 재판정 (병합 완료, `cd23e46`, 2026-10-10)**: 엔진 0.2.0(PR #44 의미 변경 포함), known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 기존 _judge 기반 100건 커밋·멱등 rejudge/dry-run. 확인·actual_*·updated_at 유지. Claude 리뷰 PASS, 엔진489+2xfail·서버164+1skip·웹485·빌드 성공, 임시 SQLite 독립 실연과 xfail/XPASS 확인. 운영 재판정은 보류. 비차단 N1(export note 조사)은 이번 후속 PR로 반영하고 리뷰 대기.
 - **PR #47 학습 → 실습 → 기록·복습 흐름 강화 (병합 완료, `225a618`, 2026-10-10)**: 실습 화면 ⑤ 기록하기(판정 결과가 최신일 때만, 기존 `POST /api/cases`), 사례 상세 「다시 살펴보기」(저장된 원인 태그로 관련 학습 주제, 받은 답↔계산·계산↔실제 두 비교), `GET /api/cases?actual_mismatch=1`(확인 필터와 함께면 대시보드 `mismatches_total`과 같음), 게시판 바로가기 3개. **엔진·`cases/`·DB·배포 구성 변경 0줄.** Claude 리뷰 R1(저장 중 재판정·편집 뒤 조용히 저장돼 다시 누르면 중복 — Claude 설계 누락) → Codex 수정 `64a2460` → 재리뷰 PASS → 최신 커밋 재검증 PASS. 최종 실행: 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공.
   - 유지되는 합의: 실습 입력은 `practiceDrafts`, 저장은 서버 재판정. 관련 개념은 원인 태그로 고른 주제이고 정답·채점이 아니다(DENY만 연결). 「내 예상 ≠ 계산」과 「계산 ≠ 실제 결과」는 다른 조건이다.
   - 남은 비차단 후속: N1 상세에서 미확인 불일치가 `확인 전 · PASS`로만 보임, N2 `사례 #N으로` 조사.
@@ -488,7 +533,7 @@ Codex (GPT-6)
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
 4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
 - [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
-5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **(2026-10-10 구현·테스트 완료, Claude 리뷰·사용자 병합 대기)**
+5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구 후속 수정은 리뷰 대기**
 6. [ ] 구성도 그림 + 경로 재생 — ②
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
 8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
@@ -517,7 +562,7 @@ Codex (GPT-6)
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **사용자:** PR #49 병합 뒤 운영 DB `rejudge`(dry-run → 실행 → dry-run 대상 0건)와 보고서 기록. Claude가 실행하려면 허락과 가려진 연결 주소 입력이 필요하다.
+- **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.

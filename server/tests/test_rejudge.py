@@ -137,12 +137,15 @@ def test_commits_every_100_and_resumes_after_interruption(app, reviewer, monkeyp
 
 @pytest.mark.parametrize("actual, network_kind, expected", [
     ("PASS", "deny", True), ("DENY", "deny", False),
+    ("DENY", "pass", True),
     ("PASS", "unsupported", False), ("DENY", "invalid", False),
 ])
 def test_export_mismatch_uses_saved_engine_result_and_human_expect(app, reviewer, actual, network_kind, expected):
     with app.app_context():
         owner = User.query.one()
         network = stateful_unknown() if network_kind == "unsupported" else ({} if network_kind == "invalid" else copy.deepcopy(CASE["network"]))
+        if network_kind == "pass":
+            network["acls"]["101"] = ["access-list 101 permit ip any any"]
         verdict, comparison = cases._judge(network, CASE["flow"], CASE["claim"])
         row = add_case(owner, actual_result=actual, network=network, verdict=verdict,
                        result=verdict["result"], comparison=comparison, engine_version=cases.ENGINE_VERSION)
@@ -156,5 +159,5 @@ def test_export_mismatch_uses_saved_engine_result_and_human_expect(app, reviewer
         assert mismatch["engine_result"] == verdict["result"] == verify(network, CASE["flow"])["result"]
         assert mismatch["engine_result"] != exported["expect"]["result"]
         assert mismatch["engine_version"] == cases.ENGINE_VERSION
-        assert f"사례 #{row_id}" in mismatch["note"]
+        assert mismatch["note"] == f"엔진 판정({verdict['result']}) ≠ 확인된 실제 결과({actual}) — 사례 #{row_id}"
         assert "device" not in exported["expect"]
