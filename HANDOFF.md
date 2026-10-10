@@ -17,8 +17,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **Batfish 교차 검증 도구(로드맵 8번) 구현·검증**. 승인 범위 1~3의 로컬 도구·독립 테스트·문서를 추가했다. 실제 교차 검증은 PASS/DENY와 차단 단계를 따로 보고하며, 불일치가 있어도 엔진을 바꾸지 않는다. 실행 결과는 아래 「테스트 결과」.
-- 브랜치: `codex/batfish-diff`, PR #57 병합 main `87d2890`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽고 GitHub MERGED/main 기준을 확인했다. main 대상 구현 PR을 열고 병합하지 않는다.
+- 작업: **Batfish 교차 검증 도구(로드맵 8번) 구현·검증 완료, 리뷰 대기**. 승인 범위 1~3의 로컬 도구·독립 테스트·문서를 추가했다. 실제 교차 검증은 PASS/DENY와 차단 단계를 따로 보고하며, 불일치가 있어도 엔진을 바꾸지 않는다. 실행 결과는 아래 「테스트 결과」.
+- 브랜치: `codex/batfish-diff`, PR #57 병합 main `87d2890`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽고 GitHub MERGED/main 기준을 확인했다. main 대상 [구현 PR #58](https://github.com/myeongjundev/netproof/pull/58)을 열었으며 병합하지 않았다.
 - 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 완료 조건 7의 독립 실행·오류 주입 확인을 Claude에게 남긴다. 자동으로 메시지를 보내지 않았다.
 - 직전 과제: 비차단 후속 묶음 **PR #56 병합 완료**(`dcc1a3e`). 운영 번들 `index-B3OOalhE.js`, 공개 주소 실습 02가 복귀·R2 경로 차단으로 시작함을 Claude가 확인. 확인 전 불일치 배지는 브라우저 미확인(단위 테스트로 갈음, 사용자 수동 QA 때 확인).
 - 별도로 남은 사용자 확인:
