@@ -349,8 +349,8 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
         if (!event.repeat && !loading) void judge();
       }
     }}>
-      <h1 className="sr-only">판정기</h1>
       <div className="page-head">
+        <div><p className="home-eyebrow">직접 구성하고 확인하기</p><h1>판정기</h1></div>
         <p>AI나 내가 예상한 “이 통신은 된다/안 된다”를 라우팅·ACL 계산으로 확인하고, 막힌 규칙을 보여 줍니다. 판정은 로그인 없이 됩니다.</p>
         <ol className="case-start" aria-label="시작 안내">
           <li>예시를 불러오거나 처음 구성에서 장비·ACL을 적습니다.</li>

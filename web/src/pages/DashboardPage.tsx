@@ -31,7 +31,7 @@ export function DashboardPage() {
   return (
     <>
       <section className="panel" aria-labelledby="dash-title">
-        <h2 id="dash-title">대시보드</h2>
+        <h1 id="dash-title">대시보드</h1>
         <p className="hint">검토자가 확인한 사례만 “실제와 일치”에 셉니다. 범위 밖과 범위 안은 따로 셉니다.</p>
         {data.confirmed === 0 && <p className="notice">아직 확인된 사례가 없습니다. 사례에 실제 결과가 적히면 사례 화면에서 확인해 주세요. 그때부터 일치율이 채워집니다.</p>}
         <div className="metrics">

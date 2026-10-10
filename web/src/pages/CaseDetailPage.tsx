@@ -125,7 +125,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
         <p className="crumb">
           <a href="#/cases">사례 게시판</a>
         </p>
-        <h2 className="detail-title">{item.title}</h2>
+        <h1 className="detail-title">{item.title}</h1>
         <p className="meta">
           {item.author} · {new Date(item.created_at).toLocaleString("ko-KR")} · 계산 엔진 {item.engine_version}
         </p>
