@@ -17,536 +17,97 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **로드맵 6번 구성도 그림 + 경로 재생 구현 완료**. 사용자가 2026-10-10 설계 뒤 “구현하자”로 승인했다. 판정기·실습·사례 상세·정책 행렬에 공유 구성도와 방향별 단계 재생을 연결했다.
-- 브랜치: `codex/topology-playback`, 승인된 설계 커밋 `00107e4`에서 분기. main 기준 `d7dabff`(PR #50 병합). 설계 PR #51은 아직 열려 있으므로 구현 PR에는 승인된 설계 문서도 포함된다. PR #49는 `cd23e46`으로 병합 완료, 운영 엔진 0.2.0 확인은 Claude의 공개 `/api/policy-matrix` 확인을 사용자에게 전달받은 기록이다.
-- 구현: [승인 설계와 제품 화면](docs/topology-playback-design.md). 판정 당시 network·flow 고정, CIDR 소속 선, 원래 hops 순서와 정방향/복귀 분리, firewall_in/state 표시, 장비12·구간24 상한 fallback, 접근성·재생 타이머 정지를 구현했다. 현재 입력·최종 판정·사례 저장 규칙은 재생으로 바뀌지 않는다.
-- 설계 PR: [#51](https://github.com/myeongjundev/netproof/pull/51). 구현 PR: [#52](https://github.com/myeongjundev/netproof/pull/52), main 대상·리뷰 대기. 자동 병합하지 않는다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #52」. #52에 설계 #51 커밋이 포함되어 #52 병합 시 #51도 병합 처리된다. 로드맵 6번 체크는 병합 뒤.
-
-### 리뷰 기록 — PR #52 (Claude, 2026-10-10)
-- 직접 실행(`3766d0f`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 563 passed, 빌드 성공(번들 `index-BHD-u76S.js`, Codex와 같음). 엔진·서버·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
-- 설계 대비: 그림은 CIDR 구간 소속만(게이트웨이·next-hop 선 없음), 강조선은 기록 인터페이스가 같은 구간에 하나씩 맞을 때만, decisive는 모든 필드가 같은 유일한 drop에만(fixture 9건 decisive 키 ⊂ hop 키 확인). 네 화면 스냅샷 전달, `firewall_in`·`state` 표시. 재생 API 호출 없음.
-- 실브라우저(QA 서버 4870, 임시 SQLite, 합성 값): 실습 02 1280 복귀 R2 경로 차단·decisive·PC1 도달 못 함, 재생 1초 간격 1→2→3, 재생 중 편집 → 그 단계에서 정지·조작 5개 비활성·이전 그림 유지, 3초 DOM 변경 0. 실습 01 375 세로 배치·겹침 0·넘침 0·조작 44px·글자 12px·콘솔 오류 0. 강제 종료로 남은 `netproof-qa-*`는 확인 뒤 삭제.
-- **PASS.** 비차단 N1: 복귀에서 막힌 DENY도 처음엔 정방향 「도착」이 선택됨 — decisive가 복귀에서 유일하면 처음 방향을 복귀로(설계 표 변경, 사용자 결정). N2: 가는 길·돌아오는 길 목록 동시 표시 → 선택 방향만.
-- 운영 재판정은 **비밀번호 미확보·사용자 요청으로 보류**. 성공 dry-run·운영 반영·최종 dry-run 보고서는 없다. 재입력을 요구하지 않는다. 추후 사용자 재개 요청과 비밀번호 확보 뒤 deploy.md의 dry-run → 보고서 확인·사용자 승인 → 반영 → 대상 0건 확인을 따른다.
-- 사용자 할 일: Vercel `DATABASE_URL`의 **Production and Preview → Production 전용** 변경. Codex는 Vercel 설정을 바꾸지 않는다.
-
-## 작업 정의 — 구성도 그림·경로 재생 (Codex 설계, 2026-10-10)
-
-사용자의 설계 위임은 일반적인 Claude 설계 역할의 예외이며 역할 규칙 자체를 바꾸지 않는다. 2026-10-10 구현 승인을 받았다. 변경 범위는 설계의 웹 타입·공유 결과 패널·새 구성도/재생 컴포넌트·순수 표시/재생 함수·네 페이지·스타일·웹 테스트 및 응답 fixture, 설계 문서·제품 이미지 2장·HANDOFF·작업 로그다. 구현 범위·화면 상태·재생 규칙·완료 조건은 설계 문서가 기준이다.
-
-웹의 공유 결과 패널은 판정기·실습·사례 상세·정책 행렬의 판정 스냅샷을 사용한다. 엔진만 최종 판정을 정한다. engine/server/cases/DB 표·열/배포 변경·pfSense 편집·운영 rejudge는 이 과제 범위 밖이다. 판정 의미가 바뀌지 않아 엔진 버전 0.2.0 유지.
-
-### 테스트 결과 — 구성도·경로 재생 구현 (Codex 직접 실행, 2026-10-10)
-
-아래는 직접 실행한 출력 중 진행 점·빌드 자산 목록을 생략한 부분이다. 서버 테스트와 로컬 QA는 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·보안 로그 변수를 비운 임시 SQLite에서 실행했다. 웹 테스트는 485→563건(+78)이다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 7.27s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-165 passed, 1 skipped in 56.43s
-
-npm --prefix web test
-Test Files  39 passed (39)
-Tests  563 passed (563)
-Duration  1.16s
-
-npm --prefix web run build
-✓ 65 modules transformed.
-dist/assets/index-BHD-u76S.js  378.30 kB │ gzip: 114.17 kB
-✓ built in 227ms
-
-git diff --check
-(오류 없음)
-
-git diff --stat -- engine server cases vercel.json
-(출력 없음)
-
-git diff --numstat -- web/package.json web/package-lock.json
-(출력 없음)
-```
-
-- 순수 표시 시험: 동일 CIDR·겹친 prefix 분리, /0·/32, 빈/비정상/거대 문자열·형식 없는 입력, 중복 id·떨어진 장비·결정적 순서, 장비12/13·구간24/25, 긴 이름, 누락된 인터페이스·없는 장비·같은 장비 단계·재방문. 주소 소속만 표시하며 route/gateway로 연결을 만들지 않는다.
-- 재생 시험: 유일한 decisive와 복귀 실패 방향, 알 수 없는 단계, 첫/마지막 경계·일시정지/이어가기, 방향·장비 선택·busy·숨김·unmount·reduced motion의 타이머 해제, 자동 재개 없음. 판정 스냅샷과 새 응답·행렬 서비스 전환도 시험했다.
-- 응답 fixture 9건은 기존 사례 3건과 메모리에서 만든 PASS/stateful/UNSUPPORTED/one-way/방화벽 DENY/중복 id INVALID다. 현재 엔진을 직접 호출해 원래 기록과 같은 것을 확인했다. `expect`나 실제 결과를 만들지 않았고 cases 파일은 그대로다.
-
-```text
-engine 0.2.0: 9 recorded verify responses match; cases unchanged
-```
-
-실제 빌드·127.0.0.1 QA API·임시 SQLite에서 Playwright로 확인했다. fixture 9건×320/375/1280px×라이트/다크=54개 상태와 장비13개·긴 이름의 3폭 추가 6개 상태에서 넘침·장비 노드 겹침·콘솔 오류가 없었다. 실제 pfSense 장비·운영 배포 검증은 아니다.
-
-```text
-{ screens: 54, failures: [], errors: [] }
-추가 경계 6개: overflow 0, 장비13개 pathMode true
-복귀 state: R1 · 복귀 상태 · 단계 통과
-복귀 route drop: R2 · 경로 · 차단 · 전체 판정을 결정한 단계
-{ reducedDisabled: true }
-{ keyboardStep: 'step' }
-{ replayCalls: [], saveEnabled: true }
-{ playerCount: 1, staleCount: 1, saveCount: 0, blocked: true }
-{ savedCaseVisible: true, version: '저장된 판정 · 엔진 0.2.0', errors: [] }
-{ oldPlayerRemoved: true }
-```
-
-판정기·실습은 실제 verify 호출, 실습은 재생→편집(이전 구성 유지·정지)→재판정→저장→상세, 행렬은 계산→셀 상세→서비스 전환(이전 재생 제거)→새 셀 상세를 확인했다. 방화벽 규칙 원문·복귀 상태 선택과 재생 마지막 정지를 확인했다. 제품 화면 2장을 설계 문서에 추가했다.
-
-QA 서버를 종료하고 남은 task 전용 임시 SQLite 파일과 빈 폴더를 절대 경로로 확인해 삭제했다. 임시 QA/fixture 확인 도구도 삭제했다.
-
-```text
-Test-Path -LiteralPath <task 전용 QA 임시 폴더의 절대 경로>
-False
-```
-
-첫 웹 실행의 비교 불가 테스트는 경로 없는 응답에 방향 단추를 숨기도록 수정한 뒤 통과했다. 추가 원문 fallback 시험의 타입 단언·문구 검사를 고친 뒤 최종 전체 시험과 빌드를 통과했다. 로컬 QA 준비 도구의 Flask 등록 순서 오류는 커밋하지 않은 임시 도구에서 수정했으며 제품 서버는 바꾸지 않았다.
-
-Codex (GPT-6)
-
-### 테스트 결과 — 구성도·경로 재생 설계 (Codex 직접 실행, 2026-10-10)
-
-아래는 직접 실행한 출력 중 진행 점·빌드 자산 목록을 생략한 부분이다. 서버는 DATABASE_URL·외부 PostgreSQL 시험 변수·보안 로그 변수를 비우고 테스트용 SQLite에서 실행했다. 기존 코드 회귀 확인이며, 아직 없는 제품 기능의 테스트 통과를 뜻하지 않는다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 6.45s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-165 passed, 1 skipped in 56.45s
-
-npm --prefix web test
-Test Files  35 passed (35)
-Tests  485 passed (485)
-Duration  1.20s
-
-npm --prefix web run build
-✓ 61 modules transformed.
-dist/assets/index-BMQjIVBk.js  364.77 kB │ gzip: 109.94 kB
-✓ built in 237ms
-
-git diff --check
-(출력 없음)
-
-git diff --stat -- engine server web cases vercel.json
-(출력 없음)
-```
-
-시안은 운영 데이터 없이 기존 사례 3건과 메모리에서 만든 PASS/stateful/UNSUPPORTED 구성의 현재 엔진 verify 응답을 사용했다. Playwright로 6개 사례 × 320/375/736/1280px × 라이트/다크 = 48개 상태를 직접 검사했다. 시안의 저장 상태 알림이 재생 커서를 초기화하던 문제를 고친 뒤 다시 검사한 결과:
-
-```text
-{ states: 48, layoutFailures: [], errors: [] }
-복귀 상태: R1 · 복귀 상태 · 단계 통과, 2 / 4 단계
-복귀 실패: R2 · 경로 · 차단, 목적지 10.10.10.10에 맞는 경로가 없습니다
-{ start: '1 / 2 단계' }
-{ end: '2 / 2 단계', stopped: true }
-{ autoDisabled: true, manualKeyboard: '1 / 2 단계 · 동작 줄이기: 수동 이동' }
-```
-
-이것은 대화 시안의 검사다. 제품의 큰 구성 fallback·네 화면 연결·저장 회귀·타이머 전체 시험은 설계 문서의 구현 완료 조건으로 남아 있다. 대화 시안은 저장소 밖에 있으며 PR에는 실제 확인한 이미지 2장을 넣었다.
-
-Codex (GPT-6)
-
-### 리뷰 기록 — PR #50 (Claude, 2026-10-10)
-- 직접 실행(`a057828`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
-- 코드 변경은 export note 한 줄(조사 없는 `엔진 판정(X) ≠ 확인된 실제 결과(Y) — 사례 #N`). 테스트는 PASS→DENY·DENY→PASS 양방향과 문구 전체를 같음으로 검사. 버전 0.2.0 유지가 §15와 맞다. 비밀값 diff 없음. **PASS.**
-- PR #49는 **병합 완료(`cd23e46`)**. 운영 엔진 `0.2.0`은 Claude가 공개 `/api/policy-matrix`로 확인했다(사용자 전달).
-- 운영 재판정은 **사용자 요청으로 보류**. dry-run 인증 실패 뒤 netproof 계정 비밀번호 미확보로 진행하지 못했고, 성공 보고서·반영·최종 dry-run은 없다. 연결 주소 환경 변수·임시 입력 도구를 정리했다. 사용자가 바쁠 동안 재입력을 요구하지 않는다. 추후 비밀번호 확보 뒤 dry-run → 보고서 확인·사용자 승인 → 반영 → dry-run 대상 0건 절차로 재개한다.
-- 사용자 할 일: Vercel `DATABASE_URL`은 현재 **Production and Preview**에 적용되어 있다. **Production에만** 두도록 사용자가 변경한다. Codex는 Vercel 설정을 바꾸지 않았다.
-
-### 작업 정의 — PR #49 N1 export note 조사
-- 근거: 아래 Claude 리뷰 N1의 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS)` 형식 권장. 기존 작업 정의 범위 3에서 허용한 note 문구 수정이다.
-- 범위: `server/netproof_api/cases.py`의 export note 한 줄, `server/tests/test_rejudge.py`의 양방향 불일치·문구 확인, HANDOFF·작업 로그.
-- 엔진 계산·버전·기존 cases/expect·web·DB 표·rejudge·배포 구성은 그대로다. 운영 DB 작업은 하지 않는다.
-
-### 테스트 결과 — N1 후속 (Codex 직접 실행, 2026-10-10)
-
-서버 테스트는 DATABASE_URL·외부 PostgreSQL 테스트 변수·보안 로그 변수를 비우고 임시 SQLite에서 실행했다. 아래는 실제 출력의 요약이며, 웹 빌드는 자산 목록을 생략했다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 4.37s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-165 passed, 1 skipped in 31.61s
-
-npm --prefix web test
-Test Files  35 passed (35)
-Tests  485 passed (485)
-Duration  1.08s
-
-npm --prefix web run build
-✓ 61 modules transformed.
-✓ built in 672ms
-
-git diff --check
-(출력 없음)
-git diff --stat -- engine web cases server/netproof_api/models.py vercel.json
-(출력 없음)
-```
-
-엔진 응답이 달라지는 변경이 없어 버전은 0.2.0을 유지한다. note 문구 외의 export 형식·expect 규칙·판정 계산·rejudge는 바꾸지 않았다.
-
-Codex (GPT-6)
-
-### 리뷰 기록 — PR #49 (Claude, 2026-10-10)
-- 직접 실행(`b516b91`): 엔진 489 passed·2 xfailed, 서버 164 passed·1 skipped, 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
-- 설계 대비: 엔진 diff는 버전 두 파일·`tests/test_cases.py`뿐(계산 코드 0줄). 형식 검사는 xfail 밖. rejudge는 `_judge`·`_limit_problem` 재사용, 네 칸만 갱신, `id > last_id` 100건 단위, dry-run 롤백, 보고서는 id·결과·비교·버전·고정 사유만.
-- 완료 조건 6·7 독립 재현(임시 SQLite·합성 값·실제 CLI subprocess, 끝난 뒤 삭제): API로 저장·확인한 3건을 `0.1.4`로 바꾸고 #3을 상태 추적 변경 전 PASS로 흉내 → dry-run `대상 3건 · 결과 바뀜 1건 · 비교 바뀜 1건`, `#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE`, `불일치 사라짐 #3 (확인됨)` → 실행 같은 보고서 → dry-run `대상 0건`. 확인 유지, 제목·닉네임 미출력. 불일치 export를 임시로 `cases/`에 넣으면 XFAIL, 엔진과 맞는 사례에 `known_mismatch`를 붙이면 `XPASS(strict)` 실패. 임시 파일은 지우고 커밋하지 않았다.
-- **PASS.** 비차단 N1: export `note`의 조사(`DENY과`)가 값에 따라 틀림 — 조사 없는 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS)` 형식 권장, 후속 가능.
-- 직전 과제 「학습 → 실습 → 기록·복습 흐름 강화」는 **PR #47 병합 완료**(`225a618`, 2026-10-10)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」.
+- 작업: **고치기 과제(로드맵 7번 「연습 문제 모드 다시 정의」)**. 사용자가 2026-10-10 선택. **Claude 설계 완료·사용자 승인(2026-10-10, D1~D4와 문제 3개)** — 아래 「작업 정의」. 제품 코드 구현은 시작하지 않았다.
+- 브랜치: `claude/fix-exercise-design`(설계 문서 PR). 병합 뒤 Codex가 `main`에서 `codex/fix-exercise`를 만들어 구현한다.
+- 다음 차례: **사용자(설계 PR 병합) → Codex(구현).** Codex에게 자동으로 메시지를 보내지 않았다.
+- 직전 과제: 로드맵 6번 구성도·경로 재생 **PR #52 병합 완료**(`802fd76`, 설계 #51 포함). 운영 번들 `index-BHD-u76S.js`, 공개 주소 실습 01에서 구성도(R1 × 차단·SRV 도달 못 함)·콘솔 오류 0을 Claude가 확인했다. 로드맵 5번 후속 PR #50(export note 조사)도 병합 완료(`d7dabff`).
 - 별도로 남은 사용자 확인:
-  1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 pfSense **2단계(실습 연동)**를 설계한다. `docs/screens/lab-network-*.png`(PR #47)에 수업 실습망이 pfSense 경계 방화벽으로 그려져 있다.
-  2. 다른 후속 후보: PR #47 비차단 N1(상세의 미확인 불일치 문구)·N2(`사례 #N으로` 조사), **pfSense 화면 입력**, 로드맵 6~8번.
-  3. 배포 후속(사람만 할 수 있는 일): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5)를 운영에서 볼 수 없고, 확인된 실제 사례도 없어 이번 과제는 합성 데이터로만 검증된다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
+  1. **운영 재판정 보류** — 운영 DB의 기존 사례는 아직 `0.1.4` 판정이다. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」(dry-run → 보고서 확인·승인 → 실행 → dry-run 대상 0건). 연결 주소는 가려진 입력으로만.
+  2. Vercel `DATABASE_URL`이 **Production and Preview**에 걸려 있다 → Production 전용으로(사용자, Vercel 화면).
+  3. PR #52 비차단 N1(복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택 — 처음 방향을 복귀로 바꿀지 사용자 결정)·N2(목록 한 방향만), PR #47 N1·N2.
+  4. **D5(실습 사실 5가지)** — pfSense 2단계 설계 전제. 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
 
-### 병합 뒤 운영 확인 (Claude, 로그인 없이, 2026-10-10)
-| 항목 | 결과 |
-| --- | --- |
-| PR #47 반영 | 공개 주소 번들이 `assets/index-BMQjIVBk.js`로 PR #47 재리뷰·최신 커밋 재검증 빌드와 같다 |
-| 권한 | 로그인 없이 `/api/cases` 401 |
-| 병합 전 재검증(`ca7a040`) | 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공([PR 코멘트](https://github.com/myeongjundev/netproof/pull/47#issuecomment-6095711479)) |
+## 작업 정의 — 고치기 과제 (Claude 설계, 2026-10-10 사용자 승인)
 
-## 작업 정의 — 불일치 사례 회귀 테스트·엔진 버전별 재판정 (Claude 설계, 2026-10-10 사용자 승인)
-
-로드맵 「F5·F6 다음 기능 순서」 5번(④ 실제 결과로 검증). 브랜치: `main`에서 `codex/rejudge`.
+로드맵 「F5·F6 다음 기능 순서」 7번(⑤ 학습). 브랜치: `main`에서 `codex/fix-exercise`.
 
 ### 지금 있는 것 (설계 근거)
-- `GET /api/cases/<id>/export`(`server/netproof_api/cases.py`, 검토자, 확인된 사례만)는 사례 1건을 `cases/` 형식으로 내보낸다. `expect.result`는 사람이 적은 실제 결과이고, 엔진과 실제가 둘 다 DENY일 때만 결정 장비를 넣는다. 사례 상세의 검토자 내보내기 칸이 이 JSON을 보여 준다.
-- `engine/tests/test_cases.py`는 `cases/*.json`을 모두 판정해 `expect`와 맞춘다. **불일치 사례(엔진 ≠ 실제)를 넣으면 바로 실패한다** — 알려진 불일치 표시가 없다.
-- 사례마다 `engine_version`을 저장하지만 `0.1.4`는 2026-10-01 뒤로 그대로다. **PR #44(pfSense 상태 추적)는 판정 의미를 바꿨는데 버전을 올리지 않았다.** 그래서 `0.1.4` 사례끼리도 판정한 엔진이 다를 수 있다.
-- 저장된 사례를 지금 엔진으로 다시 판정하는 길이 없다(내용을 고칠 때만 서버가 재판정).
+- 실습 3개(`web/src/practice.ts`·`learning.ts`, `#/practice/:caseId`): 질문 → 구성 → 예상 → 판정 → 「내 예상 ≠ 계산」 비교 → ⑤ 기록. 정답·완료 표시 없음. 처음 구성은 `/api/examples`의 `cases/synthetic-0N`을 불러온다.
+- 정책 검증(`#/matrix`, `POST /api/policy-matrix`): 사람이 적은 의도(`PASS`/`DENY`)와 엔진 결과를 셀마다 `AGREE`·`EXPOSED`·`BLOCKED`·`UNDECIDED`·`NO_POLICY`로 계산한다.
+- 변경 영향(`POST /api/change-impact`): 두 구성의 매트릭스를 비교해 결과가 바뀐 칸만 `opened`·`closed`·`other`로 준다(판정한 통신 칸 하나는 제외).
+- `docs/quality.md` 3-5 #4의 원래 아이디어는 「목표 정책 + 처음 구성 → 학생이 고치면 자동 채점, 강사 출제」였다. 앱은 정답·채점·완료 배지를 만들지 않는다는 원칙(AGENTS.md, 홈·학습 설계)에 맞춰 **채점 대신 엔진 계산 사실만 보여 주는 고치기 과제**로 다시 정의한다.
 
 ### 사용자 결정
 | 번호 | 결정 | 고르지 않은 선택지 |
 | --- | --- | --- |
-| D1 | **버전이 다른 사례를 전부 지금 엔진으로 재판정해 DB에 반영.** (가) Vercel에는 배포 직후 파이썬을 안전하게 돌릴 지점이 없어(서버리스 시작마다 실행하면 경합, 빌드 단계에는 DB 주소 없음) **엔진 버전이 바뀐 PR 병합 뒤 명령 한 줄**(`flask rejudge`)로 반영하고 `docs/deploy.md` 절차에 넣는다. (나) 재판정은 입력·실제 결과를 바꾸지 않으므로 **검토자 확인과 `updated_at`을 유지**한다 | 보고서만(DB 무변경) / 검토자가 사례별로 골라 반영 |
-| D2 | **알려진 불일치는 `known_mismatch` 표시 + strict xfail**(사용자가 Claude 추천을 따름). 기대값은 사람이 정한 실제 결과 그대로 | 그냥 실패로 둠(엔진 테스트 빨강) / 별도 폴더로 분리 |
-| D3 | **이번에 엔진 `0.2.0` + 버전 규칙** | 버전 숫자는 참고만, 재판정만 |
+| D1 | **고치기 과제**: 처음 구성 + 목표 통신이 주어지고 학생이 ACL·경로를 고친다. 목표를 만족하는 구성이면 무엇이든 된다(정해진 답 없음) | 예상 드릴(맞힌 개수가 채점처럼 보임) / 원인 찾기 |
+| D2 | **고정 문제 3개**를 코드(JSON)에 둔다. 처음 구성은 기존 합성 사례 01~03 재사용. 목표 문장은 Claude 초안·사용자 승인(아래 표) | 강사가 화면에서 출제(역할·DB·ADR 필요) / 학생이 목표도 직접(정책 검증과 같음) |
+| D3 | 확인하면 **목표 통신마다 목표와 같음/다름 + 처음 구성 대비 목표 밖 통신 변화**를 보인다. 점수·완료 배지 없음 | 목표 통신만(전부 여는 편법을 못 잡음) |
+| D4 | 고치던 구성은 **앱 메모리에만**(화면 이동 유지, 새로고침 시 사라짐). 서버·DB 저장 없음 | 브라우저 localStorage / 서버 사례(사례가 통신 1개짜리라 DB·API 변경 필요) |
+
+### 문제 (사용자 승인, 모두 합성 구성)
+| id | 제목 | 처음 구성 | 목표(`src → dst · service · expect`) |
+| --- | --- | --- | --- |
+| `fix-01` | HTTPS는 열고 SSH는 막기 | `synthetic-01` | `10.10.10.10 → 10.20.20.5 · tcp/443 · PASS`, `10.10.10.10 → 10.20.20.5 · tcp/22 · DENY` |
+| `fix-02` | ping 왕복 만들기 | `synthetic-02` | `10.10.10.10 → 10.30.30.5 · icmp/echo · PASS`, `10.30.30.5 → 10.10.10.10 · icmp/echo · PASS` |
+| `fix-03` | 반대 방향 SSH도 막기 | `synthetic-03` | `10.10.10.10 → 10.20.20.5 · tcp/22 · DENY`, `10.20.20.5 → 10.10.10.10 · tcp/22 · DENY`, `10.10.10.10 → 10.20.20.5 · tcp/80 · PASS` |
+
+- 모드는 모두 `session`. 표시 이름(`label`)·과제 설명(`prompt`)은 Codex가 쓰되 **정답·막히는 원인·고칠 장비를 드러내지 않는다**(예: 「R2에 경로를 추가하세요」 금지, 「PC1과 SRV2 사이 ping이 왕복하게 하세요」는 허용).
+- Claude가 엔진으로 미리 확인(2026-10-10): 처음 구성에서 `fix-01` 목표 2개 모두 다름(BLOCKED·EXPOSED), `fix-02` 2개 모두 다름(BLOCKED), `fix-03`은 SRV→PC1 SSH가 다름(EXPOSED, 출력 ACL을 지나지 않음). 세 문제 모두 엔진 모델 안에서 모든 목표를 같음으로 만드는 구성이 있다. 확인에 쓴 구성은 기록하지 않는다.
 
 ### 목표
-엔진이 실제 결과와 다르게 판정한 **확인된 사례를 지워지지 않는 엔진 테스트로 남기고**, 엔진이 고쳐지면 그 테스트가 알린다. 엔진 의미가 바뀌면 버전이 오르고, 저장된 사례의 판정을 **명령 한 번으로 지금 엔진 기준으로 맞추며 무엇이 바뀌었는지 보고**한다. 판정은 엔진만 한다(ADR-001). 기대값은 사람이 정한다.
+학생이 「무엇이 열려야/막혀야 하는지」를 받고 구성을 직접 고친 뒤, **엔진이 계산한 사실**(목표와 같은지, 목표 밖에서 무엇이 바뀌었는지, 왜 그런지)로 스스로 확인한다. 앱은 점수·정답·완료를 정하지 않는다(AGENTS.md, ADR-001).
 
 ### 변경 범위
-**1. 엔진 버전 — `engine/src/netproof_engine/__init__.py`, `engine/pyproject.toml`, `docs/semantics.md` 새 §15, `AGENTS.md` 한 줄**
-- `__version__`과 `pyproject.toml`의 `version`을 `0.2.0`으로.
-- §15 「엔진 버전」: 같은 입력에 대한 엔진 함수 응답(특히 `verify`의 `result`·`decisive`·`reason`)이 달라질 수 있는 변경은 버전을 올린다 — 의미 변경은 둘째 자리, 결과가 바뀌는 버그 수정은 셋째 자리. 결과가 같은 리팩터·테스트·문서는 올리지 않는다. 저장된 `engine_version`은 그 사례를 **마지막으로 판정한 엔진**이다. 버전이 바뀐 배포 뒤에는 `flask rejudge`를 실행한다. PR #44의 의미 변경이 `0.1.4`로 나갔고 `0.2.0`이 그 변경을 포함한다는 사실을 한 줄 기록한다.
-- `AGENTS.md`: `engine/` 계산 코드를 바꾸면 §15에 따라 버전을 올릴지 판단하고 PR 본문에 적는다.
+**1. 과제 데이터 — 새 `web/src/exercises.json`(+ 읽는 `web/src/exercises.ts`)**
+- `[{id, title, baseCaseId, prompt, goals: [{src, dst, service, expect, label}]}]`. 위 표의 3개. `expect`는 `PASS`|`DENY`, `service`는 정책 검증 키(`tcp/443`·`icmp/echo`).
+- 해법 구성·힌트·정답 필드를 넣지 않는다. 처음 구성은 복사하지 않고 `baseCaseId`로 기존 `/api/examples`에서 불러온다.
 
-**2. 알려진 불일치 테스트 — `engine/tests/test_cases.py`**
-- 사례 파일의 선택 필드 `known_mismatch: {"engine_result": "PASS"|"DENY", "engine_version": "<문자열>", "note": "<문자열>"}`.
-- 사례 목록을 `pytest.param`으로 만드는 함수를 둔다. `known_mismatch`가 있으면 `marks=pytest.mark.xfail(strict=True, reason=note)`. 지금 엔진이 `expect.result`와 다르면 xfail, **같아지면 XPASS로 실패** = 엔진이 고쳐졌으니 표시를 지우라는 뜻(지울 때 `expect`는 그대로 둔다 — 테스트 이름·`reason`·§15에 명시).
-- **형식 검사는 xfail 밖의 별도 테스트**로 모든 사례 파일에 돌린다(형식 오류가 xfail에 묻히지 않게): `known_mismatch`가 있으면 `engine_result ∈ {PASS, DENY}`, `engine_result ≠ expect.result`, `expect`에 `device` 없음.
-- 기존 `cases/*.json` 3개와 `expect`는 그대로. **`cases/`에 합성 불일치 사례를 넣지 않는다**(합성 사례에 가짜 실제 결과를 만들지 않는다). 장치는 `tmp_path`에 만든 파일로 param 함수와 형식 검사를 시험한다.
+**2. 화면 — 새 `web/src/pages/FixExercisePage.tsx`, `web/src/router.ts`(`#/fix/:id`), `web/src/App.tsx`, `web/src/pages/LearningPage.tsx`(+ 각 테스트)**
+- 학습실에 「고치기 과제」 칸과 카드 3개(제목·`prompt`·`시작하기` 링크). 합성 구성임을 적는다. 완료·통과 배지 없음.
+- 과제 화면 순서: 과제 설명 → 목표 목록(목표마다 `열려야 함`/`막혀야 함`, 확인 전에는 `확인 전`) → 구성 편집(실습과 같은 편집 컴포넌트 재사용) → `확인하기` → 결과.
+- `확인하기`는 두 요청을 보낸다(**새 API 없음**):
+  - `POST /api/policy-matrix` — `network`: 지금 구성, `spec`: `{mode: "session", services: 목표 서비스 ∪ 기본 5개(SSH·HTTP·HTTPS·DNS·Ping), intents: 목표}`. 목표 칸의 `policy`로 `AGREE` → `목표와 같음`, `EXPOSED`·`BLOCKED` → `목표와 다름`, `UNDECIDED` → `판정 불가`. 결과(PASS/DENY/…)도 함께 보인다. 문구는 기존 `POLICY_TEXT`와 충돌하지 않게 정한다.
+  - `POST /api/change-impact` — `before`: 처음 구성, `after`: 지금 구성, `flow`: 첫 목표의 flow, `services`: 위와 같은 목록. 응답 `changes` 중 **목표 칸(`src`·`dst`·`service`가 목표와 같은 것)은 화면에서 뺀** 나머지를 「목표에 없는 통신의 변화」로 보인다(`opened` 새로 열림 / `closed` 새로 막힘 / `other`). 분류·순서는 엔진 것 그대로, 다시 계산하지 않는다.
+- 목표 한 줄의 `근거 보기` → 그 목표의 flow로 `POST /api/verify`를 불러 기존 `ResultPanel`(구성도·경로 재생 포함)에 지금 구성 스냅샷과 함께 표시. 클릭할 때만 호출.
+- 모든 목표가 `목표와 같음`이고 목표 밖 변화가 0이면 사실 문장 하나만: `모든 목표 통신이 목표와 같고, 검사한 서비스 범위에서 목표에 없는 통신의 변화는 없습니다. 검사하지 않은 통신은 알 수 없습니다.` 「완료·성공·정답·통과·점수·%」 낱말·배지·축하 색을 쓰지 않는다.
+- 응답 중 하나가 실패하면 받은 쪽만 보이고 실패한 쪽은 오류 문구를 보인다(가짜 결과 없음). `limit_exceeded`·`INVALID`는 엔진 문제 목록 그대로.
+- 입력을 바꾸면 결과를 `이전 결과`로 표시하고 `근거 보기`를 막는다. 확인 중 다시 누를 수 없고, 화면을 떠나거나 입력이 바뀐 뒤 도착한 응답은 버린다(기존 `revision`/`current()` 패턴 재사용).
+- `처음 구성으로`(되돌리기 한 단계는 기존 실습 방식 재사용 가능), `판정기로 가져가기`(실습과 같은 동작).
 
-**3. 내보내기 보강 — `server/netproof_api/cases.py` `export_case`**
-- 확인된 사례에서 `result ∈ {PASS, DENY}`이고 `actual_result`와 다르면 `known_mismatch: {"engine_result": result, "engine_version": engine_version, "note": "엔진 판정 {result}이(가) 확인된 실제 결과 {actual}와(과) 다름 — 사례 #{id}"}`를 더한다(문구는 Codex가 조사 맞춤 가능). 일치·`UNSUPPORTED`·`INVALID`면 필드 없음. `expect` 규칙은 지금 그대로.
-- 화면 변경 없음. 상세의 기존 내보내기 칸에 필드가 그대로 보인다. 내보낸 JSON을 `cases/`에 넣는 일은 지금처럼 사람이 PR로 한다(서버는 저장소에 쓰지 않는다).
+**3. 상태 — `App.tsx`**
+- 과제별 draft를 `fixDrafts: Record<string, Draft>`에 둔다(`practiceDrafts`와 같은 방식, 별도 키). URL·localStorage·DB에 저장하지 않는다. 화면에 `다른 화면에 다녀와도 남지만 새로고침하면 사라집니다.`
 
-**4. 재판정 명령 — `server/netproof_api/cases.py`(함수), `server/netproof_api/__init__.py`(명령 등록), `docs/deploy.md`**
-- `flask --app server/wsgi.py rejudge [--dry-run]`. 함수는 `cases.py`에 두고 기존 `_judge`·`_limit_problem`·`ENGINE_VERSION`을 재사용한다(판정 로직을 복제하지 않는다).
-- 대상: `engine_version != ENGINE_VERSION`인 사례, id 순. 각 사례:
-  - `_limit_problem(network)`이 있거나 엔진이 예외를 던지면 **바꾸지 않고 건너뜀으로 보고**하고 계속한다.
-  - 아니면 `verdict`·`result`·`comparison`·`engine_version`만 덮어쓴다. `network`·`flow`·`claim`·`title`·`actual_*`·`confirmed_*`·`created_at`·**`updated_at`은 그대로**(D1 나).
-  - 100건마다 커밋. 중간에 실패해도 다시 실행하면 남은 사례만 대상이 된다(멱등).
-- `--dry-run`: 같은 계산·같은 보고서를 내고 DB는 바꾸지 않는다(롤백).
-- 보고서(표준 출력). **사례 id·결과·비교·버전만 쓰고 제목·닉네임·구성은 쓰지 않는다**(공개 저장소 HANDOFF에 옮겨 적기 때문):
-  - 첫 줄: `엔진 0.2.0 · 대상 N건 · 결과 바뀜 K건 · 비교 바뀜 M건 · 건너뜀 S건` (+ dry-run이면 `· DB 변경 없음(dry-run)`).
-  - 결과나 비교가 바뀐 사례마다: `#12 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE · 0.1.4→0.2.0`.
-  - 실제 결과(PASS/DENY)가 적힌 사례 중 엔진 ≠ 실제가 새로 생기거나 사라진 사례: `불일치 생김 #… (확인됨)` / `불일치 사라짐 #…`. 확인된 사례는 `(확인됨)` 표시 — 이 사례는 `known_mismatch` 내보내기 대상이 바뀐 것이다.
-  - 건너뜀: `건너뜀 #… (사유)`.
-- `docs/deploy.md` 새 절 「엔진 버전이 바뀐 배포 뒤 재판정」: 병합·배포 확인 → `--dry-run` 보고서 확인 → 실행 → 다시 `--dry-run`으로 대상 0건 확인 → 보고서를 HANDOFF·작업 로그에 남김. 연결 주소는 검토자 지정(7)과 같은 방식으로 다루고 채팅·명령줄·캡처에 넣지 않는다. 실행은 사용자 또는 사용자가 허락한 Claude가 한다.
-- 이 과제 병합 뒤 운영 DB에서 첫 실행을 한다(모든 `0.1.4` 사례가 대상).
+**4. 서버 테스트 — 새 `server/tests/test_fix_exercises.py`** (제품 서버 코드 변경 없음)
+- `web/src/exercises.json`과 `cases/`를 읽어: ① 목표의 src·dst가 처음 구성의 host 주소이고 service 키가 유효 ② 처음 구성 + 목표 의도로 `policy_matrix`를 돌리면 **목표 중 하나 이상이 `AGREE`가 아님**(이미 풀린 문제 금지) ③ **테스트 안에만 둔 구성 변경**으로 모든 목표가 `AGREE`(풀 수 있음). 해법 구성은 이 테스트 파일 밖으로 내보내지 않는다.
 
-**5. 문서** — 이 HANDOFF의 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄, 로드맵 5번 체크.
+**5. 문서** — 이 HANDOFF 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄, `docs/practice.md`에 고치기 과제 한 문단(채점 없음·저장 없음·검사 범위 한계), 로드맵 7번 체크.
 
 ### 건드리지 않을 것
-- 엔진 계산 코드(`verify`·`trace`·`acl`·`firewall`·`cause` 등). 엔진 변경은 버전 문자열과 `tests/test_cases.py`뿐이다.
-- 기존 `cases/*.json`과 `expect`.
-- `server/netproof_api/models.py`(DB 표·열 추가 없음), API 요청·응답 형태(export의 선택 필드 하나 제외), 대시보드 집계 규칙, 사례 저장·수정 시 서버 재판정 규칙.
-- `web/` 전부. 배포 구성(`vercel.json`), 서버 시작·빌드 때 자동 재판정.
+- `engine/`, `server/netproof_api/`(API·DB 표·열), `cases/*.json`과 `expect`, 배포 구성(`vercel.json`), 의존성(`package.json`).
+- 기존 실습 3개·판정기·정책 검증·사례 화면의 동작과 저장 규칙. 엔진 응답의 분류·결과를 화면에서 다시 계산하지 않는다.
+- 점수·진도·완료 기록, 강사 역할, 서버 저장.
 
 ### 예상 리스크
 | 리스크 | 대응 |
 | --- | --- |
-| 재판정 덮어쓰기로 과거 판정이 사라짐 | D1 사용자 선택. `--dry-run` 먼저, 보고서를 HANDOFF·작업 로그에 남긴다 |
-| 확인 표시가 남은 채 엔진 판정이 바뀌어 대시보드 엔진 축이 움직임 | 의도한 결과(지금 엔진 기준 통계). 보고서의 「불일치 생김/사라짐 (확인됨)」으로 추적 |
-| 형식이 틀린 `known_mismatch`가 xfail에 묻힘 | 형식 검사를 xfail 밖 별도 테스트로 |
-| 엔진을 고친 PR이 XPASS 실패를 기대값 수정으로 "해결" | 표시만 지우고 `expect`는 그대로 — 테스트 `reason`·§15·리뷰에서 확인 |
-| 버전을 안 올린 의미 변경 재발(PR #44) | §15 규칙, `AGENTS.md` 한 줄, Claude 리뷰 때 엔진 diff와 버전 대조 |
-| 운영 DB 실행 실수·중간 실패 | dry-run 먼저, 100건 단위 커밋, 멱등(다시 돌리면 남은 것만) |
-| 보고서로 사례 내용이 공개 문서에 새어 나감 | id·결과·비교·버전만 출력, 테스트로 제목·닉네임 미출력 확인 |
+| 「목표와 같음」이 정답·채점으로 읽힘 | 사실 문장과 검사 범위 한계 문구, 완료·점수 낱말 금지(테스트로 확인) |
+| 전부 여는 편법(`permit ip any any`) | 목표 밖 변화 목록(change-impact)으로 드러냄 |
+| 문제 설명이 답을 알려 줌 | `prompt`·`label`에 고칠 장비·규칙·원인 금지, 리뷰에서 확인 |
+| 해법이 공개 번들에 들어감 | 해법은 서버 테스트 파일에만, 빌드 번들에서 검색으로 확인 |
+| 이미 풀린 문제·풀 수 없는 문제 | 서버 테스트 ②③ |
+| 두 요청 중 하나만 실패 | 받은 쪽만 표시, 실패 쪽 오류 문구 |
+| 늦은 응답이 바뀐 입력에 붙음 | revision 확인 + 테스트 |
+| 375px 넘침 | 리뷰 때 375·1280 실브라우저 |
 
 ### 완료 조건 (Codex가 직접 실행해 출력 첨부)
-1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 478 passed·2 xfailed에 새 테스트 추가, 실패 0. 최소: param 함수가 `known_mismatch` 파일에만 `xfail(strict=True)`를 붙임; 형식 검사가 잘못된 `engine_result`·`expect.result`와 같은 `engine_result`·`device` 포함을 잡음; 기존 사례 3개 그대로 통과.
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 157 passed·1 skipped에 추가, 실패 0. 최소: export 불일치 → `known_mismatch.engine_result`가 저장된 `result`이자 `verify` 결과와 같고 `expect.result`와 다름; 일치·`UNSUPPORTED` → 필드 없음. rejudge: 버전 다른 사례만 갱신, 같은 버전 무변경, 두 번째 실행 대상 0건, `--dry-run` DB 무변경, 확인·`actual_*`·`updated_at` 유지, 바뀐 사례 줄·불일치 생김/사라짐 출력, 한도 초과 사례 건너뜀 보고, 출력에 제목·닉네임 없음.
-3. `npm --prefix web test` → 485 passed 그대로. `npm --prefix web run build` 성공.
-4. `git diff --stat main... -- web cases server/netproof_api/models.py vercel.json` → **출력 없음**. 엔진 diff는 `__init__.py`·`pyproject.toml`·`tests/test_cases.py`뿐.
-5. `git diff --check` 공백 오류 없음.
-6. 로컬 실연: 임시 SQLite에 사례(일치·불일치·UNSUPPORTED가 될 상태 추적 장비 각 1건 이상, 하나는 확인됨)를 만들고 `engine_version`을 `0.1.4`로 바꾼 뒤 `rejudge --dry-run` → `rejudge` → `rejudge --dry-run`(대상 0건) 출력과 export JSON 1건을 첨부. 임시 DB는 지운다.
-7. 리뷰(Claude): 위 출력을 직접 재현하고, 내보낸 불일치 JSON을 임시로 `cases/`에 넣어 xfail, 엔진과 맞는 사례에 `known_mismatch`를 붙여 XPASS 실패를 확인한 뒤 되돌린다(커밋하지 않음).
-
-### 테스트 결과 (Codex 직접 실행, 2026-10-10)
-
-완료 조건 1~6을 직접 실행했다. PowerShell에서는 각 디렉터리를 실행 도구의 workdir로 지정했다. 서버 테스트의 외부 PostgreSQL 테스트 환경 변수는 제거해 임시 SQLite만 사용했다. 아래 출력 없음은 종료 코드 0·표준 출력 없음이다. 엔진 diff 파일은 `__init__.py`·`pyproject.toml`·`tests/test_cases.py` 세 개뿐이다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 14%]
-........................................................................ [ 29%]
-........................................................................ [ 43%]
-........................................................................ [ 58%]
-........................................................................ [ 73%]
-........................................................................ [ 87%]
-.........................................................xx              [100%]
-489 passed, 2 xfailed in 7.86s
-```
-
-```text
-cd server && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 43%]
-...........................s............................................ [ 87%]
-.....................                                                    [100%]
-164 passed, 1 skipped in 59.70s
-```
-
-```text
-npm --prefix web test
-
-> netproof-web@0.1.0 test
-> vitest run
-
-
- RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
-
-
- Test Files  35 passed (35)
-      Tests  485 passed (485)
-   Start at  18:12:18
-   Duration  1.06s (transform 66%, import 21%, tests 9%, worker 3%)
-
-  Transform  transforming modules took 7.00s · 66% of tracked time, re-done on every run
-             persist transforms across runs with fsModuleCache: true
-             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
-```
-
-```text
-npm --prefix web run build
-
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 61 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                                            0.60 kB │ gzip:   0.44 kB
-dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
-dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
-dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
-dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
-dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
-dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
-dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
-dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
-dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
-dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
-dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
-dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
-dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
-dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
-dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
-dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
-dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
-dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
-dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
-dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
-dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
-dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
-dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
-dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
-dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
-dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
-dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
-dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
-dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
-dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
-dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
-dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
-dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
-dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
-dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
-dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
-dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
-dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
-dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
-dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
-dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
-dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
-dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
-dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
-dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
-dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
-dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
-dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
-dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
-dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
-dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
-dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
-dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
-dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
-dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
-dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
-dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
-dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
-dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
-dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
-dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
-dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
-dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
-dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
-dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
-dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
-dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
-dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
-dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
-dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
-dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
-dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
-dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
-dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
-dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
-dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
-dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
-dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
-dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
-dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
-dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
-dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
-dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
-dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
-dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
-dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
-dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
-dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
-dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
-dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
-dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
-dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
-dist/assets/index-BMQjIVBk.js                            364.77 kB │ gzip: 109.94 kB
-
-✓ built in 733ms
-```
-
-```text
-git diff --stat main... -- web cases server/netproof_api/models.py vercel.json
-
-```
-
-```text
-git diff --check
-
-```
-
-로컬 실연은 기존 합성 입력과 임시 SQLite를 사용했다. 아래 actual·확인 값은 실연용 합성 입력이며 실제 장비 결과가 아니다. 기존 cases 파일·expect는 변경하지 않았다. 보고서는 id·결과·비교·버전만 포함하며, 별도로 요구된 export JSON은 합성 구성과 합성 제목을 포함한다.
-
-```text
-flask --app server/wsgi.py rejudge --dry-run
-엔진 0.2.0 · 대상 3건 · 결과 바뀜 3건 · 비교 바뀜 3건 · 건너뜀 0건 · DB 변경 없음(dry-run)
-#1 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
-불일치 사라짐 #1 (확인됨)
-#2 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
-불일치 생김 #2 (확인됨)
-#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE · 0.1.4→0.2.0
-flask --app server/wsgi.py rejudge
-엔진 0.2.0 · 대상 3건 · 결과 바뀜 3건 · 비교 바뀜 3건 · 건너뜀 0건
-#1 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
-불일치 사라짐 #1 (확인됨)
-#2 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
-불일치 생김 #2 (확인됨)
-#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE · 0.1.4→0.2.0
-flask --app server/wsgi.py rejudge --dry-run
-엔진 0.2.0 · 대상 0건 · 결과 바뀜 0건 · 비교 바뀜 0건 · 건너뜀 0건 · DB 변경 없음(dry-run)
-GET /api/cases/2/export (합성 입력·확인)
-{
-  "claim": {
-    "expected": "PASS",
-    "source": "AI 답 예시(합성)",
-    "text": "PC1에서 10.20.20.5의 HTTPS 서비스에 접근할 수 있다."
-  },
-  "expect": {
-    "result": "PASS"
-  },
-  "flow": {
-    "dst": "10.20.20.5",
-    "dst_port": 443,
-    "proto": "tcp",
-    "src": "10.10.10.10"
-  },
-  "id": "field-002",
-  "known_mismatch": {
-    "engine_result": "DENY",
-    "engine_version": "0.2.0",
-    "note": "엔진 판정 DENY과 확인된 실제 결과 PASS가 다름 — 사례 #2"
-  },
-  "network": {
-    "acls": {
-      "101": [
-        "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
-        "access-list 101 permit ip any any"
-      ]
-    },
-    "devices": [
-      {
-        "gateway": "10.10.10.1",
-        "id": "PC1",
-        "interfaces": [
-          {
-            "ip": "10.10.10.10/24",
-            "name": "eth0"
-          }
-        ],
-        "kind": "host"
-      },
-      {
-        "id": "R1",
-        "interfaces": [
-          {
-            "acl_in": "101",
-            "ip": "10.10.10.1/24",
-            "name": "g0/0"
-          },
-          {
-            "ip": "10.20.20.1/24",
-            "name": "g0/1"
-          }
-        ],
-        "kind": "router"
-      },
-      {
-        "gateway": "10.20.20.1",
-        "id": "SRV",
-        "interfaces": [
-          {
-            "ip": "10.20.20.5/24",
-            "name": "eth0"
-          }
-        ],
-        "kind": "host"
-      }
-    ]
-  },
-  "source": "동기 사례(작성자 익명). 실제 결과 출처: device — 합성 시험 메모",
-  "title": "합성 불일치 시험"
-}
-임시 SQLite 삭제 확인: True
-```
-
-실연 준비 때 공백 포함 닉네임이 거절됐고, Windows cp949 출력은 export의 긴 대시를 인코딩하지 못했다. 합성 닉네임과 UTF-8 표준 출력을 사용해 위 명령 전체를 다시 성공시켰다. 실패한 실연의 임시 DB까지 삭제 확인했다. 운영 DB에는 연결하거나 rejudge를 실행하지 않았다. 신규 서버 테스트는 205건 처리 중 두 번째 커밋 실패를 주입해 첫 100건만 남고 재실행이 105건만 처리하는 것도 확인했다.
-
-Codex (GPT-6)
+1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 489 passed·2 xfailed(변화 없음).
+2. `cd server && ../.venv/Scripts/python -m pytest -q` → 165 passed·1 skipped에 `test_fix_exercises.py` 추가, 실패 0(위 ①②③).
+3. `npm --prefix web test` → 563 passed에 추가, 실패 0. 최소: `exercises.json` 형식(필드·서비스 키·expect·해법/정답 필드 없음); 라우터 `#/fix/:id`(없는 id는 학습실로); `확인하기` 한 번에 policy-matrix·change-impact 각 1회와 요청 본문(목표 의도·서비스·before/after); 목표 칸 표시 매핑(AGREE/EXPOSED/BLOCKED/UNDECIDED); change-impact에서 목표 칸 제외; 사실 문장 조건(전부 같음 + 밖 변화 0일 때만); 편집 시 `이전 결과`·근거 보기 비활성; 늦은 응답 폐기; 한쪽 실패 시 다른 쪽 유지; 화면 문구에 `완료`·`성공`·`정답`·`점수` 없음.
+4. `npm --prefix web run build` 성공. 빌드한 `web/dist/assets/*.js`에 서버 테스트의 해법 ACL 문자열이 없음(검색 명령과 출력 첨부).
+5. `git diff --stat main... -- engine server/netproof_api cases vercel.json web/package.json web/package-lock.json` → **출력 없음**.
+6. `git diff --check` 공백 오류 없음.
+7. 리뷰(Claude): `scripts/qa_local.py`로 375×812·1280에서 세 과제 각각 처음 확인(다름) → 구성 고침 → 다시 확인(같음·밖 변화) → 전부 여는 편법이 밖 변화로 보이는지 → 근거 보기 → 편집 시 이전 결과 → 다른 화면 왕복 유지를 실브라우저로 확인.
 
 ## 배포 기록 (2026-10-06)
 
@@ -582,6 +143,9 @@ Codex (GPT-6)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 
+- **PR #52 구성도·경로 재생 (병합 완료, `802fd76`, 2026-10-10, 설계 #51 포함 — 사용자 지시로 설계·구현 모두 Codex)**: 판정기·실습·사례 상세·정책 행렬에 판정 당시 network·flow로 만든 구성도(CIDR 구간 소속 선, 장비12·구간24 상한 뒤 경로 장비·목록 fallback)와 엔진 hops의 방향별 재생(1초 간격, 편집·숨김·reduced motion 시 정지), `firewall_in`·`state` 표시, 유일하게 일치하는 decisive에만 결정 단계 표시. **엔진·서버·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(실브라우저 1280·375, 겹침·넘침·콘솔 0). 최종: 엔진489+2xfail·서버165+1skip·웹563·빌드 성공(`index-BHD-u76S.js`), 운영 반영 확인.
+  - 유지되는 합의: 그림 선은 입력 주소 구간 소속이지 실제 배선이 아니다. 기록되지 않은 연결을 그리지 않는다. 재생은 받은 응답의 커서이고 API를 부르지 않는다.
+  - 남은 비차단: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향 변경은 사용자 결정), N2 단계 목록이 선택한 방향만.
 - **PR #50 export note 조사 오류 수정 (병합 완료, `d7dabff`, 2026-10-10)**: PR #49 비차단 N1을 조사 없는 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N`으로 정리하고 양방향 내보내기 문구·expect 보존을 시험했다. Claude 리뷰 PASS(차단 0). 엔진489+2xfail·서버165+1skip·웹485·빌드 성공. 운영 재판정은 계속 보류.
 
 - **PR #49 불일치 회귀 테스트·엔진 버전별 재판정 (병합 완료, `cd23e46`, 2026-10-10)**: 엔진 0.2.0(PR #44 의미 변경 포함), known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 기존 _judge 기반 100건 커밋·멱등 rejudge/dry-run. 확인·actual_*·updated_at 유지. Claude 리뷰 PASS, 엔진489+2xfail·서버164+1skip·웹485·빌드 성공, 임시 SQLite 독립 실연과 xfail/XPASS 확인. 운영 재판정은 보류. 비차단 N1(export note 조사)은 PR #50으로 해결·병합 완료.
@@ -660,8 +224,8 @@ Codex (GPT-6)
 4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
 - [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
 5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구는 PR #50 병합(`d7dabff`)으로 해결**
-6. [ ] 구성도 그림 + 경로 재생 — ② **사용자 설계 승인, 구현·검증 완료(웹563), Claude 리뷰·병합 대기** ([설계·제품 화면](docs/topology-playback-design.md))
-7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
+6. [x] 구성도 그림 + 경로 재생 — ② PR #52 병합(`802fd76`, 설계 #51 포함). [설계·제품 화면](docs/topology-playback-design.md)
+7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤ **(진행 중: 「고치기 과제」로 정의, 2026-10-10 설계 승인, 위 작업 정의)**
 8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
 - Kali: 기존 실제 결과 붙여넣기(PR #16, Nmap·ping)가 수업과 맞는다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
 
@@ -689,6 +253,7 @@ Codex (GPT-6)
 
 ## 다음 LLM이 확인할 내용
 - **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
+- **Codex(구현):** 위 「작업 정의 — 고치기 과제」 범위만 구현한다. 엔진·서버 API·DB·`cases/`는 건드리지 않고, 해법 구성은 `server/tests/test_fix_exercises.py` 밖에 두지 않는다. 과제 문구에 고칠 장비·규칙·원인을 쓰지 않는다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
