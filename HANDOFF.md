@@ -21,7 +21,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 요구사항·현재 연결: [학습 흐름 강화 요구사항](docs/learning-flow-brief-2026-10-08.md). 참고 사이트의 화면 재구성보다 학습·실습·기록·복습 연결 강화를 선택한 것으로 기록했다.
 - 브랜치: `codex/learning-flow`, 기준 `main` `57a9f4d`(#45·#46 병합 완료). 작업 전 git pull, HANDOFF·AGENTS·PROMPTS의 「2. 구현」을 확인하고 main에서 브랜치를 만들었다.
 - PR: [#47 학습·실습·기록·복습 흐름 연결](https://github.com/myeongjundev/netproof/pull/47). main 대상 커밋·푸시 완료, 병합하지 않았다. 요구사항·설계 PR [#46](https://github.com/myeongjundev/netproof/pull/46)은 병합됐다.
-- 다음 차례: **사용자(병합 결정).** Claude 재리뷰 PASS — 아래 「재리뷰 기록」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/47#issuecomment-6050057079). 비차단 N1(상세 미확인 불일치 문구)·N2(`사례 #N으로` 조사)는 후속 후보.
+- 다음 차례: **사용자(병합 결정).** Claude 재리뷰 PASS, 최신 커밋 재검증(2026-10-10)도 PASS 유지 — 아래 「최신 커밋 재검증」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/47#issuecomment-6095711479). 병합 전 사용자 판단: `docs/screens/` 그림 2장(수업 자료 캡처로 보임)을 공개 저장소에 둘지. 비차단 N1(상세 미확인 불일치 문구)·N2(`사례 #N으로` 조사)는 후속 후보.
+
+### 최신 커밋 재검증 — PR #47 (Claude, 2026-10-10)
+- 직접 실행(`ca7a040`): 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 35 files·485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, 재리뷰와 같음). 불변 경로 diff 출력 없음, `git diff --check main...HEAD` 오류 없음.
+- PASS 뒤 커밋(`64a2460..ca7a040`)은 작업 정리 문서와 그림 2장뿐이고 `web/`·`server/`·`engine/` 0줄. **PASS 유지.**
+- 그림 2장 확인: 비밀값·개인정보 없음, 사설 IP만. 수업 자료 화면 캡처로 보여(nids-hids는 강의 화면 테두리·마스코트 포함) 공개 여부는 사용자 판단.
 
 ### R1 수정 결과 — PR #47 (Codex, 2026-10-08)
 - `PracticePage.tsx`: 저장 성공이 현재 revision과 다르지만 화면에 남아 있으면 이동 대신 `role="status"`에 `사례 #N으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.`와 `#/cases/N` 링크를 표시한다. 안내는 `!stale` 조건 밖에 있어 편집으로 ⑤가 숨겨져도 보이고, 재판정 뒤에도 남는다. 언마운트 뒤에는 이동·상태 변경 없음. N1 문구는 변경하지 않았다.
