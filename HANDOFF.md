@@ -17,107 +17,84 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **비차단 후속 묶음 구현·검증 완료(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 승인된 변경 범위 1~5만 수행했다. 고치기 과제는 일반 결과 패널·엔진 원문을 재사용하고, 복귀 차단 초기 선택·확인 전 비교 표시·저장 안내를 수정했다.
-- 브랜치: `codex/followups`, PR #55 병합 main `4de43a3`에서 분기. 시작 시 PR #55가 아직 OPEN이라 설계·코드를 읽으며 기다렸고, 사용자가 Claude에게 병합을 맡긴 뒤 GitHub의 MERGED·main 반영을 확인하고 다시 `git pull`·AGENTS/HANDOFF 읽기 후 작업했다. main 대상 [구현 PR #56](https://github.com/myeongjundev/netproof/pull/56)을 열었으며 병합하지 않았다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #56」.
-
-### 리뷰 기록 — PR #56 (Claude, 2026-10-10)
-- 직접 실행(`2988b63`): 엔진 489 passed·2 xfailed, 서버 174 passed·1 skipped(DATABASE_URL 비움), 웹 643 passed, 빌드 성공(번들 `index-B3OOalhE.js`, Codex와 같음). `grep -rn factual web/src` 출력 없음. 엔진·서버·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
-- `ResultPanel`·`TracePlayer`·`verdictView`가 PR #54 이전 blob과 같다. 복귀 decisive일 때만 복귀로 시작, `ActualBadge` 확인 전 같음/다름(plain 유지), 저장 안내 `저장했습니다: 사례 #N.`.
-- 실브라우저(QA 서버 4870, 1280): 실습 02 처음 복귀 눌림·`R2 · 경로 · 차단`·돌아오는 길 목록, 실습 01 정방향·`R1 · ACL 들어옴 · 차단`, fix-01 근거 보기 일반 패널(「통과」·배너 없음·factual 없음·금지 낱말 없음)·콘솔 오류 0. **배지는 로컬 테스트 계정 가입이 되지 않아 브라우저 미확인** — 단위 테스트로 갈음, 사용자 수동 QA 때 사례 목록에서 확인. 강제 종료로 남은 `netproof-qa-*`는 삭제.
-- **PASS.**
-- 직전 과제: 로드맵 7번 고치기 과제 **PR #54 병합 완료**(`bfb7b4f`). 운영 번들 `index-BW8VCTzY.js`, 공개 주소 `#/fix/fix-01` 확인하기 → 다름·다름·밖 변화 0, 콘솔 오류 0을 Claude가 확인했다. 로드맵 5·6·7번이 모두 운영에 나갔다.
+- 작업: **Batfish 교차 검증 도구(로드맵 8번)**. 사용자가 2026-10-11 선택. Claude 스파이크(아래 「스파이크 결과」) 뒤 **설계 완료·사용자 승인(2026-10-11)** — 아래 「작업 정의」. 제품 코드 구현은 시작하지 않았다.
+- 브랜치: `claude/batfish-design`(설계 문서 PR). 병합 뒤 Codex가 `main`에서 `codex/batfish-diff`를 만들어 구현한다.
+- 다음 차례: **사용자(설계 PR 병합) → Codex(구현).** Codex에게 자동으로 메시지를 보내지 않았다.
+- 직전 과제: 비차단 후속 묶음 **PR #56 병합 완료**(`dcc1a3e`). 운영 번들 `index-B3OOalhE.js`, 공개 주소 실습 02가 복귀·R2 경로 차단으로 시작함을 Claude가 확인. 확인 전 불일치 배지는 브라우저 미확인(단위 테스트로 갈음, 사용자 수동 QA 때 확인).
 - 별도로 남은 사용자 확인:
-  1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」. 연결 주소는 가려진 입력으로만.
-  2. Vercel `DATABASE_URL`이 **Production and Preview**에 걸려 있다 → Production 전용으로(사용자).
-  3. 남은 로드맵: 8번 Batfish 차등 테스트, pfSense 2단계(**D5 실습 사실 5가지** 필요). 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
+  1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 절차.
+  2. Vercel `DATABASE_URL` → Production 전용으로(사용자).
+  3. pfSense 2단계(**D5 실습 사실 5가지** 필요). 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
 
-## 작업 정의 — 비차단 후속 묶음 (Claude 설계, 2026-10-10 사용자 승인)
+### 스파이크 결과 (Claude, 2026-10-11, 버린 코드 — 저장소 밖 임시 폴더, 커밋 안 함)
+- 환경: Docker 29.6.2(메모리 8GB), 이미지 `batfish/allinone:latest` 2.24GB(`sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c`), `pybatfish 2026.09.17.3748`(임시 venv). 사용자가 Docker 기동·두 다운로드를 허락했다. 컨테이너는 `127.0.0.1`에만 열었고 끝나고 멈췄다.
+- 방법: NetProof JSON → Cisco IOS(호스트는 기본 경로를 가진 Cisco 장비로), 호스트 쌍 × SSH·HTTP·HTTPS·DNS·Ping × session/one-way를 엔진 `verify`와 Batfish traceroute(왕복은 `bidirectionalTraceroute`)로 비교.
+- 결과: **960건 중 PASS/DENY 958건 일치**, DENY 500건은 막힌 장비·단계까지 일치(장비 이름은 대소문자 무시 — Batfish가 소문자로 바꾼다). 대상: `cases/` 3건·고치기 해법 3건·편법/특수 ACL 2건(160건) + 고정 시드 무작위 ACL 40구성(사례 01 모양, eq·neq·lt·gt·range·established·와일드카드·ICMP echo/echo-reply·출력 ACL, 800건).
+- 불일치 2건은 모두 ping 복귀: Batfish `bidirectionalTraceroute`가 복귀 ICMP를 **type 8(echo) 그대로** 만든다. 같은 구성에 echo-reply(type 0)를 직접 넣으면 Batfish도 엔진과 같은 장비·방향에서 막았다 → 엔진 버그 아님, 정식 도구는 복귀를 직접 만든다.
+- 미확인: 정적 경로 무작위(사례 02 모양), pfSense 상태 추적, UNSUPPORTED·INVALID, 비연속 와일드카드. 기준은 Batfish 모델이지 실제 장비가 아니다.
 
-브랜치: `main`에서 `codex/followups`. 화면 표시만 바꾼다. 판정·비교 계산은 그대로다(ADR-001).
+## 작업 정의 — Batfish 교차 검증 도구 (Claude 설계, 2026-10-11 사용자 승인)
+
+로드맵 「F5·F6 다음 기능 순서」 8번(④). 브랜치: `main`에서 `codex/batfish-diff`.
+
+### 목표
+실제 장비 결과가 아직 없는 동안, **독립 계산기 Batfish로 엔진 판정을 교차 검증**하는 재현 가능한 로컬 도구를 둔다. 결과 숫자를 「엔진을 믿을 근거」로 남긴다. 판정은 엔진만 한다(ADR-001). Batfish는 비교 기준이지 정답이 아니다.
 
 ### 변경 범위
-**1. PR #54 N1 — 고치기 과제 전용 표시 제거 (`web/src/components/ResultPanel.tsx`, `TracePlayer.tsx`, `web/src/verdictView.ts`, `web/src/pages/FixExercisePage.tsx` + 테스트)**
-- 원인: Claude 설계가 금지 낱말에 「통과」를 넣었다(설계 과잉). 「통과」는 엔진 PASS 표시이지 채점이 아니다.
-- `ResultPanel`·`TracePlayer`의 `factual` prop과 분기, `verdictView.factualText`를 지운다. `FixExercisePage`의 근거 보기는 일반 `ResultPanel`을 쓴다(`claim`은 `EMPTY_CLAIM`이라 비교 배너 없음). 목표 칸·목표 밖 변화의 엔진 `reason`도 원문 그대로 보인다.
-- 과제 화면 금지 낱말 테스트는 `완료|성공|정답|점수|%`(+배지)로 바꾼다. `FactualResult.test.tsx`는 지우거나 일반 패널 기준으로 바꾼다.
+**1. 도구 — 새 `scripts/batfish_diff.py`, 새 `scripts/requirements-batfish.txt`**
+- 사람이 직접 실행하는 로컬 전용 도구. **CI·기본 pytest·배포에 넣지 않는다.** `pybatfish`는 `scripts/requirements-batfish.txt`에 `pybatfish==2026.09.17.3748`로 고정하고 운영 `requirements.txt`에는 넣지 않는다. `pybatfish` import는 실행 함수 안에서만 한다(아래 테스트가 pybatfish 없이 돌아야 함).
+- 실행 예: Docker로 `batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c`를 `-p 127.0.0.1:9996:9996 -p 127.0.0.1:9997:9997`로 띄운 뒤 `python scripts/batfish_diff.py [--host localhost] [--seed 20261010] [--count 40] [--keep DIR]`. 엔진은 `engine/src`에서 import한다.
+- **변환(NetProof JSON → Cisco IOS)**:
+  - 라우터: `hostname`, 인터페이스마다 `ip address`·`ip access-group N in|out`·`no shutdown`, `routes` → `ip route`, 붙은 ACL의 원문 줄.
+  - 호스트: 인터페이스 + `gateway`가 있으면 `ip route 0.0.0.0 0.0.0.0 게이트웨이`인 Cisco 장비로 흉내.
+  - 인터페이스 이름: 접두사 `g`→`GigabitEthernet`, `s`→`Serial`, `eth`·`e`→`Ethernet`, `f`→`FastEthernet`(뒤가 숫자일 때). 그 밖의 이름이 있는 구성은 **변환 불가로 건너뛰고 건수와 사유를 보고**(추측 금지).
+  - `stateful`·`rules_in`·`default_in`이 있는 장비가 있는 구성은 범위 밖으로 건너뛰고 보고.
+- **비교**:
+  - 출발 포트 50000(엔진과 같음). ICMP는 echo(type 8, code 0).
+  - 엔진 결과가 `UNSUPPORTED`·`INVALID`인 통신은 비교에서 빼고 건수 보고.
+  - one-way: Batfish 정방향 `traceroute` 하나. 모든 trace가 `ACCEPTED`면 PASS.
+  - session: **`bidirectionalTraceroute`를 쓰지 않는다.** 정방향 `traceroute` + **직접 만든 복귀 패킷**의 `traceroute`(목적지 호스트에서 출발). 복귀: 주소 교환, TCP/UDP는 포트 교환, ICMP echo는 echo-reply(type 0, code 0). TCP 플래그는 정방향 SYN, 복귀 ACK(엔진 `established` 처리와 맞춤). 정방향이 PASS일 때만 복귀를 본다.
+  - DENY 단계 대응: `DENIED_IN`→`acl_in`, `DENIED_OUT`→`acl_out`, `NO_ROUTE`·`NULL_ROUTED`·`NEIGHBOR_UNREACHABLE`·`INSUFFICIENT_INFO`·`LOOP`→`route`, 그 밖은 `other`(단계 비교에서 다름으로 셈). 막힌 장비는 마지막 hop 노드, **대소문자 무시**. 엔진 `decisive.device`·`step`과 방향(정방향/복귀)까지 비교.
+- **대상**: `cases/*.json` 전부 + 고정 시드 무작위 구성 두 모양(모양마다 `--count`개):
+  - A(사례 01 모양, 라우터 1대): 네 위치(g0/0·g0/1 × in·out)에 무작위 ACL(permit/deny, ip·tcp·udp·icmp, any·host·연속 와일드카드, eq·neq·lt·gt·range, tcp established, icmp echo·echo-reply, 끝 permit 있음/없음).
+  - B(사례 02 모양, 라우터 2대): A와 같은 무작위 ACL + 두 라우터의 무작위 정적 경로(맞는 경로·누락·잘못된 다음 홉·더 넓은/좁은 prefix).
+  - 통신: 구성의 호스트 순서쌍 × SSH·HTTP·HTTPS·DNS·Ping × session·one-way.
+- **출력**: 요약 한 줄(비교 건수·결과 일치·결과 불일치·단계 비교/다름·제외 건수(변환 불가·범위 밖·UNSUPPORTED·INVALID)) + 불일치마다 JSON 한 줄(구성 이름·통신·엔진 결과·reason·Batfish 처리 결과·방향). 불일치 구성의 Cisco 설정을 `--keep` 폴더(기본 임시 폴더)에 남기고 경로를 출력. **불일치가 있으면 종료 코드 1**, 없으면 0. Batfish 연결 실패는 종료 코드 2와 실행 방법 안내.
 
-**2. PR #52 N1 — 복귀에서 막힌 DENY는 복귀 방향으로 시작 (`web/src/tracePlayback.ts` + 테스트, `docs/topology-playback-design.md`)**
-- `TracePlayback` 생성자: `decisivePosition(verdict)`가 `{direction: "return"}`이면 처음 상태를 복귀 방향·복귀 마지막 단계·그 장비 선택으로 한다. 그 밖(정방향 decisive, decisive 없음·유일하지 않음, PASS·INVALID·UNSUPPORTED)은 지금처럼 정방향 마지막.
-- 방향 단추·재생·편집 정지 규칙은 그대로. 설계 문서의 「새로운 판정 스냅샷이 수락되면 정방향 마지막으로 초기화한다」 문장을 이 규칙으로 고친다.
+**2. 테스트 — 새 `server/tests/test_batfish_diff.py`** (`test_qa_local.py`처럼 `importlib`로 스크립트를 읽는다. Docker·pybatfish 없이 돈다)
+- 변환 결과 문자열(사례 01·02·03 각각의 핵심 줄: 인터페이스·주소·access-group·ip route·ACL 원문, 호스트 기본 경로).
+- 인터페이스 이름 매핑과 모르는 이름 → 변환 불가 사유. 상태 추적 장비 → 범위 밖.
+- 복귀 패킷 만들기: TCP 포트·플래그(SYN/ACK), UDP 포트, ICMP echo → echo-reply.
+- 처리 결과 → 엔진 단계 대응표와 장비 이름 대소문자 무시.
+- 같은 시드면 같은 무작위 구성(모양 A·B), 생성한 구성을 엔진 `verify`가 INVALID 없이 읽는다(무작위 구성이 엔진 입력 형식에 맞는지).
+- `pybatfish`를 import하지 않고도 모듈을 읽을 수 있다.
 
-**3. PR #47 N1 — 확인 전 불일치 표시 (`web/src/components/Badges.tsx` `ActualBadge` + 테스트)**
-- 실제 결과가 있고 확인 전일 때:
-  - 판정이 `PASS`/`DENY`이고 실제 결과와 다르면 `확인 전 · {actual} · 판정과 다름`
-  - 같으면 `확인 전 · {actual} · 판정과 같음`
-  - 판정이 `UNSUPPORTED`/`INVALID`면 지금처럼 `확인 전 · {actual}`
-- 확인 전이므로 지금처럼 `badge plain`(색 강조 없음). 확인된 사례·안 적음 표시는 그대로. 사례 목록·상세 등 `ActualBadge`를 쓰는 곳 모두에 같은 규칙.
-
-**4. PR #47 N2 — 저장 안내 조사 (`web/src/pages/PracticePage.tsx` + 테스트)**
-- `사례 #N으로 저장했습니다.` → `저장했습니다: 사례 #N.`(`사례 #N` 링크 유지). 뒤 문장 `저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.`는 그대로.
-
-**5. 문서** — 이 HANDOFF 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄.
+**3. 문서 — 새 `docs/batfish-diff.md`, `docs/quality.md` 한 단락, 이 HANDOFF·`decisions/ai-work-log.md`**
+- `batfish-diff.md`: 목적(교차 검증이지 정답 아님), 준비(Docker 이미지 digest·포트 127.0.0.1만·메모리 약 4GB·pybatfish 고정 버전), 실행·옵션·종료 코드, 변환 규칙, 비교 규칙, **알려진 의미 차이**(Batfish 왕복 추적의 ICMP 복귀 type 8 → 직접 복귀로 회피, 장비 이름 소문자, 호스트를 Cisco 장비로 흉내), 범위 밖(pfSense 상태 추적·UNSUPPORTED·INVALID·비연속 와일드카드·실제 장비), 마지막 실행 결과(날짜·시드·건수).
+- `quality.md`: 「1-1. 실제 결과로 대조된 사례가 0건」 아래에 Batfish 교차 검증 결과 한 단락(실제 장비 대조를 대신하지 않는다는 문장 포함).
 
 ### 건드리지 않을 것
-- `engine/`, `server/`, `cases/*.json`·`expect`, 배포 구성, `web/package*.json`.
-- 고치기 과제의 요청·사실 문장 조건·목표 밖 변화 필터, 구성도·재생의 나머지 규칙, 사례 저장 흐름.
+- `engine/`(계산·버전), `server/netproof_api/`, `web/`, DB, `cases/*.json`·`expect`, 운영 `requirements.txt`, `vercel.json`·배포 구성.
+- 불일치가 나와도 **엔진을 고치지 않는다**. 그대로 보고하고 원인 분석은 별도 과제로.
 
-### 테스트 결과 — 비차단 후속 묶음 (Codex 직접 실행, 2026-10-10)
-
-완료 조건 1~6의 명령을 직접 실행했다. 엔진·서버 시험은 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비운 상태로 실행했고 서버는 테스트용 SQLite를 사용했다. 운영 DB 작업은 하지 않았다. 아래는 실제 출력에서 진행 점·빌드 자산 목록을 생략한 부분이다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 6.53s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-174 passed, 1 skipped in 55.68s
-
-npm --prefix web test
-Test Files  43 passed (43)
-Tests  643 passed (643)
-Duration  1.21s
-
-npm --prefix web run build
-✓ 68 modules transformed.
-dist/assets/index-B3OOalhE.js  390.28 kB │ gzip: 116.90 kB
-✓ built in 240ms
-
-git diff --stat main... -- engine server cases vercel.json web/package.json web/package-lock.json
-(출력 없음)
-
-git diff --check
-(공백 오류 없음)
-```
-
-삭제 검색은 코드·테스트·CSS를 포함한 `web/src` 전체를 검사했다. rg의 종료 코드 1은 일치가 없다는 뜻이다. 파일명도 일반 패널 테스트로 바꿨다.
-
-```powershell
-rg -n -i 'factual|factualText' web/src
-if ($LASTEXITCODE -eq 1) { Write-Output '검색 결과 0건 (rg exit 1)'; exit 0 }
-```
-
-```text
-검색 결과 0건 (rg exit 1)
-```
-
-- `ResultPanel`·`TracePlayer`의 전용 prop/분기·문구 변환과 전용 CSS를 삭제했다. 일반 패널 시험으로 기록된 엔진 응답 9개의 reason·problems 원문, 답 없는 비교 배너 없음, 구성도·재생, PASS의 통과 문구와 stale 조작 비활성화를 확인했다. 과제 문구·카드 시험은 금지 낱말을 완료/성공/정답/점수/%로 줄이고 통과 원문을 그대로 검사한다.
-- 초기 커서 시험: 복귀에 유일한 decisive → 복귀 마지막·그 장비·정지 상태. decisive가 마지막 앞에 있어도 마지막을 선택한다. 정방향 decisive·없음·필드 불일치·유일하지 않음·PASS/INVALID/UNSUPPORTED는 정방향 마지막. 기존 방향 이동·첫 단계 재생·마지막 정지·busy 정지·자동 재개 없음·visibility/reduced motion·타이머 시험도 통과했다. 설계 문서의 초기화 문장을 같은 규칙으로 수정했다.
-- `ActualBadge` 시험: 확인 전 PASS/DENY의 같음/다름, INVALID/UNSUPPORTED의 실제 결과만 표시, 확인된 사례·안 적음의 기존 문구/클래스 유지. 상세 「다시 살펴보기」에서도 plain 불일치 표시를 확인했다. badge plain 스타일은 바꾸지 않았다.
-- 저장 안내의 기존 지연 응답 시험(edit/edit-reset/rejudge/unmount)에서 링크·`저장했습니다: 사례 #42.`·뒤 문장과 기존 이동/저장 흐름을 확인했다. 웹 시험은 629→643건(전용 분기 시험을 일반 패널 시험으로 교체 포함)이다.
-
-이번에는 실제 브라우저·운영 배포 검증을 수행하지 않았다. 완료 조건 7의 실습 02/01 초기 방향·고치기 일반 패널·확인 전 배지는 Claude 리뷰에서 별도로 확인한다. 엔진·서버·cases/expect·배포·의존성 변경 0줄이며 엔진 0.2.0 유지.
-
-Codex (GPT-6)
+### 예상 리스크
+| 리스크 | 대응 |
+| --- | --- |
+| Batfish를 정답처럼 읽음 | 문서·출력에 「교차 검증, 정답·실제 장비 아님」 |
+| Batfish 모델링 차이를 엔진 버그로 오인 | 알려진 의미 차이 목록, 불일치 구성 설정 보존해 재현 |
+| 무작위 구성이 엔진에서 INVALID·UNSUPPORTED만 나옴 | 생성 구성 엔진 읽기 테스트, 제외 건수 출력 |
+| 운영 의존성 오염 | 별도 requirements 파일, 운영 `requirements.txt` diff 0 |
+| 컨테이너가 외부에 열림 | 127.0.0.1 바인딩만 문서화 |
+| 실행이 오래 걸림 | 기본 모양마다 40개, `--count`로 조절, 실행 시간 출력 |
 
 ### 완료 조건 (Codex가 직접 실행해 출력 첨부)
 1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 489 passed·2 xfailed(변화 없음).
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 174 passed·1 skipped(변화 없음).
-3. `npm --prefix web test` → 실패 0. 최소: `factual`·`factualText`가 코드에 없음(검색 결과 첨부) + 과제 화면에 `완료|성공|정답|점수|%` 없음; `TracePlayback` 처음 방향 — 복귀 decisive → 복귀 마지막, 정방향 decisive·decisive 없음·유일하지 않은 decisive → 정방향 마지막; `ActualBadge` 세 경우 + 확인됨·안 적음 그대로; 저장 안내 `저장했습니다: 사례 #N.`.
-4. `npm --prefix web run build` 성공.
-5. `git diff --stat main... -- engine server cases vercel.json web/package.json web/package-lock.json` → **출력 없음**.
+2. `cd server && ../.venv/Scripts/python -m pytest -q` → 174 passed·1 skipped에 `test_batfish_diff.py` 추가, 실패 0(pybatfish 미설치 venv에서).
+3. `npm --prefix web test` → 643 passed(변화 없음).
+4. **실제 실행**: Docker로 고정 digest 이미지를 띄우고 별도 venv에 `scripts/requirements-batfish.txt` 설치 후 `python scripts/batfish_diff.py`(기본값) 출력 전체 요약과 실행 시간. 목표는 불일치 0건이며, 불일치가 나오면 엔진을 고치지 말고 불일치 JSON과 보존한 설정 경로를 그대로 보고한다. 끝나면 컨테이너를 멈춘다.
+5. `git diff --stat main... -- engine server/netproof_api web cases requirements.txt vercel.json` → **출력 없음**.
 6. `git diff --check` 공백 오류 없음.
-7. 리뷰(Claude): 실브라우저로 실습 02 판정 → 처음에 복귀·R2 경로 차단 선택, 실습 01 → 정방향, 고치기 과제 근거 보기가 일반 결과 패널, 확인 전 불일치 사례 배지 확인.
+7. 리뷰(Claude): 같은 명령(4)을 직접 재현하고, 도구에 일부러 틀린 Batfish 결과가 들어가는 경우(예: 복귀를 type 8로 만드는 임시 변형)에 불일치 JSON과 종료 코드 1이 나오는지 확인한다(커밋하지 않음).
 
 ## 배포 기록 (2026-10-06)
 
@@ -153,6 +130,7 @@ Codex (GPT-6)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 
+- **PR #56 비차단 후속 묶음 (병합 완료, `dcc1a3e`, 2026-10-10, 설계 #55)**: PR #54 N1 `factual` 분기·`factualText` 제거(Claude 설계 과잉 정리, 과제 근거도 일반 결과 패널), PR #52 N1 decisive가 복귀에서 유일하면 복귀 마지막 단계로 시작, PR #47 N1 `ActualBadge` 확인 전 `판정과 다름/같음`, N2 저장 안내 `저장했습니다: 사례 #N.`. 화면만 변경. Claude 리뷰 PASS. 최종: 엔진489+2xfail·서버174+1skip·웹643·빌드 성공(`index-B3OOalhE.js`), 운영 반영 확인.
 - **PR #54 고치기 과제 (병합 완료, `bfb7b4f`, 2026-10-10, 설계 #53)**: 학습실 「고치기 과제」 3개(`#/fix/:id`, 합성 01~03 처음 구성 + 승인된 목표 통신). 확인하기 한 번에 `policy-matrix`(목표 같음/다름/판정 불가)와 `change-impact`(처음 구성 대비 목표 밖 변화, 목표 칸은 화면에서만 제외), 근거 보기는 `verify` + 구성도·재생. 점수·완료 배지 없음, 사실 문장은 전부 같음·밖 변화 0·미비교 0일 때만. 구성은 App 메모리(`fixDrafts`)만. 서버 테스트로 처음엔 미해결·테스트 안 해법으로 풀림 확인(해법은 `server/tests/test_fix_exercises.py`에만, 번들 검색 0). **엔진·서버 API·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(편법 HTTPS만 허용 → 목표 밖 「새로 막힘」으로 드러남 실브라우저 확인). 최종: 엔진489+2xfail·서버174+1skip·웹629·빌드 성공(`index-BW8VCTzY.js`), 운영 반영 확인.
   - 유지되는 합의: 목표는 문제의 요구사항이지 정답이 아니다. 과제 문구에 고칠 장비·규칙·원인을 쓰지 않는다. 검사한 서비스·호스트 쌍 밖은 알 수 없다고 말한다.
 - **PR #52 구성도·경로 재생 (병합 완료, `802fd76`, 2026-10-10, 설계 #51 포함 — 사용자 지시로 설계·구현 모두 Codex)**: 판정기·실습·사례 상세·정책 행렬에 판정 당시 network·flow로 만든 구성도(CIDR 구간 소속 선, 장비12·구간24 상한 뒤 경로 장비·목록 fallback)와 엔진 hops의 방향별 재생(1초 간격, 편집·숨김·reduced motion 시 정지), `firewall_in`·`state` 표시, 유일하게 일치하는 decisive에만 결정 단계 표시. **엔진·서버·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(실브라우저 1280·375, 겹침·넘침·콘솔 0). 최종: 엔진489+2xfail·서버165+1skip·웹563·빌드 성공(`index-BHD-u76S.js`), 운영 반영 확인.
@@ -238,7 +216,7 @@ Codex (GPT-6)
 5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구는 PR #50 병합(`d7dabff`)으로 해결**
 6. [x] 구성도 그림 + 경로 재생 — ② PR #52 병합(`802fd76`, 설계 #51 포함). [설계·제품 화면](docs/topology-playback-design.md)
 7. [x] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤ 「고치기 과제」로 정의. 설계 PR #53, 구현 PR #54 병합(`bfb7b4f`)
-8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
+8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④ **(진행 중: 스파이크 960건 중 958 일치·2건은 Batfish ICMP 복귀 모델링, 2026-10-11 정식 로컬 도구 설계 승인)**
 - Kali: 기존 실제 결과 붙여넣기(PR #16, Nmap·ping)가 수업과 맞는다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
 
 **4주차 (10-19~10-25) — 사용자 테스트 주간, 기능은 병행** (항목은 위 순서로 옮김)
