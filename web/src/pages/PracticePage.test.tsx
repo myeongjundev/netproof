@@ -351,7 +351,7 @@ it.each(["edit", "edit-reset", "rejudge", "unmount"])("저장 중 %s 뒤 늦은 
   } else {
     const notice = renderToStaticMarkup(savedNotice(d.render())!);
     expect(notice).toContain('role="status"'); expect(notice).toContain('href="#/cases/42"');
-    expect(notice).toContain("사례 #42"); expect(notice).toContain("으로 저장했습니다.");
+    expect(notice).toContain('저장했습니다: <a href="#/cases/42">사례 #42</a>.');
     expect(notice).toContain("저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.");
     if (action !== "rejudge") {
       expect(record(d.render())).toBeUndefined();

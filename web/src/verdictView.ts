@@ -2,9 +2,6 @@ import type { Claim, Verdict } from "./types";
 
 const titles = { PASS: "통과", DENY: "막힘", INVALID: "입력 오류", UNSUPPORTED: "판정 불가" };
 
-/** 고치기 화면의 계산 설명 문구. 엔진 결과·분류·문제 목록은 바꾸지 않는다. */
-export function factualText(text: string): string { return text.replaceAll("통과", "허용"); }
-
 /** Display only the comparison supplied by the engine; never compare the answers here. */
 export function comparisonBanner(verdict: Verdict | null, claim: Claim): { tone: "agree" | "disagree"; text: string; hint?: string } | null {
   if (!verdict || !claim.expected || (verdict.result !== "PASS" && verdict.result !== "DENY")) return null;

@@ -114,7 +114,7 @@ it("근거는 클릭할 때만 그 목표 flow·구성 스냅샷을 판정한다
   const d = await driver(); await d.button("확인하기").props.onClick(); expect(api.verify).not.toHaveBeenCalled();
   await d.goals()[1].props.onClick(); expect(api.verify).toHaveBeenCalledWith(toNetwork(d.draft), goalFlow(task, task.goals[1]), { expected: null, source: "", text: "" });
   const snapshot = structuredClone({ network: d.panel().props.network, flow: d.panel().props.flow });
-  expect(d.panel().props.factual).toBe(true); d.edit(); expect(d.panel().props.stale).toBe(true);
+  expect(d.panel().props.claim.expected).toBeNull(); d.edit(); expect(d.panel().props.stale).toBe(true);
   expect(d.goals().every(button => button.props.disabled)).toBe(true); expect(text(d.render())).toContain("이전 결과"); expect(text(d.render())).not.toContain(EXERCISE_FACT);
   expect({ network: d.panel().props.network, flow: d.panel().props.flow }).toEqual(snapshot);
   await d.goals()[0].props.onClick(); expect(api.verify).toHaveBeenCalledTimes(1);
@@ -158,12 +158,12 @@ it("새 확인은 이전 성공 결과와 오류를 섞지 않는다", async () 
 it("페이지가 만드는 문구는 채점·배지·축하 표현을 넣지 않는다", async () => {
   vi.mocked(api.policyMatrix).mockResolvedValue({ ...matrix, cells: cells.map(cell => ({ ...cell, reason: "정방향 · 복귀 방향 모두 통과" })) });
   const d = await driver(); await d.button("확인하기").props.onClick();
-  expect(text(d.render())).toContain("정방향 · 복귀 방향 모두 허용");
-  expect(text(d.render())).not.toMatch(/완료|성공|정답|점수|통과|%/);
+  expect(text(d.render())).toContain("정방향 · 복귀 방향 모두 통과");
+  expect(text(d.render())).not.toMatch(/완료|성공|정답|점수|%/);
   expect(findAll(d.render(), node => typeof node.props.className === "string" && /badge|success|celebrat/.test(node.props.className))).toHaveLength(0);
 });
 it.each(EXERCISES)("$id SSR는 과제·목표 순서를 보이고 계산하지 않는다", exercise => {
   const html = renderToStaticMarkup(createElement(FixExercisePage, { id: exercise.id, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   expect(html).toContain(exercise.title); expect(html).toContain(exercise.prompt); expect(html).toContain("처음 구성을 불러오는 중");
-  expect(html).not.toMatch(/완료|성공|정답|점수|통과|%|badge/); expect(api.policyMatrix).not.toHaveBeenCalled();
+  expect(html).not.toMatch(/완료|성공|정답|점수|%|badge/); expect(api.policyMatrix).not.toHaveBeenCalled();
 });

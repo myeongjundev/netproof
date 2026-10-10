@@ -605,9 +605,6 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .fix-goals li p { margin: 6px 0; }
 .fix-results h3 { margin: 16px 0 8px; }
 .fix-fact { border-top: 1px solid var(--line); padding-top: 16px; }
-.factual-result .hop.ok .mark { color: var(--muted); }
-.factual-result .ok { color: var(--ink); background: transparent; }
-.factual-result .acl-hit-permit { color: var(--ink); background: var(--gray-bg); }
 .fix-exercise .practice-problem { grid-template-columns: 1fr; }
 .fix-exercise .practice-config { margin-top: 20px; }
 .trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }

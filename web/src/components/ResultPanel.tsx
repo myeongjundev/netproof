@@ -2,7 +2,7 @@ import type { Claim, Flow, Hop, Network, Trace, Verdict } from "../types";
 import { decisivePosition, stepText } from "../tracePlayback";
 import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
-import { comparisonBanner, factualText, statusLine } from "../verdictView";
+import { comparisonBanner, statusLine } from "../verdictView";
 
 const RESULT_TEXT = {
   PASS: { title: "통과", note: "모델 안에서 계산한 결과, 이 통신은 됩니다." },
@@ -130,23 +130,9 @@ interface Props {
   onShowAcl?: (acl: string, line: number | null) => void;
   title?: string;
   emptyHint?: string;
-  factual?: boolean;
 }
 
-export function ResultPanel({ verdict, claim, stale, error, loading, network, flow, engineVersion, onShowAcl, factual = false, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
-  if (factual) return <section className="panel result factual-result" aria-labelledby="result-title" aria-busy={loading}>
-    <h2 id="result-title">{title}</h2>
-    {loading && <p role="status">계산 중…</p>}
-    {error && <p className="error" role="alert">{error}</p>}
-    {!verdict && !error && !loading && <p className="hint">{emptyHint}</p>}
-    {verdict && <>
-      {stale && <p className="previous-result">이전 결과 · 다시 확인해 주세요.</p>}
-      <p>엔진 결과: {verdict.result}</p><p>{factualText(verdict.reason)}</p>
-      {verdict.problems.length > 0 && <ul className="problems">{verdict.problems.map((problem, index) => <li key={index}>{problem}</li>)}</ul>}
-      {network && flow && <TracePlayer network={network} flow={flow} verdict={verdict} busy={stale || loading} engineVersion={engineVersion} onShowAcl={onShowAcl} factual />}
-      {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale || loading} onShow={onShowAcl} />}
-    </>}
-  </section>;
+export function ResultPanel({ verdict, claim, stale, error, loading, network, flow, engineVersion, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
   const banner = comparisonBanner(verdict, claim);
   const decisive = verdict ? decisivePosition(verdict) : null;
   const cannotCompare = verdict?.result === "INVALID" || verdict?.result === "UNSUPPORTED";

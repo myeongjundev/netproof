@@ -14,7 +14,8 @@ export function ComparisonBadge({ comparison }: { comparison: Comparison }) {
 
 export function ActualBadge({ item }: { item: Pick<CaseSummary, "actual_result" | "confirmed" | "result"> }) {
   if (!item.actual_result) return <span className="badge plain">안 적음</span>;
-  if (!item.confirmed) return <span className="badge plain">확인 전 · {item.actual_result}</span>;
+  if (!item.confirmed) return <span className="badge plain">확인 전 · {item.actual_result}
+    {(item.result === "PASS" || item.result === "DENY") && (item.actual_result === item.result ? " · 판정과 같음" : " · 판정과 다름")}</span>;
   if (item.result !== "PASS" && item.result !== "DENY") return <span className="badge warn">확인 · 범위 밖</span>;
   return item.actual_result === item.result ? (
     <span className="badge good">확인 · 판정과 일치</span>

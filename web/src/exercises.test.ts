@@ -17,7 +17,7 @@ it("승인된 세 과제만 정의하고 해법·힌트 필드는 넣지 않는�
       expect(["tcp/22", "tcp/80", "tcp/443", "icmp/echo"]).toContain(goal.service);
       expect(goal.src).not.toBe(goal.dst);
     }
-    expect(exercise.prompt + exercise.goals.map(goal => goal.label).join()).not.toMatch(/R1|R2|ACL|경로|규칙|원인|완료|성공|정답|점수|통과|%/);
+    expect(exercise.prompt + exercise.goals.map(goal => goal.label).join()).not.toMatch(/R1|R2|ACL|경로|규칙|원인|완료|성공|정답|점수|%/);
   }
   expect(JSON.stringify(EXERCISES)).not.toMatch(/solution|hint|answer|network|access-list/);
   expect(exerciseById("absent")).toBeUndefined();

@@ -27,8 +27,9 @@ export class TracePlayback {
   private busy = false;
   private hidden = false;
   constructor(private verdict: Verdict) {
-    const index = Math.max(0, (verdict.forward?.hops.length ?? 0) - 1);
-    this.state = { direction: "forward", index, playing: false, selectedDevice: verdict.forward?.hops[index]?.device ?? null, reduced: false, blocked: false };
+    const direction = decisivePosition(verdict)?.direction === "return" ? "return" : "forward";
+    const index = Math.max(0, (verdict[direction]?.hops.length ?? 0) - 1);
+    this.state = { direction, index, playing: false, selectedDevice: verdict[direction]?.hops[index]?.device ?? null, reduced: false, blocked: false };
   }
   getSnapshot = () => this.state;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
