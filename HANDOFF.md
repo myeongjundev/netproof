@@ -19,7 +19,13 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **Batfish 교차 검증 도구(로드맵 8번) 구현·검증 완료, 리뷰 대기**. 승인 범위 1~3의 로컬 도구·독립 테스트·문서를 추가했다. 실제 교차 검증은 PASS/DENY와 차단 단계를 따로 보고하며, 불일치가 있어도 엔진을 바꾸지 않는다. 실행 결과는 아래 「테스트 결과」.
 - 브랜치: `codex/batfish-diff`, PR #57 병합 main `87d2890`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽고 GitHub MERGED/main 기준을 확인했다. main 대상 [구현 PR #58](https://github.com/myeongjundev/netproof/pull/58)을 열었으며 병합하지 않았다.
-- 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 완료 조건 7의 독립 실행·오류 주입 확인을 Claude에게 남긴다. 자동으로 메시지를 보내지 않았다.
+- 다음 차례: **Codex(R1 수정).** Claude 리뷰 — 아래 「리뷰 기록 — PR #58」.
+
+### 리뷰 기록 — PR #58 (Claude, 2026-10-11)
+- 직접 실행(`7ee059d`): 엔진 489 passed·2 xfailed, 서버 225 passed·1 skipped(`.venv`에 pybatfish 없음), 웹 643 passed. 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. 도구 기본 실행 `compared=1660 result_same=1660 step_compared=1511 step_different=44`, exit=1 — Codex 기록과 같다.
+- 오류 주입(저장소 변경 없음): echo-reply만 막는 출력 ACL 구성 정상 20/20·exit 0, 복귀 ping을 type 8로 만드는 임시 변형 → 결과 불일치 1건·exit 1. 도구가 불일치를 잡는다.
+- **R1 (수정 필요, Claude 설계 오류)** `scripts/batfish_diff.py` `STEPS`: `NEIGHBOR_UNREACHABLE`은 엔진에서 `send` 단계(`trace.py:188` 다음 홉 없음, 의미론 §5-5)인데 설계 대응표가 `route`로 지정. `send`로만 바꾼 임시 실행 → `step_different=0`, exit 0. 요청: 대응표·테스트 2곳·문서(batfish-diff.md 대응표·마지막 실행, quality.md) 수정 후 기본값 재실행 결과 첨부.
+- 비차단 N1: 호스트 노드의 route 범주 drop(게이트웨이 없음)은 엔진에서 `send` — 원하면 「마지막 hop이 host면 send」 한 줄+테스트.
 - 직전 과제: 비차단 후속 묶음 **PR #56 병합 완료**(`dcc1a3e`). 운영 번들 `index-B3OOalhE.js`, 공개 주소 실습 02가 복귀·R2 경로 차단으로 시작함을 Claude가 확인. 확인 전 불일치 배지는 브라우저 미확인(단위 테스트로 갈음, 사용자 수동 QA 때 확인).
 - 별도로 남은 사용자 확인:
   1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 절차.
