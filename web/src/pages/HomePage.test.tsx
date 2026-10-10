@@ -30,7 +30,7 @@ it.each([false, true])("공개 첫 얼굴은 선택되지 않은 예상 퍼즐�
   expect(html).not.toContain("판정기:");
   expect(html.match(/<button type="button" class="primary">/g)).toHaveLength(2);
   const hero = html.split("</section>")[0];
-  expect(hero.match(/<a /g)).toHaveLength(1); expect(hero).not.toContain("학습실 전체 보기");
+  expect(hero.match(/<a /g)).toHaveLength(2); expect(hero).toContain("학습실에서 시작하기"); expect(hero).not.toContain("학습실 전체 보기");
   expect(html).toContain('href="#/learn"'); expect(html).toContain("판정기 바로 열기");
   expect(html).not.toContain("작성하던 입력이 있어요"); expect(onGuess).not.toHaveBeenCalled();
   for (const spy of spies) { expect(spy).not.toHaveBeenCalled(); spy.mockRestore(); }
@@ -94,4 +94,13 @@ it("하던 실습의 입력이 없으면 준비 중이 아닌 미불러오기 �
   const html = renderToStaticMarkup(createElement(HomePage, { draft: blankDraft(), practiceCaseId: "synthetic-01", user: null, checked: true, onGuess: () => {} }));
   expect(html).toContain("실습 구성을 아직 불러오지 않았습니다.");
   expect(html).not.toContain("실습 입력을 준비하고 있습니다.");
+});
+
+it("시작 카드는 기존 화면으로 직접 연결하고 사례·계정·진행 기록을 읽지 않는다", () => {
+  const spies = [vi.spyOn(api, "searchCases"), vi.spyOn(api, "examples"), vi.spyOn(api, "verify")];
+  const html = renderToStaticMarkup(createElement(HomePage, { draft: blankDraft(), user: null, checked: true, onGuess: () => {} }));
+  const cards = html.split('class="start-cards"')[1].split("</section>")[0];
+  expect([...cards.matchAll(/href="([^"]+)"/g)].map(match => match[1])).toEqual(["#/learn", "#/", "#/matrix"]);
+  expect(cards).not.toMatch(/button|완료|성공|정답|점수|%|badge|PASS|DENY/);
+  for (const spy of spies) { expect(spy).not.toHaveBeenCalled(); spy.mockRestore(); }
 });

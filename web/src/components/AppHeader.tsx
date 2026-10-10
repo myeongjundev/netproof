@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Route } from "../router";
 import type { User } from "../types";
+import { UiIcon } from "./UiIcon";
 
 export function AppHeader({ route, user, checked, onLogout }: { route: Route; user: User | null; checked: boolean; onLogout: () => void }) {
   const [open, setOpen] = useState(false);
@@ -11,10 +12,11 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
   return <header className="top app-header" onKeyDown={event => {
     if (event.key === "Escape" && open) { setOpen(false); menuButton.current?.focus(); }
   }}>
-    <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}>NetProof <span>Verify before you trust.</span></a>
-    <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}>메뉴</button>
+    <div className="header-inner">
+    <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}><UiIcon name="network" className="brand-symbol" />NetProof <span>Verify before you trust.</span></a>
+    <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}><UiIcon name="menu" />메뉴</button>
     <nav id={menuId} className={`tabs header-nav${open ? " is-open" : ""}`} aria-label="주요 화면">
-      {tab("학습실", "#/learn", route.page === "learn" || route.page === "practice")}
+      {tab("학습실", "#/learn", route.page === "learn" || route.page === "practice" || route.page === "fix")}
       {tab("판정기", "#/", route.page === "judge")}
       {tab("정책 검증", "#/matrix", route.page === "matrix")}
       {tab("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}
@@ -28,6 +30,7 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
         <span className={`badge ${user.role === "reviewer" ? "accent" : "plain"}`}>{user.role_name}</span>
         <button type="button" className="ghost small" onClick={() => { setOpen(false); onLogout(); }}>로그아웃</button>
       </> : <a href="#/login" className="ghost-link" onClick={() => setOpen(false)}>로그인</a>}
+    </div>
     </div>
   </header>;
 }

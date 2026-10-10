@@ -40,6 +40,7 @@ export function SettingsPage({ user, onUser, onSignedOut }: Props) {
 
   return (
     <div className="settings">
+      <div className="page-head"><div><p className="home-eyebrow">내 환경</p><h1>설정</h1><p>화면과 계정 정보를 관리합니다.</p></div></div>
       <section className="panel" aria-labelledby="screen-title">
         <h2 id="screen-title">화면</h2>
         <p className="hint">이 브라우저에만 저장됩니다.</p>
