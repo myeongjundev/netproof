@@ -18,7 +18,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 현재 작업 상태
 - 작업: **비차단 후속 묶음 구현·검증 완료(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 승인된 변경 범위 1~5만 수행했다. 고치기 과제는 일반 결과 패널·엔진 원문을 재사용하고, 복귀 차단 초기 선택·확인 전 비교 표시·저장 안내를 수정했다.
-- 브랜치: `codex/followups`, PR #55 병합 main `4de43a3`에서 분기. 시작 시 PR #55가 아직 OPEN이라 설계·코드를 읽으며 기다렸고, 사용자가 Claude에게 병합을 맡긴 뒤 GitHub의 MERGED·main 반영을 확인하고 다시 `git pull`·AGENTS/HANDOFF 읽기 후 작업했다. main 대상 구현 PR로 제출하며 병합하지 않는다.
+- 브랜치: `codex/followups`, PR #55 병합 main `4de43a3`에서 분기. 시작 시 PR #55가 아직 OPEN이라 설계·코드를 읽으며 기다렸고, 사용자가 Claude에게 병합을 맡긴 뒤 GitHub의 MERGED·main 반영을 확인하고 다시 `git pull`·AGENTS/HANDOFF 읽기 후 작업했다. main 대상 [구현 PR #56](https://github.com/myeongjundev/netproof/pull/56)을 열었으며 병합하지 않았다.
 - 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 완료 조건 7의 독립 실브라우저 리뷰는 Claude에게 남긴다. 자동으로 메시지를 보내지 않았다.
 - 직전 과제: 로드맵 7번 고치기 과제 **PR #54 병합 완료**(`bfb7b4f`). 운영 번들 `index-BW8VCTzY.js`, 공개 주소 `#/fix/fix-01` 확인하기 → 다름·다름·밖 변화 0, 콘솔 오류 0을 Claude가 확인했다. 로드맵 5·6·7번이 모두 운영에 나갔다.
 - 별도로 남은 사용자 확인:
