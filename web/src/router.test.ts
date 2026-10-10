@@ -1,5 +1,12 @@
 import { parseRoute } from "./router";
 
+it.each(["fix-01", "fix-02", "fix-03"])("고치기 과제 %s는 별도 화면이다", id => {
+  expect(parseRoute(`#/fix/${id}`)).toEqual({ page: "fix", id });
+});
+it.each(["#/fix/", "#/fix/absent", "#/fix/fix-01?network=x", "#/fix/fix-01/extra"])("없는 과제 %s는 학습실로 간다", hash => {
+  expect(parseRoute(hash)).toEqual({ page: "learn" });
+});
+
 it("공유 링크와 빈 공유 주소를 구분한다", () => {
   expect(parseRoute("#/s/abc")).toEqual({ page: "judge", share: "abc" });
   expect(parseRoute("#/s/")).toEqual({ page: "missing" });

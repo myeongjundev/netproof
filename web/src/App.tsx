@@ -9,6 +9,8 @@ import { CasesPage } from "./pages/CasesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JudgePage } from "./pages/JudgePage";
 import { PracticePage } from "./pages/PracticePage";
+import { FixExercisePage } from "./pages/FixExercisePage";
+import { fixImport, initializeFixDrafts } from "./exercises";
 import { PolicyMatrixPage } from "./pages/PolicyMatrixPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -37,11 +39,13 @@ export function App() {
   const [guess, setGuess] = useState<{ caseId: string; expected: PracticeGuess } | null>(null);
   const [practiceCaseId, setPracticeCaseId] = useState<string | null>(null);
   const [practiceDrafts, setPracticeDrafts] = useState<Record<string, Draft>>({});
+  const [fixDrafts, setFixDrafts] = useState<Record<string, Draft>>({});
   const [pendingImport, setPendingImport] = useState<ReturnType<typeof practiceImport> | null>(null);
   const caseId = route.page === "practice" ? route.caseId : undefined;
   const lessonId = route.page === "learn" ? route.lessonId : undefined;
+  const exerciseId = route.page === "fix" ? route.id : undefined;
   const main = useRef<HTMLElement>(null);
-  const previousScreen = useRef({ page: route.page, lessonId, caseId });
+  const previousScreen = useRef({ page: route.page, lessonId, caseId, exerciseId });
   useEffect(() => {
     setGuess(current => current?.caseId === caseId ? current : null);
     if (caseId) setPracticeCaseId(caseId);
@@ -51,14 +55,17 @@ export function App() {
     setPracticeDrafts(current => initializePracticeDrafts(current, caseId, example, guess?.caseId === caseId ? guess.expected : undefined));
     setGuess(current => current?.caseId === caseId ? null : current);
   }, [caseId, guess]);
+  const prepareFix = useCallback((example: CaseItem) => {
+    if (exerciseId) setFixDrafts(current => initializeFixDrafts(current, exerciseId, example));
+  }, [exerciseId]);
   const consumeImport = useCallback(() => setPendingImport(null), []);
   useEffect(() => {
     const previous = previousScreen.current;
-    previousScreen.current = { page: route.page, lessonId, caseId };
-    if (previous.page === route.page && previous.lessonId === lessonId && previous.caseId === caseId) return;
+    previousScreen.current = { page: route.page, lessonId, caseId, exerciseId };
+    if (previous.page === route.page && previous.lessonId === lessonId && previous.caseId === caseId && previous.exerciseId === exerciseId) return;
     const heading = main.current?.querySelector("h1");
     if (heading) { heading.tabIndex = -1; heading.focus(); }
-  }, [route.page, lessonId, caseId]);
+  }, [route.page, lessonId, caseId, exerciseId]);
   const [titleHint, setTitleHint] = useState("");
   // 로그인 화면으로 오기 직전에 보던 화면. 로그인한 뒤 그리로 돌려보낸다.
   const [back, setBack] = useState("/home");
@@ -101,6 +108,9 @@ export function App() {
   const onGuess = (caseId: string, expected: PracticeGuess) => { setGuess({ caseId, expected }); go(`/practice/${caseId}`); };
   if (route.page === "home") page = <HomePage draft={draft} user={user} checked={checked} onGuess={onGuess} practiceCaseId={practiceCaseId} practiceDraft={practiceCaseId ? practiceDrafts[practiceCaseId] : undefined} />;
   else if (route.page === "learn") page = <LearningPage lessonId={route.lessonId} onGuess={onGuess} />;
+  else if (route.page === "fix") page = <FixExercisePage key={route.id} id={route.id} draft={fixDrafts[route.id]} onReady={prepareFix}
+    setDraft={update => setFixDrafts(current => current[route.id] ? { ...current, [route.id]: update(current[route.id]) } : current)}
+    onImport={next => { setPendingImport(fixImport(route.id, next)); go("/"); }} />;
   else if (route.page === "practice") page = <PracticePage key={route.caseId} caseId={route.caseId} user={user} checked={checked} draft={practiceDrafts[route.caseId]} onReady={preparePractice}
     setDraft={update => setPracticeDrafts(current => current[route.caseId] ? { ...current, [route.caseId]: update(current[route.caseId]) } : current)}
     onImport={next => { setPendingImport(practiceImport(route.caseId, next)); go("/"); }} />;
