@@ -428,7 +428,7 @@ export function JudgePage({ user, draft, setDraft, share, pendingImport, onImpor
             <span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span>
           </div>
           <div className="follow">
-            <ResultPanel verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
+            <ResultPanel verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} flow={changeHistory.last?.flow} onShowAcl={showAcl} />
             <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
             {auditRequested && Object.keys(toNetwork(draft).acls).length > 0 && <AclAudit result={audit} error={auditError} stale={stale} loading={loading} onShow={showAcl} />}
             {!loading && verdict && (verdict.result === "PASS" || verdict.result === "DENY") && (!stale || suggestResult !== null) &&

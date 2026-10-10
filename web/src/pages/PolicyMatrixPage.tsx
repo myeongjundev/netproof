@@ -87,6 +87,7 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
     setSpec({ ...spec, intents });
   };
   const selectedIntent = selected ? spec.intents.find(i => i.src === selected.src && i.dst === selected.dst && i.service === selected.service) : null;
+  const detailFlow = useMemo(() => selected && checked ? flowForCell(selected, checked.matrix.services, checked.matrix.mode) : null, [selected, checked]);
   const cellButton = (cell: MatrixCell) => <button type="button"
     className={`matrix-cell ${cell.result.toLowerCase()} policy-${cell.policy.toLowerCase()}`}
     disabled={stale || loading} onClick={() => void openCell(cell)}
@@ -143,7 +144,9 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
         {matrix.exposures.length > 0 && <details className="matrix-findings" open><summary>우선 확인할 통신 {matrix.exposures.length}건</summary>
           <ul>{matrix.exposures.map(cell => <li key={JSON.stringify([cell.src, cell.dst, cell.service])}>
             <span>{cell.src} → {cell.dst} · {cell.service}</span>{cellButton(cell)}</li>)}</ul></details>}
-        <label className="matrix-mode">표시할 서비스<select value={service} onChange={e => setService(e.target.value)}>
+        <label className="matrix-mode">표시할 서비스<select value={service} onChange={e => {
+          setService(e.target.value); setSelected(null); setDetail(null); setDetailLoading(false); ++detailSequence.current;
+        }}>
           {matrix.services.map(s => <option key={s.key} value={s.key}>{s.label ? `${s.label} · ` : ""}{s.key}</option>)}
         </select></label>
         <p className="hint">행은 출발지, 열은 목적지입니다. 셀을 누르면 의도와 경로·ACL 증거를 확인합니다. “—”는 검사에서 제외한 쌍입니다.</p>
@@ -164,7 +167,7 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
         <button type="button" className="ghost" onClick={() => chooseIntent(null)}>의도 없음</button></div>
       <p className="hint below">의도를 바꾸면 매트릭스를 다시 계산해야 반영됩니다.</p>
       <ResultPanel verdict={detail} claim={{ ...EMPTY_CLAIM, expected: selected.expect }} stale={stale} error={detailError}
-        loading={detailLoading} network={checked.network} />
+        loading={detailLoading || loading} network={checked.network} flow={detailFlow} />
       {detailError && <button type="button" className="ghost" disabled={stale || detailLoading} onClick={() => void openCell(selected)}>상세 재시도</button>}
     </section>}
   </>;

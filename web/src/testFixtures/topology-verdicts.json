@@ -1,0 +1,1155 @@
+[
+  {
+    "id": "synthetic-01-https-acl",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "acl_in": "101"
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24"
+            }
+          ]
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "DENY",
+      "reason": "정방향: ACL 101(g0/0 in) 1번 규칙에서 차단",
+      "problems": [],
+      "forward": {
+        "delivered": false,
+        "reason": "ACL 101(g0/0 in) 1번 규칙에서 차단",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "acl_in",
+            "result": "drop",
+            "detail": "ACL 101(g0/0 in) 1번 규칙에서 차단",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+            "rule_seq": 1,
+            "acl": "101",
+            "rule_line": 1
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": null,
+      "decisive": {
+        "device": "R1",
+        "step": "acl_in",
+        "result": "drop",
+        "detail": "ACL 101(g0/0 in) 1번 규칙에서 차단",
+        "in_if": "g0/0",
+        "out_if": null,
+        "rule": "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+        "rule_seq": 1,
+        "acl": "101",
+        "rule_line": 1
+      },
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-02-missing-return-route",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24"
+            },
+            {
+              "name": "s0/0",
+              "ip": "192.168.12.1/30"
+            }
+          ],
+          "routes": [
+            {
+              "prefix": "10.30.30.0/24",
+              "next_hop": "192.168.12.2"
+            }
+          ]
+        },
+        {
+          "id": "R2",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "s0/0",
+              "ip": "192.168.12.2/30"
+            },
+            {
+              "name": "g0/0",
+              "ip": "10.30.30.1/24"
+            }
+          ]
+        },
+        {
+          "id": "SRV2",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.30.30.5/24"
+            }
+          ],
+          "gateway": "10.30.30.1"
+        }
+      ],
+      "acls": {}
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.30.30.5",
+      "proto": "icmp"
+    },
+    "verdict": {
+      "result": "DENY",
+      "reason": "복귀 방향: 경로 없음",
+      "problems": [],
+      "forward": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "정적 경로 ip route 10.30.30.0 255.255.255.0 192.168.12.2 → s0/0",
+            "in_if": "g0/0",
+            "out_if": "s0/0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R2",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.30.30.0/24 → g0/0",
+            "in_if": "s0/0",
+            "out_if": "g0/0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "SRV2",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.30.30.5에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "SRV2",
+          "interface": "eth0",
+          "ip": "10.30.30.5"
+        }
+      },
+      "return": {
+        "delivered": false,
+        "reason": "경로 없음",
+        "hops": [
+          {
+            "device": "SRV2",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.30.30.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R2",
+            "step": "route",
+            "result": "drop",
+            "detail": "목적지 10.10.10.10에 맞는 경로가 없습니다",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "PC1",
+          "interface": "eth0",
+          "ip": "10.10.10.10"
+        }
+      },
+      "decisive": {
+        "device": "R2",
+        "step": "route",
+        "result": "drop",
+        "detail": "목적지 10.10.10.10에 맞는 경로가 없습니다",
+        "in_if": "g0/0",
+        "out_if": null,
+        "rule": null,
+        "rule_seq": null,
+        "acl": null,
+        "rule_line": null
+      },
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-03-acl-out",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24"
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24",
+              "acl_out": "110"
+            }
+          ]
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "110": [
+          "access-list 110 deny tcp host 10.10.10.10 host 10.20.20.5 eq 22",
+          "access-list 110 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 22
+    },
+    "verdict": {
+      "result": "DENY",
+      "reason": "정방향: ACL 110(g0/1 out) 1번 규칙에서 차단",
+      "problems": [],
+      "forward": {
+        "delivered": false,
+        "reason": "ACL 110(g0/1 out) 1번 규칙에서 차단",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.20.20.0/24 → g0/1",
+            "in_if": "g0/0",
+            "out_if": "g0/1",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "acl_out",
+            "result": "drop",
+            "detail": "ACL 110(g0/1 out) 1번 규칙에서 차단",
+            "in_if": null,
+            "out_if": "g0/1",
+            "rule": "access-list 110 deny tcp host 10.10.10.10 host 10.20.20.5 eq 22",
+            "rule_seq": 1,
+            "acl": "110",
+            "rule_line": 1
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": null,
+      "decisive": {
+        "device": "R1",
+        "step": "acl_out",
+        "result": "drop",
+        "detail": "ACL 110(g0/1 out) 1번 규칙에서 차단",
+        "in_if": null,
+        "out_if": "g0/1",
+        "rule": "access-list 110 deny tcp host 10.10.10.10 host 10.20.20.5 eq 22",
+        "rule_seq": 1,
+        "acl": "110",
+        "rule_line": 1
+      },
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-pass",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "acl_in": "101"
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24"
+            }
+          ]
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "PASS",
+      "reason": "정방향 · 복귀 방향 모두 통과",
+      "problems": [],
+      "forward": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "acl_in",
+            "result": "ok",
+            "detail": "ACL 101(g0/0 in) 1번 규칙에서 허용",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": "access-list 101 permit ip any any",
+            "rule_seq": 1,
+            "acl": "101",
+            "rule_line": 1
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.20.20.0/24 → g0/1",
+            "in_if": "g0/0",
+            "out_if": "g0/1",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "SRV",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.20.20.5에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "SRV",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.20.20.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.10.10.0/24 → g0/0",
+            "in_if": "g0/1",
+            "out_if": "g0/0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "PC1",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.10.10.10에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "PC1",
+          "interface": "eth0",
+          "ip": "10.10.10.10"
+        }
+      },
+      "decisive": null,
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-stateful",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "rules_in": [
+                {
+                  "action": "pass",
+                  "proto": "ip",
+                  "src": "any",
+                  "dst": "any"
+                }
+              ]
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24",
+              "default_in": "block"
+            }
+          ],
+          "stateful": true
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "PASS",
+      "reason": "정방향 · 복귀 방향 모두 통과",
+      "problems": [],
+      "forward": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "firewall_in",
+            "result": "ok",
+            "detail": "g0/0 in: 1번 규칙에서 허용. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": "{\"action\": \"pass\", \"dst\": \"any\", \"proto\": \"ip\", \"src\": \"any\"}",
+            "rule_seq": 1,
+            "acl": null,
+            "rule_line": 1
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.20.20.0/24 → g0/1",
+            "in_if": "g0/0",
+            "out_if": "g0/1",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "SRV",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.20.20.5에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "SRV",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.20.20.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "state",
+            "result": "ok",
+            "detail": "g0/1 in: 이 session의 정방향 상태로 허용됨. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+            "in_if": "g0/1",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.10.10.0/24 → g0/0",
+            "in_if": "g0/1",
+            "out_if": "g0/0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "PC1",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.10.10.10에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "PC1",
+          "interface": "eth0",
+          "ip": "10.10.10.10"
+        }
+      },
+      "decisive": null,
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-unsupported",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "rules_in": []
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24",
+              "default_in": "block"
+            }
+          ],
+          "stateful": true
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "UNSUPPORTED",
+      "reason": "R1 g0/0 in: 일치 규칙이 없고 기본·자동 규칙을 모릅니다(default_in 미확인). 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+      "problems": [],
+      "forward": null,
+      "return": null,
+      "decisive": null,
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-one-way",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "rules_in": [
+                {
+                  "action": "pass",
+                  "proto": "ip",
+                  "src": "any",
+                  "dst": "any"
+                }
+              ]
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24",
+              "default_in": "block"
+            }
+          ],
+          "stateful": true
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443,
+      "mode": "one-way"
+    },
+    "verdict": {
+      "result": "PASS",
+      "reason": "정방향 통과(one-way)",
+      "problems": [],
+      "forward": {
+        "delivered": true,
+        "reason": "",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "firewall_in",
+            "result": "ok",
+            "detail": "g0/0 in: 1번 규칙에서 허용. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": "{\"action\": \"pass\", \"dst\": \"any\", \"proto\": \"ip\", \"src\": \"any\"}",
+            "rule_seq": 1,
+            "acl": null,
+            "rule_line": 1
+          },
+          {
+            "device": "R1",
+            "step": "route",
+            "result": "ok",
+            "detail": "직접 연결 10.20.20.0/24 → g0/1",
+            "in_if": "g0/0",
+            "out_if": "g0/1",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "SRV",
+            "step": "deliver",
+            "result": "ok",
+            "detail": "10.20.20.5에 도착",
+            "in_if": "eth0",
+            "out_if": null,
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": null,
+      "decisive": null,
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-firewall-deny",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "R1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "rules_in": [
+                {
+                  "action": "block",
+                  "proto": "ip",
+                  "src": "any",
+                  "dst": "any"
+                }
+              ]
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24",
+              "default_in": "block"
+            }
+          ],
+          "stateful": true
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "DENY",
+      "reason": "정방향: g0/0 in: 1번 규칙에서 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+      "problems": [],
+      "forward": {
+        "delivered": false,
+        "reason": "g0/0 in: 1번 규칙에서 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+        "hops": [
+          {
+            "device": "PC1",
+            "step": "send",
+            "result": "ok",
+            "detail": "다른 서브넷이라 기본 게이트웨이(10.10.10.1)에 보냄",
+            "in_if": null,
+            "out_if": "eth0",
+            "rule": null,
+            "rule_seq": null,
+            "acl": null,
+            "rule_line": null
+          },
+          {
+            "device": "R1",
+            "step": "firewall_in",
+            "result": "drop",
+            "detail": "g0/0 in: 1번 규칙에서 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+            "in_if": "g0/0",
+            "out_if": null,
+            "rule": "{\"action\": \"block\", \"dst\": \"any\", \"proto\": \"ip\", \"src\": \"any\"}",
+            "rule_seq": 1,
+            "acl": null,
+            "rule_line": 1
+          }
+        ],
+        "target": {
+          "device": "SRV",
+          "interface": "eth0",
+          "ip": "10.20.20.5"
+        }
+      },
+      "return": null,
+      "decisive": {
+        "device": "R1",
+        "step": "firewall_in",
+        "result": "drop",
+        "detail": "g0/0 in: 1번 규칙에서 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+        "in_if": "g0/0",
+        "out_if": null,
+        "rule": "{\"action\": \"block\", \"dst\": \"any\", \"proto\": \"ip\", \"src\": \"any\"}",
+        "rule_seq": 1,
+        "acl": null,
+        "rule_line": 1
+      },
+      "comparison": "NO_CLAIM"
+    }
+  },
+  {
+    "id": "synthetic-invalid-duplicate-id",
+    "network": {
+      "devices": [
+        {
+          "id": "PC1",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.10.10.10/24"
+            }
+          ],
+          "gateway": "10.10.10.1"
+        },
+        {
+          "id": "PC1",
+          "kind": "router",
+          "interfaces": [
+            {
+              "name": "g0/0",
+              "ip": "10.10.10.1/24",
+              "acl_in": "101"
+            },
+            {
+              "name": "g0/1",
+              "ip": "10.20.20.1/24"
+            }
+          ]
+        },
+        {
+          "id": "SRV",
+          "kind": "host",
+          "interfaces": [
+            {
+              "name": "eth0",
+              "ip": "10.20.20.5/24"
+            }
+          ],
+          "gateway": "10.20.20.1"
+        }
+      ],
+      "acls": {
+        "101": [
+          "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+          "access-list 101 permit ip any any"
+        ]
+      }
+    },
+    "flow": {
+      "src": "10.10.10.10",
+      "dst": "10.20.20.5",
+      "proto": "tcp",
+      "dst_port": 443
+    },
+    "verdict": {
+      "result": "INVALID",
+      "reason": "입력이 성립하지 않습니다",
+      "problems": [
+        "장비 이름이 두 번 쓰였습니다: PC1"
+      ],
+      "forward": null,
+      "return": null,
+      "decisive": null,
+      "comparison": "NO_CLAIM"
+    }
+  }
+]

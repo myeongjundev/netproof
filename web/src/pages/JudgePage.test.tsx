@@ -9,6 +9,7 @@ import { api } from "../api";
 import type { CaseItem, Draft } from "../types";
 import type { ChangeImpact, Verdict } from "../types";
 import { ChangePanel } from "../components/ChangePanel";
+import { ResultPanel } from "../components/ResultPanel";
 
 // SSR는 문구를, 훅 단위 하네스는 실제 load/restore 콜백을 검사한다.
 // DOM·포커스·React 생명주기 통합 검증은 별도 실제 브라우저 QA에서 한다.
@@ -57,6 +58,16 @@ const impactResponse: ChangeImpact = { status: "OK", problems: [], limit_exceede
 const changePanel = (tree: unknown) => find(tree, node => node.type === ChangePanel)!;
 const judgeButton = (tree: unknown) => find(tree, node => node.type === "button" && ["판정하기", "다시 판정하기"].includes(node.props.children))!;
 const editAcl = (tree: unknown, text: string) => find(tree, node => node.type === NetworkEditor)!.props.onAcls([{ name: "A", text }]);
+
+it("판정기의 재생 입력은 이전 판정의 network·flow를 유지하고 새 응답에서 함께 갱신된다", async () => {
+  vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(engineVerdict); vi.spyOn(api, "aclAudit").mockResolvedValue(null as any);
+  const h = judgeHarness(blankDraft(), []); await judgeButton(h.render()).props.onClick();
+  const panel = () => find(h.render(), node => node.type === ResultPanel)!;
+  const old = structuredClone({ network: panel().props.network, flow: panel().props.flow });
+  find(h.render(), node => node.type === FlowForm)!.props.onFlow({ ...h.current().flow, dst_port: 80 });
+  expect(panel().props.stale).toBe(true); expect({ network: panel().props.network, flow: panel().props.flow }).toEqual(old);
+  await judgeButton(h.render()).props.onClick(); expect(panel().props.flow.dst_port).toBe(80);
+});
 
 it("판정기 구성 변경은 직전 기준, 받은 답만 바꾸면 유지, 통신 변경은 지운다", async () => {
   vi.stubGlobal("requestAnimationFrame", vi.fn()); vi.spyOn(api, "verify").mockResolvedValue(engineVerdict);
