@@ -20,7 +20,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 작업: **로드맵 6번 구성도 그림 + 경로 재생 구현 완료**. 사용자가 2026-10-10 설계 뒤 “구현하자”로 승인했다. 판정기·실습·사례 상세·정책 행렬에 공유 구성도와 방향별 단계 재생을 연결했다.
 - 브랜치: `codex/topology-playback`, 승인된 설계 커밋 `00107e4`에서 분기. main 기준 `d7dabff`(PR #50 병합). 설계 PR #51은 아직 열려 있으므로 구현 PR에는 승인된 설계 문서도 포함된다. PR #49는 `cd23e46`으로 병합 완료, 운영 엔진 0.2.0 확인은 Claude의 공개 `/api/policy-matrix` 확인을 사용자에게 전달받은 기록이다.
 - 구현: [승인 설계와 제품 화면](docs/topology-playback-design.md). 판정 당시 network·flow 고정, CIDR 소속 선, 원래 hops 순서와 정방향/복귀 분리, firewall_in/state 표시, 장비12·구간24 상한 fallback, 접근성·재생 타이머 정지를 구현했다. 현재 입력·최종 판정·사례 저장 규칙은 재생으로 바뀌지 않는다.
-- 설계 PR: [#51](https://github.com/myeongjundev/netproof/pull/51). 구현은 별도 main 대상 PR로 제출한다. 자동 병합하지 않는다.
+- 설계 PR: [#51](https://github.com/myeongjundev/netproof/pull/51). 구현 PR: [#52](https://github.com/myeongjundev/netproof/pull/52), main 대상·리뷰 대기. 자동 병합하지 않는다.
 - 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 로드맵 6번은 구현·검증 완료, 리뷰·병합 대기이므로 체크는 병합 뒤 한다.
 - 운영 재판정은 **비밀번호 미확보·사용자 요청으로 보류**. 성공 dry-run·운영 반영·최종 dry-run 보고서는 없다. 재입력을 요구하지 않는다. 추후 사용자 재개 요청과 비밀번호 확보 뒤 deploy.md의 dry-run → 보고서 확인·사용자 승인 → 반영 → 대상 0건 확인을 따른다.
 - 사용자 할 일: Vercel `DATABASE_URL`의 **Production and Preview → Production 전용** 변경. Codex는 Vercel 설정을 바꾸지 않는다.
