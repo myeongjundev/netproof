@@ -166,6 +166,7 @@ def list_cases():
         "confirmed": ("1", "0"), "source": (*ACTUAL_SOURCES, "none"), "mine": ("1", "0"),
         "actual": (*ACTUAL_RESULTS, "none"), "claim_kind": (*CLAIM_KINDS, "none"),
         "claim_expected": ACTUAL_RESULTS,
+        "actual_mismatch": ("1",),
     }
     for key, values in allowed.items():
         if request.args.get(key, "") not in ("", *values):
@@ -188,6 +189,9 @@ def list_cases():
                         ("claim_expected", Case.claim["expected"].as_string())):
         if value := request.args.get(key):
             query = query.filter(column.is_(None) if value == "none" else column == value)
+    if request.args.get("actual_mismatch") == "1":
+        query = query.filter(Case.result.in_(ACTUAL_RESULTS), Case.actual_result.in_(ACTUAL_RESULTS),
+                             Case.result != Case.actual_result)
     if search:
         # LIKE 특수문자는 문자 그대로 찾는다. IP 검색은 flow의 src/dst만 대상이다.
         pattern = "%" + search.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"

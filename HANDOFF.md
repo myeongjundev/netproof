@@ -17,20 +17,72 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. 사용자가 2026-10-08 방향을 선택했다. **Claude 설계 완료·사용자 승인(2026-10-08, D1~D3)** — 아래 「작업 정의 — 학습 흐름 강화」. 제품 코드 구현은 시작하지 않았다.
+- 작업: **학습 → 실습 → 기록·복습 흐름 강화**. **R1 수정·재검증 완료, Claude 재리뷰 PASS(2026-10-08)**. 실습 직접 저장, 저장된 근거의 복습 링크, 계산과 실제 결과 불일치 필터·세 바로가기를 구현했다. 저장 중 편집·재판정 뒤 늦은 성공에도 저장 사실과 사례 링크를 표시한다.
 - 요구사항·현재 연결: [학습 흐름 강화 요구사항](docs/learning-flow-brief-2026-10-08.md). 참고 사이트의 화면 재구성보다 학습·실습·기록·복습 연결 강화를 선택한 것으로 기록했다.
-- 브랜치: `codex/learning-flow-brief`, 기준 `docs/pfsense-stage1-done` `38d7098`(상태 정리 PR #45). 이번 변경은 요구사항 문서·HANDOFF·AI 작업 기록만이다. 문서 PR은 #45를 기반으로 올리고 병합은 사용자가 결정한다.
-- PR: [#46 학습·실습·기록·복습 흐름 강화 요구사항](https://github.com/myeongjundev/netproof/pull/46). 커밋·푸시 완료, 병합하지 않았다. #45 병합 뒤 main으로 base를 바꾸고 diff를 확인한다.
-- 다음 차례: **사용자(#45·#46 병합) → Codex(구현).** 설계는 이 브랜치(PR #46)에 Claude가 더했다. 병합 뒤 Codex가 `main`에서 `codex/learning-flow`를 만들어 아래 작업 정의 범위 안에서 구현한다. Codex에게 자동으로 메시지를 보내지 않았다.
+- 브랜치: `codex/learning-flow`, 기준 `main` `57a9f4d`(#45·#46 병합 완료). 작업 전 git pull, HANDOFF·AGENTS·PROMPTS의 「2. 구현」을 확인하고 main에서 브랜치를 만들었다.
+- PR: [#47 학습·실습·기록·복습 흐름 연결](https://github.com/myeongjundev/netproof/pull/47). main 대상 커밋·푸시 완료, 병합하지 않았다. 요구사항·설계 PR [#46](https://github.com/myeongjundev/netproof/pull/46)은 병합됐다.
+- 다음 차례: **사용자(병합 결정).** Claude 재리뷰 PASS, 최신 커밋 재검증(2026-10-10)도 PASS 유지 — 아래 「최신 커밋 재검증」과 [PR 코멘트](https://github.com/myeongjundev/netproof/pull/47#issuecomment-6095711479). 병합 전 사용자 판단: `docs/screens/` 그림 2장(수업 자료 캡처로 보임)을 공개 저장소에 둘지. 비차단 N1(상세 미확인 불일치 문구)·N2(`사례 #N으로` 조사)는 후속 후보.
+
+### 최신 커밋 재검증 — PR #47 (Claude, 2026-10-10)
+- 직접 실행(`ca7a040`): 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 35 files·485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, 재리뷰와 같음). 불변 경로 diff 출력 없음, `git diff --check main...HEAD` 오류 없음.
+- PASS 뒤 커밋(`64a2460..ca7a040`)은 작업 정리 문서와 그림 2장뿐이고 `web/`·`server/`·`engine/` 0줄. **PASS 유지.**
+- 그림 2장 확인: 비밀값·개인정보 없음, 사설 IP만. 수업 자료 화면 캡처로 보여(nids-hids는 강의 화면 테두리·마스코트 포함) 공개 여부는 사용자 판단.
+
+### R1 수정 결과 — PR #47 (Codex, 2026-10-08)
+- `PracticePage.tsx`: 저장 성공이 현재 revision과 다르지만 화면에 남아 있으면 이동 대신 `role="status"`에 `사례 #N으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.`와 `#/cases/N` 링크를 표시한다. 안내는 `!stale` 조건 밖에 있어 편집으로 ⑤가 숨겨져도 보이고, 재판정 뒤에도 남는다. 언마운트 뒤에는 이동·상태 변경 없음. N1 문구는 변경하지 않았다.
+- 테스트: 기존 늦은 성공 하네스에 재판정 1개를 추가하고 편집·편집 후 초기화·재판정에서 안내/링크/이동 없음/안내 유지, 언마운트에서 상태 변화 없음을 확인했다. 수정 전 해당 재현은 **3 failed, 1 passed, 43 skipped**; 수정 뒤 전체 실습 **47 passed**.
+
+```text
+npm --prefix web test -- src/pages/PracticePage.test.tsx
+Test Files  1 passed (1)
+Tests  47 passed (47)
+Duration  874ms
+
+cd engine && ../.venv/Scripts/python -m pytest -q
+478 passed, 2 xfailed in 7.75s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+157 passed, 1 skipped in 27.93s
+
+npm --prefix web test
+Test Files  35 passed (35)
+Tests  485 passed (485)
+Duration  3.12s (transform 62%, import 21%, tests 13%, worker 3%)
+
+npm --prefix web run build
+> tsc --noEmit && vite build
+✓ 61 modules transformed.
+dist/assets/index-CQWvs7G8.css  80.94 kB │ gzip: 22.54 kB
+dist/assets/index-BMQjIVBk.js  364.77 kB │ gzip: 109.94 kB
+✓ built in 925ms
+```
+
+- 실브라우저 재현: 임시 SQLite·127.0.0.1:4863 QA 실행 파일의 WSGI 래퍼에서 저장 HTTP 201 응답만 5초 지연(제품 코드·API 변경 없음). 저장 직후 재판정 → 실습 주소 유지·사례 #5 안내/링크·링크로 상세 도착. 저장 직후 포트 8443 편집 → ⑤ 숨김에도 사례 #6 안내/링크 표시. 저장 직후 홈으로 이동 → 응답 뒤에도 홈 유지·안내 없음. 375px 가로 넘침 0·콘솔 오류 0, 1280에서 재판정/편집 확인. 캡처는 미추적 `.venv/learning-flow-r1-notice.jpg`. 검증 뒤 탭 닫기·viewport 초기화, 턴 중단 뒤 4863 리슨 없음 확인.이번 임시 폴더의 qa.db만 확인해 파일과 빈 폴더를 각각 삭제했고 폴더 없음(False)을 확인했다.
+- `git diff --check` 공백 오류 없음. `git diff --stat main... -- engine cases server/netproof_api/models.py vercel.json` 출력 없음. 이번 수정은 실습 컴포넌트·그 테스트·HANDOFF·AI 작업 기록만이다. 사용자 이미지 2개 보존. 실제 장비·사람 수동 QA 상태는 변경하지 않았다.
+
+Codex (GPT-6)
+
+### 리뷰 기록 — PR #47 (Claude, 2026-10-08)
+- 직접 실행(`a43411d`): 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 484 passed, 빌드 성공(번들 `index-Boesx1qU.js`, Codex와 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음.
+- 실브라우저(로컬 QA 서버, 임시 SQLite, 합성 값): 375 비로그인 ⑤ 안내, 화면 안 링크로 로그인 왕복 뒤 예상 유지·판정 해제, 저장 → 상세 「다시 살펴보기」(입력 ACL 링크·두 비교·미기록 안내), 실제 결과 PASS(합성) 뒤 바로가기 3개 건수(2·1·1)와 적용 문구, 1280 한 줄 배치·개념 링크 도착·예상 없음 제목. 가로 넘침 0, 콘솔 오류 0.
+- **R1 (수정 필요)** `web/src/pages/PracticePage.tsx:197-214` — 저장 중 `판정하기`·편집으로 `revision`이 오르면 서버엔 사례가 생기는데 화면은 이동·안내 없이 저장 단추를 다시 켠다. 실브라우저에서 내 사례 0→1(안내 없음) → 다시 저장으로 같은 제목 #6·#7 중복 재현. 설계가 저장 사실 안내를 빠뜨린 Claude 설계 누락. 요청: 화면에 남아 있으면 이동 대신 `사례 #N으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.` + `#/cases/N` 링크, 떠났으면 지금처럼 무동작. 테스트 1개 추가.
+- **N1 (비차단, 후속 후보)** `web/src/pages/CaseDetailPage.tsx:51` — `ActualBadge` 재사용으로 미확인 불일치 사례가 상세에서 `확인 전 · PASS`로만 보여 「다름」이 드러나지 않는다(설계 지정 결과). 사용자가 원하면 후속에서 문구 변경.
+- QA 서버는 강제 종료라 임시 폴더 정리가 돌지 않아 Claude가 이번 세션의 `netproof-qa-*` 폴더(합성 DB)를 직접 지웠다. 4862 리슨 없음.
+
+### 재리뷰 기록 — PR #47 (Claude, 2026-10-08)
+- 직접 실행(`64a2460`): 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, Codex와 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음.
+- R1 해결: 늦은 성공 응답이 현재가 아니고 화면에 남아 있으면 `사례 #N으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.` + 링크, 떠났으면 상태 불변. 실브라우저(QA 서버 4864, 합성 값)에서 1차와 같은 재현 → 내 사례 0→1, 주소 유지, 안내·`#/cases/6` 링크. 375·1280 넘침 0. **PASS.**
+- 비차단: N1 유지. N2 `사례 #{N}으로`는 숫자에 따라 조사가 틀림(#42·#45는 `로`) — 조사 정리 후속 또는 `사례 #N에 저장했습니다`로 한 줄 변경.
+- QA 임시 폴더는 이번에도 강제 종료 뒤 Claude가 지웠고 4864 리슨 없음.
 - 직전 과제 「pfSense 상태 추적 계산 1단계」([이슈 #40](https://github.com/myeongjundev/netproof/issues/40))는 **PR #44 병합 완료**(`b050348`, 2026-10-06)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」, 상세는 `decisions/ai-work-log.md`.
 - 별도로 남은 사용자 확인:
   1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 **2단계(실습 연동)**를 설계한다.
   2. 다른 후속 후보: **pfSense 화면 입력**(지금은 엔진·API로만 쓸 수 있다), 로드맵 「F5·F6 다음 기능 순서」 5~8번.
   3. 배포 후속(사람만 할 수 있는 일): 배포 사이트 가입 → 사례 저장 → 사례 게시판 확인 → 로그아웃(배포 6단계). 닉네임을 Claude에 알려 주면 Claude가 `make-reviewer`(7단계)를 실행한다. **검토자 계정이 생기기 전에는 대시보드(원인 Top 5)를 운영에서 볼 수 없다.** Vercel `DATABASE_URL`을 Production에만 두기, 검토자 지정 뒤 임시 비밀 파일 삭제. 수동 QA A~E도 사람 대기.
 
-### 요구사항 기록 검증 (Codex 직접 실행, 2026-10-08)
+### 테스트 결과 — 학습 흐름 구현 (Codex 직접 실행, 2026-10-08)
 
-제품 코드 변경 없이 실행한 회귀 결과다. 새 학습 흐름의 구현·사용성·실제 장비 검증은 아니다.
+웹 신규 44개·서버 신규 8개 테스트를 추가했다. 실습 저장 테스트는 기존 콜백/훅 하네스로 중복 요청·늦은 성공/실패·재시도를 검증하며, 상세/목록 테스트는 SSR로 문구·링크를 검증한다. 아래는 실제 실행 출력이다.
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
@@ -41,21 +93,33 @@ cd engine && ../.venv/Scripts/python -m pytest -q
 ........................................................................ [ 75%]
 ........................................................................ [ 90%]
 ..............................................xx                         [100%]
-478 passed, 2 xfailed in 7.31s
+478 passed, 2 xfailed in 8.88s
 
 cd server && ../.venv/Scripts/python -m pytest -q
-........................................................................ [ 48%]
-...................s.................................................... [ 96%]
-......                                                                   [100%]
-149 passed, 1 skipped in 27.58s
+........................................................................ [ 45%]
+...........................s............................................ [ 91%]
+..............                                                           [100%]
+157 passed, 1 skipped in 29.69s
 
 npm --prefix web test
-Test Files  32 passed (32)
-     Tests  440 passed (440)
-  Duration  3.06s (transform 54%, import 30%, worker 8%, tests 8%)
+Test Files  35 passed (35)
+     Tests  484 passed (484)
+  Duration  3.32s (transform 62%, import 20%, tests 14%, worker 3%)
+
+npm --prefix web run build
+> tsc --noEmit && vite build
+vite v8.3.1 building client environment for production...
+✓ 61 modules transformed.
+dist/assets/index-CQWvs7G8.css  80.94 kB │ gzip: 22.54 kB
+dist/assets/index-Boesx1qU.js  364.49 kB │ gzip: 109.86 kB
+✓ built in 1.58s
 ```
 
-`git diff --check` 공백 오류 없음. 화면 변경이 없어 web build는 실행하지 않았다. 사용자 이미지 2개는 미추적 상태 그대로 보존했다. 설계 요청을 다른 채팅으로 전송하지 않았다.
+`git diff --check` 공백 오류 없음. `git diff --stat main... -- engine cases server/netproof_api/models.py vercel.json` 출력 없음. 사용자 이미지 2개는 미추적 상태 그대로 보존했다.
+
+실브라우저 확인: `scripts/qa_local.py`의 `seeded_qa()`를 쓰는 미추적 QA 실행 파일로 항상 새 임시 SQLite·127.0.0.1:4861만 사용했다. 375×812 비로그인 실습에서 예상 PASS·포트 8443으로 변경→판정→⑤ 로그인 안내, 로그인 왕복 뒤 포트·예상 유지/판정 해제, 재판정 뒤 저장 칸 표시를 확인했다. 1280×900에서 포트를 443으로 고치면 ⑤가 사라지고 재판정→저장 HTTP 201→상세의 HTTPS 입력 ACL 링크·두 비교·작성자 실제 미기록 안내를 확인했다. 실제 결과 PASS를 **합성 값(장비 관측 아님)**으로 기록한 뒤 예상 불일치/실제 불일치 바로가기에 새 사례 1개, 미기록 바로가기에 0개, 관련 개념 링크의 학습 주제 도착을 확인했다. 375 기록 칸·목록 바로가기 및 1280 목록의 가로 넘침 0, 새 바로가기 세 줄로 배치, 브라우저 콘솔 오류 0. QA 서버 종료·임시 DB 폴더와 4861 리슨 없음·탭 닫기·viewport 초기화 확인.
+
+미확인: 완료 조건 7번 전체 시나리오의 독립 리뷰, PostgreSQL·운영 배포·실휴대폰·스크린리더·실제 장비. 사람의 수동 QA A~E 상태는 변경하지 않았다. `decisive` 없는 저장 근거는 설계 표의 마지막 줄대로 일반 학습실로 연결한다.
 
 Codex (GPT-6)
 
@@ -291,7 +355,7 @@ Codex (GPT-6)
 - **t08 Postgres 오류:** 배포 전 t08 대시보드에 최근 60분 Postgres 오류 111건이 일정한 간격으로 보였다(NetProof와 무관, 원인 미확인). 사용자가 Supabase Logs에서 확인한다.
 - **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB), F2 용어 통일, F3 받은 답 종류·중복 정리.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
-- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify만 부른다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
+- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify, ⑤ 기록은 기존 createCase를 부르고 서버가 재판정해 저장한다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
 - 수동 QA 결과는 사람이 `docs/qa-manual.md`로 기록한다. AI가 대신 완료로 바꾸지 않는다.
 - 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.

@@ -7,7 +7,7 @@ describe("사례 검색 요청", () => {
   it("주소 필터를 왕복하고 허용 밖 값은 버린다", () => {
     const filters = { ...emptyCaseFilters, q: "A&B + %_", mine: true, result: "DENY" as const,
       comparison: "DISAGREE" as const, confirmed: "1" as const, source: "nmap" as const,
-      actual: "PASS" as const, claim_kind: "ai" as const, claim_expected: "DENY" as const };
+      actual: "PASS" as const, actual_mismatch: "1" as const, claim_kind: "ai" as const, claim_expected: "DENY" as const };
     expect(parseCaseFilters(caseSearchParams(filters, 3))).toEqual(filters);
     expect(parseCaseFilters("actual=wat&claim_kind=human&claim_expected=none&mine=0&result=unknown&other=1")).toEqual(emptyCaseFilters);
     expect(parseCaseFilters("")).toEqual(emptyCaseFilters);
@@ -15,6 +15,17 @@ describe("사례 검색 요청", () => {
   });
   it("주소 검색어는 코드포인트 100자로 제한한다", () => {
     expect(parseCaseFilters(new URLSearchParams({ q: "😀".repeat(101) }).toString()).q).toBe("😀".repeat(100));
+  });
+  it.each(["", "0", "x", "true", "１"])("실제 불일치 필터의 허용 밖 값 %s는 무시한다", value => {
+    expect(parseCaseFilters(`actual_mismatch=${value}`)).toEqual(emptyCaseFilters);
+  });
+  it("실제 불일치와 받은 답 비교는 서로 다른 요청 조건이다", () => {
+    const filters = parseCaseFilters("mine=1&actual_mismatch=1&comparison=AGREE");
+    const params = new URLSearchParams(caseSearchParams(filters, 2));
+    expect(params.get("actual_mismatch")).toBe("1");
+    expect(params.get("comparison")).toBe("AGREE");
+    expect(params.get("mine")).toBe("1");
+    expect(new URLSearchParams(caseSearchParams(emptyCaseFilters, 1)).has("actual_mismatch")).toBe(false);
   });
   it("검색어 특수문자를 보존하고 필터와 페이지를 함께 전송한다", () => {
     const params = new URLSearchParams(caseSearchParams({

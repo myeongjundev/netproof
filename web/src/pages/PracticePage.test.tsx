@@ -8,7 +8,8 @@ import { ResultPanel } from "../components/ResultPanel";
 import { blankDraft } from "../draft";
 import { practiceDraft, LESSONS } from "../learning";
 import { api } from "../api";
-import type { CaseItem, Draft, Verdict } from "../types";
+import type { CaseDetail, CaseItem, Draft, User, Verdict } from "../types";
+import { go } from "../router";
 import type { ChangeImpact } from "../types";
 import { ChangePanel } from "../components/ChangePanel";
 import { toNetwork } from "../draft";
@@ -18,6 +19,8 @@ import case03 from "../../../cases/synthetic-03-acl-out.json";
 
 const examples = [case01, case02, case03] as CaseItem[];
 const response: Verdict = { result: "DENY", comparison: "DISAGREE", reason: "engine response", problems: [], forward: null, return: null, decisive: null };
+const user: User = { id: 1, nickname: "Test", role: "user", role_name: "일반" };
+vi.mock("../router", async () => ({ ...await vi.importActual<typeof import("../router")>("../router"), go: vi.fn() }));
 // 콜백·요청 폐기 단위 하네스. 실제 React/DOM은 브라우저에서 별도로 검증한다.
 const fixture = vi.hoisted(() => ({ controller: false, items: [] as CaseItem[], status: "loading",
   states: [] as unknown[], refs: [] as { current: unknown }[], effects: [] as (() => unknown)[], stateIndex: 0, refIndex: 0 }));
@@ -38,20 +41,21 @@ vi.mock("react", async () => {
 afterEach(() => {
   fixture.controller = false; fixture.items = []; fixture.status = "loading"; fixture.states = []; fixture.refs = []; fixture.effects = [];
   vi.restoreAllMocks(); vi.unstubAllGlobals();
+  vi.mocked(go).mockClear();
 });
 function find(node: unknown, test: (item: ReactElement<Record<string, any>>) => boolean): ReactElement<Record<string, any>> | undefined {
   if (Array.isArray(node)) return node.map(item => find(item, test)).find(Boolean);
   if (!isValidElement<Record<string, any>>(node)) return;
   return test(node) ? node : find(node.props.children, test);
 }
-function driver() {
+function driver(auth: { user: User | null; checked: boolean } = { user, checked: true }) {
   fixture.controller = true; fixture.states = [[examples[0]], "ready", 0, false];
   let draft = practiceDraft(examples[0], "PASS");
   const setDraft = vi.fn((update: (current: Draft) => Draft) => { draft = update(draft); });
   const onReady = vi.fn(); const onImport = vi.fn();
   const render = () => {
     fixture.stateIndex = 0; fixture.refIndex = 0; fixture.effects = [];
-    return PracticePage({ caseId: "synthetic-01", draft, setDraft, onReady, onImport });
+    return PracticePage({ caseId: "synthetic-01", ...auth, draft, setDraft, onReady, onImport });
   };
   const button = (text: string) => find(render(), item => item.type === "button" && item.props.children === text)!;
   const panel = () => find(render(), item => item.type === ResultPanel)!;
@@ -97,20 +101,20 @@ it("실습 실패는 기억 유지, 다른 실습의 새 마운트는 비교 없
   expect(changePanel(d.render()).props.history.last).toBe(last);
   await d.button("다시 판정하기").props.onClick(); expect(changePanel(d.render()).props.history.before).toBe(last);
   fixture.states = []; fixture.refs = []; fixture.stateIndex = 0; fixture.refIndex = 0;
-  const next = PracticePage({ caseId: "synthetic-02", draft: practiceDraft(examples[1]), setDraft: () => {}, onReady: () => {}, onImport: () => {} });
+  const next = PracticePage({ caseId: "synthetic-02", user, checked: true, draft: practiceDraft(examples[1]), setDraft: () => {}, onReady: () => {}, onImport: () => {} });
   expect(fixture.states).toContainEqual({ last: null, before: null }); expect(find(next, node => node.type === ChangePanel)).toBeUndefined();
 });
 
 it.each(["loading", "error", "ready"])("조회 %s는 로딩·실패·누락을 구별하고 입력을 변경하지 않는다 (SSR)", status => {
   fixture.status = status; const setDraft = vi.fn(); const onReady = vi.fn();
-  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", setDraft, onReady, onImport: () => {} }));
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", user, checked: true, setDraft, onReady, onImport: () => {} }));
   expect(html).toContain(status === "loading" ? "실습 구성을 불러오는 중" : status === "error" ? "실습 구성을 가져오지 못했습니다" : "이 실습 구성은 현재 제공되지 않습니다");
   expect(html.includes("다시 시도")).toBe(status === "error"); expect(html).not.toContain("판정기로 가져가기");
   expect(setDraft).not.toHaveBeenCalled(); expect(onReady).not.toHaveBeenCalled();
 });
 it.each(examples)("$id는 ①→②→③→판정하기→④ 순서와 통신만 표시한다 (SSR)", example => {
   fixture.items = examples; fixture.status = "ready";
-  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: example.id, draft: practiceDraft(example), setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: example.id, user, checked: true, draft: practiceDraft(example), setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   const lesson = LESSONS.find(item => item.caseId === example.id)!;
   expect(html.match(/<h1\b/g)).toHaveLength(1); expect(html).toContain(lesson.task.title);
   expect(html).toContain(`href="#/learn/${lesson.id}"`); expect(html).toContain(lesson.guessPrompt);
@@ -124,7 +128,7 @@ it.each(examples)("$id는 ①→②→③→판정하기→④ 순서와 통신�
 });
 it.each([null, "1"])("첫 안내 줄은 저장값 %s를 따른다", value => {
   vi.stubGlobal("localStorage", { getItem: () => value });
-  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", user, checked: true, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   expect(html.includes("알겠어요")).toBe(value !== "1");
 });
 it("②의 접기 안에 확인할 것·통신·편집기만 넣고 ③은 밖에 둔다 (SSR)", () => {
@@ -132,7 +136,7 @@ it("②의 접기 안에 확인할 것·통신·편집기만 넣고 ③은 밖�
   const draft = practiceDraft(examples[0]);
   // 빈 이름·중복 이름은 raw Draft 길이가 아니라 toNetwork와 같은 셈이다.
   draft.acls.push({ name: " ", text: "" }, { ...draft.acls[0], name: " 101 " });
-  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", draft, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", user, checked: true, draft, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   const inside = html.slice(html.indexOf('<details class="mobile-fold'), html.indexOf("</details>"));
   expect(inside).toContain("<summary>구성 펼쳐 보기 · 장비 3대 · ACL 1개</summary>");
   expect(inside).not.toContain("확인할 것 3가지");
@@ -157,7 +161,7 @@ it("입력에서 보기는 접기를 먼저 연 뒤 ACL 줄을 선택한다", ()
 it("저장소 읽기 실패에도 안내 줄과 화면이 렌더링된다", () => {
   vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); } });
   expect(practiceIntroSeen()).toBe(false);
-  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
+  const html = renderToStaticMarkup(createElement(PracticePage, { caseId: "synthetic-01", user, checked: true, setDraft: () => {}, onReady: () => {}, onImport: () => {} }));
   expect(html).toContain("알겠어요"); expect(html).toContain("① 문제");
 });
 it.each(["PASS", "DENY"] as const)("App의 %s 예상은 self로만 옮기고 판정기 입력·예시의 expect는 건드리지 않는다", guess => {
@@ -267,4 +271,113 @@ it("안내 닫기의 저장이 실패해도 이번 방문 메모리에서는 숨
   vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } });
   const d = driver(); d.button("알겠어요").props.onClick(); expect(d.button("알겠어요")).toBeUndefined();
   expect(() => rememberPracticeIntro()).not.toThrow(); expect(practiceIntroSeen()).toBe(true);
+});
+
+const record = (tree: unknown) => find(tree, node => node.type === "section" && node.props["aria-labelledby"] === "practice-record-title");
+const recordHtml = (tree: unknown) => renderToStaticMarkup(record(tree)!);
+const recordTitle = (tree: unknown) => find(record(tree), node => node.type === "input")!;
+const savedNotice = (tree: unknown) => find(tree, node => node.type === "p" && node.props.role === "status");
+
+it("⑤는 판정 전·입력 변경 뒤에는 없고 로그인 전에는 보존 경계를 안내한다", async () => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  const d = driver({ user: null, checked: true });
+  expect(record(d.render())).toBeUndefined();
+  await d.button("판정하기").props.onClick();
+  const markup = recordHtml(d.render());
+  expect(markup).toContain("⑤ 기록하기"); expect(markup).toContain('href="#/login"');
+  expect(markup).toContain("로그인하러 다녀와도 구성과 예상은 남습니다");
+  expect(markup).toContain("판정은 돌아와서 다시 해야"); expect(markup).toContain("새로고침하면 입력이 사라집니다");
+  expect(d.button("저장")).toBeUndefined();
+  d.editPort(80); expect(record(d.render())).toBeUndefined();
+});
+it("로그인 확인 전에는 저장과 로그인 진입을 모두 보류한다", async () => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  const d = driver({ user, checked: false }); await d.button("판정하기").props.onClick();
+  expect(recordHtml(d.render())).toContain("로그인 여부를 확인하는 중");
+  expect(recordHtml(d.render())).not.toContain('href="#/login"'); expect(d.button("저장")).toBeUndefined();
+});
+it("저장은 실습 입력의 복사본으로 1번 요청하고 상세로 이동한다", async () => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  let finish!: (saved: CaseDetail) => void;
+  const create = vi.spyOn(api, "createCase").mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const d = driver(); await d.button("판정하기").props.onClick();
+  const input = recordTitle(d.render()); expect(input.props.maxLength).toBe(80);
+  expect(input.props.value).toBe("HTTPS와 입력 ACL 실습 · 내 예상 통과");
+  input.props.onChange({ target: { value: "  My practice  " } });
+  const before = structuredClone(d.draft); const save = d.button("저장");
+  const pending = save.props.onClick(); await save.props.onClick();
+  expect(create).toHaveBeenCalledExactlyOnceWith("My practice", toNetwork(before), before.flow, before.claim);
+  expect(create.mock.calls[0][2]).not.toBe(d.draft.flow); expect(create.mock.calls[0][3].kind).toBe("self");
+  expect(d.button("저장 중…").props.disabled).toBe(true);
+  expect(recordTitle(d.render()).props.disabled).toBe(true);
+  finish({ id: 42 } as CaseDetail); await pending;
+  expect(go).toHaveBeenCalledExactlyOnceWith("/cases/42"); expect(d.draft).toEqual(before);
+});
+it("빈 제목은 저장하지 않고 실패 시 제목·구성·예상을 유지하며 재시도한다", async () => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  const create = vi.spyOn(api, "createCase").mockRejectedValueOnce(new Error("save failed")).mockResolvedValue({ id: 43 } as CaseDetail);
+  const d = driver(); await d.button("판정하기").props.onClick(); const before = structuredClone(d.draft);
+  recordTitle(d.render()).props.onChange({ target: { value: "   " } });
+  expect(d.button("저장").props.disabled).toBe(true); await d.button("저장").props.onClick(); expect(create).not.toHaveBeenCalled();
+  recordTitle(d.render()).props.onChange({ target: { value: "Retry title" } });
+  await d.button("저장").props.onClick();
+  expect(recordHtml(d.render())).toContain("save failed"); expect(go).not.toHaveBeenCalled();
+  expect(d.draft).toEqual(before); expect(recordTitle(d.render()).props.value).toBe("Retry title");
+  expect(d.button("저장").props.disabled).toBe(false);
+  await d.button("저장").props.onClick(); expect(go).toHaveBeenCalledExactlyOnceWith("/cases/43");
+});
+it.each(["edit", "edit-reset", "rejudge", "unmount"])("저장 중 %s 뒤 늦은 응답은 이동 없이 저장 사실을 알린다", async action => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  let finish!: (saved: CaseDetail) => void;
+  vi.spyOn(api, "createCase").mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const d = driver(); await d.button("판정하기").props.onClick(); const pending = d.button("저장").props.onClick();
+  if (action === "unmount") (fixture.effects[0]() as () => void)();
+  else if (action === "rejudge") await d.button("판정하기").props.onClick();
+  else { d.editPort(80); if (action === "edit-reset") d.button("처음 상태로").props.onClick(); d.render(); }
+  const beforeResponse = [...fixture.states];
+  finish({ id: 42 } as CaseDetail); await pending; expect(go).not.toHaveBeenCalled();
+  if (action === "unmount") {
+    expect(fixture.states).toEqual(beforeResponse); expect(savedNotice(d.render())).toBeUndefined();
+  } else {
+    const notice = renderToStaticMarkup(savedNotice(d.render())!);
+    expect(notice).toContain('role="status"'); expect(notice).toContain('href="#/cases/42"');
+    expect(notice).toContain("사례 #42"); expect(notice).toContain("으로 저장했습니다.");
+    expect(notice).toContain("저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.");
+    if (action !== "rejudge") {
+      expect(record(d.render())).toBeUndefined();
+      await d.button("다시 판정하기").props.onClick();
+    }
+    expect(savedNotice(d.render())).toBeDefined(); expect(d.button("저장").props.disabled).toBe(false);
+  }
+});
+it.each(["PASS", "DENY", undefined] as const)("기본 제목은 예상 %s를 표시하고 예상 없음도 저장할 수 있다", async expected => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  const create = vi.spyOn(api, "createCase").mockResolvedValue({ id: 44 } as CaseDetail);
+  const d = driver(); find(d.render(), node => node.type === PracticeGuessPicker)!.props.onChange(expected);
+  await d.button("판정하기").props.onClick();
+  expect(recordTitle(d.render()).props.value).toBe(`HTTPS와 입력 ACL 실습 · 내 예상 ${expected === "PASS" ? "통과" : expected === "DENY" ? "막힘" : "없음"}`);
+  await d.button("저장").props.onClick(); expect(create.mock.calls[0][3]).toEqual(d.draft.claim);
+});
+it.each(["edit", "unmount"])("저장 중 %s 뒤 늦은 오류는 표시하지 않는다", async action => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  let reject!: (error: Error) => void;
+  vi.spyOn(api, "createCase").mockImplementation(() => new Promise((_, fail) => { reject = fail; }));
+  const d = driver(); await d.button("판정하기").props.onClick(); const pending = d.button("저장").props.onClick();
+  if (action === "unmount") (fixture.effects[0]() as () => void)(); else { d.editPort(80); d.render(); }
+  reject(new Error("late save error")); await pending; expect(go).not.toHaveBeenCalled();
+  if (action === "edit") {
+    await d.button("다시 판정하기").props.onClick(); expect(recordHtml(d.render())).not.toContain("late save error");
+  }
+});
+it("첫 저장 응답이 지연되는 동안 새 입력을 재판정해도 요청은 겹치지 않는다", async () => {
+  vi.spyOn(api, "verify").mockResolvedValue(response); vi.stubGlobal("requestAnimationFrame", vi.fn());
+  let finish!: (saved: CaseDetail) => void;
+  const create = vi.spyOn(api, "createCase").mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }))
+    .mockResolvedValue({ id: 46 } as CaseDetail);
+  const d = driver(); await d.button("판정하기").props.onClick(); const pending = d.button("저장").props.onClick();
+  d.editPort(80); await d.button("다시 판정하기").props.onClick();
+  await d.button("저장 중…").props.onClick(); expect(create).toHaveBeenCalledOnce();
+  finish({ id: 45 } as CaseDetail); await pending; expect(go).not.toHaveBeenCalled();
+  await d.button("저장").props.onClick(); expect(create).toHaveBeenCalledTimes(2); expect(go).toHaveBeenCalledExactlyOnceWith("/cases/46");
+  expect(create.mock.calls[1][2].dst_port).toBe(80);
 });

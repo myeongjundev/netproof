@@ -9,9 +9,10 @@ import { ResultPanel } from "../components/ResultPanel";
 import { aclSelection } from "../components/AclEvidence";
 import { focusJudgeResult } from "./JudgePage";
 import { scrollTo } from "../motion";
-import type { CaseItem, Claim, Draft, Network, Verdict } from "../types";
+import type { CaseItem, Claim, Draft, Network, User, Verdict } from "../types";
 import { advanceChange, type ChangeHistory } from "../changeView";
 import { ChangePanel } from "../components/ChangePanel";
+import { go } from "../router";
 import { defaultMatrixSpec } from "../policyMatrix";
 import type { ChangeImpact } from "../types";
 
@@ -39,6 +40,8 @@ export function PracticeGuessPicker({ caseId, guess, onChange }: {
 
 interface Props {
   caseId: string;
+  user: User | null;
+  checked: boolean;
   draft?: Draft;
   setDraft: (update: (current: Draft) => Draft) => void;
   onReady: (example: CaseItem) => void;
@@ -46,7 +49,7 @@ interface Props {
 }
 
 /** 판정기 Draft를 받지 않는다. App의 해당 실습 입력만 읽고 고친다. */
-export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Props) {
+export function PracticePage({ caseId, user, checked, draft, setDraft, onReady, onImport }: Props) {
   const lesson = lessonByCaseId(caseId)!;
   const [examples, setExamples] = useState<CaseItem[]>([]);
   const [status, setStatus] = useState<ExampleStatus>("loading");
@@ -78,8 +81,19 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   const [impactLoading, setImpactLoading] = useState(false);
   const impactRevision = useRef(0);
   const previousSnapshot = useRef(snapshot);
+  const [title, setTitle] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedCaseId, setSavedCaseId] = useState<number | null>(null);
+  // 다음 렌더 전 두 번 클릭해도 저장 요청은 하나만 보낸다.
+  const savePending = useRef(false);
+  const saveActive = useRef(true);
+  const saveTitle = title ?? `${lesson.title} 실습 · 내 예상 ${draft?.claim.expected === "PASS" ? "통과" : draft?.claim.expected === "DENY" ? "막힘" : "없음"}`;
 
-  useEffect(() => () => { revision.current += 1; impactRevision.current += 1; }, []);
+  useEffect(() => {
+    saveActive.current = true;
+    return () => { saveActive.current = false; revision.current += 1; impactRevision.current += 1; };
+  }, []);
   useEffect(() => {
     if (previousSnapshot.current !== snapshot) {
       previousSnapshot.current = snapshot;
@@ -99,6 +113,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   useEffect(() => { if (example) onReady(example); }, [example, onReady]);
 
   const update = (patch: Partial<Draft>) => {
+    setSaveError(null);
     impactRevision.current += 1;
     setImpactLoading(false);
     revision.current += 1;
@@ -109,6 +124,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
   };
   const restore = () => {
     if (!undo) return;
+    setSaveError(null);
     revision.current += 1;
     impactRevision.current += 1;
     setImpactLoading(false);
@@ -121,6 +137,7 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
     if (!draft || !example) return;
     const next = { ...practiceDraft(example), claim: structuredClone(draft.claim) };
     if (JSON.stringify(next) === snapshot) return;
+    setSaveError(null);
     setUndo({ draft: structuredClone(draft), label: "처음 상태로 돌아갔습니다" });
     impactRevision.current += 1;
     setImpactLoading(false);
@@ -178,6 +195,26 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
       if (current()) setImpactLoading(false);
     }
   };
+  const save = async () => {
+    if (!draft || !checked || !user || !verdict || stale || savePending.current || !saveTitle.trim()) return;
+    const started = revision.current;
+    const requestedSnapshot = snapshot;
+    const current = () => saveActive.current && started === revision.current && requestedSnapshot === latestSnapshot.current;
+    savePending.current = true;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const saved = await api.createCase(saveTitle.trim(), structuredClone(toNetwork(draft)),
+        structuredClone(draft.flow), structuredClone(draft.claim));
+      if (current()) go(`/cases/${saved.id}`);
+      else if (saveActive.current) setSavedCaseId(saved.id);
+    } catch (error) {
+      if (current()) setSaveError(message(error));
+    } finally {
+      savePending.current = false;
+      if (saveActive.current) setSaving(false);
+    }
+  };
   const showAcl = (name: string, line: number | null) => {
     if (!draft || stale) return;
     const index = draft.acls.findLastIndex(acl => acl.name.trim() === name);
@@ -225,7 +262,22 @@ export function PracticePage({ caseId, draft, setDraft, onReady, onImport }: Pro
           <div className="judge"><button type="button" className="primary" onClick={judge} disabled={loading}>{loading ? "계산 중…" : stale ? "다시 판정하기" : "판정하기"}</button><span className="judge-shortcut">Ctrl+Enter / Cmd+Enter</span></div>
           <ResultPanel title="④ 판정과 근거" emptyHint="③에서 예상을 고르고 판정하기를 누르세요. 예상 없이도 판정할 수 있습니다." verdict={verdict} claim={judgedClaim ?? draft.claim} stale={stale} error={error} loading={loading} network={judgedNetwork} onShowAcl={showAcl} />
           <ChangePanel history={changeHistory} result={impact} error={impactError} loading={impactLoading} stale={stale} disabled={loading} onCalculate={calculateImpact} />
-          <div className="practice-import"><p className="hint">ACL 점검·수정 후보·사례 저장은 판정기에서 할 수 있습니다.</p><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
+          {savedCaseId !== null && <p className="hint" role="status"><a href={`#/cases/${savedCaseId}`}>사례 #{savedCaseId}</a>으로 저장했습니다. 저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.</p>}
+          {verdict && !stale && <section className="panel save" aria-labelledby="practice-record-title">
+            <h2 id="practice-record-title">⑤ 기록하기</h2>
+            {!checked ? <p role="status">로그인 여부를 확인하는 중…</p> : user ? <>
+              <p className="hint">저장하면 내 사례로 남고, 실제 결과는 사례 화면에서 나중에 적습니다. 판정은 서버가 다시 계산해 저장합니다.</p>
+              <div className="save-row" style={{ flexWrap: "wrap" }}>
+                <label style={{ minWidth: 0 }}><span>사례 제목</span><input value={saveTitle} maxLength={80} disabled={saving} onChange={event => { setTitle(event.target.value); setSaveError(null); }} /></label>
+                <button type="button" className="secondary" onClick={save} disabled={saving || !saveTitle.trim()}>{saving ? "저장 중…" : "저장"}</button>
+              </div>
+              {saveError && <p className="error" role="alert">{saveError}</p>}
+            </> : <>
+              <p className="hint">로그인하면 이 실습을 내 사례로 저장할 수 있습니다. <a href="#/login">로그인</a></p>
+              <p className="hint">로그인하러 다녀와도 구성과 예상은 남습니다. 판정은 돌아와서 다시 해야 하고, 새로고침하면 입력이 사라집니다.</p>
+            </>}
+          </section>}
+          <div className="practice-import"><p className="hint">ACL 점검·수정 후보는 판정기에서 할 수 있습니다.</p><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
         </div>
       </div>
     </>}

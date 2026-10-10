@@ -119,6 +119,8 @@ ping은 ICMP echo 흐름, Nmap은 단일 TCP/UDP 목적지 포트만 지원한�
 
 이는 받은 답과 엔진 판정을 비교하는 `comparison`과 다른 축이다. `AGREE`·`DISAGREE`에서 오탐·미탐을 유도하지 않는다. 각 칸의 사례 목록은 같은 예측·실제·확인 조건을 AND로 적용하며, 집계와 목록 건수가 같아야 한다. 불일치 미리보기는 최근 20건이고 전체 건수를 별도로 표시한다.
 
+사례 목록의 `actual_mismatch=1`은 저장된 `result`와 `actual_result`가 모두 PASS/DENY이며 서로 다른 사례만 고른다. 검토 확인 여부와 무관하고 다른 조건과 AND로 적용된다. 받은 답 ↔ 계산의 `comparison`과는 다른 축이다. `actual_mismatch=1&confirmed=1` 목록의 `total`은 대시보드의 `mismatches_total`과 같아야 하며, 기존 page 없는 배열 응답에도 같은 필터가 적용된다.
+
 ## 11. ACL 점검
 
 `acl_audit`는 흐름·경로·토폴로지와 무관하게 ACL만 계산한다. 점검은 판정이 아니며 PASS/DENY·comparison·policy를 만들거나 바꾸지 않는다. 기존 형태 검사와 ACL 파서를 재사용하고 토폴로지를 로드하지 않는다.

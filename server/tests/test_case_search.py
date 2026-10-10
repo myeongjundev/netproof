@@ -172,3 +172,79 @@ def test_number_format_errors_explain_digit_limit(api):
         assert response.status_code == 400
         assert "7자리 이하 ASCII 숫자" in response.get_json()["detail"]
     assert "1~100" in api.get("/api/cases?per_page=101").get_json()["detail"]
+
+
+@pytest.fixture
+def mismatch_board(app, api, other, reviewer):
+    """필터 입력은 저장된 값이다. 서로 다른 축·제외값·소유자·확인 상태를 섞는다."""
+    api.register("Alice")
+    other.register("Bob")
+    with app.app_context():
+        alice = User.query.filter_by(nickname="Alice").one().id
+        bob = User.query.filter_by(nickname="Bob").one().id
+        reviewer_id = User.query.filter_by(nickname="검토자").one().id
+        rows = [
+            ("alice_deny_pass", alice, "DENY", "PASS", True, "AGREE"),
+            ("alice_pass_deny", alice, "PASS", "DENY", False, "AGREE"),
+            ("alice_pass_pass", alice, "PASS", "PASS", True, "DISAGREE"),
+            ("bob_deny_deny", bob, "DENY", "DENY", True, "DISAGREE"),
+            ("unsupported", alice, "UNSUPPORTED", "PASS", True, "NOT_COMPARABLE"),
+            ("invalid", bob, "INVALID", "DENY", True, "NOT_COMPARABLE"),
+            ("no_actual", alice, "PASS", None, True, "DISAGREE"),
+            ("bob_deny_pass", bob, "DENY", "PASS", True, "AGREE"),
+        ]
+        saved = {}
+        for name, owner, result, actual, confirmed, comparison in rows:
+            item = Case(owner_id=owner, title=name, network={}, flow={}, verdict={"result": result},
+                        result=result, comparison=comparison, engine_version="test", actual_result=actual,
+                        actual_source="ping" if actual else None, created_at=datetime(2026, 10, 8),
+                        confirmed_at=datetime(2026, 10, 8) if confirmed else None,
+                        confirmed_by=reviewer_id if confirmed else None)
+            db.session.add(item)
+            db.session.flush()
+            saved[name] = item.id
+        db.session.commit()
+        return saved
+
+
+def test_actual_mismatch_excludes_matches_unknown_actual_and_out_of_scope(api, mismatch_board):
+    cases = mismatch_board
+    response = api.get("/api/cases?page=1&actual_mismatch=1")
+    assert ids(response) == [cases["bob_deny_pass"], cases["alice_pass_deny"], cases["alice_deny_pass"]]
+    assert response.get_json()["total"] == 3
+    # AGREE/DISAGREE compares the received claim, not the observed actual result.
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&comparison=AGREE")) == ids(response)
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&comparison=DISAGREE")) == []
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&actual=none")) == []
+
+
+def test_actual_mismatch_combines_owner_confirmed_result_and_search(api, other, mismatch_board):
+    cases = mismatch_board
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&mine=1")) == [cases["alice_pass_deny"], cases["alice_deny_pass"]]
+    assert ids(other.get("/api/cases?page=1&actual_mismatch=1&mine=1")) == [cases["bob_deny_pass"]]
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&mine=1&confirmed=1&result=DENY&q=alice")) == [cases["alice_deny_pass"]]
+    assert ids(api.get("/api/cases?page=1&actual_mismatch=1&confirmed=0")) == [cases["alice_pass_deny"]]
+
+
+@pytest.mark.parametrize("value", ["0", "x", "true", "１"])
+def test_invalid_actual_mismatch_is_400(api, value):
+    api.register("Tester")
+    response = api.get(f"/api/cases?actual_mismatch={value}")
+    assert response.status_code == 400
+    assert response.get_json()["detail"] == "알 수 없는 actual_mismatch 필터입니다"
+
+
+def test_confirmed_actual_mismatch_count_matches_dashboard(api, reviewer, mismatch_board):
+    response = api.get("/api/cases?page=1&per_page=1&actual_mismatch=1&confirmed=1")
+    board = reviewer.get("/api/dashboard").get_json()
+    assert response.get_json()["total"] == board["mismatches_total"] == 2
+    assert len(response.get_json()["items"]) == 1
+    assert api.get("/api/dashboard").status_code == 403
+
+
+def test_actual_mismatch_also_filters_legacy_array(api, mismatch_board):
+    cases = mismatch_board
+    response = api.get("/api/cases?actual_mismatch=1&mine=1")
+    assert response.status_code == 200
+    assert isinstance(response.get_json(), list)
+    assert [item["id"] for item in response.get_json()] == [cases["alice_pass_deny"], cases["alice_deny_pass"]]

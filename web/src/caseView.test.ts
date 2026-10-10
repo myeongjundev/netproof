@@ -83,21 +83,21 @@ describe("저장된 네트워크 표시", () => {
 });
 
 describe("적용 조건의 사실 표시", () => {
-  it("접힌 필터 개수는 일곱 선택 조건만 세고 검색어·내 사례만은 바깥에 표시한다", () => {
+  it("접힌 필터 개수는 선택 조건만 세고 검색어·내 사례만은 바깥에 표시한다", () => {
     const filters = { ...emptyCaseFilters, q: "query", mine: true, confirmed: "0" as const, source: "none" as const, actual: "none" as const };
     expect(appliedFilterText({ ...filters, mine: false })).toHaveLength(3);
     expect(appliedFilterText(filters)).toEqual(["내 사례만", "검토 확인 미확인", "실제 결과 출처 출처 없음", "실제 결과 미정"]);
     expect(filters.mine).toBe(true);
     expect(appliedFilterText({ ...emptyCaseFilters, q: "query", mine: false })).toHaveLength(0);
-    expect(appliedFilterText({ q: "", mine: false, result: "PASS", comparison: "AGREE", confirmed: "1", source: "ping", actual: "PASS", claim_kind: "self", claim_expected: "PASS" })).toHaveLength(7);
+    expect(appliedFilterText({ q: "", mine: false, result: "PASS", comparison: "AGREE", confirmed: "1", source: "ping", actual: "PASS", actual_mismatch: "1", claim_kind: "self", claim_expected: "PASS" })).toHaveLength(8);
   });
   it("빈 조건과 검색어만 있으면 별도 표시", () => {
     expect(appliedFilterText(emptyCaseFilters)).toEqual([]);
     expect(appliedFilterText({ ...emptyCaseFilters, q: "query" })).toEqual([]);
   });
   it("모든 조건의 순서와 선택지 문구", () => {
-    expect(appliedFilterText({ q: "ignored", mine: true, result: "DENY", comparison: "DISAGREE", confirmed: "1", source: "none", actual: "PASS", claim_kind: "ai", claim_expected: "DENY" })).toEqual([
-      "내 사례만", "판정 차단", "받은 답과 판정 불일치", "검토 확인 확인됨", "실제 결과 출처 출처 없음", "실제 결과 통과", "받은 답 종류 AI 답", "받은 답 차단",
+    expect(appliedFilterText({ q: "ignored", mine: true, result: "DENY", comparison: "DISAGREE", confirmed: "1", source: "none", actual: "PASS", actual_mismatch: "1", claim_kind: "ai", claim_expected: "DENY" })).toEqual([
+      "내 사례만", "판정 차단", "받은 답과 판정 불일치", "검토 확인 확인됨", "실제 결과 출처 출처 없음", "실제 결과 통과", "계산과 실제 결과 다름", "받은 답 종류 AI 답", "받은 답 차단",
     ]);
   });
   it("미확인·미정·종류 없음도 조건이며 점수를 만들지 않는다", () => {
