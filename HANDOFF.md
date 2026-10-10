@@ -19,7 +19,13 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **비차단 후속 묶음 구현·검증 완료(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 승인된 변경 범위 1~5만 수행했다. 고치기 과제는 일반 결과 패널·엔진 원문을 재사용하고, 복귀 차단 초기 선택·확인 전 비교 표시·저장 안내를 수정했다.
 - 브랜치: `codex/followups`, PR #55 병합 main `4de43a3`에서 분기. 시작 시 PR #55가 아직 OPEN이라 설계·코드를 읽으며 기다렸고, 사용자가 Claude에게 병합을 맡긴 뒤 GitHub의 MERGED·main 반영을 확인하고 다시 `git pull`·AGENTS/HANDOFF 읽기 후 작업했다. main 대상 [구현 PR #56](https://github.com/myeongjundev/netproof/pull/56)을 열었으며 병합하지 않았다.
-- 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 완료 조건 7의 독립 실브라우저 리뷰는 Claude에게 남긴다. 자동으로 메시지를 보내지 않았다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #56」.
+
+### 리뷰 기록 — PR #56 (Claude, 2026-10-10)
+- 직접 실행(`2988b63`): 엔진 489 passed·2 xfailed, 서버 174 passed·1 skipped(DATABASE_URL 비움), 웹 643 passed, 빌드 성공(번들 `index-B3OOalhE.js`, Codex와 같음). `grep -rn factual web/src` 출력 없음. 엔진·서버·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
+- `ResultPanel`·`TracePlayer`·`verdictView`가 PR #54 이전 blob과 같다. 복귀 decisive일 때만 복귀로 시작, `ActualBadge` 확인 전 같음/다름(plain 유지), 저장 안내 `저장했습니다: 사례 #N.`.
+- 실브라우저(QA 서버 4870, 1280): 실습 02 처음 복귀 눌림·`R2 · 경로 · 차단`·돌아오는 길 목록, 실습 01 정방향·`R1 · ACL 들어옴 · 차단`, fix-01 근거 보기 일반 패널(「통과」·배너 없음·factual 없음·금지 낱말 없음)·콘솔 오류 0. **배지는 로컬 테스트 계정 가입이 되지 않아 브라우저 미확인** — 단위 테스트로 갈음, 사용자 수동 QA 때 사례 목록에서 확인. 강제 종료로 남은 `netproof-qa-*`는 삭제.
+- **PASS.**
 - 직전 과제: 로드맵 7번 고치기 과제 **PR #54 병합 완료**(`bfb7b4f`). 운영 번들 `index-BW8VCTzY.js`, 공개 주소 `#/fix/fix-01` 확인하기 → 다름·다름·밖 변화 0, 콘솔 오류 0을 Claude가 확인했다. 로드맵 5·6·7번이 모두 운영에 나갔다.
 - 별도로 남은 사용자 확인:
   1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」. 연결 주소는 가려진 입력으로만.
