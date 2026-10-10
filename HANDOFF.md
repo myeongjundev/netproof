@@ -20,6 +20,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 작업: **로드맵 6번 구성도 그림 + 경로 재생 설계**. 사용자가 이번 설계는 Codex가 맡도록 명시했고 두 기능을 함께 선택했다. 설계 문서·조작 가능한 대화 시안·문서용 이미지 2장을 작성했다. 제품 구현은 아직 하지 않았다.
 - 브랜치: `codex/topology-path-design`, 기준 `main` `d7dabff`(PR #50 병합). PR #49는 `cd23e46`으로 병합 완료, 운영 엔진 0.2.0 확인은 Claude의 공개 `/api/policy-matrix` 확인을 사용자에게 전달받은 기록이다.
 - 설계: [구성도·경로 재생](docs/topology-playback-design.md). 판정 스냅샷 고정, 정규 CIDR 소속 그림, 실제 hops 순서 재생, 정방향/복귀 분리, 누락된 firewall_in/state 표시, 큰 구성 fallback·접근성·회귀 시험 범위를 정했다.
+- PR: [#51 로드맵 6번 구성도·경로 재생 설계](https://github.com/myeongjundev/netproof/pull/51), main 대상 문서 PR. 병합하지 않았다.
 - 다음 차례: **사용자(설계 검토·승인 및 문서 PR 병합 결정) → Codex(승인된 범위 구현).** 로드맵 6번은 설계 단계이므로 아직 체크하지 않는다.
 - 운영 재판정은 **비밀번호 미확보·사용자 요청으로 보류**. 성공 dry-run·운영 반영·최종 dry-run 보고서는 없다. 재입력을 요구하지 않는다. 추후 사용자 재개 요청과 비밀번호 확보 뒤 deploy.md의 dry-run → 보고서 확인·사용자 승인 → 반영 → 대상 0건 확인을 따른다.
 - 사용자 할 일: Vercel `DATABASE_URL`의 **Production and Preview → Production 전용** 변경. Codex는 Vercel 설정을 바꾸지 않는다.
