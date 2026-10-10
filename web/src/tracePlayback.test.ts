@@ -6,13 +6,39 @@ const fixtures = data as unknown as { id: string; verdict: Verdict }[];
 const both = fixtures[4].verdict;
 afterEach(() => vi.useRealTimers());
 
-it.each(fixtures)("$id: 마지막 단계로 시작하고 원래 순서를 유지한다", ({ verdict }) => {
+it.each(fixtures)("$id: 결정 근거 방향의 마지막 단계로 시작하고 원래 순서를 유지한다", ({ id, verdict }) => {
   const copy = structuredClone(verdict), player = new TracePlayback(verdict);
-  expect(player.getSnapshot().index).toBe(Math.max(0, (verdict.forward?.hops.length ?? 0) - 1));
-  expect(player.trace()).toBe(verdict.forward);
+  const direction = id === "synthetic-02-missing-return-route" ? "return" : "forward";
+  const index = Math.max(0, (verdict[direction]?.hops.length ?? 0) - 1);
+  expect(player.getSnapshot()).toMatchObject({ direction, index, selectedDevice: verdict[direction]?.hops[index]?.device ?? null, playing: false });
+  expect(player.trace()).toBe(verdict[direction]);
   player.select(0); player.direction("return"); player.select(0);
   expect(verdict).toEqual(copy);
   player.dispose();
+});
+it("복귀 decisive가 마지막 앞에 있어도 마지막 단계와 그 장비에서 멈춰 시작한다", () => {
+  const base = fixtures[1].verdict, last = { ...base.return!.hops.at(-1)!, device: "last device", result: "ok" as const };
+  const verdict = { ...base, return: { ...base.return!, hops: [...base.return!.hops, last] } };
+  const player = new TracePlayback(verdict);
+  expect(player.getSnapshot()).toMatchObject({ direction: "return", index: 2, selectedDevice: "last device", playing: false });
+  expect(player.trace()).toBe(verdict.return); player.dispose();
+});
+it.each(["none", "unmatched", "ambiguous"])("복귀 응답이 있어도 decisive가 %s이면 정방향 마지막에서 시작한다", variant => {
+  const base = fixtures[1].verdict;
+  const verdict = variant === "none" ? { ...base, decisive: null }
+    : variant === "unmatched" ? { ...base, decisive: { ...base.decisive!, detail: "unmatched" } }
+    : { ...base, forward: { ...base.forward!, hops: [...base.forward!.hops, base.decisive!] } };
+  const player = new TracePlayback(verdict);
+  expect(player.getSnapshot()).toMatchObject({ direction: "forward", index: verdict.forward!.hops.length - 1, selectedDevice: verdict.forward!.hops.at(-1)!.device, playing: false });
+  player.dispose();
+});
+it("복귀로 시작해도 방향 변경·재생·편집 정지의 기존 규칙을 유지한다", () => {
+  vi.useFakeTimers(); const player = new TracePlayback(fixtures[1].verdict);
+  player.play(); expect(player.getSnapshot()).toMatchObject({ direction: "return", index: 0, playing: true });
+  vi.advanceTimersByTime(1000); expect(player.getSnapshot()).toMatchObject({ direction: "return", index: 1, playing: false });
+  player.direction("forward"); expect(player.getSnapshot().index).toBe(fixtures[1].verdict.forward!.hops.length - 1);
+  player.play(); player.setBusy(true); expect(player.getSnapshot().playing).toBe(false); expect(vi.getTimerCount()).toBe(0);
+  player.setBusy(false); expect(player.getSnapshot().playing).toBe(false); player.dispose();
 });
 it("첫 단계 재생·일시정지·다음부터 이어가기·마지막 정지·다시 재생", () => {
   vi.useFakeTimers(); const player = new TracePlayback(both);

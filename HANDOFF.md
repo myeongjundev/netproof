@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **비차단 후속 묶음(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 사용자가 2026-10-10 한 PR로 묶기로 하고 아래 설계를 승인했다. 제품 코드 구현은 시작하지 않았다.
-- 브랜치: `claude/followups-design`(설계 문서 PR). 병합 뒤 Codex가 `main`에서 `codex/followups`를 만들어 구현한다.
-- 다음 차례: **사용자(설계 PR 병합) → Codex(구현).** Codex에게 자동으로 메시지를 보내지 않았다.
+- 작업: **비차단 후속 묶음 구현·검증 완료(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 승인된 변경 범위 1~5만 수행했다. 고치기 과제는 일반 결과 패널·엔진 원문을 재사용하고, 복귀 차단 초기 선택·확인 전 비교 표시·저장 안내를 수정했다.
+- 브랜치: `codex/followups`, PR #55 병합 main `4de43a3`에서 분기. 시작 시 PR #55가 아직 OPEN이라 설계·코드를 읽으며 기다렸고, 사용자가 Claude에게 병합을 맡긴 뒤 GitHub의 MERGED·main 반영을 확인하고 다시 `git pull`·AGENTS/HANDOFF 읽기 후 작업했다. main 대상 구현 PR로 제출하며 병합하지 않는다.
+- 다음 차례: **Claude(리뷰) → 사용자(병합 결정).** 완료 조건 7의 독립 실브라우저 리뷰는 Claude에게 남긴다. 자동으로 메시지를 보내지 않았다.
 - 직전 과제: 로드맵 7번 고치기 과제 **PR #54 병합 완료**(`bfb7b4f`). 운영 번들 `index-BW8VCTzY.js`, 공개 주소 `#/fix/fix-01` 확인하기 → 다름·다름·밖 변화 0, 콘솔 오류 0을 Claude가 확인했다. 로드맵 5·6·7번이 모두 운영에 나갔다.
 - 별도로 남은 사용자 확인:
   1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」. 연결 주소는 가려진 입력으로만.
@@ -55,6 +55,54 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ### 건드리지 않을 것
 - `engine/`, `server/`, `cases/*.json`·`expect`, 배포 구성, `web/package*.json`.
 - 고치기 과제의 요청·사실 문장 조건·목표 밖 변화 필터, 구성도·재생의 나머지 규칙, 사례 저장 흐름.
+
+### 테스트 결과 — 비차단 후속 묶음 (Codex 직접 실행, 2026-10-10)
+
+완료 조건 1~6의 명령을 직접 실행했다. 엔진·서버 시험은 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비운 상태로 실행했고 서버는 테스트용 SQLite를 사용했다. 운영 DB 작업은 하지 않았다. 아래는 실제 출력에서 진행 점·빌드 자산 목록을 생략한 부분이다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 6.53s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+174 passed, 1 skipped in 55.68s
+
+npm --prefix web test
+Test Files  43 passed (43)
+Tests  643 passed (643)
+Duration  1.21s
+
+npm --prefix web run build
+✓ 68 modules transformed.
+dist/assets/index-B3OOalhE.js  390.28 kB │ gzip: 116.90 kB
+✓ built in 240ms
+
+git diff --stat main... -- engine server cases vercel.json web/package.json web/package-lock.json
+(출력 없음)
+
+git diff --check
+(공백 오류 없음)
+```
+
+삭제 검색은 코드·테스트·CSS를 포함한 `web/src` 전체를 검사했다. rg의 종료 코드 1은 일치가 없다는 뜻이다. 파일명도 일반 패널 테스트로 바꿨다.
+
+```powershell
+rg -n -i 'factual|factualText' web/src
+if ($LASTEXITCODE -eq 1) { Write-Output '검색 결과 0건 (rg exit 1)'; exit 0 }
+```
+
+```text
+검색 결과 0건 (rg exit 1)
+```
+
+- `ResultPanel`·`TracePlayer`의 전용 prop/분기·문구 변환과 전용 CSS를 삭제했다. 일반 패널 시험으로 기록된 엔진 응답 9개의 reason·problems 원문, 답 없는 비교 배너 없음, 구성도·재생, PASS의 통과 문구와 stale 조작 비활성화를 확인했다. 과제 문구·카드 시험은 금지 낱말을 완료/성공/정답/점수/%로 줄이고 통과 원문을 그대로 검사한다.
+- 초기 커서 시험: 복귀에 유일한 decisive → 복귀 마지막·그 장비·정지 상태. decisive가 마지막 앞에 있어도 마지막을 선택한다. 정방향 decisive·없음·필드 불일치·유일하지 않음·PASS/INVALID/UNSUPPORTED는 정방향 마지막. 기존 방향 이동·첫 단계 재생·마지막 정지·busy 정지·자동 재개 없음·visibility/reduced motion·타이머 시험도 통과했다. 설계 문서의 초기화 문장을 같은 규칙으로 수정했다.
+- `ActualBadge` 시험: 확인 전 PASS/DENY의 같음/다름, INVALID/UNSUPPORTED의 실제 결과만 표시, 확인된 사례·안 적음의 기존 문구/클래스 유지. 상세 「다시 살펴보기」에서도 plain 불일치 표시를 확인했다. badge plain 스타일은 바꾸지 않았다.
+- 저장 안내의 기존 지연 응답 시험(edit/edit-reset/rejudge/unmount)에서 링크·`저장했습니다: 사례 #42.`·뒤 문장과 기존 이동/저장 흐름을 확인했다. 웹 시험은 629→643건(전용 분기 시험을 일반 패널 시험으로 교체 포함)이다.
+
+이번에는 실제 브라우저·운영 배포 검증을 수행하지 않았다. 완료 조건 7의 실습 02/01 초기 방향·고치기 일반 패널·확인 전 배지는 Claude 리뷰에서 별도로 확인한다. 엔진·서버·cases/expect·배포·의존성 변경 0줄이며 엔진 0.2.0 유지.
+
+Codex (GPT-6)
 
 ### 완료 조건 (Codex가 직접 실행해 출력 첨부)
 1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 489 passed·2 xfailed(변화 없음).

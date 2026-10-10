@@ -44,3 +44,7 @@ it("비교 불가와 관측 확인 상태도 기존 배지 의미를 유지한�
   expect(markup).toContain("비교 불가"); expect(markup).toContain("확인 · 범위 밖");
   expect(markup).toContain('href="#/learn"');
 });
+it("다시 살펴보기에서도 확인 전 불일치는 중립 배지로 보인다", () => {
+  const markup = html({ ...item, result: "DENY", actual_result: "PASS", confirmed: false });
+  expect(markup).toContain('<span class="badge plain">확인 전 · PASS · 판정과 다름</span>');
+});

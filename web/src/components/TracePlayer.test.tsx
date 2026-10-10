@@ -10,7 +10,7 @@ it.each(fixtures)("$id는 엔진 이유·원래 마지막 단계·저장 버전�
   const html = render(item);
   expect(html).toContain("저장된 판정 · 엔진 0.1.4"); expect(html).toContain("전체 구성 원문");
   expect(html).toContain("실제 배선 그림이 아닙니다");
-  const last = item.verdict.forward?.hops.at(-1);
+  const last = (item.id === "synthetic-02-missing-return-route" ? item.verdict.return : item.verdict.forward)?.hops.at(-1);
   if (last) { expect(html).toContain(last.detail); expect(html).toContain('aria-current="step"'); }
   else { expect(html).toContain("재생할 경로 없음"); expect(html).not.toContain('aria-current="step"'); }
 });
@@ -21,9 +21,11 @@ it("ACL 원문과 기존 입력 보기, one-way 이유, stale/loading 조작 비
   expect(html).toMatch(/disabled=""[^>]*>이전/); expect(html).toMatch(/disabled=""[^>]*>재생/);
   expect(html).toMatch(/disabled=""[^>]*>다음/); expect(html).toMatch(/disabled=""[^>]*>정방향/);
 });
-it("복귀가 결정 근거인 판정에서 정방향에 전체 판정 결정 표시를 붙이지 않는다", () => {
-  const html = render(fixtures[1]); expect(html).not.toContain("전체 판정을 결정한 단계");
-  expect(html).not.toContain('hop drop decisive');
+it("복귀가 결정 근거인 판정은 복귀의 차단 근거를 처음부터 보여 준다", () => {
+  const html = render(fixtures[1]); expect(html).toContain("전체 판정을 결정한 단계");
+  expect(html).toContain('hop drop decisive');
+  expect(html).toContain('aria-pressed="true">복귀'); expect(html).toContain('aria-pressed="false">정방향');
+  expect(html).toContain("R2 · 경로 · 차단");
 });
 it("중복 식별자는 그림 키를 만들지 않고 원문을 남긴다", () => {
   const html = render({ ...fixtures[0], network: { ...fixtures[0].network, devices: [fixtures[0].network.devices[0], fixtures[0].network.devices[0]] } });
