@@ -20,7 +20,12 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 작업: **PR #49 비차단 N1 — export note 조사 오류 수정**. 사용자가 2026-10-10 운영 재판정 대신 다른 작업을 먼저 진행하도록 요청해, Claude 리뷰에서 제시한 조사 없는 문구를 반영했다.
 - 브랜치: `codex/export-note`, 기준 `main` `cd23e46`(PR #49 병합).
 - 변경: `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N` 형태. PASS→DENY·DENY→PASS 불일치 내보내기에서 문구와 기존 기대값 보존을 시험한다.
-- 다음 차례: **Claude(리뷰)** → 사용자(병합 결정). 커밋·푸시 후 main 대상 PR을 열고 병합하지 않는다.
+- PR: [#50 불일치 사례 내보내기 설명의 조사 오류 수정](https://github.com/myeongjundev/netproof/pull/50). 병합하지 않았다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #50」.
+
+### 리뷰 기록 — PR #50 (Claude, 2026-10-10)
+- 직접 실행(`a057828`): 엔진 489 passed·2 xfailed, 서버 165 passed·1 skipped(DATABASE_URL 비움), 웹 485 passed, 빌드 성공(번들 `index-BMQjIVBk.js`, main과 같음). 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. Codex 기록과 같다.
+- 코드 변경은 export note 한 줄(조사 없는 `엔진 판정(X) ≠ 확인된 실제 결과(Y) — 사례 #N`). 테스트는 PASS→DENY·DENY→PASS 양방향과 문구 전체를 같음으로 검사. 버전 0.2.0 유지가 §15와 맞다. 비밀값 diff 없음. **PASS.**
 - PR #49는 **병합 완료(`cd23e46`)**. 운영 엔진 `0.2.0`은 Claude가 공개 `/api/policy-matrix`로 확인했다(사용자 전달).
 - 운영 재판정은 **사용자 요청으로 보류**. dry-run 인증 실패 뒤 netproof 계정 비밀번호 미확보로 진행하지 못했고, 성공 보고서·반영·최종 dry-run은 없다. 연결 주소 환경 변수·임시 입력 도구를 정리했다. 사용자가 바쁠 동안 재입력을 요구하지 않는다. 추후 비밀번호 확보 뒤 dry-run → 보고서 확인·사용자 승인 → 반영 → dry-run 대상 0건 절차로 재개한다.
 - 사용자 할 일: Vercel `DATABASE_URL`은 현재 **Production and Preview**에 적용되어 있다. **Production에만** 두도록 사용자가 변경한다. Codex는 Vercel 설정을 바꾸지 않았다.
