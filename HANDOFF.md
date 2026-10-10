@@ -17,177 +17,53 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **고치기 과제 구현·검증 완료, 리뷰 대기(로드맵 7번)**. 사용자 승인 설계 D1~D4·합성 문제 3개에 따라 학습실 카드·전용 화면·메모리 입력·목표 계산·목표 밖 변화·근거 재생을 구현했다. 아래 변경 범위 1~5만 수행했다.
-- 브랜치: `codex/fix-exercise`, `git pull` 뒤 `main` `12c65bb`(설계 PR #53 병합)에서 분기. 구현 PR [#54](https://github.com/myeongjundev/netproof/pull/54), main 대상·리뷰 대기. 병합하지 않는다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #54」.
-
-### 리뷰 기록 — PR #54 (Claude, 2026-10-10)
-- 직접 실행(`55e655f`): 엔진 489 passed·2 xfailed, 서버 174 passed·1 skipped(DATABASE_URL 비움), 웹 629 passed, 빌드 성공(번들 `index-BW8VCTzY.js`, Codex와 같음). 번들에 해법 문자열 없음. 엔진·서버 API·cases·배포·의존성 diff 출력 없음, `git diff --check` 오류 없음.
-- 실브라우저(QA 서버 4870, 임시 SQLite): fix-01 1280 처음 다름·다름/밖 변화 0, 요청 policy-matrix·change-impact 각 1회 → HTTPS만 허용하는 편법은 목표 같음·같음이지만 밖에서 「새로 막힘」 다수·사실 문장 없음 → SSH만 막는 수정은 같음·같음·밖 0·사실 문장 → 편집 시 이전 결과·근거 보기 비활성 → 근거 보기 R1 ACL 차단 재생 → 학습실 왕복 뒤 ACL 유지. fix-03 375 SRV→PC1 SSH만 다름·넘침 0·버튼 44px, fix-02 375 다름·다름·콘솔 오류 0. 강제 종료로 남은 `netproof-qa-*`는 확인 뒤 삭제.
-- **PASS.** 비차단 N1(Claude 설계 과잉): 금지 낱말에 「통과」를 넣어 `factual` 분기·`factualText`(통과→허용) 생김 — 금지를 완료·성공·정답·점수·%로 줄이면 기존 ResultPanel 재사용 가능(사용자 결정). N2: 화면 왕복 시 구성은 남고 확인 결과는 「확인 전」(D4와 일치).
-- 직전 과제: 로드맵 6번 구성도·경로 재생 **PR #52 병합 완료**(`802fd76`, 설계 #51 포함). 운영 번들 `index-BHD-u76S.js`, 공개 주소 실습 01에서 구성도(R1 × 차단·SRV 도달 못 함)·콘솔 오류 0을 Claude가 확인했다. 로드맵 5번 후속 PR #50(export note 조사)도 병합 완료(`d7dabff`).
+- 작업: **비차단 후속 묶음(PR #54 N1·PR #52 N1·PR #47 N1·N2)**. 사용자가 2026-10-10 한 PR로 묶기로 하고 아래 설계를 승인했다. 제품 코드 구현은 시작하지 않았다.
+- 브랜치: `claude/followups-design`(설계 문서 PR). 병합 뒤 Codex가 `main`에서 `codex/followups`를 만들어 구현한다.
+- 다음 차례: **사용자(설계 PR 병합) → Codex(구현).** Codex에게 자동으로 메시지를 보내지 않았다.
+- 직전 과제: 로드맵 7번 고치기 과제 **PR #54 병합 완료**(`bfb7b4f`). 운영 번들 `index-BW8VCTzY.js`, 공개 주소 `#/fix/fix-01` 확인하기 → 다름·다름·밖 변화 0, 콘솔 오류 0을 Claude가 확인했다. 로드맵 5·6·7번이 모두 운영에 나갔다.
 - 별도로 남은 사용자 확인:
-  1. **운영 재판정 보류** — 운영 DB의 기존 사례는 아직 `0.1.4` 판정이다. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」(dry-run → 보고서 확인·승인 → 실행 → dry-run 대상 0건). 연결 주소는 가려진 입력으로만.
-  2. Vercel `DATABASE_URL`이 **Production and Preview**에 걸려 있다 → Production 전용으로(사용자, Vercel 화면).
-  3. PR #52 비차단 N1(복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택 — 처음 방향을 복귀로 바꿀지 사용자 결정)·N2(목록 한 방향만), PR #47 N1·N2.
-  4. **D5(실습 사실 5가지)** — pfSense 2단계 설계 전제. 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
+  1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 「엔진 버전이 바뀐 배포 뒤 재판정」. 연결 주소는 가려진 입력으로만.
+  2. Vercel `DATABASE_URL`이 **Production and Preview**에 걸려 있다 → Production 전용으로(사용자).
+  3. 남은 로드맵: 8번 Batfish 차등 테스트, pfSense 2단계(**D5 실습 사실 5가지** 필요). 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
 
-## 작업 정의 — 고치기 과제 (Claude 설계, 2026-10-10 사용자 승인)
+## 작업 정의 — 비차단 후속 묶음 (Claude 설계, 2026-10-10 사용자 승인)
 
-로드맵 「F5·F6 다음 기능 순서」 7번(⑤ 학습). 브랜치: `main`에서 `codex/fix-exercise`.
-
-### 지금 있는 것 (설계 근거)
-- 실습 3개(`web/src/practice.ts`·`learning.ts`, `#/practice/:caseId`): 질문 → 구성 → 예상 → 판정 → 「내 예상 ≠ 계산」 비교 → ⑤ 기록. 정답·완료 표시 없음. 처음 구성은 `/api/examples`의 `cases/synthetic-0N`을 불러온다.
-- 정책 검증(`#/matrix`, `POST /api/policy-matrix`): 사람이 적은 의도(`PASS`/`DENY`)와 엔진 결과를 셀마다 `AGREE`·`EXPOSED`·`BLOCKED`·`UNDECIDED`·`NO_POLICY`로 계산한다.
-- 변경 영향(`POST /api/change-impact`): 두 구성의 매트릭스를 비교해 결과가 바뀐 칸만 `opened`·`closed`·`other`로 준다(판정한 통신 칸 하나는 제외).
-- `docs/quality.md` 3-5 #4의 원래 아이디어는 「목표 정책 + 처음 구성 → 학생이 고치면 자동 채점, 강사 출제」였다. 앱은 정답·채점·완료 배지를 만들지 않는다는 원칙(AGENTS.md, 홈·학습 설계)에 맞춰 **채점 대신 엔진 계산 사실만 보여 주는 고치기 과제**로 다시 정의한다.
-
-### 사용자 결정
-| 번호 | 결정 | 고르지 않은 선택지 |
-| --- | --- | --- |
-| D1 | **고치기 과제**: 처음 구성 + 목표 통신이 주어지고 학생이 ACL·경로를 고친다. 목표를 만족하는 구성이면 무엇이든 된다(정해진 답 없음) | 예상 드릴(맞힌 개수가 채점처럼 보임) / 원인 찾기 |
-| D2 | **고정 문제 3개**를 코드(JSON)에 둔다. 처음 구성은 기존 합성 사례 01~03 재사용. 목표 문장은 Claude 초안·사용자 승인(아래 표) | 강사가 화면에서 출제(역할·DB·ADR 필요) / 학생이 목표도 직접(정책 검증과 같음) |
-| D3 | 확인하면 **목표 통신마다 목표와 같음/다름 + 처음 구성 대비 목표 밖 통신 변화**를 보인다. 점수·완료 배지 없음 | 목표 통신만(전부 여는 편법을 못 잡음) |
-| D4 | 고치던 구성은 **앱 메모리에만**(화면 이동 유지, 새로고침 시 사라짐). 서버·DB 저장 없음 | 브라우저 localStorage / 서버 사례(사례가 통신 1개짜리라 DB·API 변경 필요) |
-
-### 문제 (사용자 승인, 모두 합성 구성)
-| id | 제목 | 처음 구성 | 목표(`src → dst · service · expect`) |
-| --- | --- | --- | --- |
-| `fix-01` | HTTPS는 열고 SSH는 막기 | `synthetic-01` | `10.10.10.10 → 10.20.20.5 · tcp/443 · PASS`, `10.10.10.10 → 10.20.20.5 · tcp/22 · DENY` |
-| `fix-02` | ping 왕복 만들기 | `synthetic-02` | `10.10.10.10 → 10.30.30.5 · icmp/echo · PASS`, `10.30.30.5 → 10.10.10.10 · icmp/echo · PASS` |
-| `fix-03` | 반대 방향 SSH도 막기 | `synthetic-03` | `10.10.10.10 → 10.20.20.5 · tcp/22 · DENY`, `10.20.20.5 → 10.10.10.10 · tcp/22 · DENY`, `10.10.10.10 → 10.20.20.5 · tcp/80 · PASS` |
-
-- 모드는 모두 `session`. 표시 이름(`label`)·과제 설명(`prompt`)은 Codex가 쓰되 **정답·막히는 원인·고칠 장비를 드러내지 않는다**(예: 「R2에 경로를 추가하세요」 금지, 「PC1과 SRV2 사이 ping이 왕복하게 하세요」는 허용).
-- Claude가 엔진으로 미리 확인(2026-10-10): 처음 구성에서 `fix-01` 목표 2개 모두 다름(BLOCKED·EXPOSED), `fix-02` 2개 모두 다름(BLOCKED), `fix-03`은 SRV→PC1 SSH가 다름(EXPOSED, 출력 ACL을 지나지 않음). 세 문제 모두 엔진 모델 안에서 모든 목표를 같음으로 만드는 구성이 있다. 확인에 쓴 구성은 기록하지 않는다.
-
-### 목표
-학생이 「무엇이 열려야/막혀야 하는지」를 받고 구성을 직접 고친 뒤, **엔진이 계산한 사실**(목표와 같은지, 목표 밖에서 무엇이 바뀌었는지, 왜 그런지)로 스스로 확인한다. 앱은 점수·정답·완료를 정하지 않는다(AGENTS.md, ADR-001).
+브랜치: `main`에서 `codex/followups`. 화면 표시만 바꾼다. 판정·비교 계산은 그대로다(ADR-001).
 
 ### 변경 범위
-**1. 과제 데이터 — 새 `web/src/exercises.json`(+ 읽는 `web/src/exercises.ts`)**
-- `[{id, title, baseCaseId, prompt, goals: [{src, dst, service, expect, label}]}]`. 위 표의 3개. `expect`는 `PASS`|`DENY`, `service`는 정책 검증 키(`tcp/443`·`icmp/echo`).
-- 해법 구성·힌트·정답 필드를 넣지 않는다. 처음 구성은 복사하지 않고 `baseCaseId`로 기존 `/api/examples`에서 불러온다.
+**1. PR #54 N1 — 고치기 과제 전용 표시 제거 (`web/src/components/ResultPanel.tsx`, `TracePlayer.tsx`, `web/src/verdictView.ts`, `web/src/pages/FixExercisePage.tsx` + 테스트)**
+- 원인: Claude 설계가 금지 낱말에 「통과」를 넣었다(설계 과잉). 「통과」는 엔진 PASS 표시이지 채점이 아니다.
+- `ResultPanel`·`TracePlayer`의 `factual` prop과 분기, `verdictView.factualText`를 지운다. `FixExercisePage`의 근거 보기는 일반 `ResultPanel`을 쓴다(`claim`은 `EMPTY_CLAIM`이라 비교 배너 없음). 목표 칸·목표 밖 변화의 엔진 `reason`도 원문 그대로 보인다.
+- 과제 화면 금지 낱말 테스트는 `완료|성공|정답|점수|%`(+배지)로 바꾼다. `FactualResult.test.tsx`는 지우거나 일반 패널 기준으로 바꾼다.
 
-**2. 화면 — 새 `web/src/pages/FixExercisePage.tsx`, `web/src/router.ts`(`#/fix/:id`), `web/src/App.tsx`, `web/src/pages/LearningPage.tsx`(+ 각 테스트)**
-- 학습실에 「고치기 과제」 칸과 카드 3개(제목·`prompt`·`시작하기` 링크). 합성 구성임을 적는다. 완료·통과 배지 없음.
-- 과제 화면 순서: 과제 설명 → 목표 목록(목표마다 `열려야 함`/`막혀야 함`, 확인 전에는 `확인 전`) → 구성 편집(실습과 같은 편집 컴포넌트 재사용) → `확인하기` → 결과.
-- `확인하기`는 두 요청을 보낸다(**새 API 없음**):
-  - `POST /api/policy-matrix` — `network`: 지금 구성, `spec`: `{mode: "session", services: 목표 서비스 ∪ 기본 5개(SSH·HTTP·HTTPS·DNS·Ping), intents: 목표}`. 목표 칸의 `policy`로 `AGREE` → `목표와 같음`, `EXPOSED`·`BLOCKED` → `목표와 다름`, `UNDECIDED` → `판정 불가`. 결과(PASS/DENY/…)도 함께 보인다. 문구는 기존 `POLICY_TEXT`와 충돌하지 않게 정한다.
-  - `POST /api/change-impact` — `before`: 처음 구성, `after`: 지금 구성, `flow`: 첫 목표의 flow, `services`: 위와 같은 목록. 응답 `changes` 중 **목표 칸(`src`·`dst`·`service`가 목표와 같은 것)은 화면에서 뺀** 나머지를 「목표에 없는 통신의 변화」로 보인다(`opened` 새로 열림 / `closed` 새로 막힘 / `other`). 분류·순서는 엔진 것 그대로, 다시 계산하지 않는다.
-- 목표 한 줄의 `근거 보기` → 그 목표의 flow로 `POST /api/verify`를 불러 기존 `ResultPanel`(구성도·경로 재생 포함)에 지금 구성 스냅샷과 함께 표시. 클릭할 때만 호출.
-- 모든 목표가 `목표와 같음`이고 목표 밖 변화가 0이면 사실 문장 하나만: `모든 목표 통신이 목표와 같고, 검사한 서비스 범위에서 목표에 없는 통신의 변화는 없습니다. 검사하지 않은 통신은 알 수 없습니다.` 「완료·성공·정답·통과·점수·%」 낱말·배지·축하 색을 쓰지 않는다.
-- 응답 중 하나가 실패하면 받은 쪽만 보이고 실패한 쪽은 오류 문구를 보인다(가짜 결과 없음). `limit_exceeded`·`INVALID`는 엔진 문제 목록 그대로.
-- 입력을 바꾸면 결과를 `이전 결과`로 표시하고 `근거 보기`를 막는다. 확인 중 다시 누를 수 없고, 화면을 떠나거나 입력이 바뀐 뒤 도착한 응답은 버린다(기존 `revision`/`current()` 패턴 재사용).
-- `처음 구성으로`(되돌리기 한 단계는 기존 실습 방식 재사용 가능), `판정기로 가져가기`(실습과 같은 동작).
+**2. PR #52 N1 — 복귀에서 막힌 DENY는 복귀 방향으로 시작 (`web/src/tracePlayback.ts` + 테스트, `docs/topology-playback-design.md`)**
+- `TracePlayback` 생성자: `decisivePosition(verdict)`가 `{direction: "return"}`이면 처음 상태를 복귀 방향·복귀 마지막 단계·그 장비 선택으로 한다. 그 밖(정방향 decisive, decisive 없음·유일하지 않음, PASS·INVALID·UNSUPPORTED)은 지금처럼 정방향 마지막.
+- 방향 단추·재생·편집 정지 규칙은 그대로. 설계 문서의 「새로운 판정 스냅샷이 수락되면 정방향 마지막으로 초기화한다」 문장을 이 규칙으로 고친다.
 
-**3. 상태 — `App.tsx`**
-- 과제별 draft를 `fixDrafts: Record<string, Draft>`에 둔다(`practiceDrafts`와 같은 방식, 별도 키). URL·localStorage·DB에 저장하지 않는다. 화면에 `다른 화면에 다녀와도 남지만 새로고침하면 사라집니다.`
+**3. PR #47 N1 — 확인 전 불일치 표시 (`web/src/components/Badges.tsx` `ActualBadge` + 테스트)**
+- 실제 결과가 있고 확인 전일 때:
+  - 판정이 `PASS`/`DENY`이고 실제 결과와 다르면 `확인 전 · {actual} · 판정과 다름`
+  - 같으면 `확인 전 · {actual} · 판정과 같음`
+  - 판정이 `UNSUPPORTED`/`INVALID`면 지금처럼 `확인 전 · {actual}`
+- 확인 전이므로 지금처럼 `badge plain`(색 강조 없음). 확인된 사례·안 적음 표시는 그대로. 사례 목록·상세 등 `ActualBadge`를 쓰는 곳 모두에 같은 규칙.
 
-**4. 서버 테스트 — 새 `server/tests/test_fix_exercises.py`** (제품 서버 코드 변경 없음)
-- `web/src/exercises.json`과 `cases/`를 읽어: ① 목표의 src·dst가 처음 구성의 host 주소이고 service 키가 유효 ② 처음 구성 + 목표 의도로 `policy_matrix`를 돌리면 **목표 중 하나 이상이 `AGREE`가 아님**(이미 풀린 문제 금지) ③ **테스트 안에만 둔 구성 변경**으로 모든 목표가 `AGREE`(풀 수 있음). 해법 구성은 이 테스트 파일 밖으로 내보내지 않는다.
+**4. PR #47 N2 — 저장 안내 조사 (`web/src/pages/PracticePage.tsx` + 테스트)**
+- `사례 #N으로 저장했습니다.` → `저장했습니다: 사례 #N.`(`사례 #N` 링크 유지). 뒤 문장 `저장한 뒤 바꾼 입력·판정은 저장되지 않았습니다.`는 그대로.
 
-**5. 문서** — 이 HANDOFF 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄, `docs/practice.md`에 고치기 과제 한 문단(채점 없음·저장 없음·검사 범위 한계), 로드맵 7번 체크.
+**5. 문서** — 이 HANDOFF 테스트 결과·다음 차례, `decisions/ai-work-log.md` 한 줄.
 
 ### 건드리지 않을 것
-- `engine/`, `server/netproof_api/`(API·DB 표·열), `cases/*.json`과 `expect`, 배포 구성(`vercel.json`), 의존성(`package.json`).
-- 기존 실습 3개·판정기·정책 검증·사례 화면의 동작과 저장 규칙. 엔진 응답의 분류·결과를 화면에서 다시 계산하지 않는다.
-- 점수·진도·완료 기록, 강사 역할, 서버 저장.
-
-### 테스트 결과 — 고치기 과제 (Codex 직접 실행, 2026-10-10)
-
-엔진·서버 테스트와 로컬 QA는 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비운 상태에서 실행했다. 서버 시험은 테스트용 SQLite를 사용했고 운영 DB 작업은 하지 않았다. 아래는 실제 출력에서 진행 점·빌드 자산 목록만 생략한 부분이다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 5.45s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-174 passed, 1 skipped in 56.09s
-
-npm --prefix web test
-Test Files  42 passed (42)
-Tests  629 passed (629)
-Duration  1.67s
-
-npm --prefix web run build
-✓ 68 modules transformed.
-dist/assets/index-BW8VCTzY.js  391.19 kB │ gzip: 117.09 kB
-✓ built in 265ms
-
-git diff --stat main... -- engine server/netproof_api cases vercel.json web/package.json web/package-lock.json
-(출력 없음)
-
-git diff --check
-(출력 없음)
-```
-
-빌드한 번들 검색도 직접 실행했다. 해법 ACL 문자열을 문서에 복사하지 않고 서버 테스트의 문자열 노드를 읽어 검색한다. 검사한 JS가 없으면 실패하고 일치가 하나라도 있으면 실패한다.
-
-```powershell
-@'
-import ast
-from pathlib import Path
-source = Path('server/tests/test_fix_exercises.py').read_text(encoding='utf-8')
-strings = {node.value for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value.startswith('access-list ')}
-bundles = list(Path('web/dist/assets').glob('*.js'))
-assert bundles, 'No built JS bundle'
-hits = sum(text in path.read_text(encoding='utf-8') for path in bundles for text in strings)
-print(f'solution ACL strings checked: {len(strings)}; built JS files: {len(bundles)}; matches: {hits}')
-assert hits == 0
-'@ | .venv/Scripts/python -
-```
-
-```text
-solution ACL strings checked: 5; built JS files: 1; matches: 0
-```
-
-- 서버 +9건: 과제 필드·host 주소·서비스·목표 형식, 처음 구성의 목표 중 하나 이상 다름, 테스트 안에서만 만든 구성으로 모든 목표 AGREE, 원본 cases 불변. 해법 구성은 `server/tests/test_fix_exercises.py` 안에만 있다.
-- 웹 +66건: 과제·라우터·학습실 카드, 요청 1회씩/동시 시작·session 본문, 목표 매핑·목표 칸 제외·엔진 분류/순서 유지, 사실 문장 조건(누락·INVALID·상한·비교 못 한 끝점은 표시 안 함), 편집/같은 입력 복귀 시 이전 결과·근거 차단, 늦은 결과/오류·화면 이탈 폐기, 부분 실패, reset/undo/import, App 메모리 분리, 중립 결과 표시 및 기존 화면 회귀.
-- 기존 ResultPanel/TracePlayer에 고치기 전용 중립 표시 옵션을 추가했다. PASS/DENY 코드·문제 목록·규칙 원문·분류는 그대로이며 설명의 `통과`는 이 화면에서만 `허용`으로 표시한다. 기존 화면의 문구·동작과 저장 규칙은 유지한다. 기존 `flowForCell` 입력 타입은 필요한 주소·서비스 필드로 좁혀 재사용하며 계산은 바꾸지 않았다.
-
-기존 `scripts/qa_local.py`의 임시 SQLite 준비를 사용한 localhost 실제 빌드에서 Playwright로 세 과제×375/1280px 총 6상태를 확인했다. 초기 목표는 설계와 같이 다름을 포함했고, 확인 때 목표/영향 각 1회·근거 클릭 때 verify 1회였다. 가로 넘침·채점 문구·예상하지 않은 콘솔/페이지 오류 0. 이것은 Claude의 완료 조건 7 전체 리뷰나 실제 장비·운영 배포 검증을 대신하지 않는다.
-
-아래 브라우저 결과는 상태별 출력을 요약했고 임시 폴더 경로만 익명화했다.
-
-```text
-{ states: 6, policyMatrixCallsPerCheck: 1, changeImpactCallsPerCheck: 1,
-  verifyCallsPerEvidenceClick: 1, overflow: 0, forbiddenText: 0 }
-{ previous: 1, disabled: true, memoryRetained: true, reloadReset: true }
-{ partialFailure: [
-  { failedSide: 'policy-matrix', otherVisible: 1, fact: 0 },
-  { failedSide: 'change-impact', otherVisible: 2, fact: 0 }
-] }
-{ lateAfterEdit: { arrived: 1, goalResultAbsent: true, previous: 1, evidenceDisabled: true } }
-{ browserClosed: true, unexpectedBrowserErrors: [], injected500Errors: 2 }
-QA server stopped; temporary SQLite folder removed
-Test-Path -LiteralPath <작업 전용 임시 QA 폴더의 절대 경로>
-False
-```
-
-부분 실패 시험은 브라우저에 의도적으로 500 응답 두 번을 넣었고 그에 따른 리소스 오류만 있었다. QA 서버·브라우저를 종료하고 임시 SQLite 폴더 삭제를 확인했으며 커밋하지 않은 QA 준비 도구도 지웠다. 첫 빌드의 목표 flow 타입 단언과 테스트의 Node 타입 import 문제를 고쳤다. 실제 UI에서 엔진 설명의 `통과`를 발견해 중립 표시·기록된 엔진 응답 9개 회귀 시험을 추가했고, 최종 번들을 다시 불러 문구 0을 확인했다.
-
-Codex (GPT-6)
-
-### 예상 리스크
-| 리스크 | 대응 |
-| --- | --- |
-| 「목표와 같음」이 정답·채점으로 읽힘 | 사실 문장과 검사 범위 한계 문구, 완료·점수 낱말 금지(테스트로 확인) |
-| 전부 여는 편법(`permit ip any any`) | 목표 밖 변화 목록(change-impact)으로 드러냄 |
-| 문제 설명이 답을 알려 줌 | `prompt`·`label`에 고칠 장비·규칙·원인 금지, 리뷰에서 확인 |
-| 해법이 공개 번들에 들어감 | 해법은 서버 테스트 파일에만, 빌드 번들에서 검색으로 확인 |
-| 이미 풀린 문제·풀 수 없는 문제 | 서버 테스트 ②③ |
-| 두 요청 중 하나만 실패 | 받은 쪽만 표시, 실패 쪽 오류 문구 |
-| 늦은 응답이 바뀐 입력에 붙음 | revision 확인 + 테스트 |
-| 375px 넘침 | 리뷰 때 375·1280 실브라우저 |
+- `engine/`, `server/`, `cases/*.json`·`expect`, 배포 구성, `web/package*.json`.
+- 고치기 과제의 요청·사실 문장 조건·목표 밖 변화 필터, 구성도·재생의 나머지 규칙, 사례 저장 흐름.
 
 ### 완료 조건 (Codex가 직접 실행해 출력 첨부)
 1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 489 passed·2 xfailed(변화 없음).
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 165 passed·1 skipped에 `test_fix_exercises.py` 추가, 실패 0(위 ①②③).
-3. `npm --prefix web test` → 563 passed에 추가, 실패 0. 최소: `exercises.json` 형식(필드·서비스 키·expect·해법/정답 필드 없음); 라우터 `#/fix/:id`(없는 id는 학습실로); `확인하기` 한 번에 policy-matrix·change-impact 각 1회와 요청 본문(목표 의도·서비스·before/after); 목표 칸 표시 매핑(AGREE/EXPOSED/BLOCKED/UNDECIDED); change-impact에서 목표 칸 제외; 사실 문장 조건(전부 같음 + 밖 변화 0일 때만); 편집 시 `이전 결과`·근거 보기 비활성; 늦은 응답 폐기; 한쪽 실패 시 다른 쪽 유지; 화면 문구에 `완료`·`성공`·`정답`·`점수` 없음.
-4. `npm --prefix web run build` 성공. 빌드한 `web/dist/assets/*.js`에 서버 테스트의 해법 ACL 문자열이 없음(검색 명령과 출력 첨부).
-5. `git diff --stat main... -- engine server/netproof_api cases vercel.json web/package.json web/package-lock.json` → **출력 없음**.
+2. `cd server && ../.venv/Scripts/python -m pytest -q` → 174 passed·1 skipped(변화 없음).
+3. `npm --prefix web test` → 실패 0. 최소: `factual`·`factualText`가 코드에 없음(검색 결과 첨부) + 과제 화면에 `완료|성공|정답|점수|%` 없음; `TracePlayback` 처음 방향 — 복귀 decisive → 복귀 마지막, 정방향 decisive·decisive 없음·유일하지 않은 decisive → 정방향 마지막; `ActualBadge` 세 경우 + 확인됨·안 적음 그대로; 저장 안내 `저장했습니다: 사례 #N.`.
+4. `npm --prefix web run build` 성공.
+5. `git diff --stat main... -- engine server cases vercel.json web/package.json web/package-lock.json` → **출력 없음**.
 6. `git diff --check` 공백 오류 없음.
-7. 리뷰(Claude): `scripts/qa_local.py`로 375×812·1280에서 세 과제 각각 처음 확인(다름) → 구성 고침 → 다시 확인(같음·밖 변화) → 전부 여는 편법이 밖 변화로 보이는지 → 근거 보기 → 편집 시 이전 결과 → 다른 화면 왕복 유지를 실브라우저로 확인.
+7. 리뷰(Claude): 실브라우저로 실습 02 판정 → 처음에 복귀·R2 경로 차단 선택, 실습 01 → 정방향, 고치기 과제 근거 보기가 일반 결과 패널, 확인 전 불일치 사례 배지 확인.
 
 ## 배포 기록 (2026-10-06)
 
@@ -223,6 +99,8 @@ Codex (GPT-6)
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
 
+- **PR #54 고치기 과제 (병합 완료, `bfb7b4f`, 2026-10-10, 설계 #53)**: 학습실 「고치기 과제」 3개(`#/fix/:id`, 합성 01~03 처음 구성 + 승인된 목표 통신). 확인하기 한 번에 `policy-matrix`(목표 같음/다름/판정 불가)와 `change-impact`(처음 구성 대비 목표 밖 변화, 목표 칸은 화면에서만 제외), 근거 보기는 `verify` + 구성도·재생. 점수·완료 배지 없음, 사실 문장은 전부 같음·밖 변화 0·미비교 0일 때만. 구성은 App 메모리(`fixDrafts`)만. 서버 테스트로 처음엔 미해결·테스트 안 해법으로 풀림 확인(해법은 `server/tests/test_fix_exercises.py`에만, 번들 검색 0). **엔진·서버 API·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(편법 HTTPS만 허용 → 목표 밖 「새로 막힘」으로 드러남 실브라우저 확인). 최종: 엔진489+2xfail·서버174+1skip·웹629·빌드 성공(`index-BW8VCTzY.js`), 운영 반영 확인.
+  - 유지되는 합의: 목표는 문제의 요구사항이지 정답이 아니다. 과제 문구에 고칠 장비·규칙·원인을 쓰지 않는다. 검사한 서비스·호스트 쌍 밖은 알 수 없다고 말한다.
 - **PR #52 구성도·경로 재생 (병합 완료, `802fd76`, 2026-10-10, 설계 #51 포함 — 사용자 지시로 설계·구현 모두 Codex)**: 판정기·실습·사례 상세·정책 행렬에 판정 당시 network·flow로 만든 구성도(CIDR 구간 소속 선, 장비12·구간24 상한 뒤 경로 장비·목록 fallback)와 엔진 hops의 방향별 재생(1초 간격, 편집·숨김·reduced motion 시 정지), `firewall_in`·`state` 표시, 유일하게 일치하는 decisive에만 결정 단계 표시. **엔진·서버·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(실브라우저 1280·375, 겹침·넘침·콘솔 0). 최종: 엔진489+2xfail·서버165+1skip·웹563·빌드 성공(`index-BHD-u76S.js`), 운영 반영 확인.
   - 유지되는 합의: 그림 선은 입력 주소 구간 소속이지 실제 배선이 아니다. 기록되지 않은 연결을 그리지 않는다. 재생은 받은 응답의 커서이고 API를 부르지 않는다.
   - 남은 비차단: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향 변경은 사용자 결정), N2 단계 목록이 선택한 방향만.
@@ -305,7 +183,7 @@ Codex (GPT-6)
 - [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
 5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구는 PR #50 병합(`d7dabff`)으로 해결**
 6. [x] 구성도 그림 + 경로 재생 — ② PR #52 병합(`802fd76`, 설계 #51 포함). [설계·제품 화면](docs/topology-playback-design.md)
-7. [x] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤ **고치기 과제 구현·검증 완료(2026-10-10), 설계 PR #53 병합 `12c65bb`. 구현 PR [#54](https://github.com/myeongjundev/netproof/pull/54)는 Claude 리뷰·사용자 병합 대기. 체크는 사용자 요청의 구현 완료 기준이며 병합 완료를 뜻하지 않는다.**
+7. [x] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤ 「고치기 과제」로 정의. 설계 PR #53, 구현 PR #54 병합(`bfb7b4f`)
 8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
 - Kali: 기존 실제 결과 붙여넣기(PR #16, Nmap·ping)가 수업과 맞는다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
 
