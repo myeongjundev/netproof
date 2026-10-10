@@ -7,5 +7,5 @@ from .audit import acl_audit
 from .suggest import suggest
 from .cause import cause
 
-__version__ = "0.1.4"
+__version__ = "0.2.0"
 __all__ = ["compare", "verify", "policy_matrix", "observe", "cause", "__version__"]

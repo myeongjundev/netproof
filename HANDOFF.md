@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **불일치 사례 → 회귀 테스트, 엔진 버전별 재판정**(로드맵 「F5·F6 다음 기능 순서」 5번, ④). 사용자가 2026-10-10 선택. **Claude 설계 완료·사용자 승인(2026-10-10, D1~D3)** — 아래 「작업 정의」. 제품 코드 구현은 시작하지 않았다.
-- 브랜치: `claude/rejudge-design`(설계 문서 PR). 병합 뒤 Codex가 `main`에서 `codex/rejudge`를 만들어 구현한다.
-- 다음 차례: **사용자(설계 PR 병합) → Codex(구현).** Codex에게 자동으로 메시지를 보내지 않았다.
+- 작업: **불일치 사례 → 회귀 테스트, 엔진 버전별 재판정** — 변경 범위 1~5 구현·직접 검증 완료(2026-10-10). 엔진 0.2.0, known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 100건 단위 rejudge 명령과 배포 절차를 추가했다. 계산 코드·기존 사례·expect·web·DB 표·배포 구성은 불변이다.
+- 브랜치: `codex/rejudge`, 기준 `main` `5aefd44`(PR #48 병합). 커밋·푸시 후 main 대상 PR을 열고 병합하지 않는다.
+- 다음 차례: **Claude(리뷰)** — 완료 조건 7을 재현하고 PR을 리뷰한다. 운영 DB rejudge는 실행하지 않았다. 병합 뒤 사용자 또는 사용자가 허락한 Claude가 배포 절차에 따라 실행한다.
 - 직전 과제 「학습 → 실습 → 기록·복습 흐름 강화」는 **PR #47 병합 완료**(`225a618`, 2026-10-10)이고 운영에 나갔다. 요약은 아래 「이전 과제 기록」.
 - 별도로 남은 사용자 확인:
   1. **D5(실습 사실 5가지)** — pfSense 버전(CE/Plus)·가상화 도구, Kali(`172.31.195.249`)에서 WAN(`192.168.120.129`)까지의 실제 경로, NAT·포트 전달 사용 여부, 게시판 접속이 pfSense를 지나는지, 규칙을 화면에서 옮겨 적을 수 있는지. 주면 pfSense **2단계(실습 연동)**를 설계한다. `docs/screens/lab-network-*.png`(PR #47)에 수업 실습망이 pfSense 경계 방화벽으로 그려져 있다.
@@ -111,6 +111,268 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 5. `git diff --check` 공백 오류 없음.
 6. 로컬 실연: 임시 SQLite에 사례(일치·불일치·UNSUPPORTED가 될 상태 추적 장비 각 1건 이상, 하나는 확인됨)를 만들고 `engine_version`을 `0.1.4`로 바꾼 뒤 `rejudge --dry-run` → `rejudge` → `rejudge --dry-run`(대상 0건) 출력과 export JSON 1건을 첨부. 임시 DB는 지운다.
 7. 리뷰(Claude): 위 출력을 직접 재현하고, 내보낸 불일치 JSON을 임시로 `cases/`에 넣어 xfail, 엔진과 맞는 사례에 `known_mismatch`를 붙여 XPASS 실패를 확인한 뒤 되돌린다(커밋하지 않음).
+
+### 테스트 결과 (Codex 직접 실행, 2026-10-10)
+
+완료 조건 1~6을 직접 실행했다. PowerShell에서는 각 디렉터리를 실행 도구의 workdir로 지정했다. 서버 테스트의 외부 PostgreSQL 테스트 환경 변수는 제거해 임시 SQLite만 사용했다. 아래 출력 없음은 종료 코드 0·표준 출력 없음이다. 엔진 diff 파일은 `__init__.py`·`pyproject.toml`·`tests/test_cases.py` 세 개뿐이다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+........................................................................ [ 14%]
+........................................................................ [ 29%]
+........................................................................ [ 43%]
+........................................................................ [ 58%]
+........................................................................ [ 73%]
+........................................................................ [ 87%]
+.........................................................xx              [100%]
+489 passed, 2 xfailed in 7.86s
+```
+
+```text
+cd server && ../.venv/Scripts/python -m pytest -q
+........................................................................ [ 43%]
+...........................s............................................ [ 87%]
+.....................                                                    [100%]
+164 passed, 1 skipped in 59.70s
+```
+
+```text
+npm --prefix web test
+
+> netproof-web@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
+
+
+ Test Files  35 passed (35)
+      Tests  485 passed (485)
+   Start at  18:12:18
+   Duration  1.06s (transform 66%, import 21%, tests 9%, worker 3%)
+
+  Transform  transforming modules took 7.00s · 66% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+```
+
+```text
+npm --prefix web run build
+
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 61 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            0.60 kB │ gzip:   0.44 kB
+dist/assets/PretendardVariable.subset.66-C3HqaDeY.woff2    8.25 kB
+dist/assets/PretendardVariable.subset.64-CTbrgYF9.woff2    8.26 kB
+dist/assets/PretendardVariable.subset.65-B66rjuyf.woff2   11.10 kB
+dist/assets/PretendardVariable.subset.68-DS9B48d0.woff2   16.34 kB
+dist/assets/PretendardVariable.subset.73-DMrK970F.woff2   18.33 kB
+dist/assets/PretendardVariable.subset.72-pYYGrEQR.woff2   19.50 kB
+dist/assets/PretendardVariable.subset.75-CxKdrRNf.woff2   19.99 kB
+dist/assets/PretendardVariable.subset.90-BF7RiZjm.woff2   20.85 kB
+dist/assets/PretendardVariable.subset.67-BmuXdlDy.woff2   21.84 kB
+dist/assets/PretendardVariable.subset.89-DOzqWPpX.woff2   21.86 kB
+dist/assets/PretendardVariable.subset.74-D4tQnymK.woff2   22.39 kB
+dist/assets/PretendardVariable.subset.84-Brb8EsYQ.woff2   24.49 kB
+dist/assets/PretendardVariable.subset.87-Lzui2vbK.woff2   24.66 kB
+dist/assets/PretendardVariable.subset.76-DhPm2b_q.woff2   24.92 kB
+dist/assets/PretendardVariable.subset.85-Byo_x2hf.woff2   25.10 kB
+dist/assets/PretendardVariable.subset.88-CqX6JSgh.woff2   25.64 kB
+dist/assets/PretendardVariable.subset.86-XG7lTN_6.woff2   25.71 kB
+dist/assets/PretendardVariable.subset.77-DwaxqOC8.woff2   26.04 kB
+dist/assets/PretendardVariable.subset.79-XpoyPP38.woff2   26.22 kB
+dist/assets/PretendardVariable.subset.81-BZzF9Hb3.woff2   26.30 kB
+dist/assets/PretendardVariable.subset.82-BgAHe30u.woff2   26.50 kB
+dist/assets/PretendardVariable.subset.78-DhqRbBzT.woff2   26.54 kB
+dist/assets/PretendardVariable.subset.83-DF-zBLLe.woff2   26.96 kB
+dist/assets/PretendardVariable.subset.70-BUXiAGMT.woff2   27.54 kB
+dist/assets/PretendardVariable.subset.37-BD6FyOtY.woff2   27.91 kB
+dist/assets/PretendardVariable.subset.71-DuPZj8us.woff2   28.32 kB
+dist/assets/PretendardVariable.subset.80-DsV9Qp_h.woff2   28.79 kB
+dist/assets/PretendardVariable.subset.63-B35xsm4O.woff2   28.81 kB
+dist/assets/PretendardVariable.subset.40-BDaOfdUe.woff2   29.84 kB
+dist/assets/PretendardVariable.subset.43-DHdpry7N.woff2   30.38 kB
+dist/assets/PretendardVariable.subset.7-E2HaA55t.woff2    31.91 kB
+dist/assets/PretendardVariable.subset.1-C-__qv6_.woff2    32.04 kB
+dist/assets/PretendardVariable.subset.44-qHopVhdd.woff2   32.13 kB
+dist/assets/PretendardVariable.subset.24-CmkE8Q8D.woff2   32.30 kB
+dist/assets/PretendardVariable.subset.10-DzSWztS8.woff2   33.03 kB
+dist/assets/PretendardVariable.subset.41-BUACvzZC.woff2   33.18 kB
+dist/assets/PretendardVariable.subset.50-C8IyFH7L.woff2   33.22 kB
+dist/assets/PretendardVariable.subset.54-Dt2-cQkx.woff2   33.34 kB
+dist/assets/PretendardVariable.subset.5-K_MNGNCe.woff2    33.62 kB
+dist/assets/PretendardVariable.subset.6-Bxhohlcm.woff2    33.96 kB
+dist/assets/PretendardVariable.subset.9-Btb3bmS6.woff2    34.01 kB
+dist/assets/PretendardVariable.subset.55-jFgflYjX.woff2   34.18 kB
+dist/assets/PretendardVariable.subset.39-B_7wfth9.woff2   34.25 kB
+dist/assets/PretendardVariable.subset.52-CNgqKOOJ.woff2   34.35 kB
+dist/assets/PretendardVariable.subset.0-BHUkWNFR.woff2    34.56 kB
+dist/assets/PretendardVariable.subset.53-BSRnyb-u.woff2   34.57 kB
+dist/assets/PretendardVariable.subset.42-Dp-5mnyL.woff2   34.60 kB
+dist/assets/PretendardVariable.subset.45-BniyRFfm.woff2   34.66 kB
+dist/assets/PretendardVariable.subset.36-Dn5IBRQB.woff2   34.68 kB
+dist/assets/PretendardVariable.subset.34-CaCS33Md.woff2   34.72 kB
+dist/assets/PretendardVariable.subset.69-YT16ymcp.woff2   34.78 kB
+dist/assets/PretendardVariable.subset.38-D4hu443z.woff2   34.80 kB
+dist/assets/PretendardVariable.subset.62-DGSAWCfb.woff2   34.87 kB
+dist/assets/PretendardVariable.subset.33--0OT__YQ.woff2   34.91 kB
+dist/assets/PretendardVariable.subset.17-BfZSA-Xc.woff2   34.94 kB
+dist/assets/PretendardVariable.subset.4-Bvh2YGoc.woff2    35.15 kB
+dist/assets/PretendardVariable.subset.56-BwZdvJZQ.woff2   35.18 kB
+dist/assets/PretendardVariable.subset.35-DWFYRGLp.woff2   35.35 kB
+dist/assets/PretendardVariable.subset.27-CT6nuW9L.woff2   35.42 kB
+dist/assets/PretendardVariable.subset.61-PUuTnod4.woff2   35.64 kB
+dist/assets/PretendardVariable.subset.15-D04iXIE3.woff2   35.66 kB
+dist/assets/PretendardVariable.subset.13-C42mj_j2.woff2   35.70 kB
+dist/assets/PretendardVariable.subset.47-B-cWO2pw.woff2   35.72 kB
+dist/assets/PretendardVariable.subset.57-BwFDg-Fs.woff2   35.96 kB
+dist/assets/PretendardVariable.subset.51-Bxd0gTAs.woff2   36.02 kB
+dist/assets/PretendardVariable.subset.49-BblQVys9.woff2   36.05 kB
+dist/assets/PretendardVariable.subset.20-Ig1-z3n5.woff2   36.12 kB
+dist/assets/PretendardVariable.subset.14-Bl512uUX.woff2   36.51 kB
+dist/assets/PretendardVariable.subset.46-BMRq7xC-.woff2   36.54 kB
+dist/assets/PretendardVariable.subset.8-CRbJhhyA.woff2    36.69 kB
+dist/assets/PretendardVariable.subset.21-yKPEdLXC.woff2   37.26 kB
+dist/assets/PretendardVariable.subset.11-CqVmlKJn.woff2   37.40 kB
+dist/assets/PretendardVariable.subset.48-Ct-fWrPO.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.60-CeHezjjf.woff2   37.77 kB
+dist/assets/PretendardVariable.subset.16-BQUnS2GX.woff2   37.91 kB
+dist/assets/PretendardVariable.subset.12-BHuZSgT0.woff2   37.94 kB
+dist/assets/PretendardVariable.subset.91-Csm0YNoH.woff2   37.99 kB
+dist/assets/PretendardVariable.subset.30-CWDM1c0J.woff2   38.44 kB
+dist/assets/PretendardVariable.subset.28-CpO0Y96p.woff2   38.46 kB
+dist/assets/PretendardVariable.subset.22-CSqxKoOs.woff2   38.68 kB
+dist/assets/PretendardVariable.subset.59-CMkWjhdo.woff2   38.97 kB
+dist/assets/PretendardVariable.subset.29-D6hjrUWm.woff2   39.28 kB
+dist/assets/PretendardVariable.subset.32-CGnFWD2i.woff2   40.21 kB
+dist/assets/PretendardVariable.subset.23-DK80wi0t.woff2   40.28 kB
+dist/assets/PretendardVariable.subset.26-Sozl8dw8.woff2   40.32 kB
+dist/assets/PretendardVariable.subset.3-Dqw33sf4.woff2    40.64 kB
+dist/assets/PretendardVariable.subset.58-DlucQts_.woff2   41.56 kB
+dist/assets/PretendardVariable.subset.18-CwAxMC3C.woff2   41.60 kB
+dist/assets/PretendardVariable.subset.31-CdmyZ5mm.woff2   41.89 kB
+dist/assets/PretendardVariable.subset.25-CsoWBIZB.woff2   42.03 kB
+dist/assets/PretendardVariable.subset.19-CJu4Zcdo.woff2   42.32 kB
+dist/assets/PretendardVariable.subset.2-dCZkyKLw.woff2    43.92 kB
+dist/assets/index-CQWvs7G8.css                            80.94 kB │ gzip:  22.54 kB
+dist/assets/index-BMQjIVBk.js                            364.77 kB │ gzip: 109.94 kB
+
+✓ built in 733ms
+```
+
+```text
+git diff --stat main... -- web cases server/netproof_api/models.py vercel.json
+
+```
+
+```text
+git diff --check
+
+```
+
+로컬 실연은 기존 합성 입력과 임시 SQLite를 사용했다. 아래 actual·확인 값은 실연용 합성 입력이며 실제 장비 결과가 아니다. 기존 cases 파일·expect는 변경하지 않았다. 보고서는 id·결과·비교·버전만 포함하며, 별도로 요구된 export JSON은 합성 구성과 합성 제목을 포함한다.
+
+```text
+flask --app server/wsgi.py rejudge --dry-run
+엔진 0.2.0 · 대상 3건 · 결과 바뀜 3건 · 비교 바뀜 3건 · 건너뜀 0건 · DB 변경 없음(dry-run)
+#1 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
+불일치 사라짐 #1 (확인됨)
+#2 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
+불일치 생김 #2 (확인됨)
+#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE · 0.1.4→0.2.0
+flask --app server/wsgi.py rejudge
+엔진 0.2.0 · 대상 3건 · 결과 바뀜 3건 · 비교 바뀜 3건 · 건너뜀 0건
+#1 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
+불일치 사라짐 #1 (확인됨)
+#2 PASS→DENY · AGREE→DISAGREE · 0.1.4→0.2.0
+불일치 생김 #2 (확인됨)
+#3 PASS→UNSUPPORTED · AGREE→NOT_COMPARABLE · 0.1.4→0.2.0
+flask --app server/wsgi.py rejudge --dry-run
+엔진 0.2.0 · 대상 0건 · 결과 바뀜 0건 · 비교 바뀜 0건 · 건너뜀 0건 · DB 변경 없음(dry-run)
+GET /api/cases/2/export (합성 입력·확인)
+{
+  "claim": {
+    "expected": "PASS",
+    "source": "AI 답 예시(합성)",
+    "text": "PC1에서 10.20.20.5의 HTTPS 서비스에 접근할 수 있다."
+  },
+  "expect": {
+    "result": "PASS"
+  },
+  "flow": {
+    "dst": "10.20.20.5",
+    "dst_port": 443,
+    "proto": "tcp",
+    "src": "10.10.10.10"
+  },
+  "id": "field-002",
+  "known_mismatch": {
+    "engine_result": "DENY",
+    "engine_version": "0.2.0",
+    "note": "엔진 판정 DENY과 확인된 실제 결과 PASS가 다름 — 사례 #2"
+  },
+  "network": {
+    "acls": {
+      "101": [
+        "access-list 101 deny tcp 10.10.10.0 0.0.0.255 10.20.20.0 0.0.0.255 eq 443",
+        "access-list 101 permit ip any any"
+      ]
+    },
+    "devices": [
+      {
+        "gateway": "10.10.10.1",
+        "id": "PC1",
+        "interfaces": [
+          {
+            "ip": "10.10.10.10/24",
+            "name": "eth0"
+          }
+        ],
+        "kind": "host"
+      },
+      {
+        "id": "R1",
+        "interfaces": [
+          {
+            "acl_in": "101",
+            "ip": "10.10.10.1/24",
+            "name": "g0/0"
+          },
+          {
+            "ip": "10.20.20.1/24",
+            "name": "g0/1"
+          }
+        ],
+        "kind": "router"
+      },
+      {
+        "gateway": "10.20.20.1",
+        "id": "SRV",
+        "interfaces": [
+          {
+            "ip": "10.20.20.5/24",
+            "name": "eth0"
+          }
+        ],
+        "kind": "host"
+      }
+    ]
+  },
+  "source": "동기 사례(작성자 익명). 실제 결과 출처: device — 합성 시험 메모",
+  "title": "합성 불일치 시험"
+}
+임시 SQLite 삭제 확인: True
+```
+
+실연 준비 때 공백 포함 닉네임이 거절됐고, Windows cp949 출력은 export의 긴 대시를 인코딩하지 못했다. 합성 닉네임과 UTF-8 표준 출력을 사용해 위 명령 전체를 다시 성공시켰다. 실패한 실연의 임시 DB까지 삭제 확인했다. 운영 DB에는 연결하거나 rejudge를 실행하지 않았다. 신규 서버 테스트는 205건 처리 중 두 번째 커밋 실패를 주입해 첫 100건만 남고 재실행이 105건만 처리하는 것도 확인했다.
+
+Codex (GPT-6)
 
 ## 배포 기록 (2026-10-06)
 
@@ -219,7 +481,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
 4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
 - [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
-5. [ ] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **(진행 중: 2026-10-10 설계 승인, 위 작업 정의)**
+5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **(2026-10-10 구현·테스트 완료, Claude 리뷰·사용자 병합 대기)**
 6. [ ] 구성도 그림 + 경로 재생 — ②
 7. [ ] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤
 8. [ ] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④
@@ -248,7 +510,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 
 ## 다음 LLM이 확인할 내용
-- **Codex(구현):** 위 「작업 정의 — 불일치 사례 회귀 테스트·엔진 버전별 재판정」 범위만 구현한다. 엔진 계산 코드·`cases/` 기존 파일·`web/`·DB 표는 건드리지 않는다.
+- **Claude(리뷰):** 이번 구현은 아래 테스트 결과와 완료 조건 7을 직접 재현한다. 엔진 변경은 버전 문자열·`tests/test_cases.py`뿐이고, 기존 `cases/`·`expect`·`web/`·DB 표·배포 구성 diff는 0줄이어야 한다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
