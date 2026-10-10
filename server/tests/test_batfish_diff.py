@@ -113,7 +113,7 @@ def test_forward_and_direct_reverse_packets(proto, port):
 
 
 @pytest.mark.parametrize("disposition,step", [("DENIED_IN", "acl_in"), ("DENIED_OUT", "acl_out"),
-    ("NO_ROUTE", "route"), ("NULL_ROUTED", "route"), ("NEIGHBOR_UNREACHABLE", "route"),
+    ("NO_ROUTE", "route"), ("NULL_ROUTED", "route"), ("NEIGHBOR_UNREACHABLE", "send"),
     ("INSUFFICIENT_INFO", "route"), ("LOOP", "route"), ("EXITS_NETWORK", "other")])
 def test_disposition_mapping_and_last_hop(disposition, step):
     trace = SimpleNamespace(disposition=disposition, hops=[SimpleNamespace(node="pc1"), SimpleNamespace(node="r1")])
@@ -274,7 +274,8 @@ def test_negative_count_is_rejected_before_optional_import():
     assert error.value.code == 2
 
 
-def test_observed_wrong_next_hop_stage_difference_is_kept_and_exits_one(monkeypatch, tmp_path, capsys):
+@pytest.mark.parametrize("disposition,step,exit_code", [("NEIGHBOR_UNREACHABLE", "send", 0), ("EXITS_NETWORK", "other", 1)])
+def test_wrong_next_hop_stage_matches_and_only_unknown_disposition_is_preserved(monkeypatch, tmp_path, capsys, disposition, step, exit_code):
     network = case(2)
     network["devices"][1]["routes"][0]["next_hop"] = "192.168.12.3"
     flow = next(diff.host_flows(network))
@@ -282,15 +283,34 @@ def test_observed_wrong_next_hop_stage_difference_is_kept_and_exits_one(monkeypa
     monkeypatch.setattr(diff, "configurations", lambda seed, count: iter([("wrong-next-hop", network)]))
     monkeypatch.setattr(diff, "host_flows", lambda net: iter([flow]))
     state = fake_batfish(monkeypatch, lambda headers: SimpleNamespace(
-        disposition="NEIGHBOR_UNREACHABLE", hops=[SimpleNamespace(node="r1")]))
-    assert diff.main(["--keep", str(tmp_path)]) == 1
+        disposition=disposition, hops=[SimpleNamespace(node="r1")]))
+    assert diff.main(["--keep", str(tmp_path)]) == exit_code
     output = capsys.readouterr().out
-    report = json.loads(output.splitlines()[0])
-    assert report["result_same"] and report["step_compared"] and not report["step_same"]
-    assert report["engine"]["decisive"]["step"] == "send"
-    assert report["batfish"]["outcomes"][0]["step"] == "route"
-    assert "result_different=0 step_compared=1 step_different=1" in output
-    assert Path(report["configs_path"]).is_dir() and state["deleted"]
+    assert f"result_different=0 step_compared=1 step_different={exit_code}" in output
+    assert state["deleted"]
+    if exit_code:
+        report = json.loads(output.splitlines()[0])
+        assert report["result_same"] and report["step_compared"] and not report["step_same"]
+        assert report["engine"]["decisive"]["step"] == "send"
+        assert report["batfish"]["outcomes"][0]["step"] == step
+        assert Path(report["configs_path"]).is_dir()
+    else:
+        assert not output.startswith("{") and not list(tmp_path.iterdir())
+
+
+def test_host_without_gateway_maps_no_route_to_send_and_exits_zero(monkeypatch, tmp_path, capsys):
+    network = case(1)
+    network["devices"][0].pop("gateway")
+    flow = next(diff.host_flows(network))
+    verdict = diff.verify(network, flow)
+    assert verdict["result"] == "DENY" and verdict["decisive"]["step"] == "send"
+    monkeypatch.setattr(diff, "configurations", lambda seed, count: iter([("host-no-gateway", network)]))
+    monkeypatch.setattr(diff, "host_flows", lambda net: iter([flow]))
+    state = fake_batfish(monkeypatch, lambda headers: SimpleNamespace(
+        disposition="NO_ROUTE", hops=[SimpleNamespace(node="pc1")]))
+    assert diff.main(["--keep", str(tmp_path)]) == 0
+    assert "result_different=0 step_compared=1 step_different=0" in capsys.readouterr().out
+    assert state["deleted"] and not list(tmp_path.iterdir())
 
 
 def test_network_and_empty_default_keep_are_cleaned_on_traceroute_failure(monkeypatch, tmp_path, capsys):

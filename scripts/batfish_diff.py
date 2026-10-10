@@ -20,8 +20,8 @@ from netproof_engine.verify import verify
 
 IMAGE = "batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c"
 SERVICES = (("tcp", 22), ("tcp", 80), ("tcp", 443), ("udp", 53), ("icmp", None))
-STEPS = {"DENIED_IN": "acl_in", "DENIED_OUT": "acl_out",
-         **dict.fromkeys(("NO_ROUTE", "NULL_ROUTED", "NEIGHBOR_UNREACHABLE", "INSUFFICIENT_INFO", "LOOP"), "route")}
+STEPS = {"DENIED_IN": "acl_in", "DENIED_OUT": "acl_out", "NEIGHBOR_UNREACHABLE": "send",
+         **dict.fromkeys(("NO_ROUTE", "NULL_ROUTED", "INSUFFICIENT_INFO", "LOOP"), "route")}
 
 
 class SkipConfiguration(ValueError):
@@ -120,11 +120,18 @@ class Outcome:
     step: str
 
 
-def trace_outcomes(traces):
+def trace_outcomes(traces, host_nodes=()):
     if not traces:
         raise RuntimeError("Batfish returned no traces; cannot compare")
-    return [Outcome(trace.disposition, str(trace.hops[-1].node) if trace.hops else None,
-                    STEPS.get(trace.disposition, "other")) for trace in traces]
+    hosts = {name.lower() for name in host_nodes}
+    outcomes = []
+    for trace in traces:
+        device = str(trace.hops[-1].node) if trace.hops else None
+        step = STEPS.get(trace.disposition, "other")
+        if step == "route" and device and device.lower() in hosts:
+            step = "send"
+        outcomes.append(Outcome(trace.disposition, device, step))
+    return outcomes
 
 
 def engine_direction(verdict):
@@ -286,7 +293,7 @@ def run_batfish(args):
                                      if any(str(ipaddress.IPv4Interface(i["ip"]).ip) == src for i in d["interfaces"]))
                         frame = bf.q.traceroute(startLocation=owner.lower(), headers=HeaderConstraints(**options)).answer().frame()
                         traces = [trace for row in frame["Traces"] for trace in row]
-                        cache[key] = trace_outcomes(traces)
+                        cache[key] = trace_outcomes(traces, (d["id"] for d in network["devices"] if d["kind"] == "host"))
                     return cache[key]
 
                 for flow, verdict in supported:

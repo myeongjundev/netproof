@@ -54,7 +54,7 @@ python scripts/batfish_diff.py [--host localhost] [--seed 20261010] [--count 40]
 
 정방향 출발 포트는 50000, ICMP는 type 8·code 0이다. TCP는 SYN만 켠다. one-way는 정방향 `traceroute`만 요청한다. session은 정방향의 모든 trace가 ACCEPTED일 때 목적지 호스트에서 **직접 만든 복귀 패킷**으로 `traceroute`를 요청한다. 주소와 TCP/UDP 포트를 교환하고 TCP는 ACK만 켜며 ICMP는 type 0·code 0으로 바꾼다. 어느 방향에서든 모든 trace가 ACCEPTED인 경우만 Batfish 측 PASS로 비교한다. 동일 구성·패킷의 정방향 결과는 session/one-way 사이에서 재사용한다. 빈 trace는 PASS로 처리하지 않고 실행 실패로 보고한다.
 
-두 결과가 모두 DENY일 때 차단 단계도 비교한다. Batfish 마지막 hop 노드를 엔진 decisive.device와 대소문자 무시로 비교하고, 정방향/복귀 방향도 비교한다. 단계는 DENIED_IN→acl_in, DENIED_OUT→acl_out, NO_ROUTE/NULL_ROUTED/NEIGHBOR_UNREACHABLE/INSUFFICIENT_INFO/LOOP→route다. 나머지는 other로 기록하고 단계 불일치로 센다. 여러 차단 trace가 있으면 모두 장비·단계가 같아야 한다.
+두 결과가 모두 DENY일 때 차단 단계도 비교한다. Batfish 마지막 hop 노드를 엔진 decisive.device와 대소문자 무시로 비교하고, 정방향/복귀 방향도 비교한다. 단계는 DENIED_IN→acl_in, DENIED_OUT→acl_out, NEIGHBOR_UNREACHABLE→send, NO_ROUTE/NULL_ROUTED/INSUFFICIENT_INFO/LOOP→route다. 단, 마지막 hop이 입력 network의 host 장비이면 route 범주도 send로 대응한다(장비 이름 대소문자 무시). 나머지는 other로 기록하고 단계 불일치로 센다. 여러 차단 trace가 있으면 모두 장비·단계가 같아야 한다.
 
 표준 출력은 구성 제외 JSON, 불일치 JSON 한 줄씩, 마지막 요약 한 줄이다. Windows에서 리다이렉션해도 원문이 깨지지 않도록 비ASCII 문자는 JSON escape로 출력한다. 진행 중 구성 수는 stderr에 출력한다. 요약에는 비교 수·결과 같음/다름·단계 비교/다름·제외 네 범주·시드·모양별 생성 수·초 단위 실행 시간이 있다. 불일치 JSON에는 구성 이름, 통신, 엔진 결과/reason/decisive/방향, Batfish 결과/방향/처리 목록, 비교 사실, 보존 경로가 있다. 보존 경로의 `configs/*.cfg`는 업로드한 설정이며 `network.json`은 재현용 입력이다. 결과·단계 불일치 모두 종료 코드 1로 끝나지만 나머지 구성도 끝까지 검사한다.
 
@@ -68,8 +68,10 @@ pfSense 상태 추적, UNSUPPORTED/INVALID 통신, 비연속 와일드카드, �
 
 ## 마지막 실행
 
-2026-10-11 Codex, main `87d2890`(PR #57 병합), 엔진 0.2.0. 기본 시드 20261010·모양마다40개로 83구성/1660통신을 직접 실행했다. 결과1660건 일치·결과 불일치0, 차단 단계1511건 비교 중44건 다름, 제외 네 범주 모두0, 201.25초, 종료 코드1이다. 44건은 모두 DENY·장비·방향은 같으나 잘못된 다음 홉의 엔진 단계 `send`와 지정된 Batfish NEIGHBOR_UNREACHABLE→`route` 대응이 다르다. 엔진·대응표는 바꾸지 않았다. 불일치0 목표는 미달이며 분석은 별도 과제로 남긴다.
+2026-10-11 Codex, PR #58 R1·N1 수정 후 엔진 0.2.0으로 기본값을 다시 실행했다. 시드20261010·각 모양40개, cases3 + A40 + B40 = 83구성/1660통신이다. 결과1660건 일치·결과 불일치0, DENY 단계1511건 비교·단계 불일치0, 제외 네 범주 모두0, **204.70초·종료 코드0**이다.
 
-원문 JSON 44줄과 요약·진행 출력·보존 설정 5경로는 [HANDOFF 테스트 결과](../HANDOFF.md#테스트-결과--batfish-교차-검증-도구-codex-직접-실행-2026-10-11)에 있다. 보존 루트는 `C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj`이며 random-B-000/009/013/016/020의 configs와 network.json이 실제로 존재함을 확인했다. 컨테이너는 고정 digest·127.0.0.1 바인딩이며 실행 후 running=false/status=exited를 확인했다. 교차 검증은 실제 장비 대조를 대신하지 않는다.
+최초 44건은 NEIGHBOR_UNREACHABLE을 route로 묶은 **도구의 대응표 오류였고 send로 수정했다**. 마지막 hop이 host 장비인 route 범주도 send로 대응하도록 N1과 게이트웨이 없는 호스트 테스트1개를 반영했다. 엔진 계산·버전·expect는 바꾸지 않았다. other 처리의 실제 차이는 계속 JSON/설정 보존·종료1로 검사한다.
+
+최신 요약 원문·명령·진행 출력·회귀 출력은 [HANDOFF 최신 테스트 결과](../HANDOFF.md)에 있다. 새 불일치 JSON은 없으며 최초 JSON44줄과 설정5경로는 HANDOFF의 수정 전 기록으로 남겼다. 고정 digest·127.0.0.1 바인딩 컨테이너는 실행 후 running=false/status=exited를 확인했다. 교차 검증은 실제 장비 대조를 대신하지 않는다.
 
 Codex (GPT-6)

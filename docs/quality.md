@@ -33,7 +33,7 @@ Claude(Claude Code, Sonnet 5)가 `main` `a716341`(엔진 0.1.3, PR #8 병합 직
 
 가장 큰 구멍이고, LLM이 대신할 수 없는 유일한 항목이다.
 
-2026-10-11 보완 측정: [Batfish 교차 검증 도구](batfish-diff.md)를 엔진0.2.0·고정 시드20261010·각 모양40개로 직접 실행했다(`python scripts/batfish_diff.py`, 별도 pybatfish venv/고정 Docker digest). 83구성×20통신=1660건의 PASS/DENY는 모두 같았고, DENY 단계1511건 중44건은 잘못된 다음 홉에서 엔진 `send`와 Batfish `NEIGHBOR_UNREACHABLE`→`route`가 달랐다. 제외0·201.25초·종료1이며 불일치 JSON/설정을 보존했다([HANDOFF](../HANDOFF.md)). 엔진은 수정하지 않았고 불일치 분석은 별도 과제다. **독립 계산기와의 교차 검증이며 실제 장비 대조를 대신하지 않는다.**
+2026-10-11 보완 측정(R1·N1 수정 후): [Batfish 교차 검증 도구](batfish-diff.md)를 엔진0.2.0·시드20261010·각 모양40개로 직접 재실행했다(`python scripts/batfish_diff.py`, 별도 pybatfish venv/고정 Docker digest·127.0.0.1). 83구성×20통신=1660건의 PASS/DENY와 DENY 단계1511건이 모두 같았다. 결과/단계 불일치0·제외0·204.70초·종료0이다. 최초44건은 도구의 대응표 오류였고 NEIGHBOR_UNREACHABLE→send로 수정했으며, 호스트 route→send도 반영했다. 엔진·expect는 변경하지 않았다([HANDOFF 실행 원문](../HANDOFF.md)). **독립 계산기와의 교차 검증이며 실제 장비 대조를 대신하지 않는다.**
 
 **측정**
 - `cases/` 3개 전부 `source`가 "합성 사례(Workbench 초안, 실제와 무관)"다.
