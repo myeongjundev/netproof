@@ -134,3 +134,19 @@ PostgreSQL 컨테이너를 띄우고 서버 테스트 전체를 돌릴 수 있�
 ```bash
 cd server && NETPROOF_TEST_DATABASE_URL="postgresql://user:pw@127.0.0.1:55432/db?sslmode=disable" ../.venv/Scripts/python -m pytest -q
 ```
+
+
+## 엔진 버전이 바뀐 배포 뒤 재판정
+
+사용자 또는 사용자가 허락한 Claude가 실행한다. 병합·배포 반영을 확인한 뒤 검토자 지정(7)과 같은 가려진 입력 방식으로 전용 계정 연결 주소를 `DATABASE_URL`에 넣는다. 주소는 채팅·명령줄·캡처에 넣지 않는다.
+
+```powershell
+$env:DATABASE_URL = [System.Net.NetworkCredential]::new('', (Read-Host 'DATABASE_URL' -AsSecureString)).Password
+.venv\Scripts\python -m flask --app server/wsgi.py rejudge --dry-run
+# 보고서를 확인한 뒤 실행한다.
+.venv\Scripts\python -m flask --app server/wsgi.py rejudge
+.venv\Scripts\python -m flask --app server/wsgi.py rejudge --dry-run
+Remove-Item Env:DATABASE_URL
+```
+
+마지막 dry-run에서 대상 0건을 확인한다. 건너뜀이 남으면 사유를 확인하고 해결한 뒤 다시 실행한다. 100건마다 커밋하므로 중간 실패 뒤 재실행은 남은 버전의 사례만 처리한다. 확인·실제 결과·수정 시각은 유지한다. 보고서를 HANDOFF와 작업 로그에 남긴다. 이 과제 병합 뒤 첫 운영 실행은 `0.1.4` 사례 전체가 대상이다.

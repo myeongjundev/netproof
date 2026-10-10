@@ -100,6 +100,12 @@ def create_app(overrides: dict | None = None) -> Flask:
     def assets(name: str):
         return send_from_directory(dist / "assets", name)
 
+    @app.cli.command("rejudge")
+    @click.option("--dry-run", is_flag=True, help="계산과 보고만 하고 DB를 바꾸지 않는다.")
+    def rejudge(dry_run: bool):
+        """버전이 다른 사례를 현재 엔진으로 재판정한다."""
+        click.echo(cases.rejudge_cases(dry_run=dry_run))
+
     @app.cli.command("init-db")
     def init_db():
         """표를 만든다. PostgreSQL(Supabase)이면 행 수준 보안(RLS)을 켜서

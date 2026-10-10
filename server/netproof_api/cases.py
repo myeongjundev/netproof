@@ -74,6 +74,52 @@ def _judge(network, flow, claim) -> tuple[dict, str]:
     return verdict, compare(verdict, claim["expected"] if claim else None)
 
 
+def rejudge_cases(*, dry_run: bool = False) -> str:
+    """id 순으로 100건씩 처리한다. 보고서에는 입력이나 예외 원문을 싣지 않는다."""
+    target = Case.query.filter(Case.engine_version != ENGINE_VERSION)
+    total = target.count()
+    result_changes = comparison_changes = skipped = 0
+    lines = []
+    last_id = 0
+    while batch := target.filter(Case.id > last_id).order_by(Case.id).limit(100).all():
+        last_id = batch[-1].id
+        for case in batch:
+            problem = _limit_problem(case.network)
+            if problem:
+                skipped += 1
+                lines.append(f"건너뜀 #{case.id} (입력 한도 초과)")
+                continue
+            try:
+                verdict, comparison = _judge(case.network, case.flow, case.claim)
+            except Exception:
+                skipped += 1
+                lines.append(f"건너뜀 #{case.id} (엔진 예외)")
+                continue
+            result = verdict["result"]
+            result_changes += result != case.result
+            comparison_changes += comparison != case.comparison
+            if result != case.result or comparison != case.comparison:
+                lines.append(f"#{case.id} {case.result}→{result} · {case.comparison}→{comparison} · {case.engine_version}→{ENGINE_VERSION}")
+            if case.actual_result in ACTUAL_RESULTS:
+                before = case.result in ACTUAL_RESULTS and case.result != case.actual_result
+                after = result in ACTUAL_RESULTS and result != case.actual_result
+                if before != after:
+                    change = "생김" if after else "사라짐"
+                    confirmed = " (확인됨)" if case.confirmed_at is not None else ""
+                    lines.append(f"불일치 {change} #{case.id}{confirmed}")
+            if not dry_run:
+                case.verdict, case.result = verdict, result
+                case.comparison, case.engine_version = comparison, ENGINE_VERSION
+        if not dry_run:
+            db.session.commit()
+    if dry_run:
+        db.session.rollback()
+    summary = f"엔진 {ENGINE_VERSION} · 대상 {total}건 · 결과 바뀜 {result_changes}건 · 비교 바뀜 {comparison_changes}건 · 건너뜀 {skipped}건"
+    if dry_run:
+        summary += " · DB 변경 없음(dry-run)"
+    return "\n".join([summary, *lines])
+
+
 @bp.post("/verify")
 def verify_endpoint():
     data = _body()
@@ -338,7 +384,7 @@ def export_case(case_id: int):
     expect = {"result": case.actual_result}
     if case.actual_result == case.result == "DENY" and decisive:
         expect.update(device=decisive.get("device"), step=decisive.get("step"), rule_seq=decisive.get("rule_seq"))
-    return jsonify({
+    exported = {
         "id": f"field-{case.id:03d}",
         "title": case.title,
         "source": f"동기 사례(작성자 익명). 실제 결과 출처: {case.actual_source} — {case.actual_note or ''}".strip(),
@@ -346,7 +392,14 @@ def export_case(case_id: int):
         "flow": case.flow,
         "claim": case.claim,
         "expect": expect,
-    })
+    }
+    if case.result in ACTUAL_RESULTS and case.result != case.actual_result:
+        exported["known_mismatch"] = {
+            "engine_result": case.result,
+            "engine_version": case.engine_version,
+            "note": f"엔진 판정 {case.result}과 확인된 실제 결과 {case.actual_result}가 다름 — 사례 #{case.id}",
+        }
+    return jsonify(exported)
 
 
 @bp.get("/dashboard")
