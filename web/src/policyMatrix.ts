@@ -40,7 +40,7 @@ export function serviceKey(service: MatrixService): string {
   return `icmp/${value === "8" ? "echo" : value === "0" ? "echo-reply" : value}`;
 }
 
-export function flowForCell(cell: MatrixCell, services: (MatrixService & { key: string })[], mode: MatrixSpec["mode"]): Flow {
+export function flowForCell(cell: Pick<MatrixCell, "src" | "dst" | "service">, services: (MatrixService & { key: string })[], mode: MatrixSpec["mode"]): Flow {
   const service = services.find(s => s.key === cell.service);
   if (!service) throw Error("검사한 서비스를 찾을 수 없습니다");
   return { src: cell.src, dst: cell.dst, proto: service.proto, mode,

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "fix-01", "title": "HTTPS는 열고 SSH는 막기", "baseCaseId": "synthetic-01",
+    "prompt": "PC1에서 SRV로 HTTPS를 사용할 수 있게 하고, 같은 방향의 SSH는 막히게 구성을 바꿔 보세요.",
+    "goals": [
+      { "src": "10.10.10.10", "dst": "10.20.20.5", "service": "tcp/443", "expect": "PASS", "label": "PC1 → SRV · HTTPS" },
+      { "src": "10.10.10.10", "dst": "10.20.20.5", "service": "tcp/22", "expect": "DENY", "label": "PC1 → SRV · SSH" }
+    ]
+  },
+  {
+    "id": "fix-02", "title": "ping 왕복 만들기", "baseCaseId": "synthetic-02",
+    "prompt": "PC1과 SRV2에서 서로 ping을 시작할 수 있게 구성을 바꿔 보세요. 두 방향 모두 왕복 통신으로 검사합니다.",
+    "goals": [
+      { "src": "10.10.10.10", "dst": "10.30.30.5", "service": "icmp/echo", "expect": "PASS", "label": "PC1 → SRV2 · Ping" },
+      { "src": "10.30.30.5", "dst": "10.10.10.10", "service": "icmp/echo", "expect": "PASS", "label": "SRV2 → PC1 · Ping" }
+    ]
+  },
+  {
+    "id": "fix-03", "title": "반대 방향 SSH도 막기", "baseCaseId": "synthetic-03",
+    "prompt": "PC1과 SRV 사이의 SSH는 양쪽에서 시작해도 막히게 하고, PC1에서 SRV로 HTTP는 사용할 수 있게 구성을 바꿔 보세요.",
+    "goals": [
+      { "src": "10.10.10.10", "dst": "10.20.20.5", "service": "tcp/22", "expect": "DENY", "label": "PC1 → SRV · SSH" },
+      { "src": "10.20.20.5", "dst": "10.10.10.10", "service": "tcp/22", "expect": "DENY", "label": "SRV → PC1 · SSH" },
+      { "src": "10.10.10.10", "dst": "10.20.20.5", "service": "tcp/80", "expect": "PASS", "label": "PC1 → SRV · HTTP" }
+    ]
+  }
+]

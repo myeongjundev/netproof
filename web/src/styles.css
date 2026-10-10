@@ -598,5 +598,17 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .trace-step-detail.drop > strong { color: var(--deny); }
 .trace-step-button { text-align: left; white-space: normal; overflow-wrap: anywhere; }
 .trace-step-button[aria-current="step"] { border-color: var(--accent); color: var(--accent); }
+
+.fix-goals ul { list-style: none; padding: 0; display: grid; gap: 16px; }
+.fix-goals li, .fix-results li { overflow-wrap: anywhere; }
+.fix-goals li { border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.fix-goals li p { margin: 6px 0; }
+.fix-results h3 { margin: 16px 0 8px; }
+.fix-fact { border-top: 1px solid var(--line); padding-top: 16px; }
+.factual-result .hop.ok .mark { color: var(--muted); }
+.factual-result .ok { color: var(--ink); background: transparent; }
+.factual-result .acl-hit-permit { color: var(--ink); background: var(--gray-bg); }
+.fix-exercise .practice-problem { grid-template-columns: 1fr; }
+.fix-exercise .practice-config { margin-top: 20px; }
 .trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }
 @media(pointer: coarse) { .trace-player button, .topology-inventory summary { min-height: 44px; } }

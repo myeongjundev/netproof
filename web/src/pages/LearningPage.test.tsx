@@ -3,6 +3,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningPage } from "./LearningPage";
 import { LESSONS } from "../learning";
 import { TOOL_TOPICS, TOOL_NOTICE, SECURITY_EXAMPLE, SECURITY_DOC } from "../toolTopics";
+import { EXERCISES } from "../exercises";
+
+it("학습실 고치기 과제에는 합성 안내·제목·설명·시작 링크만 있다", () => {
+  const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
+  const section = html.slice(html.indexOf("<h2>고치기 과제"), html.indexOf("<h2>수업 도구"));
+  expect(section).toContain("합성 구성"); expect(section.match(/시작하기 →/g)).toHaveLength(3);
+  for (const exercise of EXERCISES) { expect(section).toContain(exercise.title); expect(section).toContain(exercise.prompt); expect(section).toContain(`href="#/fix/${exercise.id}"`); }
+  expect(section).not.toMatch(/완료|성공|정답|점수|통과|%|badge|access-list/);
+});
 
 it("목록의 세 연습 주제는 축소 구성도와 상세 링크를 보인다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));

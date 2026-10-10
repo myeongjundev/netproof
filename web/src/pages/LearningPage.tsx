@@ -2,6 +2,7 @@ import { LESSONS, lessonById } from "../learning";
 import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
 import { TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
+import { EXERCISES } from "../exercises";
 
 function OtherTopics({ current }: { current?: string }) {
   return <section className="learning-other"><h2>다른 주제</h2><nav aria-label="다른 주제">{[...LESSONS, ...TOOL_TOPICS].map(item => <a className="ghost-link" href={`#/learn/${item.id}`} key={item.id} aria-current={item.id === current ? "page" : undefined}>{item.title}{item.id === current ? " · 보는 중" : ""}</a>)}</nav></section>;
@@ -45,6 +46,11 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
       <span className="home-eyebrow">{item.category}</span><span className="learning-card-title">{item.title}</span><PathStrip {...item.path} size="small" /><span>{item.task.question}</span><span>실습 열기 →</span>
     </a>)}</nav>
     <p className="home-description">확인할 주제를 선택하세요. 연습용 네트워크로 실습합니다.</p>
+    <section><h2>고치기 과제</h2><p className="hint">합성 구성과 목표 통신을 받고 구성을 바꿔 계산을 확인합니다.</p>
+      <nav className="learning-cards" aria-label="고치기 과제">{EXERCISES.map(item => <a className="learning-card" href={`#/fix/${item.id}`} key={item.id}>
+        <span className="learning-card-title">{item.title}</span><span>{item.prompt}</span><span>시작하기 →</span>
+      </a>)}</nav>
+    </section>
     <section><h2>수업 도구</h2><nav className="learning-cards" aria-label="수업 도구">{TOOL_TOPICS.map(item => <a className="learning-card" href={`#/learn/${item.id}`} key={item.id}>
       <span className="home-eyebrow">{item.category}</span><span className="learning-card-title">{item.title}</span><span>{item.description}</span><span>공부하기 →</span>
     </a>)}</nav></section>
