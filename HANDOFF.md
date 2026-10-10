@@ -19,7 +19,11 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 현재 작업 상태
 - 작업: **PR #58 R1·N1 수정·재검증 완료, 재리뷰 대기**. 도구의 차단 단계 대응표를 수정하고 독립 테스트53건을 확인했다. 기본값 재실행1660건 결과·DENY 단계1511건 일치, 불일치0·제외0·종료0. 최초44건은 대응표 오류였다. 엔진은 변경하지 않았다. 최신 원문은 아래 「테스트 결과 — PR #58 R1·N1」.
 - 브랜치: `codex/batfish-diff`, PR #57 병합 main `87d2890`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽고 GitHub MERGED/main 기준을 확인했다. main 대상 [구현 PR #58](https://github.com/myeongjundev/netproof/pull/58)을 열었으며 병합하지 않았다.
-- 다음 차례: **Claude(재리뷰) → 사용자(병합 결정).** R1·N1 반영과 최신 실행 기록을 확인한다. 병합하지 않았고 Claude에게 자동 메시지를 보내지 않았다.
+- 다음 차례: **사용자(병합 결정).** Claude 재리뷰 PASS — 아래 「재리뷰 기록 — PR #58」. 로컬 전용 도구라 운영 배포 영향 없음.
+
+### 재리뷰 기록 — PR #58 (Claude, 2026-10-11)
+- 직접 실행(`f0eb3e5`): 엔진 489 passed·2 xfailed, 서버 227 passed·1 skipped, 웹 643 passed, 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. 도구 기본 실행 `compared=1660 result_same=1660 step_compared=1511 step_different=0`, 제외 0, 208.89초, **exit=0**. 컨테이너 정지.
+- R1 해결(`NEIGHBOR_UNREACHABLE`→`send`), N1 반영(host 노드 route 범주→`send`), `other`는 불일치·exit 1 유지 테스트, 문서·quality.md 숫자 일치. **PASS.**
 
 ### 리뷰 기록 — PR #58 (Claude, 2026-10-11)
 - 직접 실행(`7ee059d`): 엔진 489 passed·2 xfailed, 서버 225 passed·1 skipped(`.venv`에 pybatfish 없음), 웹 643 passed. 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. 도구 기본 실행 `compared=1660 result_same=1660 step_compared=1511 step_different=44`, exit=1 — Codex 기록과 같다.
