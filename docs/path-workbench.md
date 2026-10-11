@@ -36,6 +36,12 @@
 
 사용자 요청으로 PR #60 제품 커밋 `7d32af0`을 리뷰했다. 엔진489+2xfail(7.48s)·서버227+1skip(57.32s)·웹656(1.65s)·빌드289ms, 금지 경로0줄로 구현 기록과 테스트 수·자산 해시가 같다. 새 임시 SQLite로 공개/회원84조합과 홈·헤더·학습실·복귀 결과 경계 폭61개를 추가 확인해 가로/버튼 넘침과 콘솔 오류0, 메뉴·키보드·예상 진입·복귀 재생·정책·고치기 표시를 확인했다. 수정 지적0건이며 제품 코드는 고치지 않았다. [리뷰 실행 출력](../HANDOFF.md#테스트-결과--pr-60-리뷰), [리뷰 측정 원문](screens/workbench-review-qa.json), [1101px 탐색·포커스](screens/workbench-review-home-1101-light.png), [375px 다크 학습실](screens/workbench-review-learning-mobile-dark.png).
 
-이 검사는 모든 입력 상태·실제 장비 결과·사람의 수동 QA를 대체하지 않는다. 구현과 같은 모델로 수행했으며 별도 Claude/Luna 독립 리뷰 수행 기록은 없다. 다음 차례는 사용자 최종 확인·병합 결정이며 PR #60은 병합하지 않았다.
+이 검사는 모든 입력 상태·실제 장비 결과·사람의 수동 QA를 대체하지 않는다. 구현과 같은 모델로 수행했으며 별도 Claude/Luna 독립 리뷰 수행 기록은 없다.
+
+## 병합·공개 배포
+
+사용자 “리뷰를 봤을 때 구현할 필요 없으면 병합해” 승인으로 PR #60을 2026-10-11 main `cc9d8a5`에 병합했다. Vercel main 배포 SUCCESS 뒤 공개 홈의 새 제목·왼쪽 탐색164px과 JS `index-C8X6sD2c.js`·CSS `index-D9mPdoNq.css`가 리뷰한 제품과 같음을 확인했다. 공개 학습실 번호 목록9개·가로 넘침0·콘솔 error/warn0도 확인했다. [병합·배포 확인 기록](https://github.com/myeongjundev/netproof/pull/60#issuecomment-6105443031). 운영 DB 작업은 수행하지 않았다.
+
+README는 위 제품 캡처를 재사용하며, 이전 회고 문서는 작성 기준일의 기록으로 유지한다. 다음 작업인 F2·F3는 [용어·답 입력/표시 설계](terminology-claim-design.md)에서 정의한다. 이 설계는 아직 제품에 구현하지 않았다.
 
 Codex (GPT-6)
