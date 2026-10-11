@@ -5,6 +5,8 @@ import { ActualBadge, ComparisonBadge } from "../components/Badges";
 import { ResultPanel } from "../components/ResultPanel";
 import { CaseNetwork } from "../components/CaseNetwork";
 import { claimKindText, comparisonCaption } from "../caseView";
+import { ACTUAL_TEXT, ANSWER_TEXT } from "../displayText";
+import { showsComparisonHeader } from "../verdictView";
 import { relatedLesson } from "../reviewView";
 import { EMPTY_CLAIM, fromCase } from "../draft";
 import { cloneTitle } from "../practice";
@@ -32,6 +34,8 @@ export function CaseCalculation({ item }: { item: CaseDetail }) {
       title={cause ? `판정 · ${cause}` : "판정"}
       verdict={verdict}
       claim={item.claim ?? EMPTY_CLAIM}
+      claimContext="stored"
+      showClaimSource={false}
       stale={false}
       error={null}
       loading={false}
@@ -40,6 +44,23 @@ export function CaseCalculation({ item }: { item: CaseDetail }) {
       engineVersion={item.engine_version}
     />
   );
+}
+
+export function CaseClaimInfo({ item }: { item: CaseDetail }) {
+  const claim = item.claim;
+  const showAnswer = !showsComparisonHeader({ ...item.verdict, comparison: item.comparison }, claim ?? EMPTY_CLAIM);
+  return <section className="panel case-claim" aria-labelledby="claim-title">
+    <h2 id="claim-title">답의 출처·내용</h2>
+    {!claim?.expected ? <p className="hint">이 사례에는 받은 답이 없습니다.</p> : <dl className="facts">
+      {showAnswer && <>
+        <dt>종류</dt><dd>{claimKindText(claim.kind)}</dd>
+        <dt>답</dt><dd>{ANSWER_TEXT[claim.expected]}</dd>
+      </>}
+      <dt>받은 답 출처</dt><dd>{claim.source || "적지 않음"}</dd>
+      <dt>내용</dt><dd className="case-claim-text">{claim.text || "적지 않음"}</dd>
+    </dl>}
+    <p className="hint below">받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.</p>
+  </section>;
 }
 
 export function CaseReview({ item, user }: { item: CaseDetail; user: User }) {
@@ -165,16 +186,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
 
       <div className="layout detail-grid">
         <div className="case-calculation">
-          <section className="panel case-claim" aria-labelledby="claim-title">
-            <h2 id="claim-title">받은 답</h2>
-            {!item.claim || item.claim.expected === null ? <p className="hint">이 사례에는 받은 답이 없습니다.</p> : <dl className="facts">
-              <dt>종류</dt><dd>{claimKindText(item.claim.kind)}</dd>
-              <dt>답</dt><dd>{item.claim.expected === "PASS" ? "된다(PASS)" : "안 된다(DENY)"}</dd>
-              <dt>받은 답 출처</dt><dd>{item.claim.source || "적지 않음"}</dd>
-              <dt>내용</dt><dd className="case-claim-text">{item.claim.text || "적지 않음"}</dd>
-            </dl>}
-            <p className="hint below">받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.</p>
-          </section>
+          <CaseClaimInfo item={item} />
           <CaseCalculation item={item} />
         </div>
 
@@ -218,7 +230,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
                   <div className="observation-candidate" role="status" aria-live="polite">
                     {candidate.status === "OK" && <>
                       <h3>관측: {OBSERVED[candidate.observed]} · {candidate.target}</h3>
-                      <p>{candidate.result ? "실제 결과 후보: 됐다(PASS)" : "실제 결과 후보: 미정 — 적용해도 기존 결과 선택은 유지됩니다."}</p>
+                      <p>{candidate.result ? `실제 결과 후보: ${ACTUAL_TEXT[candidate.result]}(${candidate.result})` : "실제 결과 후보: 미정 — 적용해도 기존 결과 선택은 유지됩니다."}</p>
                       <pre>{candidate.evidence.join("\n")}</pre>
                     </>}
                     {candidate.problems.map((problem) => <p key={problem} className="hint">{problem}</p>)}
@@ -238,8 +250,8 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
                   <span>실제로</span>
                   <select value={actual.result ?? ""} onChange={(e) => setActual({ ...actual, result: (e.target.value || null) as CaseDetail["actual"]["result"] })}>
                     <option value="">아직 모름</option>
-                    <option value="PASS">됐다(PASS)</option>
-                    <option value="DENY">안 됐다(DENY)</option>
+                    <option value="PASS">{ACTUAL_TEXT.PASS}(PASS)</option>
+                    <option value="DENY">{ACTUAL_TEXT.DENY}(DENY)</option>
                   </select>
                 </label>
                 <label>
@@ -267,7 +279,7 @@ export function CaseDetailPage({ id, user, onOpenInJudge }: Props) {
           ) : (
             <dl className="facts">
               <dt>실제로</dt>
-              <dd>{item.actual.result ?? "아직 모름"}</dd>
+              <dd>{item.actual.result ? ACTUAL_TEXT[item.actual.result] : "아직 모름"}</dd>
               <dt>확인 방법(실제 결과 출처)</dt>
               <dd>{item.actual.source ? SOURCES[item.actual.source] : "없음"}</dd>
               <dt>메모</dt>

@@ -57,6 +57,7 @@ export function fromCase(item: CaseItem): Draft {
       expected: item.claim?.expected ?? null,
       source: item.claim?.source ?? "",
       text: item.claim?.text ?? "",
+      ...(item.claim && "kind" in item.claim ? { kind: item.claim.kind } : {}),
     },
   };
 }

@@ -144,6 +144,8 @@ button:disabled { opacity: 0.55; cursor: default; }
 .q-claim { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .q-label { font-size: 13px; color: var(--muted); }
 .q-claim .choice { margin: 0; }
+.q-kind { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.q-kind select { width: auto; }
 .q-source summary { cursor: pointer; font-size: 13px; color: var(--accent); }
 .q-source[open] { flex-basis: 100%; }
 .q-source[open] summary { margin-bottom: 8px; }

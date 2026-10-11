@@ -1,12 +1,10 @@
-import type { CaseFilters, CaseSummary, Claim, Flow, Network } from "./types";
+import type { CaseFilters, CaseSummary, Flow, Network } from "./types";
+import { ACTUAL_TEXT, ANSWER_TEXT, COMPARISON_TEXT, RESULT_TEXT, claimComparisonText, claimKindText } from "./displayText";
 
-/** 저장된 사실의 표시만 담당한다. 판정·규칙 해석은 하지 않는다. */
-export function claimKindText(kind: Claim["kind"]): string {
-  return kind === "ai" ? "AI 답" : kind === "self" ? "사람 예상" : "받은 답";
-}
+export { claimKindText } from "./displayText";
 
 export function comparisonCaption(item: Pick<CaseSummary, "comparison" | "claim_kind">): string {
-  return item.comparison === "NO_CLAIM" ? "받은 답 없음" : `${claimKindText(item.claim_kind)}과 계산`;
+  return item.comparison === "NO_CLAIM" ? COMPARISON_TEXT.NO_CLAIM : `${claimComparisonText(item.claim_kind, "stored")}과 계산`;
 }
 
 export function flowText(flow: Flow): string {
@@ -43,20 +41,18 @@ export function networkView(network: Pick<Network, "devices"> & Partial<Pick<Net
 }
 
 export function appliedFilterText(filters: CaseFilters): string[] {
-  const result = { PASS: "통과", DENY: "차단", UNSUPPORTED: "지원 범위 밖", INVALID: "잘못된 입력" };
-  const comparison = { AGREE: "일치", DISAGREE: "불일치", NOT_COMPARABLE: "비교 불가", NO_CLAIM: "받은 답 없음" };
   const source = { nmap: "Nmap", ping: "ping", device: "장비", other: "기타", none: "출처 없음" };
-  const actual = { PASS: "통과", DENY: "차단", none: "미정" };
-  const kind = { ai: "AI 답", self: "사람 예상", none: "종류 없음" };
+  const actual = { ...ACTUAL_TEXT, none: "미정" };
+  const kind = { ai: claimKindText("ai"), self: claimKindText("self"), none: claimKindText(null) };
   return [
     ...(filters.mine ? ["내 사례만"] : []),
-    ...(filters.result ? [`판정 ${result[filters.result]}`] : []),
-    ...(filters.comparison ? [`받은 답과 판정 ${comparison[filters.comparison]}`] : []),
+    ...(filters.result ? [`판정 ${RESULT_TEXT[filters.result]}`] : []),
+    ...(filters.comparison ? [`받은 답과 판정 ${COMPARISON_TEXT[filters.comparison]}`] : []),
     ...(filters.confirmed ? [`검토 확인 ${filters.confirmed === "1" ? "확인됨" : "미확인"}`] : []),
     ...(filters.source ? [`실제 결과 출처 ${source[filters.source]}`] : []),
     ...(filters.actual ? [`실제 결과 ${actual[filters.actual]}`] : []),
     ...(filters.actual_mismatch ? ["계산과 실제 결과 다름"] : []),
     ...(filters.claim_kind ? [`받은 답 종류 ${kind[filters.claim_kind]}`] : []),
-    ...(filters.claim_expected ? [`받은 답 ${result[filters.claim_expected]}`] : []),
+    ...(filters.claim_expected ? [`받은 답 ${ANSWER_TEXT[filters.claim_expected]}`] : []),
   ];
 }

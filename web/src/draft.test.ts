@@ -20,6 +20,21 @@ describe("toNetwork", () => {
 });
 
 describe("fromCase", () => {
+  it.each(["ai", "self", null, undefined] as const)("사례와 JSON의 종류 %s를 추론 없이 보존하고 복제만 비운다", kind => {
+    for (const expected of ["PASS", "DENY"] as const) {
+      const original: CaseItem = { id: "kind", source: "test", network: toNetwork(blankDraft()), flow: blankDraft().flow,
+        claim: { expected, source: "ChatGPT / 내 예상", text: "종류 추론 안 함", ...(kind !== undefined ? { kind } : {}) } };
+      const before = structuredClone(original);
+      for (const source of [original, JSON.parse(JSON.stringify(original))]) {
+        const opened = fromCase(source);
+        expect(opened.claim).toEqual(original.claim);
+        expect(Object.hasOwn(opened.claim, "kind")).toBe(kind !== undefined);
+        expect(opened.flow).toEqual(original.flow); expect(toNetwork(opened)).toEqual(original.network);
+        expect({ ...opened, claim: { ...EMPTY_CLAIM } }.claim).toEqual({ expected: null, source: "", text: "" });
+      }
+      expect(original).toEqual(before);
+    }
+  });
   it("복제 초안에는 원본의 정답·판정·작성자·실제 결과·확인 상태를 가져오지 않는다", () => {
     const original = {
       id: "42", source: "test", title: "원본", owner_id: 7, author: "작성자",

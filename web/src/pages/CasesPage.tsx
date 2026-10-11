@@ -3,6 +3,7 @@ import { api, message } from "../api";
 import { ActualBadge, ComparisonBadge, ResultBadge } from "../components/Badges";
 import { emptyCaseFilters, loadCasePage, parseCaseFilters } from "../caseSearch";
 import { appliedFilterText, comparisonCaption } from "../caseView";
+import { ACTUAL_TEXT, ANSWER_TEXT, COMPARISON_TEXT, RESULT_TEXT, claimKindText } from "../displayText";
 import { useRoute } from "../router";
 import type { CaseFilters, CasePage } from "../types";
 
@@ -75,12 +76,12 @@ export function CasesPage() {
         <summary>필터 (적용 {appliedSelectCount}개)</summary>
         <div className="case-filters">
           <label>판정<select value={filters.result} onChange={(e) => changeFilters({ result: e.target.value as CaseFilters["result"] })}>
-            <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option>
-            <option value="UNSUPPORTED">지원 범위 밖</option><option value="INVALID">잘못된 입력</option>
+            <option value="">전체</option><option value="PASS">{RESULT_TEXT.PASS}</option><option value="DENY">{RESULT_TEXT.DENY}</option>
+            <option value="UNSUPPORTED">{RESULT_TEXT.UNSUPPORTED}</option><option value="INVALID">{RESULT_TEXT.INVALID}</option>
           </select></label>
           <label>받은 답과 판정<select value={filters.comparison} onChange={(e) => changeFilters({ comparison: e.target.value as CaseFilters["comparison"] })}>
-            <option value="">전체</option><option value="AGREE">일치</option><option value="DISAGREE">불일치</option>
-            <option value="NOT_COMPARABLE">비교 불가</option><option value="NO_CLAIM">받은 답 없음</option>
+            <option value="">전체</option><option value="AGREE">{COMPARISON_TEXT.AGREE}</option><option value="DISAGREE">{COMPARISON_TEXT.DISAGREE}</option>
+            <option value="NOT_COMPARABLE">{COMPARISON_TEXT.NOT_COMPARABLE}</option><option value="NO_CLAIM">{COMPARISON_TEXT.NO_CLAIM}</option>
           </select></label>
           <label>검토 확인<select value={filters.confirmed} onChange={(e) => changeFilters({ confirmed: e.target.value as CaseFilters["confirmed"] })}>
             <option value="">전체</option><option value="1">확인됨</option><option value="0">미확인</option>
@@ -90,16 +91,16 @@ export function CasesPage() {
             <option value="device">장비</option><option value="other">기타</option><option value="none">출처 없음</option>
           </select></label>
           <label>실제 결과<select value={filters.actual} onChange={(e) => changeFilters({ actual: e.target.value as CaseFilters["actual"] })}>
-            <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option><option value="none">미정</option>
+            <option value="">전체</option><option value="PASS">{ACTUAL_TEXT.PASS}</option><option value="DENY">{ACTUAL_TEXT.DENY}</option><option value="none">미정</option>
           </select></label>
           <label>계산과 실제 결과<select value={filters.actual_mismatch} onChange={(e) => changeFilters({ actual_mismatch: e.target.value as CaseFilters["actual_mismatch"] })}>
             <option value="">전체</option><option value="1">다름</option>
           </select></label>
           <label>받은 답 종류<select value={filters.claim_kind} onChange={(e) => changeFilters({ claim_kind: e.target.value as CaseFilters["claim_kind"] })}>
-            <option value="">전체</option><option value="ai">AI 답</option><option value="self">사람 예상</option><option value="none">종류 없음</option>
+            <option value="">전체</option><option value="ai">{claimKindText("ai")}</option><option value="self">{claimKindText("self")}</option><option value="none">{claimKindText(null)}</option>
           </select></label>
           <label>받은 답<select value={filters.claim_expected} onChange={(e) => changeFilters({ claim_expected: e.target.value as CaseFilters["claim_expected"] })}>
-            <option value="">전체</option><option value="PASS">통과</option><option value="DENY">차단</option>
+            <option value="">전체</option><option value="PASS">{ANSWER_TEXT.PASS}</option><option value="DENY">{ANSWER_TEXT.DENY}</option>
           </select></label>
         </div>
       </details>

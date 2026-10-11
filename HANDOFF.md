@@ -17,9 +17,199 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **PR #60 경로 작업대 리뷰 PASS, 사용자 최종 확인 대기**. 제품 커밋 `7d32af0`을 사용자 “리뷰해” 요청으로 직접 검증했다. 수정 지적0건이며 이번 리뷰에서 제품 코드를 고치지 않았다. PR #59는 사용자 “병합해” 요청으로 main `d147af4`에 병합됐고 공개 배포도 확인했다. 이후 사용자가 동기 디자인과의 유사성을 우려해 Codex의 독자 시안을 요청했다. ‘경로 작업대’의 중성 회색·오렌지 수정 시안을 “좋네 이걸로 하자”로 승인했다(2026-10-11). 이번 설계·구현은 기존 사용자 승인에 따라 Codex가 맡았다. [화면 기준·제품 캡처](docs/path-workbench.md).
-- 브랜치: `codex/path-workbench`, PR #59 병합 main `d147af4`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md와 GitHub MERGED 상태를 확인했다.
-- 다음 차례: **사용자(최종 확인·병합 결정)**. 이번 리뷰는 구현과 같은 Codex (GPT-6)가 수행했으며 별도 Claude/Luna 독립 리뷰를 실행한 기록은 없다. PR #60은 OPEN, 병합하지 않았다.
+- 작업: **승인된 F2·F3 범위1~5 구현·검증 완료, 리뷰 대기**. 사용자의 2026-10-11 “진행하자”로 [F2·F3 설계](docs/terminology-claim-design.md)의 구현을 승인받았다. 결과·답·실제 결과·비교 용어를 통일하고, 답 종류를 바로 선택하며 출처·내용을 선택 메모로 구분한다. 정상 비교의 상세 중복을 줄이고 비교 머리가 없는 경우 원래 종류·답을 보존한다. fromCase는 기존 kind도 전달한다.
+- 브랜치: `codex/terminology-claim`, main `cc9d8a5` 기반 문서 PR #61의 `4711695`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·상세 설계를 읽었다. main 대상 [구현 PR #62](https://github.com/myeongjundev/netproof/pull/62)는 OPEN이며 문서 PR #61의 README·PR #60 병합 상태 정리도 포함한다. #61은 대체 코멘트를 남기고 병합 없이 CLOSED로 정리했으며 브랜치는 보존했다.
+- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #62」. 운영 DB·배포 설정 변경 없음.
+
+### 리뷰 기록 — PR #62 (Claude, 2026-10-11)
+- 직접 실행(`efc438d`): 엔진 489 passed·2 xfailed, 서버 227 passed·1 skipped, 웹 692 passed, 빌드 성공(번들 `index-COoJnoGM.js`, Codex와 같음). 금지 경로 numstat 출력 없음, `git diff --check` 오류 없음. `claim-qa.json` 비밀값 검색 0.
+- 설계 대비: 표시 사전은 값→글자만, 비교 머리 조건 기존 그대로 추출, 배지 class·조건 유지, 필터 값·URL 유지, `fromCase` kind는 있을 때만, 남은 옛 문구는 허용 항목.
+- 실브라우저(QA 서버 4870, 일회용 합성 계정): 판정기 답의 종류가 접힘 밖·메모는 `출처·내용 적기(선택)`, 사례 #5 비교 머리 `AI 답 | 된다 ≠ 막힘`·출처 1회·메모 패널은 출처·내용만, 사례 #3 `사람 예상`·`확인 전 · 막힘 · 판정과 같음`. 넘침 0·콘솔 0, 임시 폴더 삭제.
+- **PASS.** 비차단 N1: HANDOFF에 작업 정의 5절·1,150줄 누적 — 다음 과제 시작 때 Claude가 요약으로 접음. N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘)는 설계대로, 사용자 수동 QA 때 판단.
+
+## 작업 정의 — 문서 정리·F2·F3 설계 (2026-10-11 사용자 요청)
+
+- 범위: README.md·docs/path-workbench.md·docs/terminology-claim-design.md·HANDOFF.md·decisions/ai-work-log.md만 수정한다. PR #60 병합/배포 사실과 소개·기능·화면을 정리한 뒤 실제 코드와 PR #20 Claude 코멘트를 근거로 다음 과제를 설계한다. 기존 PR #60 임시 SQLite 제품 캡처를 재사용한다. 작성 기준일이 있는 이전 회고·테스트·리뷰는 당시 기록으로 보존한다.
+- 완료: 기본 회귀3개 직접 실행·문서 링크/그림 경로 확인·git diff --check·제품 경로0줄, 실제 출력 기록·커밋/푸시·main 대상 템플릿 문서 PR. 이번 PR은 병합하지 않는다. 화면/구현 변경이 없어 빌드·새 화면 QA는 수행하지 않는다.
+- 제외: engine/·server/·web/·scripts/·cases/·requirements.txt·vercel.json·AGENTS/CLAUDE/PROMPTS 변경, 운영 재판정·Vercel 설정·사람의 수동 QA 완료 표시.
+
+### 테스트 결과 — 문서 정리·설계
+
+문서 작업에서 직접 실행한 기준 회귀다. F2·F3 구현의 검증이 아니다. 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·Vitest 성능 안내만 생략한 출력:
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 7.76s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 50.26s
+
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 44 passed (44)
+Tests 656 passed (656)
+Duration 1.37s (transform 65%, import 21%, tests 11%, worker 3%)
+```
+
+기존 xfail2와 선택 pybatfish skip1을 유지했다. 제품 코드0줄이므로 새 테스트를 작성하지 않았으며 빌드·새 QA를 수행하지 않았다. 새 API/DB/판정 계산 변경0줄·엔진 버전0.2.0 유지.
+
+추가로 Python 표준 라이브러리 검사로 변경 문서5개의 Markdown 상대 링크·HTML img src가 파일을 가리키는지와 cases JSON 수를 확인했다. 기존 PR #60의 임시 SQLite 캡처를 그대로 링크했고 날짜별 회고는 재작성하지 않았다. 실제 출력:
+
+```text
+Python 문서 상대 링크·이미지 경로 검사
+DOC_LOCAL_LINKS=56
+DOC_MISSING_LINKS=0
+README_CASES_COUNT=3
+
+git diff --check
+(출력 없음, 종료0)
+
+git diff --numstat -- engine/ server/ web/ scripts/ cases/ requirements.txt vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(출력 없음, 제품·설정·역할 지시문 변경0줄, 종료0)
+```
+
+Codex (GPT-6)
+
+## 작업 정의 — 용어 통일(F2)·받은 답 입력/표시 정리(F3)
+
+### 목표
+판정기·사례 목록/상세·대시보드의 결과 표현을 통일하고, 답 종류 선택과 선택 메모의 역할을 구분한다. 사례 상세의 종류·답·출처 중복을 줄이되 판정 불가·입력 오류에서도 원래 답을 잃지 않는다. [상세 설계·상태표·회귀 계약](docs/terminology-claim-design.md)이 기준이다. 사용자의 2026-10-11 “진행하자”로 구현을 승인받아 아래1~5를 구현했다.
+
+### 변경 범위 1~5 (승인된 구현)
+1. 새 `web/src/displayText.ts`·테스트, `caseView.ts`·`verdictView.ts`·테스트: 결과 통과/막힘/판정 불가/입력 오류, 받은 답 된다/안 된다, 실제 결과 통과/막힘, 비교 같음/다름/비교 불가/받은 답 없음, 종류 문맥 표시·기존 비교 머리 표시 조건 공유.
+2. `components/FlowForm.tsx`·새 테스트·최소 CSS: 답 선택 하나, 답 종류를 접힌 영역 밖에서 선택, 출처·내용은 선택 메모로 구분. hideClaim/기존 props·핸들러 유지.
+3. `components/Badges.tsx`·`ResultPanel.tsx`, `pages/CasesPage.tsx`·`CaseDetailPage.tsx`·`DashboardPage.tsx`와 테스트: 표시 통일, 상세에서는 종류·답은 비교 머리/출처·내용은 별도 패널. 비교 머리가 안 보이면 기존 종류·답을 별도 패널에 표시. `draft.ts`·테스트는 fromCase의 기존 kind 보존만.
+4. 웹 의미 회귀·임시 SQLite 실제 브라우저·캡처: 상태표, 입력 메모 보존, 비교 값 그대로, 확인 상태/스타일, 필터 값·주소, 접근성·넘침·기존 실습/고치기/재생 확인.
+5. 설계·docs/practice.md 관련 문구·HANDOFF·ai-work-log·QA 근거: 직접 실행 결과·제한 기록, 커밋/푸시·main 대상 템플릿 PR. 병합 결정은 사용자.
+
+### 건드리지 않을 것
+engine/·server/·scripts/·cases/*.json·expect·web/package*.json·requirements.txt·vercel.json·App의 입력 메모리/revision/current()·운영 DB·배포 설정은0줄. API/DB/라우트/URL 필터 값·공유/export 형식·엔진0.2.0·확인/저장/재생 의미 유지. 계산 comparison은 엔진 값을 그대로 표시하며 새 판정을 만들지 않는다. 사용자 제목/source/text·엔진 reason/detail/problems·ACL·고치기 prompt/label·원인 태그·오탐/미탐 정의는 치환하지 않는다. 정답·점수·완료·축하·해법·앱 안 LLM 없음.
+
+### 예상 리스크
+- UNSUPPORTED/INVALID/NO_CLAIM/비교 누락 때 중복 제거로 원래 답이 사라질 수 있으므로 기존 비교 머리 조건과 예외 표시를 함께 시험한다.
+- ai/self/null/생략을 보존한다. source에서 kind를 추측하지 않는다. 개인 입력은 내 예상, 저장된 사례는 사람 예상이며 목록에서 다른 사람의 예상을 내 예상으로 부르지 않는다.
+- 비교 안 함/종류 변경 뒤 source/text 유지·종류만 변경·fromCase kind 보존·복제 EMPTY_CLAIM을 시험한다. 전용 실습은 기존 예상 선택 하나를 유지한다.
+- 필터 enum/주소, confirmed 조건·plain/good/bad/warn 스타일, 엔진 comparison/reason, 분모와 요청 수를 바꾸지 않는다. 기술 원문·wire코드의 검색 결과를 분류하고 전역 치환하지 않는다.
+
+### 완료 조건 — 구현 후 직접 실행
+1. `cd engine && ../.venv/Scripts/python -m pytest -q`: 기준489 passed·2 xfailed 유지.
+2. `cd server && ../.venv/Scripts/python -m pytest -q`: 기준227 passed·1 skipped 유지(선택 pybatfish 없는 venv).
+3. `npm --prefix web test`: 기존656건과 상세 설계의 신규 상태·입력·비교 회귀 성공. 기존 의미 검사 삭제 없음.
+4. `npm --prefix web run build`: TypeScript·Vite 성공.
+5. `git diff --check`와 `git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json` 출력 없음. 상세 설계의 용어 검색 명령/결과와 허용 원문·기술 코드 목록 첨부.
+6. 로그·DB 환경 변수를 비운 `scripts/qa_local.py`의 임시 SQLite/합성 계정만 사용.320·375·768·1100·1101·1280px×라이트/다크에서 입력·상세 상태표·필터·실습/재생을 확인. 콘솔/페이지/버튼 넘침0, 캡처/원문 보존 후 서버·임시 DB 정리. 운영 DB에 접속하지 않음.
+
+### 테스트 결과 — F2·F3
+
+완료 조건1~4를 직접 실행했다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 출력이다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 6.72s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 52.87s
+
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 47 passed (47)
+Tests 692 passed (692)
+Duration 1.42s (transform 65%, import 20%, tests 12%, worker 3%)
+
+npm --prefix web run build
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 71 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html 0.60 kB | gzip: 0.44 kB
+dist/assets/index-BXlnygLT.css 88.64 kB | gzip: 24.01 kB
+dist/assets/index-COoJnoGM.js 395.97 kB | gzip: 118.30 kB
+✓ built in 267ms
+```
+
+기존656건을 유지하고 신규36건을 추가했다. 실제 FlowForm 핸들러로 종류 변경·비교 안 함 왕복·각 메모 필드의 값 보존을 검사하고, 상세 상태표160조합으로 정상 비교의 중복 제거와 비교 머리가 없는 경우의 원래 종류·답 보존을 대조했다. PASS/PASS/DISAGREE·PASS/DENY/AGREE 등 엔진 값을 화면에서 재계산하지 않는 기존 시험도 유지한다. fromCase의 ai/self/null/생략·JSON 가져오기·복제, 배지 confirmed/result 조건·스타일과 목록 필터 값·대시보드 분모/주소를 확인했다. 새 라이브러리 없음. 기존 xfail2·선택 pybatfish skip1 유지. 첫 빌드에서 새 테스트 fixture에 CaseSummary에 없는 owner_id·cause 필드를 발견해 제거한 뒤 웹 회귀와 빌드를 다시 실행했다.
+
+완료 조건5 — 공백 검사와 금지 경로 diff는 출력 없이 종료0이다. 구현 commit 뒤 main...HEAD 명령도 직접 실행해 확인했다. App.tsx도 변경0줄이다. 아래 용어 검색 원문과 허용 항목을 대조했다.
+
+```text
+git diff --check
+(출력 없음, 종료0)
+
+git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json
+(출력 없음, 금지 경로0줄, 종료0)
+
+git diff main...HEAD --numstat -- web/src/App.tsx
+(출력 없음, 입력 메모리/revision 변경0줄, 종료0)
+```
+
+```text
+rg -n '차단|일치|불일치|사람 예상|내 예상|PASS|DENY' web/src/components/Badges.tsx web/src/components/FlowForm.tsx web/src/components/ResultPanel.tsx web/src/pages/CasesPage.tsx web/src/pages/CaseDetailPage.tsx web/src/pages/DashboardPage.tsx web/src/caseView.ts web/src/verdictView.ts web/src/displayText.ts
+web/src/displayText.ts:4:export const RESULT_TEXT = { PASS: "통과", DENY: "막힘", UNSUPPORTED: "판정 불가", INVALID: "입력 오류" } as const;
+web/src/displayText.ts:5:export const ANSWER_TEXT = { PASS: "된다", DENY: "안 된다" } as const;
+web/src/displayText.ts:6:export const ACTUAL_TEXT = { PASS: "통과", DENY: "막힘" } as const;
+web/src/displayText.ts:12:  return kind === "ai" ? "AI 답" : kind === "self" ? context === "personal" ? "내 예상" : "사람 예상" : "종류 미정";
+web/src/verdictView.ts:6:  return !!verdict && (verdict.result === "PASS" || verdict.result === "DENY")
+web/src/verdictView.ts:12:  if (!verdict || !claim.expected || (verdict.result !== "PASS" && verdict.result !== "DENY")) return null;
+web/src/pages/DashboardPage.tsx:51:        <p className="hint">여기서 양성은 통신 차단(DENY)입니다. 막힌다고 본 것이 맞았는지를 셉니다.</p>
+web/src/pages/DashboardPage.tsx:54:          지원 범위 밖 제외는 NetProof 판정에 적용됩니다. AI 답·사람 예상은 답이 있으면 따로 비교합니다.</p>
+web/src/pages/DashboardPage.tsx:61:              <thead><tr><th scope="col">예측 ↓ · 실제 →</th><th scope="col">{ACTUAL_TEXT.DENY}(DENY)</th><th scope="col">{ACTUAL_TEXT.PASS}(PASS)</th></tr></thead>
+web/src/pages/DashboardPage.tsx:62:              <tbody>{(["DENY", "PASS"] as const).map((predicted) => <tr key={predicted}>
+web/src/pages/CaseDetailPage.tsx:210:                <p className="hint">관측은 판정이 아닙니다. 붙여넣은 출력은 실제로 본 것이고, PASS/DENY 판정은 계산 엔진이 정합니다.</p>
+web/src/pages/CaseDetailPage.tsx:253:                    <option value="PASS">{ACTUAL_TEXT.PASS}(PASS)</option>
+web/src/pages/CaseDetailPage.tsx:254:                    <option value="DENY">{ACTUAL_TEXT.DENY}(DENY)</option>
+web/src/pages/CasesPage.tsx:58:        <a href="#/cases?mine=1&claim_kind=self&comparison=DISAGREE">내 예상과 계산이 달랐던 내 사례</a>
+web/src/pages/CasesPage.tsx:79:            <option value="">전체</option><option value="PASS">{RESULT_TEXT.PASS}</option><option value="DENY">{RESULT_TEXT.DENY}</option>
+web/src/pages/CasesPage.tsx:94:            <option value="">전체</option><option value="PASS">{ACTUAL_TEXT.PASS}</option><option value="DENY">{ACTUAL_TEXT.DENY}</option><option value="none">미정</option>
+web/src/pages/CasesPage.tsx:103:            <option value="">전체</option><option value="PASS">{ANSWER_TEXT.PASS}</option><option value="DENY">{ANSWER_TEXT.DENY}</option>
+web/src/components/Badges.tsx:16:    {(item.result === "PASS" || item.result === "DENY") && (item.actual_result === item.result ? " · 판정과 같음" : " · 판정과 다름")}</span>;
+web/src/components/Badges.tsx:17:  if (item.result !== "PASS" && item.result !== "DENY") return <span className="badge warn">확인 · 비교 불가</span>;
+web/src/components/FlowForm.tsx:91:          {([null, "PASS", "DENY"] as const).map((value) => (
+web/src/components/FlowForm.tsx:113:                  <input value={claim.source} placeholder="예: ChatGPT 2026-10-02 / 내 예상" onChange={(e) => onClaim({ ...claim, source: e.target.value })} />
+web/src/components/ResultPanel.tsx:9:  PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
+web/src/components/ResultPanel.tsx:10:  DENY: "모델 안에서 계산한 결과, 이 통신은 막힙니다.",
+web/src/components/ResultPanel.tsx:29:  firewall_in: "방화벽에서 차단",
+```
+
+검색에 남는 값은 표시 사전의 wire enum, 결과/확인 배지의 기존 조건, 필터 option 값, 상세·대시보드의 한글 먼저/기술 코드 병기, 판정 불가의 기술 설명, DROP_TEXT·원인 태그/엔진 원문, 개인 문맥의 내 예상과 저장 문맥의 사람 예상이다. 방화벽 단계의 “차단”과 “양성은 통신 차단(DENY)” 정의는 허용된 기술 용어다. kind=none을 NO_CLAIM으로 합치거나 source에서 kind를 추론하지 않는다. 사용자 source/text·엔진 reason/detail/problems·ACL·고치기 prompt/label은 치환하지 않았다.
+
+완료 조건6 — 환경 변수4개를 비운 프로세스의 `& ./.venv/Scripts/python scripts/qa_local.py --port 4869`로 127.0.0.1·새 임시 SQLite만 사용했다. 기존 /api/auth/login·/api/examples·/api/cases·PATCH /api/cases로 변형 사례7개를 준비했다(운영 DB·새 API·SQL 작업 없음). 실제 API 응답에서 id6 AI/DENY/DISAGREE, id7 self/DENY/AGREE, id8·9 종류 미정/DENY, id10 UNSUPPORTED/NOT_COMPARABLE, id11 INVALID/NOT_COMPARABLE, id12 NO_CLAIM을 확인했다.
+
+판정기·위 상세7개·목록 필터·대시보드·실습02의11화면 × 320·375·768·1100·1101·1280px × 라이트/다크132조합을 실제 브라우저로 확인했다. [DOM 측정·입력·상세·기능·콘솔 원문](docs/screens/claim-qa.json)에 표준 라이브러리 assert를 실행한 출력:
+
+```text
+QA_LAYOUTS=132
+QA_LAYOUT_FAILURES=0
+QA_DETAIL_STATES=14
+QA_SOURCE_TEXT_DUPLICATION=0
+QA_NATIVE_CONSOLE_ERRORS_WARNINGS=0
+QA_INPUT_KIND_MEMO_FLOW_PRESERVED=True
+QA_FROM_CASE_KIND=self; QA_CLONE_EXPECTED=비교 안 함
+QA_RETURN_PLAYBACK=2/2 -> 1/2 -> 2/2
+QA_PRACTICE_FIELDSETS=1; QA_PRACTICE_RADIOS=3
+QA_ACTUAL_TONES=plain -> good -> plain
+QA_FIX_FORBIDDEN=False
+```
+
+종류 AI→self 변경, 비교 안 함→안 된다 복원에서 source/text/flow 유지, 미정 종류로 판정 가능, 종류/메모 label 각각1개·Tab 이동을 확인했다. 원문 출처·내용은 상태마다 한 번이며 판정 불가·입력 오류에서는 종류·답을 별도 패널에 유지한다. self 사례의 판정기에서 열기 및 복제 비우기도 확인했다. 필터 주소 `result=DENY&comparison=DISAGREE&claim_kind=none&claim_expected=PASS`로 실제 종류 미정 답 있는 사례를 조회했다. 확인/확인 거두기는 임시 합성 사례에서 plain→good→plain을 유지한다. 실습02 복귀 마지막2/2→이전1/2→다음2/2, 고치기01 처음 상태의 HTTPS DENY·SSH PASS·목표 밖 변화0건과 금지 낱말 없음도 확인했다.
+
+[새 입력](docs/screens/claim-input-desktop-light.jpg)·[AI 답 상세](docs/screens/claim-detail-desktop-light.jpg)·[판정 불가 모바일 다크](docs/screens/claim-unsupported-mobile-dark.jpg) 캡처를 열어 배치를 확인했다. 마지막 입력 캡처는 헤더·질문 영역을 포함한 브라우저 clip 캡처이며 이미지 편집은 하지 않았다. 마지막 빌드의 JS/CSS 해시는 브라우저에서 확인한 빌드와 같다. 브라우저 임시 viewport를 reset하고 탭을 닫았다. QA 실행 세션 종료 뒤 포트/관련 Python 프로세스0을 확인하고, 정확한 절대 임시 경로를 검증해 남은 qa.db·빈 폴더를 삭제했다. 정리 확인 출력:
+
+```text
+QA_TEMP_EXISTS=False
+QA_PORT_4869_LISTENERS=0
+QA_PROCESS_4869=0
+```
+
+운영 rejudge·Vercel 설정 변경·실제 장비 대조·사람의 수동 QA A~E 완료 표시·병합 없음. 엔진 계산 변경0줄이므로 버전0.2.0 유지.
+
+Codex (GPT-6)
 
 ## 작업 정의 — 경로 작업대 (2026-10-11 사용자 시안 승인)
 
@@ -771,6 +961,7 @@ Codex (GPT-6)
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #60 독자 경로 작업대 (병합 완료, `cc9d8a5`, 2026-10-11)**: 사용자 승인한 중성 회색·오렌지, 왼쪽 탐색·중립 헤더·전폭 질문·번호 학습 목록. 엔진/API/입력 메모리/저장/인증/재생/기준 사례/expect/의존성/배포 설정 변경0줄. 직접 리뷰 엔진489+2xfail·서버227+1skip·웹656·빌드289ms, 임시 SQLite 배치145건·메뉴/키보드/예상 진입/복귀 재생/정책/고치기·콘솔0, 지적0. 구현과 같은 모델의 리뷰이며 별도 독립 리뷰 기록 없음. 사용자 조건부 병합 승인 후 MERGED·Vercel main SUCCESS, 공개 홈·학습실과 번들 해시 확인. [병합/배포 기록](https://github.com/myeongjundev/netproof/pull/60#issuecomment-6105443031).
 - **PR #59 프론트 전체 리디자인 병합 완료(`d147af4`, 2026-10-11)**: 남색 헤더·파란 행동·공통 카드·홈/학습실·본문 바로가기. 태블릿 홈 R1 수정 후 Codex (GPT-6) 재검증, 사용자 병합 지시로 squash merge·공개 번들/홈/API 확인. 별도 Luna 독립 리뷰 수행 기록은 없다. 엔진/API/기준 사례 불변. 이후 사용자 승인한 독자 ‘경로 작업대’ 표시로 후속 구현한다.
 - **PR #58 Batfish 교차 검증 도구 병합 완료(`de56130`)**: 로컬 전용 Cisco 변환·정방향/직접 복귀 traceroute·고정 시드 두 모양·제외 보고·불일치 JSON/설정 보존. R1 NEIGHBOR_UNREACHABLE→send·N1 호스트 route→send를 수정했고 최초44건은 도구 대응표 오류였다. 기본값1660건 결과·DENY 단계1511건 일치, 불일치0·종료0, Claude 재리뷰 PASS. 엔진·운영 의존성·배포 불변.
 
@@ -885,11 +1076,12 @@ Codex (GPT-6)
 - [x] **판정기 알림·조사 정리(F5·F6)** — ② PR #31 병합(`74c5255`). 후속 F24·F25는 변경 전/후 과제에 포함
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 - [x] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정 후 사용자 요청으로 main `d147af4` 병합·공개 배포 확인. [PR #59 화면 기록](docs/frontend-redesign.md).
-- [ ] **독자 경로 작업대(2026-10-11 사용자 시안 승인)** — PR #60 `7d32af0` 구현·테스트 및 사용자 요청 리뷰 PASS(지적0), 사용자 최종 확인·병합 결정 대기. 별도 독립 리뷰 수행 기록 없음. [새 화면 기준·제품 캡처](docs/path-workbench.md).
+- [x] **독자 경로 작업대(2026-10-11 사용자 시안 승인)** — PR #60 main `cc9d8a5` 병합·공개 배포 확인. 사용자 요청 리뷰 PASS(지적0), 별도 독립 리뷰 수행 기록 없음. [새 화면 기준·제품 캡처](docs/path-workbench.md).
+- [ ] **F2 용어 통일·F3 받은 답 입력/표시 정리** — 사용자 승인으로 범위1~5 구현·회귀/빌드·임시 SQLite QA 완료. Claude 리뷰→사용자 병합 대기. [상태표·범위·제품 캡처](docs/terminology-claim-design.md).
 
 ## 다음 LLM이 확인할 내용
 - **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
-- **사용자:** PR #60 경로 작업대는 사용자 요청 Codex 리뷰 PASS(지적0), 실제 재실행 출력과 QA 근거는 위 리뷰 기록에 있다. 별도 Claude/Luna 독립 리뷰 수행 기록은 없다. PR #59는 `d147af4` 병합·공개 배포 확인됨. PR #60의 최종 확인과 병합 결정은 사용자에게 있다.
+- **Claude(리뷰):** PR #60 main `cc9d8a5` 병합·공개 배포 확인 완료. 사용자 승인 F2·F3를 새 codex 브랜치에서 구현하고 문서 PR #61의 정리도 포함했다. 표시 사전·kind 문맥·비교 머리 조건·예외의 원래 답 보존, 기존 filter/confirmed/comparison·입력 메모리를 중점 확인한다. 운영 재판정·Vercel 설정 변경은 포함하지 않았다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
@@ -897,7 +1089,7 @@ Codex (GPT-6)
 - **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
 - **배포 흐름:** `main`에 병합하면 바로 운영에 나간다. 리뷰 원칙은 그대로이고, 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
 - **t08 Postgres 오류:** 배포 전 t08 대시보드에 최근 60분 Postgres 오류 111건이 일정한 간격으로 보였다(NetProof와 무관, 원인 미확인). 사용자가 Supabase Logs에서 확인한다.
-- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB), F2 용어 통일, F3 받은 답 종류·중복 정리.
+- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB)은 별도 후속. F2 용어 통일·F3 받은 답 종류/중복 정리는 승인 범위를 구현했으며 리뷰·사용자 병합이 남았다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify, ⑤ 기록은 기존 createCase를 부르고 서버가 재판정해 저장한다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
@@ -931,7 +1123,7 @@ Codex (GPT-6)
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
 - 날짜별 작업 정리: [10-04 ~ 10-06 첫 배포](docs/work-summary-2026-10-04_06.md), [10-06 배포 이후](docs/work-summary-2026-10-06.md).
 
-현재 과제(pfSense 상태 추적 1단계) 설계: Claude Opus 5(사용자 승인 2026-10-06). 구현·수정: Codex (GPT-6), R1 수정·재검증 완료. 리뷰: Claude 재리뷰 대기. 직전 과제(원인 태그·통계) 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), 2026-10-06 병합. 결정·병합: 사용자.
+2026-10-06 당시 pfSense 상태 추적 1단계 설계: Claude Opus 5(사용자 승인). 구현·수정: Codex (GPT-6). 이후 PR #44는 재리뷰 PASS·병합 완료했고 실제 장비 대조는 대기다. 원인 태그·통계 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), PR #41은 2026-10-06 병합 완료. 현재 과제와 다음 차례는 문서 맨 위를 따른다. 결정·병합: 사용자.
 이전 배포 작업: 단계 안내·DB 준비 스크립트·공개 주소 점검·문서 Claude (Claude Opus 5.5). 가입·SQL 실행·Vercel 입력·병합: 사용자.
 
 ## 프로젝트 소개·회고 문서 (2026-10-06)
