@@ -17,9 +17,40 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **승인된 F2·F3 범위1~5 구현·검증 완료, 리뷰 대기**. 사용자의 2026-10-11 “진행하자”로 [F2·F3 설계](docs/terminology-claim-design.md)의 구현을 승인받았다. 결과·답·실제 결과·비교 용어를 통일하고, 답 종류를 바로 선택하며 출처·내용을 선택 메모로 구분한다. 정상 비교의 상세 중복을 줄이고 비교 머리가 없는 경우 원래 종류·답을 보존한다. fromCase는 기존 kind도 전달한다.
-- 브랜치: `codex/terminology-claim`, main `cc9d8a5` 기반 문서 PR #61의 `4711695`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·상세 설계를 읽었다. main 대상 [구현 PR #62](https://github.com/myeongjundev/netproof/pull/62)는 OPEN이며 문서 PR #61의 README·PR #60 병합 상태 정리도 포함한다. #61은 대체 코멘트를 남기고 병합 없이 CLOSED로 정리했으며 브랜치는 보존했다.
-- 다음 차례: **사용자(병합 결정).** Claude 리뷰 PASS(차단 0) — 아래 「리뷰 기록 — PR #62」. 운영 DB·배포 설정 변경 없음.
+- 작업: **F2·F3 구현·Claude 리뷰·PR #62 병합 완료**. 결과·답·실제 결과·비교 용어와 받은 답 입력/상세 표시를 정리했다. [설계·구현 확인](docs/terminology-claim-design.md). 사용자의 2026-10-11 병합 알림 뒤 GitHub의 MERGED 상태와 main `9fcde17`을 확인했다.
+- 브랜치: `codex/f2-f3-merge-record`, main `9fcde17`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·[Claude 리뷰](https://github.com/myeongjundev/netproof/pull/62#issuecomment-6106954412)를 읽었다. 이번 변경은 HANDOFF·작업 로그의 병합 상태 기록뿐이다. 문서 PR #61은 #62에 포함되어 병합 없이 CLOSED다.
+- 다음 차례: **사용자(다음 과제 선택).** Claude 리뷰 PASS(차단 0). 비차단 N1 문서 누적 정리는 다음 과제 시작 때 Claude, N2 대시보드 받은 답 축 표현은 사용자 수동 QA 때 판단한다. 운영 DB 재판정은 보류이며 Vercel DATABASE_URL을 Production 전용으로 바꾸는 일은 사용자에게 남아 있다.
+- 공개 배포 확인: 2026-10-11 공개 홈 HTTP 200. JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`의 내용이 리뷰한 로컬 빌드와 SHA256까지 같았다. 이번 확인은 공개 정적 파일이며 로그인·저장·수동 QA 완료를 의미하지 않는다.
+
+### 테스트 결과 — PR #62 병합 상태 정리 (2026-10-11)
+
+이번 문서 기록 작업에서 아래 세 명령을 직접 다시 실행했다. 서버 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG는 비웠다. 진행 점과 Vitest 성능 안내만 생략한 출력이다. 화면 코드 변경이 없어 빌드는 다시 실행하지 않았다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 7.54s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 55.82s
+
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 47 passed (47)
+Tests 692 passed (692)
+Start at 17:19:50
+Duration 1.54s (transform 63%, import 21%, tests 13%, worker 3%)
+
+공개 HTML·정적 파일 GET 및 로컬 web/dist/assets 파일 내용 비교
+HTTP 200
+/assets/index-COoJnoGM.js
+/assets/index-BXlnygLT.css
+index-COoJnoGM.js HTTP 200 SHA256=0ad11ecb15b8e82e858eb738d62aa7b21b9c17a931d22a4775f566a961fa9079 LOCAL_MATCH=True
+index-BXlnygLT.css HTTP 200 SHA256=c1a5343f3fa4e98b158939f089c524ebeca263cc45aa61738474355ffa4daf0e LOCAL_MATCH=True
+```
+
+Codex (GPT-6)
 
 ### 리뷰 기록 — PR #62 (Claude, 2026-10-11)
 - 직접 실행(`efc438d`): 엔진 489 passed·2 xfailed, 서버 227 passed·1 skipped, 웹 692 passed, 빌드 성공(번들 `index-COoJnoGM.js`, Codex와 같음). 금지 경로 numstat 출력 없음, `git diff --check` 오류 없음. `claim-qa.json` 비밀값 검색 0.
@@ -961,6 +992,7 @@ Codex (GPT-6)
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #62 F2·F3 용어·받은 답 입력/표시 정리 (병합 완료, `9fcde17`, 2026-10-11)**: 표시 사전·종류 직접 선택·출처/내용 선택 메모·상세 중복 제거·비교 불가의 원래 답 및 fromCase kind 보존. 엔진/API/DB/입력 메모리/사례expect/의존성/배포 설정 변경0줄. Claude 리뷰 PASS(차단0), 엔진489+2xfail·서버227+1skip·웹692·빌드 성공, 로컬 SQLite QA132조합. 문서 PR #61을 포함하고 #61은 병합 없이 대체로 닫았다. 공개 JS/CSS가 리뷰한 빌드와 같음 확인. 비차단 N1 HANDOFF 누적 정리·N2 대시보드 받은 답 축 표현은 남음.
 - **PR #60 독자 경로 작업대 (병합 완료, `cc9d8a5`, 2026-10-11)**: 사용자 승인한 중성 회색·오렌지, 왼쪽 탐색·중립 헤더·전폭 질문·번호 학습 목록. 엔진/API/입력 메모리/저장/인증/재생/기준 사례/expect/의존성/배포 설정 변경0줄. 직접 리뷰 엔진489+2xfail·서버227+1skip·웹656·빌드289ms, 임시 SQLite 배치145건·메뉴/키보드/예상 진입/복귀 재생/정책/고치기·콘솔0, 지적0. 구현과 같은 모델의 리뷰이며 별도 독립 리뷰 기록 없음. 사용자 조건부 병합 승인 후 MERGED·Vercel main SUCCESS, 공개 홈·학습실과 번들 해시 확인. [병합/배포 기록](https://github.com/myeongjundev/netproof/pull/60#issuecomment-6105443031).
 - **PR #59 프론트 전체 리디자인 병합 완료(`d147af4`, 2026-10-11)**: 남색 헤더·파란 행동·공통 카드·홈/학습실·본문 바로가기. 태블릿 홈 R1 수정 후 Codex (GPT-6) 재검증, 사용자 병합 지시로 squash merge·공개 번들/홈/API 확인. 별도 Luna 독립 리뷰 수행 기록은 없다. 엔진/API/기준 사례 불변. 이후 사용자 승인한 독자 ‘경로 작업대’ 표시로 후속 구현한다.
 - **PR #58 Batfish 교차 검증 도구 병합 완료(`de56130`)**: 로컬 전용 Cisco 변환·정방향/직접 복귀 traceroute·고정 시드 두 모양·제외 보고·불일치 JSON/설정 보존. R1 NEIGHBOR_UNREACHABLE→send·N1 호스트 route→send를 수정했고 최초44건은 도구 대응표 오류였다. 기본값1660건 결과·DENY 단계1511건 일치, 불일치0·종료0, Claude 재리뷰 PASS. 엔진·운영 의존성·배포 불변.
@@ -1077,11 +1109,11 @@ Codex (GPT-6)
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
 - [x] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정 후 사용자 요청으로 main `d147af4` 병합·공개 배포 확인. [PR #59 화면 기록](docs/frontend-redesign.md).
 - [x] **독자 경로 작업대(2026-10-11 사용자 시안 승인)** — PR #60 main `cc9d8a5` 병합·공개 배포 확인. 사용자 요청 리뷰 PASS(지적0), 별도 독립 리뷰 수행 기록 없음. [새 화면 기준·제품 캡처](docs/path-workbench.md).
-- [ ] **F2 용어 통일·F3 받은 답 입력/표시 정리** — 사용자 승인으로 범위1~5 구현·회귀/빌드·임시 SQLite QA 완료. Claude 리뷰→사용자 병합 대기. [상태표·범위·제품 캡처](docs/terminology-claim-design.md).
+- [x] **F2 용어 통일·F3 받은 답 입력/표시 정리** — PR #62 main `9fcde17` 병합. Claude 리뷰 PASS(차단0)·공개 JS/CSS 확인. 비차단 N1·N2는 위 현재 상태 참고. [상태표·범위·제품 캡처](docs/terminology-claim-design.md).
 
 ## 다음 LLM이 확인할 내용
 - **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
-- **Claude(리뷰):** PR #60 main `cc9d8a5` 병합·공개 배포 확인 완료. 사용자 승인 F2·F3를 새 codex 브랜치에서 구현하고 문서 PR #61의 정리도 포함했다. 표시 사전·kind 문맥·비교 머리 조건·예외의 원래 답 보존, 기존 filter/confirmed/comparison·입력 메모리를 중점 확인한다. 운영 재판정·Vercel 설정 변경은 포함하지 않았다.
+- **Claude(다음 과제 시작):** PR #62 F2·F3는 리뷰 PASS 후 main `9fcde17`에 병합됐다. 비차단 N1은 HANDOFF의 지난 작업 정의를 요약으로 접는 문서 정리다. 과거 회귀·리뷰 근거는 Git 이력·작업 로그에서 찾을 수 있게 한다. N2 대시보드 받은 답 축 표현은 사용자 수동 QA 판단 후 설계한다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
@@ -1089,7 +1121,7 @@ Codex (GPT-6)
 - **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
 - **배포 흐름:** `main`에 병합하면 바로 운영에 나간다. 리뷰 원칙은 그대로이고, 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
 - **t08 Postgres 오류:** 배포 전 t08 대시보드에 최근 60분 Postgres 오류 111건이 일정한 간격으로 보였다(NetProof와 무관, 원인 미확인). 사용자가 Supabase Logs에서 확인한다.
-- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB)은 별도 후속. F2 용어 통일·F3 받은 답 종류/중복 정리는 승인 범위를 구현했으며 리뷰·사용자 병합이 남았다.
+- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB)은 별도 후속. F2·F3는 PR #62 병합 완료이며 비차단 N1·N2와 사용자의 수동 QA는 남았다.
 - 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
 - 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify, ⑤ 기록은 기존 createCase를 부르고 서버가 재판정해 저장한다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
 - 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
