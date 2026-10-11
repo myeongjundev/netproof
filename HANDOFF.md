@@ -17,9 +17,178 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **PR #59 재리뷰 PASS, 사용자 최종 확인·병합 대기**. 대상 제품 코드 `a52350e`, R1 해소·추가 지적 없음. 사용자가 동기 학습 사이트의 전체 UI를 참고한 리디자인을 승인했고, 이번 과제에 한해 “Codex가 설계·구현, 이후 리뷰”를 명시했다(2026-10-11). [화면 기준·제품 캡처](docs/frontend-redesign.md). 엔진·API·실습 계산·저장 로직은 그대로다.
-- 브랜치: `codex/frontend-redesign`, PR #58 병합 main `de56130`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽었으며 PR #58의 MERGED 상태를 확인했다.
-- 다음 차례: **사용자(최종 확인·병합 결정)**. 사용자 “재리뷰 진행해” 요청에 따라 Codex (GPT-6)가 재리뷰를 수행했다. 구현자와 같은 모델의 검증이며 별도 Luna 독립 리뷰가 수행됐다고 기록하지 않는다.
+- 작업: **PR #60 경로 작업대 리뷰 PASS, 사용자 최종 확인 대기**. 제품 커밋 `7d32af0`을 사용자 “리뷰해” 요청으로 직접 검증했다. 수정 지적0건이며 이번 리뷰에서 제품 코드를 고치지 않았다. PR #59는 사용자 “병합해” 요청으로 main `d147af4`에 병합됐고 공개 배포도 확인했다. 이후 사용자가 동기 디자인과의 유사성을 우려해 Codex의 독자 시안을 요청했다. ‘경로 작업대’의 중성 회색·오렌지 수정 시안을 “좋네 이걸로 하자”로 승인했다(2026-10-11). 이번 설계·구현은 기존 사용자 승인에 따라 Codex가 맡았다. [화면 기준·제품 캡처](docs/path-workbench.md).
+- 브랜치: `codex/path-workbench`, PR #59 병합 main `d147af4`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md와 GitHub MERGED 상태를 확인했다.
+- 다음 차례: **사용자(최종 확인·병합 결정)**. 이번 리뷰는 구현과 같은 Codex (GPT-6)가 수행했으며 별도 Claude/Luna 독립 리뷰를 실행한 기록은 없다. PR #60은 OPEN, 병합하지 않았다.
+
+## 작업 정의 — 경로 작업대 (2026-10-11 사용자 시안 승인)
+
+### 목표
+NetProof의 질문·예상·경로·근거를 중심으로 독자적인 화면을 만든다. 사용자가 선택한 경로 작업대의 왼쪽 탐색·구성도 영역과 중성 회색 바탕·오렌지 주요 동작을 적용한다. 단순 색 교체에 그치지 않고 홈·학습실의 반복 진입 카드를 얇은 구분선과 번호가 있는 목록으로 정리한다. 승인된 시안은 배치 참고이며 가짜 설정·미리 만든 판정을 제품에 옮기지 않는다.
+
+### 변경 범위
+1. `web/src/styles.css`: 중성 회색·라이트/다크·오렌지 강조, 작은 모서리·그림자 제거, 공통 입력·표·카드 표시. PASS/DENY·점검·확인 의미 색은 유지.
+2. 공통 표시: 데스크톱 왼쪽 탐색과 중립 헤더·브랜드·푸터. 모바일 메뉴·Escape·본문 바로가기·현재 위치·키보드 접근 유지.
+3. 홈·학습실: 질문과 기존 예상 퍼즐·실습 이어서 하기, 번호 목록과 기존 진입 링크. 실습·판정·정책·사례·계정은 같은 작업대 색·영역 표시를 사용하되 입력·계산·저장·인증·재생 로직 유지.
+4. 표시 관련 웹 회귀 및 실제 브라우저 QA. 실습과 고치기의 메모리·늦은 응답·부분 실패·기존 판정·재생 규칙 유지. 새 API·정답·점수·축하·해법을 추가하지 않음.
+5. `docs/path-workbench.md`·제품 캡처·HANDOFF·ai-work-log. 테스트 원문과 QA 범위·제한을 기록하고 커밋·푸시·main 대상 템플릿 PR. 병합하지 않음.
+
+### 건드리지 않을 것
+engine/, server/, scripts/, cases/*.json·expect, 운영 requirements.txt, web/package*.json, vercel.json·배포·운영 DB. 엔진0.2.0·API 요청·입력 메모리·revision/current()·URL/저장 형식·재생 규칙 유지. 운영 rejudge와 Vercel 환경 변수 변경은 기존 사용자 할 일로 남긴다.
+
+### 완료 조건
+1. `cd engine && ../.venv/Scripts/python -m pytest -q`
+2. `cd server && ../.venv/Scripts/python -m pytest -q`
+3. `npm --prefix web test`
+4. `npm --prefix web run build`
+5. `git diff --check`, 금지 경로 diff 0줄.
+6. 127.0.0.1·임시 SQLite 실제 브라우저: 320·375·768·1100·1101·1280px 라이트/다크의 배치, 대표 공개·합성 계정 화면, 메뉴·키보드·실습 진입·복귀 재생·정책 결과·콘솔·넘침. 캡처/원문 보존 후 QA 서버·임시 DB 정리.
+
+### 테스트 결과 — 경로 작업대
+완료 조건1~4를 직접 실행했다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 원문:
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 7.37s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 54.40s
+
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 44 passed (44)
+Tests 656 passed (656)
+Duration 1.47s (transform 68%, import 20%, tests 10%, worker 2%)
+
+npm --prefix web run build
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 70 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html 0.60 kB | gzip: 0.44 kB
+dist/assets/index-D9mPdoNq.css 88.55 kB | gzip: 23.99 kB
+dist/assets/index-C8X6sD2c.js 395.92 kB | gzip: 118.11 kB
+✓ built in 291ms
+```
+
+테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 기존 xfail2·skip1(기본venv의 선택 pybatfish 미설치)을 유지했다. 새 회귀11건은 왼쪽 탐색의 기존 주소·현재 위치·검토자 전용 링크·추가 API 호출 없음을 확인한다. 기존 실습/고치기 메모리·늦은 응답 폐기·부분 실패·재생 테스트도 실행했다.
+
+완료 조건5:
+
+```text
+git diff --check
+(출력 없음, 종료0)
+
+git diff --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
+(출력 없음, 금지 경로0줄, 종료0)
+```
+
+완료 조건6 — 환경 변수를 비운 프로세스의 `& .venv/Scripts/python scripts/qa_local.py --port 4867`로 127.0.0.1·임시 SQLite만 사용했다. 공개10경로·합성 회원4경로 × 320·375·1280px × 라이트/다크 84조합, 초기 홈320·375·768·1100·1101·1280px × 라이트/다크12조합을 실제 브라우저에서 확인했다. [측정·기능·콘솔 원문](docs/screens/workbench-qa.json).
+
+```text
+{ count: 30, failures: [] }  # 라이트 공개
+{ count: 60, failures: [] }  # 다크 공개 누적
+{ count: 84, failures: [] }  # 합성 계정 포함 누적
+{ count: 12, failures: [] }  # 초기 홈·탐색 경계
+1100px: sidebar=0, headerNav=280.03125
+1101px: sidebar=164, headerNav=0
+native console errors/warnings: []
+menuQA: { expanded: 'false', focused: '메뉴' }
+skipQA: { focused: 'main-content', hash: '#/home' }
+Tab: { focused: '학습실', href: '#/learn' }
+Tab (새로고침 뒤): { focused: 'skip-link' }
+entryQA: { guess: '막힐 것 같다', hash: '#/practice/synthetic-01', heading: '실습 · HTTPS와 입력 ACL' }
+복귀 재생: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
+정책: 총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0
+고치기01: HTTPS DENY·SSH PASS, 모두 목표와 다름·목표 밖 변화0건
+{ fact: null, forbidden: false }  # 완료|성공|정답|점수|% 검색
+QA_TEMP_EXISTS=False
+QA_PORT_4867_LISTENERS=0
+```
+
+페이지 가로 넘침0·보이는 버튼 글자 넘침0·각 화면 h1=1. 홈 장비 칸 최소60px·ACL 높이 최대100px도 확인했다. 메뉴 Escape·버튼 포커스 복원, Tab 순서·본문 바로가기 Enter 후 hash 유지, 기존 홈 예상→실습과 예상 유지, 복귀 마지막 단계·이전/다음, 정책 계산 결과, 고치기 초기 상태를 직접 확인했다. 계정·사례·실측 기록은 QA 합성 데이터다. 모든 상태·실제 장비 대조나 사람의 수동 QA A~E를 완료로 바꾸지 않았다.
+
+실제 [홈](docs/screens/workbench-home-desktop-light.png)·[학습실](docs/screens/workbench-learning-desktop-light.png)·[합성 사례](docs/screens/workbench-cases-desktop-light.png)·[모바일 복귀 판정](docs/screens/workbench-practice-mobile-dark.png) 캡처를 보존했다. QA 실행 세션 종료 뒤 포트0·관련 Python 프로세스 없음을 확인하고 남은 qa.db·임시 폴더를 명시한 경로로 삭제했다. 운영 DB·배포·병합 작업 없음. 엔진 계산 변경0줄이므로 버전0.2.0 유지.
+
+Codex (GPT-6)
+
+## 리뷰 기록 — PR #60 (2026-10-11 사용자 요청)
+
+- 대상: main `d147af4` 대비 `codex/path-workbench` 제품 커밋 `7d32af0`. `git pull` 출력 `Already up to date.` 뒤 AGENTS.md·HANDOFF.md·PROMPTS.md, 전체 변경 파일과 제품 diff를 읽었다.
+- 결론: **PASS, 수정 지적0건**. 구현자가 적은 테스트 수·xfail/skip 수 및 빌드 자산 해시와 같다. 실행 시간만 달랐다. 화면 표시·탐색 범위이며 API·입력 메모리·revision/current()·저장·인증·재생 계산 변경이 없다. PASS/DENY·점검 의미 색 토큰을 유지했고 금지 경로 diff0줄이다.
+- 수행자: 사용자 요청에 따라 Codex (GPT-6). 구현과 같은 모델의 후속 검증이며 독립 Claude/Luna 리뷰로 기록하지 않는다. 제품 코드를 고치지 않고 리뷰 문서·근거만 추가했다.
+
+### 테스트 결과 — PR #60 리뷰
+
+완료 조건1~5를 이번 리뷰에서 직접 다시 실행했다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 출력:
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 7.48s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 57.32s
+
+npm --prefix web test
+> netproof-web@0.1.0 test
+> vitest run
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 44 passed (44)
+Tests 656 passed (656)
+Duration 1.65s (transform 69%, import 19%, tests 9%, worker 3%)
+
+npm --prefix web run build
+> netproof-web@0.1.0 build
+> tsc --noEmit && vite build
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 70 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html 0.60 kB | gzip: 0.44 kB
+dist/assets/index-D9mPdoNq.css 88.55 kB | gzip: 23.99 kB
+dist/assets/index-C8X6sD2c.js 395.92 kB | gzip: 118.11 kB
+✓ built in 289ms
+
+git diff --check
+(출력 없음, 종료0)
+
+git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json
+(출력 없음, 금지 경로0줄, 종료0)
+```
+
+기존 xfail2·선택 pybatfish skip1을 유지했다. 완료 조건6은 새 `scripts/qa_local.py --port 4868`로 127.0.0.1·임시 SQLite·합성 계정만 사용했다. 공개10경로·회원4경로 × 320·375·1280px × 라이트/다크84조합, 초기 홈22조합, 합성 검토자 헤더11폭, 학습실22조합, 복귀 판정 결과6폭을 측정했다(총145개 배치 측정). 추가 폭은721·900·960·961·1024px, 기존 완료 조건의768·1100·1101px도 포함한다. [측정·기능·콘솔 원문](docs/screens/workbench-review-qa.json), [1101px 라이트 홈·키보드 포커스](docs/screens/workbench-review-home-1101-light.png), [375px 다크 학습실](docs/screens/workbench-review-learning-mobile-dark.png).
+
+```text
+회원 라이트: { count: 12, failures: [] }
+회원 다크 포함: { count: 24, failures: [] }
+공개 다크 포함: { count: 54, failures: [] }
+공개 라이트 포함: { count: 84, failures: [] }
+초기 홈: { homeCount: 22, failures: [] }
+학습실 다크: { learningDark: 11, failures: [] }
+복귀 판정 결과: { layoutFailures: [] }
+menu: { expanded: 'false', focus: '메뉴' }
+skip: { focus: 'main-content', hash: '#/home' }
+entry: { guess: '막힐 것 같다', hash: '#/practice/synthetic-01' }
+playback: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
+matrix: 총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0
+fix: HTTPS DENY·SSH PASS, 모두 목표와 다름·목표 밖 변화0건
+fix: { fact: null, forbidden: false }  # 완료|성공|정답|점수|% 검색
+tabFirst: { class: 'skip-link', text: '본문으로 바로가기' }
+tabSidebar: { href: '#/learn', text: '학습실' }
+native console error/warn: []
+QA_TEMP_EXISTS=False
+QA_PORT_4868_LISTENERS=0
+```
+
+가로 넘침·보이는 버튼 글자 넘침0, 84화면 h1=1. 홈 장비 칸 최소60px·ACL 높이 최대100px, 학습실 목록의 행 넘침0도 확인했다. 로그인 상태의960/961·1100/1101px 탐색 전환, 메뉴 Escape·포커스 복원, 본문 진입 시 hash 유지, 예상 진입과 복귀 재생을 직접 확인했다. 브라우저 탭을 닫고 임시 viewport를 복원했다. QA 실행 세션 종료 뒤 포트0·관련 Python 프로세스 없음을 확인하고 남은 qa.db·임시 폴더를 명시한 경로로 삭제했다. 운영 DB·배포·병합 작업 없음. 모든 입력 상태·실제 장비 대조와 사람의 수동 QA A~E는 이번 확인 범위에 포함하지 않는다.
+
+Codex (GPT-6)
 
 ## 작업 정의 — 프론트 전체 리디자인 (2026-10-11 사용자 승인, 이번 설계·구현 Codex)
 
@@ -602,6 +771,7 @@ Codex (GPT-6)
 - 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
 
 ## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
+- **PR #59 프론트 전체 리디자인 병합 완료(`d147af4`, 2026-10-11)**: 남색 헤더·파란 행동·공통 카드·홈/학습실·본문 바로가기. 태블릿 홈 R1 수정 후 Codex (GPT-6) 재검증, 사용자 병합 지시로 squash merge·공개 번들/홈/API 확인. 별도 Luna 독립 리뷰 수행 기록은 없다. 엔진/API/기준 사례 불변. 이후 사용자 승인한 독자 ‘경로 작업대’ 표시로 후속 구현한다.
 - **PR #58 Batfish 교차 검증 도구 병합 완료(`de56130`)**: 로컬 전용 Cisco 변환·정방향/직접 복귀 traceroute·고정 시드 두 모양·제외 보고·불일치 JSON/설정 보존. R1 NEIGHBOR_UNREACHABLE→send·N1 호스트 route→send를 수정했고 최초44건은 도구 대응표 오류였다. 기본값1660건 결과·DENY 단계1511건 일치, 불일치0·종료0, Claude 재리뷰 PASS. 엔진·운영 의존성·배포 불변.
 
 - **PR #56 비차단 후속 묶음 (병합 완료, `dcc1a3e`, 2026-10-10, 설계 #55)**: PR #54 N1 `factual` 분기·`factualText` 제거(Claude 설계 과잉 정리, 과제 근거도 일반 결과 패널), PR #52 N1 decisive가 복귀에서 유일하면 복귀 마지막 단계로 시작, PR #47 N1 `ActualBadge` 확인 전 `판정과 다름/같음`, N2 저장 안내 `저장했습니다: 사례 #N.`. 화면만 변경. Claude 리뷰 PASS. 최종: 엔진489+2xfail·서버174+1skip·웹643·빌드 성공(`index-B3OOalhE.js`), 운영 반영 확인.
@@ -714,11 +884,12 @@ Codex (GPT-6)
 - [x] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② PR #30 병합(`63515a6`).
 - [x] **판정기 알림·조사 정리(F5·F6)** — ② PR #31 병합(`74c5255`). 후속 F24·F25는 변경 전/후 과제에 포함
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
-- [ ] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정·Codex (GPT-6) 재리뷰 PASS, 사용자 최종 확인·병합 대기. [화면 기준·제품 캡처](docs/frontend-redesign.md).
+- [x] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정 후 사용자 요청으로 main `d147af4` 병합·공개 배포 확인. [PR #59 화면 기록](docs/frontend-redesign.md).
+- [ ] **독자 경로 작업대(2026-10-11 사용자 시안 승인)** — PR #60 `7d32af0` 구현·테스트 및 사용자 요청 리뷰 PASS(지적0), 사용자 최종 확인·병합 결정 대기. 별도 독립 리뷰 수행 기록 없음. [새 화면 기준·제품 캡처](docs/path-workbench.md).
 
 ## 다음 LLM이 확인할 내용
 - **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
-- **사용자(최종 확인):** PR #59 R1 수정과 Codex (GPT-6) 재리뷰 근거·캡처를 확인하고 병합을 결정한다. 별도 Luna 독립 리뷰 수행 기록은 없다. main 병합 뒤 공개 화면·API를 확인한다.
+- **사용자:** PR #60 경로 작업대는 사용자 요청 Codex 리뷰 PASS(지적0), 실제 재실행 출력과 QA 근거는 위 리뷰 기록에 있다. 별도 Claude/Luna 독립 리뷰 수행 기록은 없다. PR #59는 `d147af4` 병합·공개 배포 확인됨. PR #60의 최종 확인과 병합 결정은 사용자에게 있다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.

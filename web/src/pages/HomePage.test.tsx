@@ -6,7 +6,7 @@ import { api } from "../api";
 import type { User } from "../types";
 
 it.each([
-  [false, [["1", "왜 통과하고,어디서 막힐까요?"], ["2", "먼저 예상해 보세요"]]],
+  [false, [["1", "통신을 예상하고,경로로 확인하세요."], ["2", "먼저 예상해 보세요"]]],
   [true, [["1", "작성하던 입력이 있어요"], ["2", "다음 실습: HTTPS와 입력 ACL"], ["3", "먼저 예상해 보세요"]]],
 ] as const)("두 얼굴의 퍼즐 제목은 상위 제목 다음 단계다: 이어서 하기=%s", (resume, expected) => {
   const draft = blankDraft();

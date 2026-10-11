@@ -1,0 +1,2656 @@
+{
+  "date": "2026-10-11",
+  "base": "d147af4",
+  "environment": "127.0.0.1 / temporary SQLite / synthetic cases and account",
+  "layoutChecks": [
+    {
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1462.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1558.609375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2461.921875,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2586.765625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1945.859375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1079.484375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 768.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 623.734375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2151.25,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1462.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1558.609375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2461.921875,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2586.765625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1945.859375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1079.484375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 768.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 623.734375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1189.28125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 3285.4375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1970.625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1616.578125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1189.28125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 3285.4375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1970.625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1616.578125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    }
+  ],
+  "homeBoundaryChecks": [
+    {
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 257.140625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.34375,
+          "x": 220.328125,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 386.671875,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 423.140625,
+          "y": 620.390625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 70,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.34375,
+          "x": 336.328125,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 602.671875,
+          "y": 573.296875
+        }
+      ],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 505.640625,
+          "y": 620.453125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 234,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 446,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 658,
+          "y": 573.359375
+        }
+      ],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2139.9375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 257.140625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.34375,
+          "x": 220.328125,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 386.671875,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 423.140625,
+          "y": 620.390625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 70,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.34375,
+          "x": 336.328125,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 602.671875,
+          "y": 573.296875
+        }
+      ],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 505.640625,
+          "y": 620.453125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 234,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 446,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 658,
+          "y": 573.359375
+        }
+      ],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2139.9375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    }
+  ],
+  "menuQA": {
+    "expanded": "false",
+    "focused": "메뉴"
+  },
+  "skipQA": {
+    "focused": "main-content",
+    "hash": "#/home"
+  },
+  "entryQA": {
+    "guess": "막힐 것 같다",
+    "hash": "#/practice/synthetic-01",
+    "heading": "실습 · HTTPS와 입력 ACL"
+  },
+  "playbackQA": [
+    "이전\n재생\n다음\n2 / 2 단계",
+    "이전\n재생\n다음\n1 / 2 단계",
+    "이전\n재생\n다음\n2 / 2 단계"
+  ],
+  "matrixQA": "노출 0건\n예상 밖 차단 0건 · 미판정 0건 · 의도 일치 0건 · 의도 없음 10건\n총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0",
+  "matrixLayout": {
+    "acl": [],
+    "buttonOverflow": [],
+    "client": 305,
+    "h1": 1,
+    "hash": "#/matrix",
+    "headerNav": {
+      "height": 0,
+      "width": 0,
+      "x": 0,
+      "y": 0
+    },
+    "pathNodes": [],
+    "scroll": 305,
+    "sidebar": {
+      "height": 0,
+      "width": 0,
+      "x": 0,
+      "y": 0
+    },
+    "theme": "dark",
+    "width": 320
+  },
+  "fixQA": {
+    "fact": null,
+    "forbidden": false,
+    "goals": "목표 통신PC1 → SRV · HTTPS10.10.10.10 → 10.20.20.5 · tcp/443 · 열려야 함목표와 다름 · DENY정방향: ACL 101(g0/0 in) 1번 규칙에서 차단근거 보기 · PC1 → SRV · HTTPSPC1 → SRV · SSH10.10.10.10 → 10.20.20.5 · tcp/22 · 막혀야 함목표와 다름 · PASS정방향 · 복귀 방향 모두 통과근거 보기 · PC1 → SRV · SSH",
+    "results": "확인한 계산목표에 없는 통신의 변화검사한 서비스: SSH · HTTP · HTTPS · DNS · Ping · 왕복목표에 없는 통신의 변화 0건검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다."
+  },
+  "browserConsole": []
+}
