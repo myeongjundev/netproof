@@ -1,0 +1,6100 @@
+{
+  "productHead": "7d32af0",
+  "pages": [
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1189.28125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 3285.4375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1970.625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1616.578125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1189.28125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/cases/1",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 3285.4375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/dashboard",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1970.625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1616.578125,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "reviewer"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1462.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1558.609375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2461.921875,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2586.765625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1945.859375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1079.484375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1137.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 768.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 130.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 185.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1137.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 623.734375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2151.25,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/round-trip",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1462.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn/n8n",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1558.609375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2461.921875,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/fix/fix-01",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2586.765625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1945.859375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/matrix",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 1079.484375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1137.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/login",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 768.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 130.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 320,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 320,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 185.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 375,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 375,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375,
+      "session": "public"
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1137.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1280,
+      "h1": 1,
+      "hash": "#/settings",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1280,
+      "sidebar": {
+        "height": 623.734375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280,
+      "session": "public"
+    }
+  ],
+  "home": [
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 474.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 233.625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 706,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 138.65625,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 204.65625,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 355.328125,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 706,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 721
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 521.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 257.140625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.34375,
+          "x": 220.328125,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 386.671875,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 653.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 323.140625,
+          "y": 583.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 885,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 54,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.34375,
+          "x": 264.328125,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 474.671875,
+          "y": 535.921875
+        }
+      ],
+      "scroll": 885,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 900
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 697.1875,
+        "x": 139.609375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.125,
+          "y": 608.234375
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 945,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 207.65625,
+          "x": 70,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 289.65625,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 509.328125,
+          "y": 561.140625
+        }
+      ],
+      "scroll": 945,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 960
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 803.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.640625,
+          "y": 608.328125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 946,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 70,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 290,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 510,
+          "y": 561.234375
+        }
+      ],
+      "scroll": 946,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 961
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 866.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 385.140625,
+          "y": 613.796875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1009,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 70,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 311,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 552,
+          "y": 566.703125
+        }
+      ],
+      "scroll": 1009,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 942.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 423.140625,
+          "y": 620.390625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 70,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.34375,
+          "x": 336.328125,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 602.671875,
+          "y": 573.296875
+        }
+      ],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 943.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 505.640625,
+          "y": 620.453125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 234,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 446,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 658,
+          "y": 573.359375
+        }
+      ],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2139.9375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 474.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 233.625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 706,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 138.65625,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 204.65625,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 355.328125,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 706,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 721
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 521.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 257.140625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.34375,
+          "x": 220.328125,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 386.671875,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 653.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 323.140625,
+          "y": 583.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 885,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 54,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.34375,
+          "x": 264.328125,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 474.671875,
+          "y": 535.921875
+        }
+      ],
+      "scroll": 885,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 900
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 697.1875,
+        "x": 139.609375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.125,
+          "y": 608.234375
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 945,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 207.65625,
+          "x": 70,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 289.65625,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 509.328125,
+          "y": 561.140625
+        }
+      ],
+      "scroll": 945,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 960
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 661.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.640625,
+          "y": 608.328125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 946,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 70,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 290,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 510,
+          "y": 561.234375
+        }
+      ],
+      "scroll": 946,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 961
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 724.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 385.140625,
+          "y": 613.796875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1009,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 70,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 311,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 552,
+          "y": 566.703125
+        }
+      ],
+      "scroll": 1009,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 800.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 423.140625,
+          "y": 620.390625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 70,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.34375,
+          "x": 336.328125,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 602.671875,
+          "y": 573.296875
+        }
+      ],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 801.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 505.640625,
+          "y": 620.453125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 234,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 446,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 658,
+          "y": 573.359375
+        }
+      ],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2139.9375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    }
+  ],
+  "memberHeader": [
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 62.421875,
+          "width": 67,
+          "x": 119,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 119,
+          "y": 607.828125
+        },
+        {
+          "height": 107.859375,
+          "width": 67,
+          "x": 192,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875,
+          "x": 142.640625,
+          "y": 653.265625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 46,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.34375,
+          "x": 137.328125,
+          "y": 607.828125
+        },
+        {
+          "height": 89.71875,
+          "width": 85.328125,
+          "x": 228.671875,
+          "y": 607.828125
+        }
+      ],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 474.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 233.625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 706,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 138.65625,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 204.65625,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 138.671875,
+          "x": 355.328125,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 706,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 721
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 521.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 257.140625,
+          "y": 579.296875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 54,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.34375,
+          "x": 220.328125,
+          "y": 532.203125
+        },
+        {
+          "height": 95.03125,
+          "width": 154.328125,
+          "x": 386.671875,
+          "y": 532.203125
+        }
+      ],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 653.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 323.140625,
+          "y": 583.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 885,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 54,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.34375,
+          "x": 264.328125,
+          "y": 535.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 198.328125,
+          "x": 474.671875,
+          "y": 535.921875
+        }
+      ],
+      "scroll": 885,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 900
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 697.1875,
+        "x": 139.609375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.125,
+          "y": 608.234375
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 945,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 207.65625,
+          "x": 70,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 289.65625,
+          "y": 561.140625
+        },
+        {
+          "height": 95.03125,
+          "width": 207.671875,
+          "x": 509.328125,
+          "y": 561.140625
+        }
+      ],
+      "scroll": 945,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 960
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 661.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 353.640625,
+          "y": 608.328125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 946,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 70,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 290,
+          "y": 561.234375
+        },
+        {
+          "height": 95.03125,
+          "width": 208,
+          "x": 510,
+          "y": 561.234375
+        }
+      ],
+      "scroll": 946,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 961
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 724.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 385.140625,
+          "y": 613.796875
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1009,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 70,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 311,
+          "y": 566.703125
+        },
+        {
+          "height": 95.03125,
+          "width": 229,
+          "x": 552,
+          "y": 566.703125
+        }
+      ],
+      "scroll": 1009,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 800.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 423.140625,
+          "y": 620.390625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 44,
+        "width": 351.890625,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 70,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.34375,
+          "x": 336.328125,
+          "y": 573.296875
+        },
+        {
+          "height": 95.03125,
+          "width": 254.328125,
+          "x": 602.671875,
+          "y": 573.296875
+        }
+      ],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 801.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 505.640625,
+          "y": 620.453125
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 234,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 446,
+          "y": 573.359375
+        },
+        {
+          "height": 95.03125,
+          "width": 200,
+          "x": 658,
+          "y": 573.359375
+        }
+      ],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2139.9375,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 260.5625,
+        "x": 980.4375,
+        "y": 16
+      },
+      "acl": [
+        {
+          "height": 47.9375,
+          "width": 80.71875,
+          "x": 595.125,
+          "y": 634.015625
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/home",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [
+        {
+          "height": 95.03125,
+          "width": 259.65625,
+          "x": 234,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 505.65625,
+          "y": 586.921875
+        },
+        {
+          "height": 95.03125,
+          "width": 259.671875,
+          "x": 777.328125,
+          "y": 586.921875
+        }
+      ],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2153.5,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "light",
+      "width": 1280
+    }
+  ],
+  "learningLight": [
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 273,
+          "scroll": 273,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 305,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 75.65625
+        },
+        {
+          "height": 88.078125,
+          "width": 75.671875
+        },
+        {
+          "height": 88.078125,
+          "width": 75.671875
+        },
+        {
+          "height": 37.796875,
+          "width": 55.25
+        },
+        {
+          "height": 37.796875,
+          "width": 55.25
+        },
+        {
+          "height": 37.796875,
+          "width": 55.25
+        },
+        {
+          "height": 37.796875,
+          "width": 55.25
+        },
+        {
+          "height": 88.078125,
+          "width": 75.65625
+        },
+        {
+          "height": 88.078125,
+          "width": 75.671875
+        },
+        {
+          "height": 88.078125,
+          "width": 75.671875
+        }
+      ],
+      "scroll": 305,
+      "width": 320
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 328,
+          "scroll": 328,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 360,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 94
+        },
+        {
+          "height": 88.078125,
+          "width": 94
+        },
+        {
+          "height": 88.078125,
+          "width": 94
+        },
+        {
+          "height": 37.796875,
+          "width": 69
+        },
+        {
+          "height": 37.796875,
+          "width": 69
+        },
+        {
+          "height": 37.796875,
+          "width": 69
+        },
+        {
+          "height": 37.796875,
+          "width": 69
+        },
+        {
+          "height": 88.078125,
+          "width": 94
+        },
+        {
+          "height": 88.078125,
+          "width": 94
+        },
+        {
+          "height": 88.078125,
+          "width": 94
+        }
+      ],
+      "scroll": 360,
+      "width": 375
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 674,
+          "scroll": 674,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 706,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 706,
+      "width": 721
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 721,
+          "scroll": 721,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 753,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 753,
+      "width": 768
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 853,
+          "scroll": 853,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 885,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 885,
+      "width": 900
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 881,
+          "scroll": 881,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 945,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 945,
+      "width": 960
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 882,
+          "scroll": 882,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 946,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 946,
+      "width": 961
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 945,
+          "scroll": 945,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 1009,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 1009,
+      "width": 1024
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 1021,
+          "scroll": 1021,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 1085,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 1085,
+      "width": 1100
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 858,
+          "scroll": 858,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 1086,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 1086,
+      "width": 1101
+    },
+    {
+      "acl": [
+        {
+          "height": 44.28125,
+          "width": 74.71875
+        },
+        {
+          "height": 44.28125,
+          "width": 71.59375
+        }
+      ],
+      "cards": [
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "HTTPS와 입력 ACL"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "왕복 경로"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "출력 ACL"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "HTTPS는 열고 SSH는 막기"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "ping 왕복 만들기"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "반대 방향 SSH도 막기"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "Graylog — 로그를 모으고 찾기"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "Wazuh — 규칙으로 공격 징후 찾기"
+        },
+        {
+          "client": 1037,
+          "scroll": 1037,
+          "title": "n8n — 노드를 이어 자동화하기"
+        }
+      ],
+      "client": 1265,
+      "nodes": [
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 37.796875,
+          "width": 106
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        },
+        {
+          "height": 88.078125,
+          "width": 145.34375
+        },
+        {
+          "height": 88.078125,
+          "width": 145.328125
+        }
+      ],
+      "scroll": 1265,
+      "width": 1280
+    }
+  ],
+  "learningDark": [
+    {
+      "account": {
+        "height": 44,
+        "width": 115.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 305,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 170.140625,
+        "x": 111.65625,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 360,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 474.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 706,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 706,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 721
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 521.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 753,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 753,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 653.1875,
+        "x": 131.609375,
+        "y": 12
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 885,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 885,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 900
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 697.1875,
+        "x": 139.609375,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 945,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 945,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 960
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 803.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 946,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [],
+      "scroll": 946,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 961
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 866.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1009,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [],
+      "scroll": 1009,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 942.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": 16
+      },
+      "pathNodes": [],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 943.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": 16
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/learn",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2116.265625,
+        "width": 164,
+        "x": 0,
+        "y": 77
+      },
+      "theme": "dark",
+      "width": 1280
+    }
+  ],
+  "practiceResult": [
+    {
+      "account": {
+        "height": 44,
+        "width": 638.1875,
+        "x": 139.609375,
+        "y": -1592
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 886,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 886,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 901
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 697.1875,
+        "x": 139.609375,
+        "y": -1565
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 945,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 945,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 960
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 803.15625,
+        "y": -1565
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 946,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": -1565
+      },
+      "pathNodes": [],
+      "scroll": 946,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 961
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 942.15625,
+        "y": -1492
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1085,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 44,
+        "width": 280.03125,
+        "x": 155.609375,
+        "y": -1492
+      },
+      "pathNodes": [],
+      "scroll": 1085,
+      "sidebar": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 943.15625,
+        "y": -1565
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1086,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1086,
+      "sidebar": {
+        "height": 2703.890625,
+        "width": 164,
+        "x": 0,
+        "y": -1504
+      },
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "account": {
+        "height": 44,
+        "width": 118.84375,
+        "x": 1122.15625,
+        "y": -1492
+      },
+      "acl": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "h1": 1,
+      "hash": "#/practice/synthetic-02",
+      "headerNav": {
+        "height": 0,
+        "width": 0,
+        "x": 0,
+        "y": 0
+      },
+      "pathNodes": [],
+      "scroll": 1265,
+      "sidebar": {
+        "height": 2679.140625,
+        "width": 164,
+        "x": 0,
+        "y": -1431
+      },
+      "theme": "light",
+      "width": 1280
+    }
+  ],
+  "functions": {
+    "menu": {
+      "expanded": "false",
+      "focus": "메뉴"
+    },
+    "skip": {
+      "focus": "main-content",
+      "hash": "#/home"
+    },
+    "entry": {
+      "guess": "막힐 것 같다",
+      "hash": "#/practice/synthetic-01"
+    },
+    "playback": [
+      "이전\n재생\n다음\n2 / 2 단계",
+      "이전\n재생\n다음\n1 / 2 단계",
+      "이전\n재생\n다음\n2 / 2 단계"
+    ],
+    "matrix": "노출 0건\n예상 밖 차단 0건 · 미판정 0건 · 의도 일치 0건 · 의도 없음 10건\n총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0",
+    "fix": {
+      "fact": null,
+      "forbidden": false,
+      "goals": "목표 통신\nPC1 → SRV · HTTPS\n\n10.10.10.10 → 10.20.20.5 · tcp/443 · 열려야 함\n\n목표와 다름 · DENY\n\n정방향: ACL 101(g0/0 in) 1번 규칙에서 차단\n\n근거 보기\n· PC1 → SRV · HTTPS\nPC1 → SRV · SSH\n\n10.10.10.10 → 10.20.20.5 · tcp/22 · 막혀야 함\n\n목표와 다름 · PASS\n\n정방향 · 복귀 방향 모두 통과\n\n근거 보기\n· PC1 → SRV · SSH",
+      "results": "확인한 계산\n목표에 없는 통신의 변화\n\n검사한 서비스: SSH · HTTP · HTTPS · DNS · Ping · 왕복\n\n목표에 없는 통신의 변화 0건\n\n검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다."
+    },
+    "tabFirst": {
+      "class": "skip-link",
+      "text": "본문으로 바로가기"
+    },
+    "tabSidebar": {
+      "href": "#/learn",
+      "text": "학습실"
+    }
+  },
+  "console": []
+}
