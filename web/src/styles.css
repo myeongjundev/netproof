@@ -539,7 +539,11 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
   .practice-intro p { flex-basis: 100%; }
   .main:has(.practice-page) { padding-left: 16px; padding-right: 16px; }
 }
-@media (max-width: 1100px) { .app-header .brand span { display: none; } }
+@media (max-width: 1100px) {
+  .app-header .brand span { display: none; }
+  /* 태블릿에서도 범위 밖 장비와 ACL을 읽을 수 있도록 퍼즐에 한 줄의 폭을 준다. */
+  .home-hero { grid-template-columns: 1fr; }
+}
 @media (max-width: 960px) {
   .app-header .header-inner { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
   .app-header .brand { grid-column: 1; grid-row: 1; }

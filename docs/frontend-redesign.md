@@ -32,6 +32,16 @@
 
 ![375px 다크 실습의 복귀 차단 근거](screens/frontend-practice-mobile-dark.jpg)
 
-엔진489 passed·2 xfailed, 서버227 passed·1 skipped, 웹645 passed, 웹 build 완료. 최종 번들은 CSS `index-AgU_oDiV.css`·JS `index-1tzp9H12.js`다. 320·375·1280px 라이트/다크 84개 조합의 배치와 JS 진단은 [원문 JSON](screens/frontend-qa.json), 명령·출력과 실제 사용한 흐름은 [HANDOFF 테스트 결과](../HANDOFF.md#테스트-결과--프론트-전체-리디자인-codex-직접-실행-2026-10-11)에 있다. 이 검사는 모든 사용자 상태나 실제 장비 결과를 대조한 검사는 아니다.
+엔진489 passed·2 xfailed, 서버227 passed·1 skipped, 웹645 passed, 웹 build 완료. R1 수정 뒤 번들은 CSS `index-BZkAbxlp.css`·JS `index-BZrhjkmL.js`다. 최초 320·375·1280px 라이트/다크 84개 조합의 배치와 JS 진단은 [원문 JSON](screens/frontend-qa.json), 명령·출력과 실제 사용한 흐름은 [HANDOFF 테스트 결과](../HANDOFF.md#테스트-결과--프론트-전체-리디자인-codex-직접-실행-2026-10-11)에 있다. 이 검사는 모든 사용자 상태나 실제 장비 결과를 대조한 검사는 아니다.
+
+## PR #59 R1 — 태블릿 홈
+
+721~960px에서 홈 퍼즐의 구성도와 ACL이 좁아지는 문제를 고쳤다. 1100px 이하에서 소개 다음에 퍼즐을 한 열로 배치해 전체 폭을 쓰게 한다. 기존 휴대폰 스타일과 1280px 데스크톱 두 열은 유지한다. 721px 장비 칸 폭은0→106px, ACL 높이는333.30→47.94px, 예상 버튼 글자 넘침은0이다.
+
+![수정 뒤 721px 라이트 홈](screens/frontend-fix-tablet-721-light.jpg)
+
+![수정 뒤 768px 다크 홈](screens/frontend-fix-tablet-768-dark.jpg)
+
+빌드된 실제 화면에서 721/768/900/960/1024/1100/1101/1280px 라이트/다크16건을 확인했다. 태블릿 장비 칸 최소80px·ACL 높이 최대90px와 화면/버튼 넘침0을 단언했고, 기존 공개·합성 회원84개 조합도 다시 검사했다. [단언 기준·실제 측정·콘솔 원문](screens/frontend-fix-qa.json), [명령 출력·QA 정리](../HANDOFF.md#r1-수정테스트-결과--pr-59-codex-2026-10-11). 다음 차례는 독립 재리뷰다.
 
 Codex (GPT-6)
