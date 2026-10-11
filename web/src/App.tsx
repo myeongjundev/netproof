@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { blankDraft } from "./draft";
 import { AppHeader } from "./components/AppHeader";
+import { WorkspaceNav } from "./components/WorkspaceNav";
 import { HomePage } from "./pages/HomePage";
 import { LearningPage } from "./pages/LearningPage";
 import { CaseDetailPage } from "./pages/CaseDetailPage";
@@ -151,6 +152,9 @@ export function App() {
       <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); main.current?.focus(); }}>본문으로 바로가기</a>
       <AppHeader route={route} user={user} checked={checked} onLogout={logout} />
 
+      <div className="workspace-shell">
+      <WorkspaceNav route={route} user={user} />
+      <div className="workspace-content">
       <main id="main-content" className="main" ref={main} tabIndex={-1} data-page={route.page}>{page}</main>
 
       <footer className="foot">
@@ -160,6 +164,8 @@ export function App() {
         밖은 “판정 불가”로 알려 줍니다.
         </p>
       </footer>
+      </div>
+      </div>
     </>
   );
 }

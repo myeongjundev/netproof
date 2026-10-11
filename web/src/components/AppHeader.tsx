@@ -13,7 +13,7 @@ export function AppHeader({ route, user, checked, onLogout }: { route: Route; us
     if (event.key === "Escape" && open) { setOpen(false); menuButton.current?.focus(); }
   }}>
     <div className="header-inner">
-    <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}><UiIcon name="network" className="brand-symbol" />NetProof <span>Verify before you trust.</span></a>
+    <a href="#/home" className="brand" aria-label="NetProof 홈" aria-current={route.page === "home" ? "page" : undefined} onClick={() => setOpen(false)}>netproof<UiIcon name="arrow" className="brand-symbol" /><span>네트워크 실습실</span></a>
     <button type="button" ref={menuButton} className="ghost header-menu-toggle" aria-expanded={open} aria-controls={menuId} onClick={() => setOpen(value => !value)}><UiIcon name="menu" />메뉴</button>
     <nav id={menuId} className={`tabs header-nav${open ? " is-open" : ""}`} aria-label="주요 화면">
       {tab("학습실", "#/learn", route.page === "learn" || route.page === "practice" || route.page === "fix")}
