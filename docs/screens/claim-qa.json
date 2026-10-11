@@ -1,0 +1,5369 @@
+{
+  "input": [
+    {
+      "expected": "된다",
+      "flow": [
+        "10.10.10.10",
+        "10.20.20.5",
+        "443"
+      ],
+      "kind": "self",
+      "source": "QA 입력 출처 · ChatGPT",
+      "text": "QA 입력 내용 · 원문 차단 일치"
+    },
+    {
+      "expected": "비교 안 함",
+      "kindControl": false,
+      "memoControl": false
+    },
+    {
+      "expected": "안 된다",
+      "flow": [
+        "10.10.10.10",
+        "10.20.20.5",
+        "443"
+      ],
+      "kind": "self",
+      "source": "QA 입력 출처 · ChatGPT",
+      "text": "QA 입력 내용 · 원문 차단 일치"
+    }
+  ],
+  "layouts": [
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 320
+    },
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 375
+    },
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 768
+    },
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 1100
+    },
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 1101
+    },
+    {
+      "actual": [],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "받은 답 · QA 입력 출처 · ChatGPT안 된다≠NetProof 계산통과",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 305,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 360,
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1085,
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1086,
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 305,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 360,
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1085,
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1086,
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 305,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 360,
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1085,
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1086,
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 305,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 360,
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1085,
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1086,
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 305,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 360,
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1085,
+      "theme": "light",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1086,
+      "theme": "light",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1265,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 305,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 360,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 753,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1085,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1086,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1265,
+      "theme": "light",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": true,
+      "route": "judge",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 305,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 360,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 753,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1085,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1086,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 막힘 · 판정과 같음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/6:ai",
+      "scroll": 1265,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 305,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 360,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 753,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1085,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1086,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "확인 전 · 통과 · 판정과 다름"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/7:self",
+      "scroll": 1265,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 305,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 360,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 753,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1085,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1086,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/8:missing",
+      "scroll": 1265,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 305,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 360,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 753,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1085,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1086,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge good",
+          "text": "같음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/9:null",
+      "scroll": 1265,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/10:unsupported",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "비교 불가"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/11:invalid",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge plain",
+          "text": "받은 답 없음"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "라우터"
+        },
+        {
+          "class": "badge plain",
+          "text": "호스트"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "claim": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases/12:no-answer",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        },
+        {
+          "class": "badge r-deny",
+          "text": "막힘"
+        },
+        {
+          "class": "badge bad",
+          "text": "다름"
+        },
+        {
+          "class": "badge plain",
+          "text": "안 적음"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [
+        {
+          "label": "막힘",
+          "value": "DENY"
+        },
+        {
+          "label": "다름",
+          "value": "DISAGREE"
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "전체",
+          "value": ""
+        },
+        {
+          "label": "종류 미정",
+          "value": "none"
+        },
+        {
+          "label": "된다",
+          "value": "PASS"
+        }
+      ],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "cases-filter",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 305,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 360,
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 753,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1085,
+      "theme": "dark",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1086,
+      "theme": "dark",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "dashboard",
+      "scroll": 1265,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 305,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 305,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 320
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 360,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 360,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 375
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 753,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 753,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 768
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1085,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1085,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1100
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1086,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1086,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1101
+    },
+    {
+      "actual": [
+        {
+          "class": "badge accent",
+          "text": "검토자"
+        }
+      ],
+      "buttonOverflow": [],
+      "client": 1265,
+      "filter": [],
+      "h1": 1,
+      "kindOutsideDetails": null,
+      "route": "practice02",
+      "scroll": 1265,
+      "theme": "dark",
+      "versus": "내 예상된다≠NetProof 계산막힘",
+      "width": 1280
+    }
+  ],
+  "details": [
+    {
+      "banner": "≠ AI 답(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "label": "ai",
+      "metadata": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "versus": "AI 답된다≠NetProof 계산막힘"
+    },
+    {
+      "banner": "= 사람 예상(안 된다)과 NetProof 계산이 같습니다",
+      "label": "self",
+      "metadata": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "versus": "사람 예상안 된다=NetProof 계산막힘"
+    },
+    {
+      "banner": "≠ 받은 답(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "label": "missing",
+      "metadata": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "versus": "받은 답된다≠NetProof 계산막힘"
+    },
+    {
+      "banner": "= 받은 답(안 된다)과 NetProof 계산이 같습니다",
+      "label": "null",
+      "metadata": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "versus": "받은 답안 된다=NetProof 계산막힘"
+    },
+    {
+      "label": "unsupported",
+      "metadata": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1
+    },
+    {
+      "label": "invalid",
+      "metadata": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1
+    },
+    {
+      "label": "no-answer",
+      "metadata": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 0,
+      "textCount": 0
+    },
+    {
+      "banner": "≠ AI 답(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "label": "ai",
+      "metadata": "답의 출처·내용받은 답 출처QA ai 고유 출처내용QA ai 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark",
+      "versus": "AI 답된다≠NetProof 계산막힘"
+    },
+    {
+      "banner": "= 사람 예상(안 된다)과 NetProof 계산이 같습니다",
+      "label": "self",
+      "metadata": "답의 출처·내용받은 답 출처QA self 고유 출처내용QA self 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark",
+      "versus": "사람 예상안 된다=NetProof 계산막힘"
+    },
+    {
+      "banner": "≠ 받은 답(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "label": "missing",
+      "metadata": "답의 출처·내용받은 답 출처QA missing 고유 출처내용QA missing 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark",
+      "versus": "받은 답된다≠NetProof 계산막힘"
+    },
+    {
+      "banner": "= 받은 답(안 된다)과 NetProof 계산이 같습니다",
+      "label": "null",
+      "metadata": "답의 출처·내용받은 답 출처QA null 고유 출처내용QA null 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark",
+      "versus": "받은 답안 된다=NetProof 계산막힘"
+    },
+    {
+      "label": "unsupported",
+      "metadata": "답의 출처·내용종류AI 답답된다받은 답 출처QA unsupported 고유 출처내용QA unsupported 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark"
+    },
+    {
+      "label": "invalid",
+      "metadata": "답의 출처·내용종류사람 예상답안 된다받은 답 출처QA invalid 고유 출처내용QA invalid 고유 내용 · 일치 차단받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 1,
+      "textCount": 1,
+      "theme": "dark"
+    },
+    {
+      "label": "no-answer",
+      "metadata": "답의 출처·내용이 사례에는 받은 답이 없습니다.받은 답 출처는 답을 준 곳(AI 도구·사람)입니다. 실제 결과 출처와 다릅니다.",
+      "sourceCount": 0,
+      "textCount": 0,
+      "theme": "dark"
+    }
+  ],
+  "functional": {
+    "actualBefore": [
+      {
+        "class": "badge accent",
+        "text": "검토자"
+      },
+      {
+        "class": "badge bad",
+        "text": "다름"
+      },
+      {
+        "class": "badge plain",
+        "text": "확인 전 · 막힘 · 판정과 같음"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge plain",
+        "text": "라우터"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge plain",
+        "text": "확인 전 · 막힘 · 판정과 같음"
+      }
+    ],
+    "actualConfirmed": [
+      {
+        "class": "badge accent",
+        "text": "검토자"
+      },
+      {
+        "class": "badge bad",
+        "text": "다름"
+      },
+      {
+        "class": "badge good",
+        "text": "확인 · 판정과 같음"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge plain",
+        "text": "라우터"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge good",
+        "text": "확인 · 판정과 같음"
+      }
+    ],
+    "actualUnconfirmed": [
+      {
+        "class": "badge accent",
+        "text": "검토자"
+      },
+      {
+        "class": "badge bad",
+        "text": "다름"
+      },
+      {
+        "class": "badge plain",
+        "text": "확인 전 · 막힘 · 판정과 같음"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge plain",
+        "text": "라우터"
+      },
+      {
+        "class": "badge plain",
+        "text": "호스트"
+      },
+      {
+        "class": "badge plain",
+        "text": "확인 전 · 막힘 · 판정과 같음"
+      }
+    ],
+    "filter": {
+      "caseLinks": [],
+      "conditions": "적용한 조건: 판정 막힘 · 받은 답과 판정 다름 · 받은 답 종류 종류 미정 · 받은 답 된다검색 결과 1개 · 페이지당 20개",
+      "options": [
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "PASS",
+              "통과"
+            ],
+            [
+              "DENY",
+              "막힘"
+            ],
+            [
+              "UNSUPPORTED",
+              "판정 불가"
+            ],
+            [
+              "INVALID",
+              "입력 오류"
+            ]
+          ],
+          "value": "DENY"
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "AGREE",
+              "같음"
+            ],
+            [
+              "DISAGREE",
+              "다름"
+            ],
+            [
+              "NOT_COMPARABLE",
+              "비교 불가"
+            ],
+            [
+              "NO_CLAIM",
+              "받은 답 없음"
+            ]
+          ],
+          "value": "DISAGREE"
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "1",
+              "확인됨"
+            ],
+            [
+              "0",
+              "미확인"
+            ]
+          ],
+          "value": ""
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "nmap",
+              "Nmap"
+            ],
+            [
+              "ping",
+              "ping"
+            ],
+            [
+              "device",
+              "장비"
+            ],
+            [
+              "other",
+              "기타"
+            ],
+            [
+              "none",
+              "출처 없음"
+            ]
+          ],
+          "value": ""
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "PASS",
+              "통과"
+            ],
+            [
+              "DENY",
+              "막힘"
+            ],
+            [
+              "none",
+              "미정"
+            ]
+          ],
+          "value": ""
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "1",
+              "다름"
+            ]
+          ],
+          "value": ""
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "ai",
+              "AI 답"
+            ],
+            [
+              "self",
+              "사람 예상"
+            ],
+            [
+              "none",
+              "종류 미정"
+            ]
+          ],
+          "value": "none"
+        },
+        {
+          "labels": [
+            [
+              "",
+              "전체"
+            ],
+            [
+              "PASS",
+              "된다"
+            ],
+            [
+              "DENY",
+              "안 된다"
+            ]
+          ],
+          "value": "PASS"
+        }
+      ]
+    },
+    "playbackInitial": "이전\n재생\n다음\n2 / 2 단계",
+    "practice": {
+      "banner": "≠ 내 예상(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "kind": false,
+      "memo": false,
+      "radiogroups": 0,
+      "returnSelected": "정방향복귀"
+    },
+    "playbackPrevious": "이전\n재생\n다음\n1 / 2 단계",
+    "playbackNext": "이전\n재생\n다음\n2 / 2 단계",
+    "practiceDark": {
+      "banner": "≠ 내 예상(된다)과 NetProof 계산(막힘)이 다릅니다아래 경로와 ACL 근거에서 이유를 확인해 보세요.",
+      "claimKind": false,
+      "claimMemo": false,
+      "fieldset": 1,
+      "playback": "이전재생다음2 / 2 단계",
+      "radios": 3
+    },
+    "fromCaseSelf": {
+      "expected": "안 된다",
+      "kind": "self",
+      "source": "QA self 고유 출처",
+      "text": "QA self 고유 내용 · 일치 차단"
+    },
+    "clone": {
+      "expected": "비교 안 함",
+      "kindControl": false,
+      "memoControl": false
+    },
+    "fix": {
+      "forbidden": false,
+      "goals": "목표 통신PC1 → SRV · HTTPS10.10.10.10 → 10.20.20.5 · tcp/443 · 열려야 함목표와 다름 · DENY정방향: ACL 101(g0/0 in) 1번 규칙에서 차단근거 보기 · PC1 → SRV · HTTPSPC1 → SRV · SSH10.10.10.10 → 10.20.20.5 · tcp/22 · 막혀야 함목표와 다름 · PASS정방향 · 복귀 방향 모두 통과근거 보기 · PC1 → SRV · SSH",
+      "result": "확인한 계산목표에 없는 통신의 변화검사한 서비스: SSH · HTTP · HTTPS · DNS · Ping · 왕복목표에 없는 통신의 변화 0건검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다."
+    },
+    "keyboard": {
+      "focused": "정책 검증으로",
+      "kindLabels": 1,
+      "sourceLabels": 1,
+      "textLabels": 1
+    },
+    "console": []
+  }
+}

@@ -1,6 +1,7 @@
 import type { Claim, Flow, Mode, Proto } from "../types";
 import { useId, useState } from "react";
 import { ipv4Problem } from "../validate";
+import { ANSWER_TEXT, claimKindText } from "../displayText";
 
 interface Props {
   flow: Flow;
@@ -90,32 +91,34 @@ export function FlowForm({ flow, claim, endpoints, onFlow, onClaim, hideClaim = 
           {([null, "PASS", "DENY"] as const).map((value) => (
             <label key={String(value)} className={claim.expected === value ? "chip on" : "chip"}>
               <input type="radio" name="expected" checked={claim.expected === value} onChange={() => onClaim({ ...claim, expected: value })} />
-              {value === null ? "비교 안 함" : value === "PASS" ? "된다" : "안 된다"}
+              {value === null ? "비교 안 함" : ANSWER_TEXT[value]}
             </label>
           ))}
         </div>
         {claim.expected && (
-          <details className="q-source">
-            <summary>{claim.source ? `출처: ${claim.source}` : "누구의 답인지 적기"}</summary>
-            <div className="grid">
-              <label>
-                <span>답의 종류</span>
-                <select value={claim.kind ?? ""} onChange={(e) => onClaim({ ...claim, kind: (e.target.value || null) as Claim["kind"] })}>
-                  <option value="">고르지 않음</option>
-                  <option value="ai">AI의 답</option>
-                  <option value="self">내 예상</option>
-                </select>
-              </label>
-              <label>
-                <span>누구의 답인가</span>
-                <input value={claim.source} placeholder="예: ChatGPT 2026-10-02 / 내 예상" onChange={(e) => onClaim({ ...claim, source: e.target.value })} />
-              </label>
-              <label className="wide">
-                <span>답 원문</span>
-                <textarea rows={2} value={claim.text} onChange={(e) => onClaim({ ...claim, text: e.target.value })} />
-              </label>
-            </div>
-          </details>
+          <>
+            <label className="q-kind">
+              <span>답의 종류</span>
+              <select value={claim.kind ?? ""} onChange={(e) => onClaim({ ...claim, kind: (e.target.value || null) as Claim["kind"] })}>
+                <option value="">{claimKindText(null, "personal")}</option>
+                <option value="ai">{claimKindText("ai", "personal")}</option>
+                <option value="self">{claimKindText("self", "personal")}</option>
+              </select>
+            </label>
+            <details className="q-source">
+              <summary>출처·내용 적기(선택)</summary>
+              <div className="grid">
+                <label>
+                  <span>출처(선택)</span>
+                  <input value={claim.source} placeholder="예: ChatGPT 2026-10-02 / 내 예상" onChange={(e) => onClaim({ ...claim, source: e.target.value })} />
+                </label>
+                <label className="wide">
+                  <span>답 내용(선택)</span>
+                  <textarea rows={2} value={claim.text} onChange={(e) => onClaim({ ...claim, text: e.target.value })} />
+                </label>
+              </div>
+            </details>
+          </>
         )}
       </div>}
       {!hideClaim && <p className="hint below">AI나 내가 예상한 답을 고르면 계산 결과와 나란히 보여 줍니다. NetProof는 이 답을 판정에 쓰지 않습니다.</p>}

@@ -2,13 +2,14 @@ import type { Claim, Flow, Hop, Network, Trace, Verdict } from "../types";
 import { decisivePosition, stepText } from "../tracePlayback";
 import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
-import { comparisonBanner, statusLine } from "../verdictView";
+import { comparisonBanner, showsComparisonHeader, statusLine } from "../verdictView";
+import { ANSWER_TEXT, RESULT_TEXT, claimComparisonText, type ClaimContext } from "../displayText";
 
-const RESULT_TEXT = {
-  PASS: { title: "통과", note: "모델 안에서 계산한 결과, 이 통신은 됩니다." },
-  DENY: { title: "막힘", note: "모델 안에서 계산한 결과, 이 통신은 막힙니다." },
-  UNSUPPORTED: { title: "판정 불가", note: "지원 범위 밖이라 추측하지 않고 멈췄습니다." },
-  INVALID: { title: "입력 오류", note: "입력이 성립하지 않아 계산하지 않았습니다." },
+const RESULT_NOTE = {
+  PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
+  DENY: "모델 안에서 계산한 결과, 이 통신은 막힙니다.",
+  UNSUPPORTED: "지원 범위 밖이라 추측하지 않고 멈췄습니다.",
+  INVALID: "입력이 성립하지 않아 계산하지 않았습니다.",
 } as const;
 
 const COMPARISON_TEXT = {
@@ -17,11 +18,9 @@ const COMPARISON_TEXT = {
   NOT_COMPARABLE: { mark: "?", line: "계산이 판정을 못 해 비교하지 않았습니다." },
 } as const;
 
-const ANSWER_TEXT = { PASS: "된다", DENY: "안 된다" } as const;
-
-function claimLabel(claim: Claim): string {
-  const who = claim.kind === "ai" ? "AI 답" : claim.kind === "self" ? "내 예상" : "받은 답";
-  return claim.source ? `${who} · ${claim.source}` : who;
+function claimLabel(claim: Claim, context: ClaimContext, showSource: boolean): string {
+  const who = claimComparisonText(claim.kind, context);
+  return showSource && claim.source ? `${who} · ${claim.source}` : who;
 }
 
 const DROP_TEXT: Record<Hop["step"], string> = {
@@ -130,15 +129,17 @@ interface Props {
   onShowAcl?: (acl: string, line: number | null) => void;
   title?: string;
   emptyHint?: string;
+  claimContext?: ClaimContext;
+  showClaimSource?: boolean;
 }
 
-export function ResultPanel({ verdict, claim, stale, error, loading, network, flow, engineVersion, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다." }: Props) {
-  const banner = comparisonBanner(verdict, claim);
+export function ResultPanel({ verdict, claim, stale, error, loading, network, flow, engineVersion, onShowAcl, title = "판정", emptyHint = "구성과 통신을 적고 판정하기를 누르세요. 예시를 불러와도 됩니다.", claimContext = "personal", showClaimSource = true }: Props) {
+  const banner = comparisonBanner(verdict, claim, claimContext);
   const decisive = verdict ? decisivePosition(verdict) : null;
   const cannotCompare = verdict?.result === "INVALID" || verdict?.result === "UNSUPPORTED";
   return (
     <section className="panel result" aria-labelledby="result-title" aria-busy={loading}>
-      <p className="sr-only" role="status">{statusLine(verdict, claim, loading)}</p>
+      <p className="sr-only" role="status">{statusLine(verdict, claim, loading, claimContext)}</p>
       <h2 id="result-title">{title}</h2>
       {error && <p className="error">{error}</p>}
       {!verdict && !error && <p className="hint">{emptyHint}</p>}
@@ -147,13 +148,13 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
           {stale && <><p className="previous-result">이전 결과</p><p className="stale">입력이 바뀌었습니다. 다시 판정하세요.</p></>}
           <div className={`verdict ${verdict.result.toLowerCase()}${banner ? " compared" : ""}${stale ? " outdated" : ""}`}>
             {banner && <p className={`comparison-banner ${banner.tone}`}>{banner.text}{banner.hint && <small>{banner.hint}</small>}</p>}
-            {cannotCompare || verdict.comparison === "NO_CLAIM" || !verdict.comparison || !claim.expected ? (
-              <p className="verdict-title">{RESULT_TEXT[verdict.result].title}</p>
+            {!showsComparisonHeader(verdict, claim) || !claim.expected ? (
+              <p className="verdict-title">{RESULT_TEXT[verdict.result]}</p>
             ) : (
               <>
                 <div className="versus">
                   <p className="side claim-side">
-                    <span className="side-label">{claimLabel(claim)}</span>
+                    <span className="side-label">{claimLabel(claim, claimContext, showClaimSource)}</span>
                     <strong>{ANSWER_TEXT[claim.expected]}</strong>
                   </p>
                   <span className="vs-mark" aria-hidden="true">
@@ -161,7 +162,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
                   </span>
                   <p className={`side calculated ${verdict.result.toLowerCase()}`}>
                     <span className="side-label">NetProof 계산</span>
-                    <strong>{RESULT_TEXT[verdict.result].title}</strong>
+                    <strong>{RESULT_TEXT[verdict.result]}</strong>
                   </p>
                 </div>
                 <p className={`verdict-line ${verdict.comparison.toLowerCase()}`}>{COMPARISON_TEXT[verdict.comparison].line}</p>
@@ -172,7 +173,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
               {verdict.problems.length > 0 && <ul className="problems">{verdict.problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>}
             </>}
             <p>{verdict.reason}</p>
-            <p className="verdict-note">{RESULT_TEXT[verdict.result].note}</p>
+            <p className="verdict-note">{RESULT_NOTE[verdict.result]}</p>
           </div>
           {!cannotCompare && verdict.problems.length > 0 && (
             <ul className="problems">

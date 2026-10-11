@@ -26,3 +26,17 @@ it("새 선택 조건은 접힌 개수·선택 값·적용 문구에 반영된�
   expect(markup).toContain('<option value="1" selected="">다름</option>');
   expect(markup).toContain("내 사례만 · 계산과 실제 결과 다름");
 });
+it("계산·실제·받은 답은 기존 필터 값을 유지하며 다른 문구로 표시한다", () => {
+  vi.mocked(useRoute).mockReturnValue({ page: "cases", query: "result=DENY&comparison=DISAGREE&actual=DENY&claim_kind=none&claim_expected=DENY" });
+  const markup = renderToStaticMarkup(createElement(CasesPage));
+  expect(markup).toContain("필터 (적용 5개)");
+  expect(markup.match(/<option value="DENY" selected="">막힘<\/option>/g)).toHaveLength(2);
+  expect(markup).toContain('<option value="DENY" selected="">안 된다</option>');
+  expect(markup).toContain('<option value="DISAGREE" selected="">다름</option>');
+  expect(markup).toContain('<option value="none" selected="">종류 미정</option>');
+  expect(markup).toContain("판정 막힘 · 받은 답과 판정 다름 · 실제 결과 막힘 · 받은 답 종류 종류 미정 · 받은 답 안 된다");
+  expect(markup).toContain('<option value="NO_CLAIM">받은 답 없음</option>');
+  expect(markup).toContain('<option value="UNSUPPORTED">판정 불가</option>');
+  expect(markup).toContain('<option value="INVALID">입력 오류</option>');
+  expect(markup).not.toMatch(/>차단<|>일치<|>불일치<|>종류 없음</);
+});

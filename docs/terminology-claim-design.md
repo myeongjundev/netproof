@@ -1,6 +1,6 @@
 # F2·F3 — 용어와 받은 답 입력·표시 정리
 
-2026-10-11 사용자 “문서 정리해 그리고 그다음은 용어 통일(F2)과 받은 답 입력의 중복 정리(F3) 설계 하자” 요청에 따른 설계다. 기준은 PR #60이 병합된 main `cc9d8a5`. 이번 설계 담당은 사용자 요청에 따라 Codex이며, 제품 구현은 아직 하지 않는다. 구현 전 사용자 설계 확인을 받는다.
+2026-10-11 사용자 “문서 정리해 그리고 그다음은 용어 통일(F2)과 받은 답 입력의 중복 정리(F3) 설계 하자” 요청에 따른 설계다. 기준은 PR #60이 병합된 main `cc9d8a5`. 이번 설계 담당은 사용자 요청에 따라 Codex다. 이후 사용자의 “진행하자”로 범위1~5 구현을 승인받았으며, 문서 PR #61의 `4711695`에서 새 `codex/terminology-claim` 브랜치를 만들어 구현했다.
 
 ## 문제와 근거
 
@@ -111,6 +111,14 @@ engine/, server/, scripts/, cases/*.json·expect, web/package*.json, requirement
 5. `git diff --check` 출력 없음. `git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json` 출력 없음. `rg -n '차단|일치|불일치|사람 예상|내 예상|PASS|DENY' web/src/components/Badges.tsx web/src/components/FlowForm.tsx web/src/components/ResultPanel.tsx web/src/pages/CasesPage.tsx web/src/pages/CaseDetailPage.tsx web/src/pages/DashboardPage.tsx web/src/caseView.ts web/src/verdictView.ts web/src/displayText.ts` 결과를 붙이고 원문·기술 용어·wire 값·문맥별 예상 표현의 허용 항목을 대조. 검색0건을 목표로 삼지 않음.
 6. DB·보안 로그 환경 변수를 비운 프로세스에서 `scripts/qa_local.py` 실행, 임시 SQLite·합성 계정만 사용. 라이트/다크의 위6폭에서 입력 종류/선택 메모·AI/사람 예상 상세·종류 미정·판정 불가/입력 오류·답 없음·목록 필터를 확인. 필요한 변형 사례는 임시 DB에서 기존 API로만 준비하고 cases/에는 넣지 않음. 읽기 화면에서 원래 종류/답/출처/내용이 사라지지 않음, 정상 비교의 중복 없음, 전용 실습·복귀 재생 유지, 콘솔/페이지/버튼 넘침0. 캡처·결과 기록 후 서버 정지·임시 DB 삭제.
 
-현재 설계 문서의 테스트 출력은 이 기능 구현의 검증이 아니다. 위 완료 조건은 구현 후 직접 실행해야 한다. 사용자의 수동 QA A~E와 실제 장비 대조는 계속 별도 대기다.
+설계 단계의 테스트 출력과 이번 구현의 검증을 구분한다. 구현 후 위 완료 조건을 직접 실행한 출력은 HANDOFF의 「테스트 결과 — F2·F3」에 기록했다. 사용자의 수동 QA A~E와 실제 장비 대조는 계속 별도 대기다.
+
+## 구현 확인 (2026-10-11)
+
+공통 표시 사전과 기존 비교 머리 조건을 공유한다. 종류 문맥은 판정기에서 내 예상, 저장된 사례에서 사람 예상이며 미정인 종류를 출처에서 추론하지 않는다. 답을 고르면 종류를 바로 선택하고, 선택 메모는 source/text만 받는다. 종류 변경·비교 안 함 왕복은 실제 핸들러 및 브라우저에서 다른 값을 유지했다. 상세의 source/text는 정상·비교 불가 모두 각각 한 번 표시하며, 머리가 없을 때만 종류·답을 메모 패널에 추가한다. fromCase는 supplied kind를 보존하고 복제는 기존 EMPTY_CLAIM을 사용한다.
+
+기존 웹656건에 회귀36건을 추가했다. 상세 상태표160조합과 의도적으로 답/결과와 어긋난 comparison, fromCase의 ai/self/null/생략·JSON 가져오기·복제, 실제 결과 배지 스타일 및 필터/대시보드 분모·주소를 검사한다. 임시 SQLite에서 기존 API로 변형 사례7개를 준비하고11개 화면 × 6폭 × 라이트/다크132조합을 확인했다. 페이지·버튼 넘침0, h1 각1개, native console error/warn0이다. 실제 장비 관측·사람의 수동 QA 완료를 의미하지 않는다. QA 서버·임시 DB는 정리했다.
+
+제품 캡처: [입력](screens/claim-input-desktop-light.jpg), [AI 답 상세](screens/claim-detail-desktop-light.jpg), [판정 불가·모바일 다크](screens/claim-unsupported-mobile-dark.jpg). [측정·입력·상세·기능·콘솔 원문](screens/claim-qa.json). 모두 합성 입력과 합성 계정의 로컬 화면이다. 첫 빌드에서 새 대시보드 테스트 fixture의 CaseSummary에 없는 필드2개를 발견해 제거하고 전체 웹 회귀와 빌드를 다시 실행했다.
 
 Codex (GPT-6)

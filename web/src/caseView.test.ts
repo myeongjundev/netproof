@@ -5,7 +5,7 @@ import { blankDraft, toNetwork } from "./draft";
 import type { Claim, Comparison, Flow, Network } from "./types";
 
 describe("받은 답 표시", () => {
-  it.each([["ai", "AI 답"], ["self", "사람 예상"], [null, "받은 답"], [undefined, "받은 답"]] as const)("종류 %s", (kind, text) => {
+  it.each([["ai", "AI 답"], ["self", "사람 예상"], [null, "종류 미정"], [undefined, "종류 미정"]] as const)("종류 %s", (kind, text) => {
     expect(claimKindText(kind)).toBe(text);
   });
   it.each([
@@ -97,10 +97,10 @@ describe("적용 조건의 사실 표시", () => {
   });
   it("모든 조건의 순서와 선택지 문구", () => {
     expect(appliedFilterText({ q: "ignored", mine: true, result: "DENY", comparison: "DISAGREE", confirmed: "1", source: "none", actual: "PASS", actual_mismatch: "1", claim_kind: "ai", claim_expected: "DENY" })).toEqual([
-      "내 사례만", "판정 차단", "받은 답과 판정 불일치", "검토 확인 확인됨", "실제 결과 출처 출처 없음", "실제 결과 통과", "계산과 실제 결과 다름", "받은 답 종류 AI 답", "받은 답 차단",
+      "내 사례만", "판정 막힘", "받은 답과 판정 다름", "검토 확인 확인됨", "실제 결과 출처 출처 없음", "실제 결과 통과", "계산과 실제 결과 다름", "받은 답 종류 AI 답", "받은 답 안 된다",
     ]);
   });
-  it("미확인·미정·종류 없음도 조건이며 점수를 만들지 않는다", () => {
-    expect(appliedFilterText({ ...emptyCaseFilters, confirmed: "0", actual: "none", claim_kind: "none" })).toEqual(["검토 확인 미확인", "실제 결과 미정", "받은 답 종류 종류 없음"]);
+  it("미확인·미정·종류 미정도 조건이며 점수를 만들지 않는다", () => {
+    expect(appliedFilterText({ ...emptyCaseFilters, confirmed: "0", actual: "none", claim_kind: "none" })).toEqual(["검토 확인 미확인", "실제 결과 미정", "받은 답 종류 종류 미정"]);
   });
 });
