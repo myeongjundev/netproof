@@ -18,7 +18,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 현재 작업 상태
 - 작업: **승인된 F2·F3 범위1~5 구현·검증 완료, 리뷰 대기**. 사용자의 2026-10-11 “진행하자”로 [F2·F3 설계](docs/terminology-claim-design.md)의 구현을 승인받았다. 결과·답·실제 결과·비교 용어를 통일하고, 답 종류를 바로 선택하며 출처·내용을 선택 메모로 구분한다. 정상 비교의 상세 중복을 줄이고 비교 머리가 없는 경우 원래 종류·답을 보존한다. fromCase는 기존 kind도 전달한다.
-- 브랜치: `codex/terminology-claim`, main `cc9d8a5` 기반 문서 PR #61의 `4711695`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·상세 설계를 읽었다. 새 main 대상 구현 PR에 문서 PR #61의 README·PR #60 병합 상태 정리도 포함하며, #61은 병합 없이 대체 문서 PR로 닫는다.
+- 브랜치: `codex/terminology-claim`, main `cc9d8a5` 기반 문서 PR #61의 `4711695`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·상세 설계를 읽었다. main 대상 [구현 PR #62](https://github.com/myeongjundev/netproof/pull/62)는 OPEN이며 문서 PR #61의 README·PR #60 병합 상태 정리도 포함한다. #61은 대체 코멘트를 남기고 병합 없이 CLOSED로 정리했으며 브랜치는 보존했다.
 - 다음 차례: **Claude(리뷰)** → 사용자(병합 결정). 범위1~5·표시/답 보존·기존 comparison·필터/확인/실습 의미를 대조한다. 이번 설계·구현은 사용자 승인으로 Codex가 맡았으며 별도 독립 리뷰를 수행했다고 기록하지 않는다. PR #60의 사용자 승인 병합(main `cc9d8a5`)·공개 배포 확인 기록은 유지한다. 운영 DB·배포 설정 변경 없음.
 
 ## 작업 정의 — 문서 정리·F2·F3 설계 (2026-10-11 사용자 요청)
