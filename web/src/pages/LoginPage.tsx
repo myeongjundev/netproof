@@ -32,8 +32,9 @@ export function LoginPage({ onLoggedIn }: Props) {
   };
 
   return (
-    <section className="panel narrow" aria-labelledby="login-title">
-      <h2 id="login-title">{mode === "login" ? "로그인" : "가입"}</h2>
+    <section className="panel narrow auth-panel" aria-labelledby="login-title">
+      <p className="home-eyebrow">함께 기록하는 실습</p>
+      <h1 id="login-title">{mode === "login" ? "로그인" : "가입"}</h1>
       <p className="hint">사례 게시판은 로그인한 동기끼리 봅니다. 실명 대신 닉네임을 쓰세요. 이메일은 받지 않습니다.</p>
       <form onSubmit={submit} className="stack" noValidate>
         <label>

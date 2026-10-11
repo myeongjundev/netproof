@@ -44,7 +44,7 @@ export function CasesPage() {
   return (
     <section className="panel" aria-labelledby="cases-title">
       <div className="panel-head">
-        <h2 id="cases-title">사례 게시판</h2>
+        <h1 id="cases-title">사례 게시판</h1>
         <label className="chip-toggle">
           <input type="checkbox" checked={filters.mine} onChange={(e) => changeFilters({ mine: e.target.checked })} />
           내 사례만

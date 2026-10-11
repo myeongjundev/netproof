@@ -94,7 +94,7 @@ export function App() {
 
   const needLogin = (
     <section className="panel narrow">
-      <h2>로그인이 필요합니다</h2>
+      <h1>로그인이 필요합니다</h1>
       <p className="hint">
         {route.page === "dashboard" ? "대시보드는 검토자만 봅니다." : "사례 게시판은 로그인한 동기끼리 봅니다."} <a href="#/login">로그인</a>
       </p>
@@ -121,7 +121,7 @@ export function App() {
   else if (route.page === "login")
     page = user ? (
       <section className="panel narrow">
-        <h2>{user.nickname} 계정으로 로그인돼 있습니다</h2>
+        <h1>{user.nickname} 계정으로 로그인돼 있습니다</h1>
         <p className="hint">
           <a href="#/cases">사례 게시판</a>으로 가거나 <a href="#/">판정기</a>로 돌아가세요.
         </p>
@@ -140,7 +140,7 @@ export function App() {
         <DashboardPage />
       ) : (
         <section className="panel narrow">
-          <h2>검토자만 볼 수 있습니다</h2>
+          <h1>검토자만 볼 수 있습니다</h1>
           <p className="hint">지금 등급은 {user.role_name}입니다.</p>
         </section>
       );
@@ -148,13 +148,17 @@ export function App() {
 
   return (
     <>
+      <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); main.current?.focus(); }}>본문으로 바로가기</a>
       <AppHeader route={route} user={user} checked={checked} onLogout={logout} />
 
-      <main className="main" ref={main}>{page}</main>
+      <main id="main-content" className="main" ref={main} tabIndex={-1} data-page={route.page}>{page}</main>
 
       <footer className="foot">
+        <div className="footer-head"><a href="#/home" className="footer-brand">NetProof</a><span>네트워크 설정 검증 실습실</span><nav aria-label="하단 화면"><a href="#/learn">학습실</a><a href="#/">판정기</a><a href="#/settings">설정</a></nav></div>
+        <p>
         NetProof는 계산만 합니다. 실제 네트워크에 패킷을 보내지 않습니다. 지원 범위: IPv4, 직접 연결·정적 경로, Cisco 확장 ACL 일부. 범위
         밖은 “판정 불가”로 알려 줍니다.
+        </p>
       </footer>
     </>
   );
