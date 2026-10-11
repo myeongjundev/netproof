@@ -17,9 +17,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **PR #59 R1 수정·직접 재검증 완료, 독립 재리뷰 대기**. 사용자가 동기 학습 사이트의 전체 UI를 참고한 리디자인을 승인했고, 이번 과제에 한해 “Codex가 설계·구현, 이후 리뷰”를 명시했다(2026-10-11). [화면 기준·제품 캡처](docs/frontend-redesign.md). 남색 헤더·파란 주요 행동·카드·입력·표를 전 화면에 적용했다. 엔진·API·실습 계산·저장 로직은 그대로다.
+- 작업: **PR #59 재리뷰 PASS, 사용자 최종 확인·병합 대기**. 대상 제품 코드 `a52350e`, R1 해소·추가 지적 없음. 사용자가 동기 학습 사이트의 전체 UI를 참고한 리디자인을 승인했고, 이번 과제에 한해 “Codex가 설계·구현, 이후 리뷰”를 명시했다(2026-10-11). [화면 기준·제품 캡처](docs/frontend-redesign.md). 엔진·API·실습 계산·저장 로직은 그대로다.
 - 브랜치: `codex/frontend-redesign`, PR #58 병합 main `de56130`에서 분기. `git pull` 후 AGENTS.md·HANDOFF.md를 읽었으며 PR #58의 MERGED 상태를 확인했다.
-- 다음 차례: **Codex Luna(독립 재리뷰)** → 사용자(병합 결정). R1 수정과 재검증은 Codex (GPT-6)가 수행했다. 구현자와 같은 모델의 후속 검증이며 독립 Luna 리뷰 완료로 기록하지 않는다.
+- 다음 차례: **사용자(최종 확인·병합 결정)**. 사용자 “재리뷰 진행해” 요청에 따라 Codex (GPT-6)가 재리뷰를 수행했다. 구현자와 같은 모델의 검증이며 별도 Luna 독립 리뷰가 수행됐다고 기록하지 않는다.
 
 ## 작업 정의 — 프론트 전체 리디자인 (2026-10-11 사용자 승인, 이번 설계·구현 Codex)
 
@@ -119,6 +119,50 @@ qa_port_4862_listeners=0
 원문 JSON과 [홈](docs/screens/frontend-home-desktop-light.jpg)·[학습실](docs/screens/frontend-learning-desktop-light.jpg)·[합성 사례](docs/screens/frontend-cases-desktop-light.jpg)·[모바일 복귀 판정](docs/screens/frontend-practice-mobile-dark.jpg) 캡처를 리뷰 근거로 남겼다. 독립 리뷰 뒤 사용자 병합 결정이며 이 작업에서 병합하지 않는다.
 
 Codex (GPT-6)
+
+### 재리뷰 기록 — PR #59 (Codex, 2026-10-11)
+
+**PASS — R1 해소, 검토 범위의 추가 지적 없음.** 대상 `a52350e`. `git pull` 후 AGENTS·HANDOFF·PROMPTS와 PR의 [Codex] 코멘트를 읽고 `git diff 1b8c705..HEAD -- web/src`를 대조했다. 제품 수정은 CSS의 1100px 이하 홈 hero 한 열 배치뿐이고 엔진·API·입력·재생 로직 변경은 없다.
+
+새 임시 SQLite에서 홈320/375/720/721/768/900/960/1024/1100/1101/1280px 라이트/다크 **22건**을 직접 측정했다. R1의721~960px 장비명·ACL은 정상이며 721px 장비 칸106px·ACL47.94px·버튼 client259/scroll259px로 수정 기록과 같다. 화면·버튼 넘침0, 수정한721~1100px 장비 칸≥80px·ACL 높이≤90px 단언을 만족했다. 1101px 두 열 전환은 ACL104.02px로 줄바꿈이 있지만 글자 단위로 붕괴하지 않고 장비명·버튼을 읽을 수 있다. [전환 경계 실제 캡처](docs/screens/frontend-rereview-1101-dark.jpg), [이번 측정·84개 조합·기능 확인·콘솔 원문](docs/screens/frontend-rereview-qa.json).
+
+#### 직접 실행한 테스트 결과 — PR #59 재리뷰
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 6.64s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 58.71s
+
+npm --prefix web test
+Test Files 43 passed (43)
+Tests 645 passed (645)
+Duration 1.23s
+
+npm --prefix web run build
+tsc --noEmit && vite build
+69 modules transformed.
+dist/assets/index-BZkAbxlp.css 88.21 kB | gzip: 24.04 kB
+dist/assets/index-BZrhjkmL.js 394.93 kB | gzip: 118.06 kB
+built in 238ms
+
+git diff --check
+(출력 없음, 종료0)
+git diff main...HEAD --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
+(출력 없음, 금지 경로0줄)
+
+홈 라이트/다크22건: PASS
+공개60·합성 검토자24, 320/375/1280px 라이트/다크84조합: PASS
+native console errors/warnings: []
+복귀 재생: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
+QA_TEMP_EXISTS=False
+QA_PORT_4865_LISTENERS=0
+```
+
+구현/수정 기록과 테스트 개수·번들명·DOM 수치는 같고 실행 시간만 다르다. 서버 skip1은 기본 가상환경의 선택 pybatfish 의존성이다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 태블릿 홈의 다음 실습 예상 버튼→실습03·통과 예상 반영·출력 ACL 차단 비교, 메뉴 Escape·포커스 복귀, 본문 바로가기 Enter·main-content 포커스·#/home 유지, 실습02 복귀 마지막 단계와 이전/다음, 고치기01 초기 목표 HTTPS DENY/SSH PASS, 정책 검증10건/PASS10/엔진0.2.0을 확인했다. 기존84조합은 가로 넘침0·h1=1·버튼 넘침0이다. QA 종료·포트0 확인 후 잔여 임시 qa.db·폴더를 삭제했다.
+
+제품 코드는 고치지 않았다. PR에 [Codex] 재리뷰 결과·실제 출력을 남기고 기록만 커밋·푸시한다. 운영 DB·설정·배포·병합은 수행하지 않았다. 이번 검증 모델은 Codex (GPT-6)이며 별도 Luna 독립 리뷰를 호출한 기록은 없다. 다음 차례 사용자 최종 확인·병합 결정. Codex (GPT-6)
 
 ### R1 수정·테스트 결과 — PR #59 (Codex, 2026-10-11)
 
@@ -670,11 +714,11 @@ Codex (GPT-6)
 - [x] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② PR #30 병합(`63515a6`).
 - [x] **판정기 알림·조사 정리(F5·F6)** — ② PR #31 병합(`74c5255`). 후속 F24·F25는 변경 전/후 과제에 포함
 - [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
-- [ ] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — 동기 사이트 공개 홈 참고, 이번 설계·구현 Codex. PR #59 R1(태블릿 홈 구성도) 수정·재검증 완료→독립 재리뷰→사용자 병합 대기. [화면 기준·제품 캡처](docs/frontend-redesign.md).
+- [ ] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정·Codex (GPT-6) 재리뷰 PASS, 사용자 최종 확인·병합 대기. [화면 기준·제품 캡처](docs/frontend-redesign.md).
 
 ## 다음 LLM이 확인할 내용
 - **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
-- **리뷰 담당(Codex Luna):** PR #59 R1의 홈 한 열 배치와 721/768/900/960px 라이트/다크 캡처·DOM 단언·회귀 출력을 독립 재검증한다. 엔진/API/사례/의존성/배포 diff 0줄을 대조한다. 이번 GPT-6 수정·재테스트는 독립 Luna 리뷰 완료가 아니다.
+- **사용자(최종 확인):** PR #59 R1 수정과 Codex (GPT-6) 재리뷰 근거·캡처를 확인하고 병합을 결정한다. 별도 Luna 독립 리뷰 수행 기록은 없다. main 병합 뒤 공개 화면·API를 확인한다.
 - **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
 - **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
 - **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
