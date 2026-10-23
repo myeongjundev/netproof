@@ -41,7 +41,7 @@ export function breachImport(id: string, draft: Draft) {
   return { draft: structuredClone(draft), label: `${breachById(id)!.title} 구성을 판정기로 가져왔습니다` };
 }
 
-export const serviceName =(services: MatrixService[], key: string) => services.find((service) => serviceKey(service) === key)?.label ?? key;
+export const serviceName = (services: MatrixService[], key: string) => services.find((service) => serviceKey(service) === key)?.label || key;
 
 /** 매트릭스 칸·지켜야 할 서비스를 근거 판정·변경 영향에 넘길 왕복 흐름으로 바꾼다. */
 export function cellFlow(scenario: BreachScenario, cell: Pick<MatrixCell, "src" | "dst" | "service">): Flow {

@@ -65,6 +65,12 @@ describe("피해 범위 (엔진 응답을 고르고 묶기만 한다)", () => {
     });
   });
 
+  it("서비스 이름이 비었거나 없으면 키를 보인다", () => {
+    expect(serviceName([{ proto: "tcp", dst_port: 8080, label: "" }], "tcp/8080")).toBe("tcp/8080");
+    expect(serviceName([{ proto: "tcp", dst_port: 8080 }], "tcp/8080")).toBe("tcp/8080");
+    expect(serviceName(scenario.services, "tcp/3306")).toBe("MySQL");
+  });
+
   it("판정 불가 칸은 안 닿음에 넣지 않고 따로 센다", () => {
     const odd = structuredClone(narrowed);
     const cell = odd.cells.find((item) => item.src === "10.0.10.10" && item.dst === "203.0.113.10")!;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api, message } from "../api";
 import { EMPTY_CLAIM, toNetwork } from "../draft";
 import { breachById, breachDraft, breachSpec, cellFlow, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges, type Guess, type Reach } from "../breach";
+import { reachTargets, REACH_MEANING, STATUS_TEXT } from "../components/ReachTargets";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { ResultPanel } from "../components/ResultPanel";
@@ -10,7 +11,6 @@ import type { ChangeImpact, Draft, Flow, MatrixCell, Network, PolicyMatrix, Verd
 interface Props { id: string; draft?: Draft; setDraft: (update: (current: Draft) => Draft) => void; onImport: (draft: Draft) => void }
 
 const GUESS_TEXT: Record<Guess, string> = { reach: "닿을 것 같다", safe: "안 닿을 것 같다" };
-const STATUS_TEXT = { reach: "닿음", safe: "안 닿음", unknown: "판정 불가" } as const;
 const CHANGE_TEXT = { opened: "새로 열림", closed: "새로 막힘", other: "그 밖의 변화" } as const;
 const total = (result: Reach) => `${result.targets.length}곳 · 서비스 ${result.count}개`;
 
@@ -110,7 +110,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
     <nav className="practice-breadcrumb" aria-label="현재 위치"><a href="#/learn">학습실</a><span> › 침해 가정 실습</span></nav>
     <section className="practice-problem"><div><p className="home-eyebrow">합성 구성 · 침해 가정 실습</p><h1>{scenario.title}</h1>
       <p>{scenario.story}</p><p className="practice-question">{scenario.task}</p>
-      <p className="hint below">닿음은 방화벽과 경로가 막지 않아 연결을 시작할 수 있다는 뜻입니다. 서비스가 실제로 열려 있는지, 취약한지는 계산하지 않습니다.</p>
+      <p className="hint below">{REACH_MEANING}</p>
       <p className="hint below">다른 화면에 다녀와도 남지만 새로고침하면 사라집니다.</p></div></section>
 
     <section className="panel breach-setting" aria-labelledby="breach-setting-title"><h2 id="breach-setting-title">장비와 지켜야 할 서비스</h2>
@@ -151,14 +151,8 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
           {checkedNetwork && <NetworkDiagram network={checkedNetwork} flow={layoutFlow(checkedNetwork, scenario.breached)} trace={null} index={0}
             selectedDevice={selectedDevice} onSelectDevice={setSelectedDevice} marks={reachMarks(scenario.breached, now)} />}
           <p className="hint">서비스 단추를 누르면 그 연결이 왜 닿는지 아래 근거에서 봅니다.</p>
-          <ul className="breach-targets">{now.others.map((device) => {
-            const status = deviceStatus(now, device), cells = now.targets.find((target) => target.device === device)?.cells ?? [];
-            return <li key={device} className={`breach-target ${status}`}><p><strong>{device}</strong> · {scenario.roles[device] ?? "새로 더한 장비"} · {STATUS_TEXT[status]}</p>
-              {cells.length > 0 && <div className="breach-services">{cells.map((cell) => { const name = serviceName(scenario.services, cell.service);
-                return <span key={`${cell.dst}/${cell.service}`}>{evidenceButton(cell, `${name} 근거 보기`, `${scenario.breached} → ${device} · ${name}`, "ghost small reach-service")}</span>; })}</div>}
-            </li>;
-          })}</ul>
-          {now.undecided.length > 0 && <p className="hint">판정 불가 {now.undecided.length}건 — 안전하다는 뜻이 아닙니다. 근거에서 이유를 확인하세요.</p>}
+          {reachTargets(now, scenario.services, (cell, name, device) =>
+            evidenceButton(cell, `${name} 근거 보기`, `${scenario.breached} → ${device} · ${name}`, "ghost small reach-service"), scenario.roles)}
         </>}
       </section>
 
