@@ -42,5 +42,50 @@
       ],
       "acls": {}
     }
+  },
+  {
+    "id": "breach-02",
+    "title": "관리자 PC가 뚫렸다면",
+    "story": "홈페이지 서버 쪽 규칙은 필요한 길만 남겼습니다. 이번에는 관리자 PC(ADMIN)에서 피싱 메일의 첨부 파일이 실행됐다고 가정합니다. 관리자 PC는 서버를 관리하느라 여러 곳에 연결할 수 있습니다. 여기서 시작하는 연결은 어디까지 닿을까요?",
+    "task": "관리 작업과 홈페이지 서비스는 그대로 두면서 ADMIN에서 닿는 곳을 줄여 보세요.",
+    "breached": "ADMIN",
+    "roles": {
+      "OUTSIDE": "외부 사용자 · 외부 서버",
+      "WEB": "학교 홈페이지 서버(PHP)",
+      "DB": "홈페이지 DB(MySQL)",
+      "ADMIN": "관리자 PC",
+      "FW": "방화벽(상태 추적)"
+    },
+    "services": [
+      { "proto": "tcp", "dst_port": 22, "label": "SSH" },
+      { "proto": "tcp", "dst_port": 80, "label": "HTTP" },
+      { "proto": "tcp", "dst_port": 443, "label": "HTTPS" },
+      { "proto": "tcp", "dst_port": 3306, "label": "MySQL" },
+      { "proto": "icmp", "icmp": "echo", "label": "Ping" }
+    ],
+    "keep": [
+      { "src": "203.0.113.10", "dst": "10.0.10.10", "service": "tcp/443", "expect": "PASS", "label": "OUTSIDE → WEB · HTTPS", "why": "누구나 홈페이지에 접속합니다" },
+      { "src": "10.0.10.10", "dst": "10.0.20.10", "service": "tcp/3306", "expect": "PASS", "label": "WEB → DB · MySQL", "why": "홈페이지가 DB를 씁니다" },
+      { "src": "10.0.30.10", "dst": "10.0.10.10", "service": "tcp/22", "expect": "PASS", "label": "ADMIN → WEB · SSH", "why": "관리자가 웹서버를 관리합니다" },
+      { "src": "10.0.30.10", "dst": "10.0.20.10", "service": "tcp/22", "expect": "PASS", "label": "ADMIN → DB · SSH", "why": "관리자가 DB 서버를 관리합니다" }
+    ],
+    "network": {
+      "devices": [
+        { "id": "OUTSIDE", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "203.0.113.10/24" }], "gateway": "203.0.113.1" },
+        { "id": "WEB", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.10.10/24" }], "gateway": "10.0.10.1" },
+        { "id": "DB", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.20.10/24" }], "gateway": "10.0.20.1" },
+        { "id": "ADMIN", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.30.10/24" }], "gateway": "10.0.30.1" },
+        { "id": "FW", "kind": "router", "stateful": true, "routes": [], "interfaces": [
+          { "name": "em0", "ip": "203.0.113.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "tcp", "src": "any", "dst": "10.0.10.10", "dst_port": "443" }] },
+          { "name": "em1", "ip": "10.0.10.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "tcp", "src": "10.0.10.10", "dst": "10.0.20.10", "dst_port": "3306" }] },
+          { "name": "em2", "ip": "10.0.20.1/24", "default_in": "block", "rules_in": [] },
+          { "name": "em3", "ip": "10.0.30.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "ip", "src": "10.0.30.0/24", "dst": "any" }] }
+        ] }
+      ],
+      "acls": {}
+    }
   }
 ]

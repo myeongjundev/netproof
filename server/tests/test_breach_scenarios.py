@@ -74,3 +74,34 @@ def test_breach_01_blocking_everything_breaks_the_database_service():
     result = matrix(scenario, firewall_with_em1(scenario, []))
     assert reach(scenario, result) == set()
     assert {label: policy for label, policy in keep_policies(scenario, result).items() if policy != "AGREE"} == {"WEB → DB · MySQL": "BLOCKED"}
+
+
+def firewall_with(scenario, name, rules):
+    network = copy.deepcopy(scenario["network"])
+    firewall = next(device for device in network["devices"] if device.get("stateful"))
+    next(iface for iface in firewall["interfaces"] if iface["name"] == name)["rules_in"] = rules
+    return network
+
+
+def test_breach_02_continues_from_a_narrowed_dmz():
+    first, second = (next(item for item in BREACHES if item["id"] == key) for key in ("breach-01", "breach-02"))
+    assert second["breached"] == "ADMIN"
+    assert second["network"] == firewall_with_em1(first, [
+        {"action": "pass", "proto": "tcp", "src": "10.0.10.10", "dst": "10.0.20.10", "dst_port": "3306"}])
+
+
+def test_breach_02_can_shrink_to_the_management_ports_only():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-02")
+    result = matrix(scenario, firewall_with(scenario, "em3", [
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.10.10", "dst_port": "22"},
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.20.10", "dst_port": "22"}]))
+    assert set(keep_policies(scenario, result).values()) == {"AGREE"}
+    assert reach(scenario, result) == {("10.0.10.10", "tcp/22"), ("10.0.20.10", "tcp/22")}
+
+
+def test_breach_02_blocking_everything_breaks_management():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-02")
+    result = matrix(scenario, firewall_with(scenario, "em3", []))
+    assert reach(scenario, result) == set()
+    assert {label: policy for label, policy in keep_policies(scenario, result).items() if policy != "AGREE"} == {
+        "ADMIN → WEB · SSH": "BLOCKED", "ADMIN → DB · SSH": "BLOCKED"}
