@@ -27,6 +27,52 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 다음 차례: **사용자(PR #64 → 이 PR 순서로 병합 결정, 화면 직접 확인, pfSense 2단계 질문 답변).** 구현·테스트·실브라우저 확인은 끝났다(아래 테스트 결과). 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
 - **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: pfSense 2단계는 Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·병합·제품 방향 결정은 그대로 사용자가 한다.
 
+## 작업 정의 — 정책 검증의 "이 장비가 뚫리면" 보기 (2026-10-24 사용자 "다음 진행하자")
+
+- **선택:** 남은 후보 가운데 Claude가 골랐다. 2차 확산은 "닿음 ≠ 뚫을 수 있음" 표현을 먼저 정해야 해서 뒤로 미뤘다.
+- **브랜치:** `claude/matrix-breach`, `claude/breach-practice`(PR #66) 위에서 분기. PR 순서는 #64 → #65 → #66 → 이 PR이다.
+- **목표:** 학생이 판정기에서 만든 어떤 구성에서든, 정책 검증 결과에서 장비 하나를 "뚫렸다고 가정"해 그 장비에서 시작하는 연결이 어디까지 닿는지 본다.
+- **변경 범위:**
+  1. `PolicyMatrixPage`: 결과 아래 "뚫렸다고 가정할 장비" 선택(고르지 않음 + 엔진 `endpoints`의 장비). 고르면 `reach()`로 고른 칸을 구성도 표시(`marks`)와 장비별 서비스 목록으로 보인다. 서비스 단추는 기존 통신 상세(근거·의도 지정)를 연다. "닿음" 뜻과 계산 모드를 함께 적는다.
+  2. 목록 마크업은 새 `components/ReachTargets.tsx`의 `reachTargets()`로 빼서 침해 가정 실습과 함께 쓴다.
+  3. `serviceName`은 이름이 빈 서비스면 키를 보인다.
+- **건드리지 않을 것:** engine/, server/, cases/, API, 의도 저장 형식(localStorage), 매트릭스 계산·표·노출 집계.
+- **완료 조건:** 엔진·서버·웹 기존 시험 유지 + 신규, 빌드, 금지 경로 diff 0, 실브라우저(정책 검증에서 침해 가정 실습망을 가져와 WEB 선택 → 3곳·15, 서비스 단추로 상세).
+
+### 테스트 결과 — "이 장비가 뚫리면" 보기 (Claude 직접 실행, 2026-10-24)
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 4.40s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+231 passed, 1 skipped in 34.04s
+
+npm --prefix web test
+Test Files 52 passed (52)
+Tests 790 passed (790)
+
+npm --prefix web run build
+dist/assets/index-1ljI70ti.css 91.08 kB │ gzip: 24.45 kB
+dist/assets/index-DGWX1Bqi.js 421.64 kB │ gzip: 124.49 kB
+
+git diff --check / git diff --numstat claude/breach-practice -- engine/ server/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(둘 다 출력 없음, 종료0)
+```
+
+- **신규 시험 5건:**
+  - 정책 검증 4건(엔진 응답 fixture): 고르기 전 장비 목록만 있음, WEB 3곳·15개·구성도 표시·서비스 단추 15개, 단추로 기존 상세 열기, 사라진 장비면 고르지 않음.
+  - `serviceName`의 빈 이름 대체 1건.
+  - 시험 중 `breach-services` class 이름 안에 `reach-service`가 들어 있어 감싸는 div까지 세어지는 것을 발견했다. 단추만 세도록 시험 매처를 고쳤다(제품 코드 문제 아님).
+- **실브라우저**(임시 SQLite, 빌드 `index-DGWX1Bqi.js`):
+  1. 침해 가정 실습 → 판정기로 가져가기 → 정책 검증 → 기본 서비스 5개로 계산: 60건 · PASS 31.
+  2. WEB 선택: `WEB에서 시작하는 연결이 닿는 곳: 3곳 · 서비스 15개`, 구성도 WEB 뚫림·나머지 셋 닿음 · 서비스 5개, 단추 15개.
+  3. "SSH 근거 보기"(ADMIN): 통신 상세 `10.0.10.10 → 10.0.30.10 · tcp/22` 통과, 규칙 `통과 · 모든 프로토콜 · any → any`.
+  4. DB 선택: 0곳 · 서비스 0개. DB 구역은 먼저 연결을 시작할 수 없다.
+  5. 1263px 라이트와 375px 다크에서 넘침 0, 단추 글자 넘침 0, 콘솔 오류 0. 임시 DB 삭제·4870 대기 0.
+  - 캡처: [정책 검증 WEB 가정](docs/screens/matrix-breach-desktop-light.jpg).
+- **하지 않은 것:** 768px, 사람의 수동 QA. 같은 모델의 자체 점검이다.
+
 ## 설계 — 침해 가정 실습 (2026-10-24 사용자 "설계해 줘 · 너가 판단해줘")
 
 - 설계 문서: [docs/breach-practice-design.md](docs/breach-practice-design.md). 브랜치 `claude/breach-practice`는 `claude/firewall-input`(PR #65) 위에서 분기했다. 승인 뒤 구현했다(아래 테스트 결과).

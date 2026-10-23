@@ -6,6 +6,9 @@ import { scrollTo } from "../motion";
 import { defaultMatrixSpec, flowForCell, guardedRequest, MATRIX_STORAGE_KEY, matrixGrid, POLICY_TEXT,
   readMatrixSpec, setCellIntent } from "../policyMatrix";
 import type { Draft, MatrixCell, MatrixService, MatrixSpec, Network, PolicyMatrix, Verdict } from "../types";
+import { NetworkDiagram } from "../components/NetworkDiagram";
+import { reachTargets, REACH_MEANING } from "../components/ReachTargets";
+import { layoutFlow, reach, reachMarks } from "../breach";
 
 type Checked = { matrix: PolicyMatrix; network: Network; signature: string };
 
@@ -23,6 +26,9 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
   const [detail, setDetail] = useState<Verdict | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  // 침해 가정: 고른 장비에서 시작하는 칸만 엔진 결과에서 고른다(새 계산 없음).
+  const [breached, setBreached] = useState("");
+  const [diagramDevice, setDiagramDevice] = useState<string | null>(null);
   const network = useMemo(() => toNetwork(draft), [draft]);
   const signature = JSON.stringify({ network, spec });
   const current = useRef(signature);
@@ -33,6 +39,9 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
   const stale = checked !== null && checked.signature !== signature;
   const matrix = checked?.matrix;
   const grid = matrixGrid(matrix?.endpoints ?? [], matrix?.cells ?? [], service);
+  const devices = [...new Set((matrix?.endpoints ?? []).map(endpoint => endpoint.device))];
+  const breachedDevice = devices.includes(breached) ? breached : "";
+  const breachReach = breachedDevice ? reach(matrix ?? null, breachedDevice) : null;
 
   useEffect(() => {
     mounted.current = true;
@@ -144,6 +153,20 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
         {matrix.exposures.length > 0 && <details className="matrix-findings" open><summary>우선 확인할 통신 {matrix.exposures.length}건</summary>
           <ul>{matrix.exposures.map(cell => <li key={JSON.stringify([cell.src, cell.dst, cell.service])}>
             <span>{cell.src} → {cell.dst} · {cell.service}</span>{cellButton(cell)}</li>)}</ul></details>}
+        <div className="matrix-breach">
+          <h3>이 장비가 뚫리면</h3>
+          <label className="matrix-mode">뚫렸다고 가정할 장비<select aria-label="뚫렸다고 가정할 장비" value={breachedDevice} onChange={e => setBreached(e.target.value)}>
+            <option value="">고르지 않음</option>{devices.map(device => <option key={device} value={device}>{device}</option>)}
+          </select></label>
+          {breachReach && checked && <>
+            <p className="breach-total">{breachedDevice}에서 시작하는 연결이 닿는 곳: {breachReach.targets.length}곳 · 서비스 {breachReach.count}개</p>
+            <p className="hint">{REACH_MEANING} 계산 모드: {matrix.mode}. 서비스 단추를 누르면 아래 통신 상세에서 근거를 봅니다.</p>
+            <NetworkDiagram network={checked.network} flow={layoutFlow(checked.network, breachedDevice)} trace={null} index={0}
+              selectedDevice={diagramDevice} onSelectDevice={setDiagramDevice} marks={reachMarks(breachedDevice, breachReach)} />
+            {reachTargets(breachReach, matrix.services, (cell, name, device) => <button type="button" className="ghost small reach-service"
+              disabled={stale || loading} onClick={() => void openCell(cell)}>{name} 근거 보기<span className="sr-only"> · {breachedDevice} → {device} · {name}</span></button>)}
+          </>}
+        </div>
         <label className="matrix-mode">표시할 서비스<select value={service} onChange={e => {
           setService(e.target.value); setSelected(null); setDetail(null); setDetailLoading(false); ++detailSequence.current;
         }}>
