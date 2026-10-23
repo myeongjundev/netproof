@@ -8,7 +8,7 @@ export function WorkspaceNav({ route, user }: { route: Route; user: User | null 
     <nav aria-label="작업 공간">
       <p className="workspace-label">작업 공간</p>
       {link("홈", "#/home", route.page === "home")}
-      {link("학습실", "#/learn", route.page === "learn" || route.page === "practice" || route.page === "fix")}
+      {link("학습실", "#/learn", route.page === "learn" || route.page === "practice" || route.page === "fix" || route.page === "breach")}
       {link("판정기", "#/", route.page === "judge")}
       {link("정책 검증", "#/matrix", route.page === "matrix")}
       {link("사례 게시판", "#/cases", route.page === "cases" || route.page === "case")}

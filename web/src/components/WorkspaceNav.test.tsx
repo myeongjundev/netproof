@@ -10,6 +10,7 @@ it.each<{ route: Route; href: string }>([
   { route: { page: "learn", lessonId: "roundtrip" }, href: "#/learn" },
   { route: { page: "practice", caseId: "synthetic-02" }, href: "#/learn" },
   { route: { page: "fix", id: "fix-01" }, href: "#/learn" },
+  { route: { page: "breach", id: "breach-01" }, href: "#/learn" },
   { route: { page: "judge" }, href: "#/" },
   { route: { page: "matrix" }, href: "#/matrix" },
   { route: { page: "cases" }, href: "#/cases" },

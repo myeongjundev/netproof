@@ -3,9 +3,11 @@ import { diagramShape, topologyView, traceMovements } from "../topologyView";
 import type { Flow, Network, Trace } from "../types";
 
 interface Edge { key: string; x1: number; y1: number; x2: number; y2: number; active: boolean }
-export function NetworkDiagram({ network, flow, trace, index, selectedDevice, onSelectDevice }: {
+/** 경로 재생이 없을 때 장비 칸에 붙이는 표시(침해 가정 실습의 피해 범위). 판정이 아니라 엔진 결과를 옮긴 글이다. */
+export interface DiagramMark { tone: "breached" | "reach" | "safe" | "unknown"; text: string }
+export function NetworkDiagram({ network, flow, trace, index, selectedDevice, onSelectDevice, marks }: {
   network: Network; flow: Flow; trace: Trace | null; index: number; selectedDevice: string | null;
-  onSelectDevice: (id: string) => void;
+  onSelectDevice: (id: string) => void; marks?: Record<string, DiagramMark>;
 }) {
   const view = useMemo(() => topologyView(network, flow, trace), [network, flow, trace]);
   const canvas = useRef<HTMLDivElement>(null);
@@ -48,11 +50,12 @@ export function NetworkDiagram({ network, flow, trace, index, selectedDevice, on
           if (!node.device) return <div className="topology-subnet" key={key} data-topology-key={key}>{node.label}</div>;
           const current = hop?.device === node.device.id;
           const unreached = trace?.delivered === false && trace.target?.device === node.device.id && !trace.hops.some(hop => hop.device === node.device!.id && hop.step === "deliver" && hop.result === "ok");
+          const mark = trace ? undefined : marks?.[node.device.id];
           return <button type="button" key={key} data-topology-key={key} aria-label={`${node.label} 장비 보기`}
-            aria-pressed={selectedDevice === node.device.id} className={`topology-device${current ? " current" : ""}${current && hop.result === "drop" ? " drop" : ""}`}
+            aria-pressed={selectedDevice === node.device.id} className={`topology-device${current ? " current" : ""}${current && hop.result === "drop" ? " drop" : ""}${mark ? ` mark-${mark.tone}` : ""}`}
             onClick={() => onSelectDevice(node.device!.id)}>
             <strong>{node.label}</strong><span>{node.device.stateful ? "방화벽" : node.device.kind === "host" ? "호스트" : node.device.kind === "router" ? "라우터" : node.device.kind}</span>
-            <span className="topology-position">{current ? hop.result === "drop" ? "× 차단" : hop.step === "deliver" ? "✓ 도착" : `● ${index + 1}단계` : unreached ? "도달 못 함" : ""}</span>
+            <span className="topology-position">{mark ? mark.text : current ? hop.result === "drop" ? "× 차단" : hop.step === "deliver" ? "✓ 도착" : `● ${index + 1}단계` : unreached ? "도달 못 함" : ""}</span>
           </button>;
         })}
       </div>)}

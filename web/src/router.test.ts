@@ -7,6 +7,11 @@ it.each(["#/fix/", "#/fix/absent", "#/fix/fix-01?network=x", "#/fix/fix-01/extra
   expect(parseRoute(hash)).toEqual({ page: "learn" });
 });
 
+it("침해 가정 실습은 별도 화면이고, 없는 실습은 학습실로 간다", () => {
+  expect(parseRoute("#/breach/breach-01")).toEqual({ page: "breach", id: "breach-01" });
+  for (const hash of ["#/breach/", "#/breach/absent", "#/breach/breach-01/extra"]) expect(parseRoute(hash)).toEqual({ page: "learn" });
+});
+
 it("공유 링크와 빈 공유 주소를 구분한다", () => {
   expect(parseRoute("#/s/abc")).toEqual({ page: "judge", share: "abc" });
   expect(parseRoute("#/s/")).toEqual({ page: "missing" });

@@ -3,6 +3,7 @@ import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
 import { TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
 import { EXERCISES } from "../exercises";
+import { BREACHES } from "../breach";
 
 function OtherTopics({ current }: { current?: string }) {
   return <section className="learning-other"><h2>다른 주제</h2><nav aria-label="다른 주제">{[...LESSONS, ...TOOL_TOPICS].map(item => <a className="ghost-link" href={`#/learn/${item.id}`} key={item.id} aria-current={item.id === current ? "page" : undefined}>{item.title}{item.id === current ? " · 보는 중" : ""}</a>)}</nav></section>;
@@ -47,6 +48,12 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
       <div className="lesson-summary"><span className="home-eyebrow">{item.category}</span><span className="learning-card-title">{item.title}</span><PathStrip {...item.path} size="small" /><span>{item.task.question}</span></div><span>실습 열기 →</span>
     </a>)}</nav>
     <p className="home-description">확인할 주제를 선택하세요. 연습용 네트워크로 실습합니다.</p>
+    <section className="learning-section"><p className="home-eyebrow">공격자 시점</p><h2>침해 가정 실습</h2><p className="hint">이미 뚫린 장비에서 어디까지 닿는지 예상하고 계산한 뒤, 방화벽 규칙으로 피해 범위를 줄여 봅니다.</p>
+      <nav className="learning-cards" aria-label="침해 가정 실습">{BREACHES.map((item, index) => <a className="learning-card" href={`#/breach/${item.id}`} key={item.id}>
+        <span className="lesson-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+        <div className="lesson-summary"><span className="learning-card-title">{item.title}</span><span>{item.task}</span></div><span>시작하기 →</span>
+      </a>)}</nav>
+    </section>
     <section className="learning-section"><p className="home-eyebrow">구성 실습</p><h2>고치기 과제</h2><p className="hint">합성 구성과 목표 통신을 받고 구성을 바꿔 계산을 확인합니다.</p>
       <nav className="learning-cards" aria-label="고치기 과제">{EXERCISES.map((item, index) => <a className="learning-card" href={`#/fix/${item.id}`} key={item.id}>
         <span className="lesson-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
