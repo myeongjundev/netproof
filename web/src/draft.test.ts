@@ -1,4 +1,5 @@
 import { blankDraft, EMPTY_CLAIM, endpoints, fromCase, toNetwork } from "./draft";
+import { firewallDraft } from "./testFixtures/firewallDraft";
 import type { CaseItem } from "./types";
 
 describe("toNetwork", () => {
@@ -16,6 +17,36 @@ describe("toNetwork", () => {
   it("고르지 않은 ACL은 null로 보낸다", () => {
     const iface = toNetwork(blankDraft()).devices[1].interfaces[0];
     expect(iface.acl_in).toBeNull();
+  });
+});
+
+describe("toNetwork 방화벽", () => {
+  it("상태 추적 장비에는 ACL 키 없이 규칙과 기본 동작만 보내고 빈 포트는 뺀다", () => {
+    const fw = toNetwork(firewallDraft()).devices[1];
+    expect(fw.stateful).toBe(true);
+    expect(fw.interfaces[0]).toEqual({ name: "g0/0", ip: "10.10.10.1/24", default_in: "block",
+      rules_in: [{ action: "pass", proto: "tcp", src: "any", dst: "10.20.20.5", dst_port: "443" }] });
+  });
+
+  it("기본 동작을 적지 않은 인터페이스는 비운 채 보내 엔진이 모름으로 계산한다", () => {
+    expect(toNetwork(firewallDraft()).devices[1].interfaces[1]).toEqual({ name: "g0/1", ip: "10.20.20.1/24" });
+  });
+
+  it("모르는 규칙 키와 숫자 포트는 바꾸지 않는다", () => {
+    const draft = firewallDraft();
+    draft.devices[1].interfaces[0].rules_in = [{ action: "block", proto: "udp", src: "any", dst: "any", dst_port: 53, log: true } as never];
+    expect(toNetwork(draft).devices[1].interfaces[0].rules_in).toEqual([{ action: "block", proto: "udp", src: "any", dst: "any", dst_port: 53, log: true }]);
+  });
+
+  it("라우터로 되돌린 장비는 남은 규칙을 보내지 않고 ACL 연결을 다시 보낸다", () => {
+    const iface = toNetwork(firewallDraft(false)).devices[1].interfaces[0];
+    expect(iface).toEqual({ name: "g0/0", ip: "10.10.10.1/24", acl_in: "101", acl_out: null });
+  });
+
+  it("사례에서 불러온 방화벽 입력이 그대로 다시 나간다", () => {
+    const network = JSON.parse(JSON.stringify(toNetwork(firewallDraft())));
+    const opened = fromCase({ id: "fw", source: "test", network, flow: blankDraft().flow });
+    expect(JSON.parse(JSON.stringify(toNetwork(opened)))).toEqual(network);
   });
 });
 

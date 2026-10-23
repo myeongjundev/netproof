@@ -19,11 +19,68 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **HANDOFF 접기(PR #62 리뷰 비차단 N1)**. 지난 과제를 표 한 줄씩으로 접고, 유지되는 합의·남은 후속·사람 할 일을 한곳에 모았다. 사라진 절을 가리키던 문서 링크 5개는 접기 전 고정 커밋으로 바꿨다. 제품 코드 변경 없음.
-- 브랜치: `claude/handoff-fold`, main `9e0b6e8`에서 분기. `git pull`은 `Already up to date.`
+- 작업: **방화벽(상태 추적) 화면 입력**(아래 작업 정의). 사용자 방향(2026-10-23): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. pfSense 2단계 중 팀 실습망 대조(D5)는 질문 답이 필요해 이번 범위에서 뺐다.
+- 브랜치: `claude/firewall-input`, `claude/handoff-fold`(PR #64, HANDOFF 접기)에서 분기. **PR #64를 먼저 병합해야 한다.**
 - 제품 상태: main은 PR #62까지 반영, 엔진 0.2.0. 공개 배포는 2026-10-11에 JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`가 리뷰한 빌드와 SHA256까지 같음을 확인했다(로그인·저장·수동 QA 완료를 뜻하지 않음).
-- 다음 차례: **사용자(이 문서 PR 병합 결정, pfSense 2단계 질문 답변).** 다음 과제 후보는 pfSense 2단계 실습 연동이다. 사용자의 팀 캡스톤 실습망이 pfSense·OpenVPN을 써서 D5(실습 사실)의 재료가 생겼다. 답을 받으면 Claude가 설계한다. 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
+- 다음 차례: **사용자(PR #64 → 이 PR 순서로 병합 결정, 화면 직접 확인, pfSense 2단계 질문 답변).** 구현·테스트·실브라우저 확인은 끝났다(아래 테스트 결과). 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
 - **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: pfSense 2단계는 Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·병합·제품 방향 결정은 그대로 사용자가 한다.
+
+## 작업 정의 — 방화벽(상태 추적) 화면 입력 (2026-10-23 사용자 "구현 시작하자")
+
+### 목표
+학생이 pfSense 같은 상태 추적 방화벽을 화면에서 직접 만들고 고친다. 결과에서는 어느 규칙 때문에 통과·차단됐는지, 응답이 왜 자동으로 통과하는지를 쉬운 말로 본다. 엔진은 바꾸지 않고 PR #44(ADR-016 1단계) 계산을 화면에 연결한다.
+
+### 변경 범위
+1. 데이터: `types.ts`에 `stateful`·`rules_in`·`default_in`. `toNetwork`는 상태 추적 장비에 `acl_in`·`acl_out` 키를 보내지 않고 규칙·기본 동작을 그대로 보낸다(빈 포트만 뺌, 모르는 규칙 키는 남겨 엔진이 판정 불가로 알림). 공유 링크 검사에 규칙 모양 추가.
+2. 구성 편집기: 종류에 "방화벽"(휴대폰 폭에서 잘리지 않게 짧게, 상태 추적 설명은 장비 안내 문장에), "+ 방화벽" 단추. 인터페이스마다 들어오는 규칙 목록(동작·프로토콜·출발지·출발 포트·목적지·목적 포트, 위·아래·삭제와 기존 되돌리기)과 "어느 규칙에도 안 맞으면"(차단·통과·모름). 포트는 TCP·UDP일 때만 입력.
+3. 결과·사례·학습: 방화벽 규칙을 JSON 대신 `통과 · TCP · any → 10.20.20.5:443`처럼 보이고, 단계마다 붙는 미대조 문구는 결과 아래 한 번만 보인다. 사례 상세 구성에 방화벽 규칙을 보인다. 학습실 왕복 경로 설명의 "상태 기반 방화벽은 범위 밖" 문장을 지금 기능에 맞게 고친다.
+4. 문서: `docs/semantics.md` §14·README의 "화면 입력은 후속" 문장, HANDOFF·작업 로그.
+
+### 건드리지 않을 것
+`engine/`(계산·버전 0.2.0), `server/`, `scripts/`, `cases/*.json`·`expect`, API·DB·URL·저장 형식, `web/package*.json`, `requirements.txt`, `vercel.json`. 정답·점수·완료 표시 없음.
+
+### 예상 리스크
+- 기본 동작의 기본값: 화면에서 새로 만들거나 라우터에서 바꾼 방화벽 인터페이스만 보이는 "차단"을 채운다(pfSense의 기본 차단과 같고 바꿀 수 있음). 불러온 입력에 값이 없으면 "모름"으로 보이고 그대로 보내 엔진이 판정 불가로 멈춘다(사용자 D4 유지).
+- 라우터↔방화벽 전환 때 ACL 연결·규칙이 사라진 것처럼 보일 수 있다. 입력은 남겨 두고 보내지만 않으므로 되돌리면 다시 보인다.
+- 미대조 문구를 줄이다 엔진 문장을 바꿀 위험: 엔진 상수와 정확히 같은 끝 문장만 화면에서 떼고, 결과 아래 한 번 보인다. API 값은 그대로다.
+
+### 완료 조건
+1. 엔진·서버 테스트 기준 유지(489+2xfail, 227+1skip). 2. 웹 테스트: 기존 692건 유지 + 신규. 3. `npm --prefix web run build`. 4. `git diff --check`, 금지 경로 diff 0줄. 5. 임시 SQLite 실브라우저 320·375·1280px 라이트/다크: 방화벽 추가·전환·규칙 편집·판정(통과·차단·판정 불가)·공유 링크 왕복·콘솔 0·가로 넘침 0.
+
+### 테스트 결과 — 방화벽 화면 입력 (Claude 직접 실행, 2026-10-23)
+
+자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략했다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 3.75s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+227 passed, 1 skipped in 32.16s
+
+npm --prefix web test
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 49 passed (49)
+Tests 753 passed (753)
+
+npm --prefix web run build
+> tsc --noEmit && vite build
+✓ 72 modules transformed.
+dist/assets/index-BvMEuoqk.css 89.75 kB │ gzip: 24.22 kB
+dist/assets/index-DGBhOK50.js 403.33 kB │ gzip: 120.42 kB
+✓ built in 242ms
+
+git diff --check
+(출력 없음, 종료0)
+
+git diff --numstat claude/handoff-fold -- engine/ server/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(출력 없음, 종료0)
+```
+
+- 신규 웹 시험 61건: `toNetwork`의 상태 추적 장비 ACL 키 제외·빈 포트 제외·모르는 규칙 키 유지·라우터로 되돌릴 때 ACL 재전송·사례 왕복, 공유 링크 왕복과 형식 오류 5종, 규칙 한 줄 표시·엔진 응답 fixture의 미대조 끝 문장 제거, 규칙 칸 안내(주소·포트), 편집기의 종류 전환·+ 방화벽·규칙 순서/삭제/되돌리기 안내·ICMP 포트 비움, 결과 패널의 미대조 문구 1회, 사례 상세의 규칙·기본 동작 표시. 기존 시험 두 곳(ResultPanel·TracePlayer의 "엔진 원문" 단언)은 미대조 끝 문장만 뗀 값으로 바꾸고 문구가 정확히 한 번 보이는지 함께 단언했다.
+- 실브라우저(`scripts/qa_local.py` 127.0.0.1:4870·임시 SQLite, 빌드 `index-DGBhOK50.js`): 처음 구성의 R1을 방화벽으로 바꾸면 규칙 없이 `막힘`(정방향: g0/0 in: 사용자가 적은 기본 정책(block)으로 차단), 구성도 `방화벽 · 차단`. `통과 · TCP · any → 10.20.20.5:443` 규칙을 더하면 `통과`(정방향 · 복귀 방향 모두 통과), 복귀 단계 `g0/1 in: 이 session의 정방향 상태로 허용됨`, 미대조 문구는 결과 아래 1회. 출발지 `LAN_net`은 칸 안내·`aria-invalid`와 Tab 순서(출발 포트) 확인 뒤 `판정 불가`(지원하지 않는 주소·별칭: 'LAN_net'). ICMP로 바꾸면 포트 두 칸이 비워지고 잠김. 공유 링크로 다시 열면 종류·규칙·기본 동작이 그대로이고 판정 `통과`. 정책 검증 10건 `PASS 1 · DENY 9`. 375px 다크·320px 라이트·1280px 다크에서 문서 가로 넘침 0(scrollWidth ≤ 화면 폭), 콘솔 오류 0, 서버 오류 로그 0.
+- 캡처: [1024px 라이트 규칙·복귀 단계](docs/screens/firewall-rules-desktop-light.jpg), [375px 다크 칸 안내·ICMP 잠금](docs/screens/firewall-rules-mobile-dark.jpg). QA 서버 종료 뒤 남은 임시 폴더(qa.db 1개)를 경로 접두사 확인 후 지웠다(`QA_TEMP_EXISTS=False`, 4870 대기 0).
+- 하지 않은 것: 로그인이 필요한 사례 저장·상세 화면은 브라우저로 확인하지 않고 단위 시험(`networkView`·`CaseNetwork`)으로만 확인했다. 768px 태블릿 폭, 실제 pfSense 장비 대조, 사람의 수동 QA는 하지 않았다. 같은 모델의 자체 점검이며 독립 리뷰가 아니다.
 
 ## 작업 정의 — HANDOFF 접기 (2026-10-23 사용자 요청)
 - 범위: `HANDOFF.md`, `decisions/ai-work-log.md`, 사라진 HANDOFF 절을 가리키던 `docs/frontend-redesign.md`·`docs/path-workbench.md`의 링크(접기 전 고정 커밋 링크로 교체).
@@ -114,7 +171,7 @@ Claude (Opus 5.5)
 
 ## 남은 후속 (비차단, 미착수)
 - PR #62 N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘) — 사용자 수동 QA 판단 뒤 설계.
-- pfSense: ① 2단계 실습 연동(D5) ② 화면 입력 ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ④ 네트워크 JSON의 추가 최상위 키가 전부 미지원 처리됨(화면 과제에서 `toNetwork` 키를 엔진 지원 필드와 먼저 대조) ⑤ 미대조 문구를 화면 패널에 한 번만.
+- pfSense: ① 2단계 실습 연동(D5) ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ⑤ 미대조 문구 한 번만 — 판정 결과 패널은 이번 과제에서 해결, 정책 검증 칸 상세·변경 전/후 문장에는 아직 단계마다 붙음. (② 화면 입력·④ `toNetwork` 키 대조는 `claude/firewall-input`에서 처리)
 - F28: change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB).
 - PR #52: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향은 사용자 결정), N2 단계 목록이 선택한 방향만.
 - PR #41: 원인별 사례 목록 필터(저장 열 필요), 사람이 붙이는 원인 태그.

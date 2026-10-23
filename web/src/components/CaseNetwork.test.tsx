@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CaseNetwork } from "./CaseNetwork";
 import case01 from "../../../cases/synthetic-01-https-acl.json";
 import type { Flow, Network } from "../types";
+import { toNetwork } from "../draft";
+import { firewallDraft } from "../testFixtures/firewallDraft";
 
 it("통신은 접기 밖, 장비와 ACL 원문은 같은 접기 안에 둔다 (SSR)", () => {
   const html = renderToStaticMarkup(createElement(CaseNetwork, { network: case01.network as Network, flow: case01.flow as Flow }));
@@ -14,6 +16,13 @@ it("통신은 접기 밖, 장비와 ACL 원문은 같은 접기 안에 둔다 (S
   expect(inside).toContain('class="case-devices"'); expect(inside).toContain("ACL 원문");
   expect(inside).toContain('<details class="case-raw-acl"'); expect(inside).toContain("access-list 101 deny tcp");
   expect(inside).not.toMatch(/<details[^>]*\bopen\b/);
+});
+it("방화벽 장비는 종류와 인터페이스별 들어오는 규칙·기본 동작을 보인다", () => {
+  const html = renderToStaticMarkup(createElement(CaseNetwork, { network: toNetwork(firewallDraft()), flow: case01.flow as Flow }));
+  expect(html).toContain("방화벽(상태 추적)");
+  expect(html).toContain("들어오는 규칙 1개 · 안 맞으면 차단");
+  expect(html).toContain("<code>통과 · TCP · any → 10.20.20.5:443</code>");
+  expect(html).toContain("들어오는 규칙 0개 · 안 맞으면 모름(판정 불가)");
 });
 it("없는 장비·ACL도 개수를 표시하고 기존 ACL 없음 안내를 유지한다", () => {
   const html = renderToStaticMarkup(createElement(CaseNetwork, { network: { devices: [], acls: {} }, flow: case01.flow as Flow }));

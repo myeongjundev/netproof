@@ -25,9 +25,9 @@ const metadata: { id: string; caseId: string; title: string; category: string; f
     focus: "가는 길과 돌아오는 길이 모두 있는지",
     guessPrompt: "PC1에서 SRV2로 보낸 ping(ICMP)이 왕복할 수 있을까요?",
     path: { nodes: [{ id: "PC1", kind: "host" }, { id: "R1", kind: "router" }, { id: "R2", kind: "router" }, { id: "SRV2", kind: "host" }], acls: [], roundTrip: true },
-    concept: "NetProof의 기본 session 모드는 가는 길과 돌아오는 길을 모두 계산합니다. ACL은 무상태이므로 가는 길이 허용됐다고 돌아오는 길이 자동으로 허용되지는 않습니다. 상태 기반 방화벽의 동작은 이 모델의 지원 범위 밖입니다.",
+    concept: "NetProof의 기본 session 모드는 가는 길과 돌아오는 길을 모두 계산합니다. ACL은 무상태이므로 가는 길이 허용됐다고 돌아오는 길이 자동으로 허용되지는 않습니다. pfSense 같은 상태 추적 방화벽은 가는 길에서 통과한 연결의 응답을 규칙 없이 돌려보냅니다. 구성에서 라우터 종류를 '방화벽'으로 바꿔 차이를 비교해 볼 수 있습니다.",
     analogy: "편지를 보낼 길뿐 아니라 답장이 돌아올 길도 확인하는 것과 같습니다.",
-    sources: [{ label: "2절 통신 가능의 뜻", href: `${semantics}#2-통신-가능의-뜻-adr-005` }, { label: "4절 호스트", href: `${semantics}#4-호스트` }, { label: "5절 라우터", href: `${semantics}#5-라우터` }],
+    sources: [{ label: "2절 통신 가능의 뜻", href: `${semantics}#2-통신-가능의-뜻-adr-005` }, { label: "4절 호스트", href: `${semantics}#4-호스트` }, { label: "5절 라우터", href: `${semantics}#5-라우터` }, { label: "14절 상태 추적 방화벽", href: `${semantics}#14-제한된-상태-추적-방화벽-adr-016` }],
   },
   {
     id: "output-acl", caseId: "synthetic-03", title: "출력 ACL", category: "적용 방향",

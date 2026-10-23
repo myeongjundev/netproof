@@ -2,6 +2,7 @@ import first from "../../cases/synthetic-01-https-acl.json";
 import second from "../../cases/synthetic-02-missing-return-route.json";
 import third from "../../cases/synthetic-03-acl-out.json";
 import { blankDraft, fromCase, toNetwork } from "./draft";
+import { firewallDraft } from "./testFixtures/firewallDraft";
 import { decodeShare, encodeShare, ShareError } from "./share";
 import type { CaseItem, Draft } from "./types";
 
@@ -24,6 +25,13 @@ it.each([
   // toNetwork의 빈 값 정규화를 제외한 실제 판정 입력이 같다.
   expect(input(fromCase(decoded))).toEqual(input(draft));
   expect(decoded.network).toEqual(input(draft).network);
+});
+
+it("방화벽 규칙과 기본 동작이 왕복한다", async () => {
+  const draft = firewallDraft();
+  const decoded = await decodeShare(await encodeShare(draft));
+  expect(input(fromCase(decoded))).toEqual(input(draft));
+  expect(decoded.network.devices[1].interfaces[0].rules_in).toHaveLength(1);
 });
 
 it("받은 답을 고르지 않아도 한글·특수문자 메모와 ACL remark가 보존된다", async () => {
@@ -51,6 +59,13 @@ it.each([
   ["장비 null", pack(JSON.stringify({ ...valid, network: { devices: [null] } }))],
   ["flow src 숫자", pack(JSON.stringify({ ...valid, flow: { src: 123, dst: "dst" } }))],
   ["메모 객체", pack(JSON.stringify({ ...valid, claim: { text: {} } }))],
+  ["stateful 문자열", pack(JSON.stringify({ ...valid, network: { devices: [{ id: "FW", kind: "router", stateful: "yes", interfaces: [] }] } }))],
+  ["규칙 목록 아님", pack(JSON.stringify({ ...valid, network: { devices: [{ id: "FW", kind: "router", interfaces: [{ name: "em0", ip: "", rules_in: "x" }] }] } }))],
+  ["규칙 주소 숫자", pack(JSON.stringify({ ...valid, network: { devices: [{ id: "FW", kind: "router", interfaces: [{ name: "em0", ip: "",
+    rules_in: [{ action: "pass", proto: "tcp", src: 1, dst: "any" }] }] }] } }))],
+  ["규칙 포트 객체", pack(JSON.stringify({ ...valid, network: { devices: [{ id: "FW", kind: "router", interfaces: [{ name: "em0", ip: "",
+    rules_in: [{ action: "pass", proto: "tcp", src: "any", dst: "any", dst_port: {} }] }] }] } }))],
+  ["기본 동작 숫자", pack(JSON.stringify({ ...valid, network: { devices: [{ id: "FW", kind: "router", interfaces: [{ name: "em0", ip: "", default_in: 1 }] }] } }))],
   ["UTF-8 오류", pack(new Uint8Array([255]))],
 ])("%s 오류는 한국어 ShareError다", async (_, payload) => {
   await expect(decodeShare(await payload)).rejects.toBeInstanceOf(ShareError);

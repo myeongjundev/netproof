@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import data from "../testFixtures/topology-verdicts.json";
 import type { Flow, Network, Verdict } from "../types";
 import { TracePlayer } from "./TracePlayer";
+import { withoutLimitation } from "../firewall";
 
 const fixtures = data as unknown as { id: string; network: Network; flow: Flow; verdict: Verdict }[];
 const render = (item = fixtures[0], busy = false) => renderToStaticMarkup(createElement(TracePlayer, { ...item, busy, engineVersion: "0.1.4", onShowAcl: () => {} }));
@@ -11,7 +12,8 @@ it.each(fixtures)("$id는 엔진 이유·원래 마지막 단계·저장 버전�
   expect(html).toContain("저장된 판정 · 엔진 0.1.4"); expect(html).toContain("전체 구성 원문");
   expect(html).toContain("실제 배선 그림이 아닙니다");
   const last = (item.id === "synthetic-02-missing-return-route" ? item.verdict.return : item.verdict.forward)?.hops.at(-1);
-  if (last) { expect(html).toContain(last.detail); expect(html).toContain('aria-current="step"'); }
+  // 방화벽 미대조 끝 문장은 ResultPanel이 결과 아래 한 번 보인다(TracePlayer는 ResultPanel 안에서만 쓰임).
+  if (last) { expect(html).toContain(withoutLimitation(last.detail)); expect(html).toContain('aria-current="step"'); }
   else { expect(html).toContain("재생할 경로 없음"); expect(html).not.toContain('aria-current="step"'); }
 });
 it("ACL 원문과 기존 입력 보기, one-way 이유, stale/loading 조작 비활성화", () => {

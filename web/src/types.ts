@@ -53,11 +53,24 @@ export interface ChangeImpact {
   totals: Record<"checks" | "changed" | "opened" | "closed" | "other" | "not_compared", number>;
 }
 
+/** 상태 추적 방화벽의 들어오는 규칙 하나(docs/semantics.md §14). 포트는 TCP·UDP에만 쓴다. */
+export interface FirewallRule {
+  action: "pass" | "block";
+  proto: "ip" | Proto;
+  src: string;
+  dst: string;
+  src_port?: string | number | null;
+  dst_port?: string | number | null;
+}
+export type DefaultIn = "pass" | "block" | "unknown";
+
 export interface Iface {
   name: string;
   ip: string;
   acl_in?: string | null;
   acl_out?: string | null;
+  rules_in?: FirewallRule[];
+  default_in?: DefaultIn;
 }
 
 export interface Route {
@@ -69,6 +82,8 @@ export interface Route {
 export interface Device {
   id: string;
   kind: Kind;
+  /** true면 라우터를 상태 추적 방화벽으로 계산한다. ACL 대신 인터페이스의 rules_in·default_in을 쓴다. */
+  stateful?: boolean;
   interfaces: Iface[];
   gateway?: string;
   routes?: Route[];

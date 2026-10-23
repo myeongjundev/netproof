@@ -124,6 +124,15 @@ button:disabled { opacity: 0.55; cursor: default; }
 .rows th { font-size: 12px; font-weight: 500; color: var(--muted); text-align: left; padding: 0 4px 2px; }
 .rows td { padding: 2px 4px; vertical-align: middle; }
 .rows td:last-child { width: 40px; }
+/* 방화벽 규칙: 장비 칸이 좁아 표 대신 규칙마다 동작·프로토콜 / 출발 / 목적 세 줄로 둔다. 번호는 결과의 "N번 규칙"과 같다. */
+.fw-rules { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.fw-rules h4 { margin: 0; font-size: 14px; color: var(--ink); }
+.fw-rules ol { list-style: none; margin: 0; padding: 0; counter-reset: fw-rule; }
+.fw-rule { counter-increment: fw-rule; position: relative; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 6px 8px; align-items: start; padding: 8px 0 8px 28px; border-top: 1px dashed var(--line); }
+.fw-rule::before { content: counter(fw-rule); position: absolute; left: 0; top: 12px; width: 20px; height: 20px; border-radius: 50%; background: var(--code-bg); color: var(--ink); font-size: 12px; line-height: 20px; text-align: center; }
+.fw-rule-actions { grid-column: 3; grid-row: 1 / span 3; align-self: start; display: flex; flex-direction: column; gap: 4px; padding-top: 18px; }
+.fw-rules-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; justify-content: space-between; }
+.fw-rules-foot label { flex: 0 1 220px; }
 .row-actions { display: flex; gap: 8px; margin-top: 10px; }
 .acl { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
 
@@ -258,6 +267,8 @@ input[aria-invalid="true"] { border-color: var(--deny); }
   /* 장비 머리: 이름 | 종류 | 삭제 한 줄, 게이트웨이는 아래 줄 */
   .device-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
   .device-head label:nth-of-type(3) { grid-column: 1 / 3; grid-row: 2; }
+  .fw-rule { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .fw-rule-actions { grid-column: 1 / -1; grid-row: auto; flex-direction: row; padding-top: 0; }
 }
 
 .panel.narrow { max-width: 480px; width: 100%; margin: 24px auto; padding: 32px; }
@@ -395,6 +406,8 @@ p .meta { display: inline; }
 .case-device .panel-head h3 { margin: 0; }
 .case-device ul { margin: 8px 0; padding-left: 18px; }
 .case-device li { margin-bottom: 6px; }
+.fw-case-rules { margin: 4px 0 0; padding-left: 18px; font-size: 12px; }
+.fw-case-rules code { overflow-wrap: anywhere; }
 .case-device p { font-size: 13px; }
 .case-raw-acl { border-top: 1px solid var(--line); }
 .case-raw-acl summary { padding: 12px 0; cursor: pointer; font-size: 13px; }
