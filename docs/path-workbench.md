@@ -30,11 +30,11 @@
 
 직접 실행: 엔진489 passed·2 xfailed(7.37s), 서버227 passed·1 skipped(54.40s), 웹44파일656 passed(1.47s), TypeScript 검사·Vite 빌드291ms. 기존 xfail2와 선택 pybatfish skip1을 유지했다. 새 탐색의 기존 주소·현재 위치·검토자 전용 링크와 추가 조회 없음에 대한 회귀11건을 추가했다.
 
-공개10경로·합성 회원4경로 × 320·375·1280px × 라이트/다크 = 84조합, 초기 홈320·375·768·1100·1101·1280px × 라이트/다크 = 12조합을 실제 브라우저에서 확인했다. 페이지 가로 넘침0·보이는 버튼 글자 넘침0·화면 h1=1, 홈 장비 칸 최소60px·ACL 높이 최대100px를 확인했다. 1100px은 상단 탐색, 1101px은 폭164px의 왼쪽 탐색이다. [측정·기능 결과 원문](screens/workbench-qa.json), [실행 출력](../HANDOFF.md#테스트-결과--경로-작업대).
+공개10경로·합성 회원4경로 × 320·375·1280px × 라이트/다크 = 84조합, 초기 홈320·375·768·1100·1101·1280px × 라이트/다크 = 12조합을 실제 브라우저에서 확인했다. 페이지 가로 넘침0·보이는 버튼 글자 넘침0·화면 h1=1, 홈 장비 칸 최소60px·ACL 높이 최대100px를 확인했다. 1100px은 상단 탐색, 1101px은 폭164px의 왼쪽 탐색이다. [측정·기능 결과 원문](screens/workbench-qa.json), [실행 출력](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md#테스트-결과--경로-작업대).
 
 메뉴 Escape·포커스 복원, Tab으로 본문 바로가기·왼쪽 다음 항목 이동, 본문 진입 시 hash 유지, 홈 예상→실습01·해당 예상 유지, 실습02 복귀2/2→1/2→2/2, 정책10건 PASS10, 고치기01 초기 목표 모두 다름·목표 밖 변화0·사실 문장 없음도 확인했다. 브라우저 콘솔 error/warn은 빈 목록이었다. 운영 DB를 사용하지 않았고 QA 종료·포트0 확인 뒤 임시 SQLite·폴더를 삭제했다.
 
-사용자 요청으로 PR #60 제품 커밋 `7d32af0`을 리뷰했다. 엔진489+2xfail(7.48s)·서버227+1skip(57.32s)·웹656(1.65s)·빌드289ms, 금지 경로0줄로 구현 기록과 테스트 수·자산 해시가 같다. 새 임시 SQLite로 공개/회원84조합과 홈·헤더·학습실·복귀 결과 경계 폭61개를 추가 확인해 가로/버튼 넘침과 콘솔 오류0, 메뉴·키보드·예상 진입·복귀 재생·정책·고치기 표시를 확인했다. 수정 지적0건이며 제품 코드는 고치지 않았다. [리뷰 실행 출력](../HANDOFF.md#테스트-결과--pr-60-리뷰), [리뷰 측정 원문](screens/workbench-review-qa.json), [1101px 탐색·포커스](screens/workbench-review-home-1101-light.png), [375px 다크 학습실](screens/workbench-review-learning-mobile-dark.png).
+사용자 요청으로 PR #60 제품 커밋 `7d32af0`을 리뷰했다. 엔진489+2xfail(7.48s)·서버227+1skip(57.32s)·웹656(1.65s)·빌드289ms, 금지 경로0줄로 구현 기록과 테스트 수·자산 해시가 같다. 새 임시 SQLite로 공개/회원84조합과 홈·헤더·학습실·복귀 결과 경계 폭61개를 추가 확인해 가로/버튼 넘침과 콘솔 오류0, 메뉴·키보드·예상 진입·복귀 재생·정책·고치기 표시를 확인했다. 수정 지적0건이며 제품 코드는 고치지 않았다. [리뷰 실행 출력](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md#테스트-결과--pr-60-리뷰), [리뷰 측정 원문](screens/workbench-review-qa.json), [1101px 탐색·포커스](screens/workbench-review-home-1101-light.png), [375px 다크 학습실](screens/workbench-review-learning-mobile-dark.png).
 
 이 검사는 모든 입력 상태·실제 장비 결과·사람의 수동 QA를 대체하지 않는다. 구현과 같은 모델로 수행했으며 별도 Claude/Luna 독립 리뷰 수행 기록은 없다.
 

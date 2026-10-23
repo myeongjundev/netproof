@@ -32,7 +32,7 @@
 
 ![375px 다크 실습의 복귀 차단 근거](screens/frontend-practice-mobile-dark.jpg)
 
-엔진489 passed·2 xfailed, 서버227 passed·1 skipped, 웹645 passed, 웹 build 완료. R1 수정 뒤 번들은 CSS `index-BZkAbxlp.css`·JS `index-BZrhjkmL.js`다. 최초 320·375·1280px 라이트/다크 84개 조합의 배치와 JS 진단은 [원문 JSON](screens/frontend-qa.json), 명령·출력과 실제 사용한 흐름은 [HANDOFF 테스트 결과](../HANDOFF.md#테스트-결과--프론트-전체-리디자인-codex-직접-실행-2026-10-11)에 있다. 이 검사는 모든 사용자 상태나 실제 장비 결과를 대조한 검사는 아니다.
+엔진489 passed·2 xfailed, 서버227 passed·1 skipped, 웹645 passed, 웹 build 완료. R1 수정 뒤 번들은 CSS `index-BZkAbxlp.css`·JS `index-BZrhjkmL.js`다. 최초 320·375·1280px 라이트/다크 84개 조합의 배치와 JS 진단은 [원문 JSON](screens/frontend-qa.json), 명령·출력과 실제 사용한 흐름은 [HANDOFF 테스트 결과](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md#테스트-결과--프론트-전체-리디자인-codex-직접-실행-2026-10-11)에 있다. 이 검사는 모든 사용자 상태나 실제 장비 결과를 대조한 검사는 아니다.
 
 ## PR #59 R1 — 태블릿 홈
 
@@ -42,6 +42,6 @@
 
 ![수정 뒤 768px 다크 홈](screens/frontend-fix-tablet-768-dark.jpg)
 
-빌드된 실제 화면에서 721/768/900/960/1024/1100/1101/1280px 라이트/다크16건을 확인했다. 태블릿 장비 칸 최소80px·ACL 높이 최대90px와 화면/버튼 넘침0을 단언했고, 기존 공개·합성 회원84개 조합도 다시 검사했다. [단언 기준·실제 측정·콘솔 원문](screens/frontend-fix-qa.json), [명령 출력·QA 정리](../HANDOFF.md#r1-수정테스트-결과--pr-59-codex-2026-10-11). 이후 사용자 요청으로 Codex (GPT-6)가 재리뷰해 R1 해소·추가 지적 없음을 확인했다. [이번22개 폭·84조합·콘솔 원문](screens/frontend-rereview-qa.json), [재리뷰 결과](../HANDOFF.md#재리뷰-기록--pr-59-codex-2026-10-11). 다음 차례는 사용자 최종 확인·병합 결정이다.
+빌드된 실제 화면에서 721/768/900/960/1024/1100/1101/1280px 라이트/다크16건을 확인했다. 태블릿 장비 칸 최소80px·ACL 높이 최대90px와 화면/버튼 넘침0을 단언했고, 기존 공개·합성 회원84개 조합도 다시 검사했다. [단언 기준·실제 측정·콘솔 원문](screens/frontend-fix-qa.json), [명령 출력·QA 정리](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md#r1-수정테스트-결과--pr-59-codex-2026-10-11). 이후 사용자 요청으로 Codex (GPT-6)가 재리뷰해 R1 해소·추가 지적 없음을 확인했다. [이번22개 폭·84조합·콘솔 원문](screens/frontend-rereview-qa.json), [재리뷰 결과](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md#재리뷰-기록--pr-59-codex-2026-10-11). 다음 차례는 사용자 최종 확인·병합 결정이다.
 
 Codex (GPT-6)

@@ -2,6 +2,7 @@
 
 Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입니다. 이력은 쌓지 않고 덮어씁니다.
 과제별 이력은 `decisions/ai-work-log.md`, 사람과 AI의 판단이 갈린 순간은 `decisions/disagreement-log.md`(사용자가 채움)에 둡니다.
+2026-10-23에 지난 작업 정의·테스트 원문·리뷰 기록을 접었습니다. 접기 전 전문(1,189줄)은 `git show 9e0b6e8:HANDOFF.md` 또는 [고정 링크](https://github.com/myeongjundev/netproof/blob/9e0b6e8e1efd3f548207447ec2aed7bc6bb137b8/HANDOFF.md)에서 봅니다.
 
 ## 운영 방식
 - 흐름: Claude Opus 설계 → Codex Sol 구현·테스트 → Codex Luna 리뷰 → Codex Sol 수정·재테스트 → 사용자 최종 확인·병합. 필요하면 Astra를 사용한다.
@@ -10,6 +11,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 같은 GitHub 계정을 쓰므로 커밋 끝 Co-Author 줄과 코멘트 첫 줄 `[Claude]`/`[Codex]`로 구분합니다.
 - 단계별 지시문: [PROMPTS.md](PROMPTS.md).
 - **사람만 하는 일**: 사례 정답(손계산), 동기 인터뷰, 배포 가입·비밀값 입력, 제품 방향 결정. 어느 LLM에도 넘기지 않습니다.
+- 과제가 병합되면 그 과제의 작업 정의·테스트 원문·리뷰 기록은 [지난 과제](#지난-과제) 표 한 줄로 접는다. 원문은 Git 이력과 PR에 남는다.
 
 ## 검증 원칙
 - "두 LLM이 동의했다/통과라고 했다"는 검증이 아닙니다. 근거는 테스트 출력, `git diff`, 실제 실행 결과뿐입니다.
@@ -17,1172 +19,143 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **F2·F3 구현·Claude 리뷰·PR #62 병합 완료**. 결과·답·실제 결과·비교 용어와 받은 답 입력/상세 표시를 정리했다. [설계·구현 확인](docs/terminology-claim-design.md). 사용자의 2026-10-11 병합 알림 뒤 GitHub의 MERGED 상태와 main `9fcde17`을 확인했다.
-- 브랜치: `codex/f2-f3-merge-record`, main `9fcde17`에서 분기. `git pull`은 `Already up to date.`였고 AGENTS.md·HANDOFF.md·[Claude 리뷰](https://github.com/myeongjundev/netproof/pull/62#issuecomment-6106954412)를 읽었다. 이번 변경은 HANDOFF·작업 로그의 병합 상태 기록뿐이다. 문서 PR #61은 #62에 포함되어 병합 없이 CLOSED다.
-- 다음 차례: **사용자(다음 과제 선택).** Claude 리뷰 PASS(차단 0). 비차단 N1 문서 누적 정리는 다음 과제 시작 때 Claude, N2 대시보드 받은 답 축 표현은 사용자 수동 QA 때 판단한다. 운영 DB 재판정은 보류이며 Vercel DATABASE_URL을 Production 전용으로 바꾸는 일은 사용자에게 남아 있다.
-- 공개 배포 확인: 2026-10-11 공개 홈 HTTP 200. JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`의 내용이 리뷰한 로컬 빌드와 SHA256까지 같았다. 이번 확인은 공개 정적 파일이며 로그인·저장·수동 QA 완료를 의미하지 않는다.
+- 작업: **HANDOFF 접기(PR #62 리뷰 비차단 N1)**. 지난 과제를 표 한 줄씩으로 접고, 유지되는 합의·남은 후속·사람 할 일을 한곳에 모았다. 사라진 절을 가리키던 문서 링크 5개는 접기 전 고정 커밋으로 바꿨다. 제품 코드 변경 없음.
+- 브랜치: `claude/handoff-fold`, main `9e0b6e8`에서 분기. `git pull`은 `Already up to date.`
+- 제품 상태: main은 PR #62까지 반영, 엔진 0.2.0. 공개 배포는 2026-10-11에 JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`가 리뷰한 빌드와 SHA256까지 같음을 확인했다(로그인·저장·수동 QA 완료를 뜻하지 않음).
+- 다음 차례: **사용자(이 문서 PR 병합 결정, pfSense 2단계 질문 답변).** 다음 과제 후보는 pfSense 2단계 실습 연동이다. 사용자의 팀 캡스톤 실습망이 pfSense·OpenVPN을 써서 D5(실습 사실)의 재료가 생겼다. 답을 받으면 Claude가 설계한다. 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
+- **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: pfSense 2단계는 Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·병합·제품 방향 결정은 그대로 사용자가 한다.
 
-### 테스트 결과 — PR #62 병합 상태 정리 (2026-10-11)
+## 작업 정의 — HANDOFF 접기 (2026-10-23 사용자 요청)
+- 범위: `HANDOFF.md`, `decisions/ai-work-log.md`, 사라진 HANDOFF 절을 가리키던 `docs/frontend-redesign.md`·`docs/path-workbench.md`의 링크(접기 전 고정 커밋 링크로 교체).
+- 제외: `engine/`·`server/`·`web/`·`scripts/`·`cases/`·`api/`·`requirements.txt`·`vercel.json`·`AGENTS.md`·`CLAUDE.md`·`PROMPTS.md`.
+- 완료 조건: 기본 회귀 3종 기준 유지(엔진 489+2xfail, 서버 227+1skip, 웹 692), 변경 문서의 상대 링크 누락 0, `git diff --check` 출력 없음, 제외 경로 diff 0줄.
 
-이번 문서 기록 작업에서 아래 세 명령을 직접 다시 실행했다. 서버 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG는 비웠다. 진행 점과 Vitest 성능 안내만 생략한 출력이다. 화면 코드 변경이 없어 빌드는 다시 실행하지 않았다.
+### 테스트 결과 — HANDOFF 접기
+
+문서 작업에서 직접 실행한 기준 회귀다. 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·Vitest 성능 안내만 생략했다. 화면 코드 변경이 없어 빌드는 실행하지 않았다.
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 7.54s
+489 passed, 2 xfailed in 8.24s
 
 cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 55.82s
+227 passed, 1 skipped in 56.53s
 
 npm --prefix web test
-> netproof-web@0.1.0 test
 > vitest run
 RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
 Test Files 47 passed (47)
 Tests 692 passed (692)
-Start at 17:19:50
-Duration 1.54s (transform 63%, import 21%, tests 13%, worker 3%)
+Duration 2.40s
 
-공개 HTML·정적 파일 GET 및 로컬 web/dist/assets 파일 내용 비교
-HTTP 200
-/assets/index-COoJnoGM.js
-/assets/index-BXlnygLT.css
-index-COoJnoGM.js HTTP 200 SHA256=0ad11ecb15b8e82e858eb738d62aa7b21b9c17a931d22a4775f566a961fa9079 LOCAL_MATCH=True
-index-BXlnygLT.css HTTP 200 SHA256=c1a5343f3fa4e98b158939f089c524ebeca263cc45aa61738474355ffa4daf0e LOCAL_MATCH=True
-```
-
-Codex (GPT-6)
-
-### 리뷰 기록 — PR #62 (Claude, 2026-10-11)
-- 직접 실행(`efc438d`): 엔진 489 passed·2 xfailed, 서버 227 passed·1 skipped, 웹 692 passed, 빌드 성공(번들 `index-COoJnoGM.js`, Codex와 같음). 금지 경로 numstat 출력 없음, `git diff --check` 오류 없음. `claim-qa.json` 비밀값 검색 0.
-- 설계 대비: 표시 사전은 값→글자만, 비교 머리 조건 기존 그대로 추출, 배지 class·조건 유지, 필터 값·URL 유지, `fromCase` kind는 있을 때만, 남은 옛 문구는 허용 항목.
-- 실브라우저(QA 서버 4870, 일회용 합성 계정): 판정기 답의 종류가 접힘 밖·메모는 `출처·내용 적기(선택)`, 사례 #5 비교 머리 `AI 답 | 된다 ≠ 막힘`·출처 1회·메모 패널은 출처·내용만, 사례 #3 `사람 예상`·`확인 전 · 막힘 · 판정과 같음`. 넘침 0·콘솔 0, 임시 폴더 삭제.
-- **PASS.** 비차단 N1: HANDOFF에 작업 정의 5절·1,150줄 누적 — 다음 과제 시작 때 Claude가 요약으로 접음. N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘)는 설계대로, 사용자 수동 QA 때 판단.
-
-## 작업 정의 — 문서 정리·F2·F3 설계 (2026-10-11 사용자 요청)
-
-- 범위: README.md·docs/path-workbench.md·docs/terminology-claim-design.md·HANDOFF.md·decisions/ai-work-log.md만 수정한다. PR #60 병합/배포 사실과 소개·기능·화면을 정리한 뒤 실제 코드와 PR #20 Claude 코멘트를 근거로 다음 과제를 설계한다. 기존 PR #60 임시 SQLite 제품 캡처를 재사용한다. 작성 기준일이 있는 이전 회고·테스트·리뷰는 당시 기록으로 보존한다.
-- 완료: 기본 회귀3개 직접 실행·문서 링크/그림 경로 확인·git diff --check·제품 경로0줄, 실제 출력 기록·커밋/푸시·main 대상 템플릿 문서 PR. 이번 PR은 병합하지 않는다. 화면/구현 변경이 없어 빌드·새 화면 QA는 수행하지 않는다.
-- 제외: engine/·server/·web/·scripts/·cases/·requirements.txt·vercel.json·AGENTS/CLAUDE/PROMPTS 변경, 운영 재판정·Vercel 설정·사람의 수동 QA 완료 표시.
-
-### 테스트 결과 — 문서 정리·설계
-
-문서 작업에서 직접 실행한 기준 회귀다. F2·F3 구현의 검증이 아니다. 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·Vitest 성능 안내만 생략한 출력:
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 7.76s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 50.26s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
-Test Files 44 passed (44)
-Tests 656 passed (656)
-Duration 1.37s (transform 65%, import 21%, tests 11%, worker 3%)
-```
-
-기존 xfail2와 선택 pybatfish skip1을 유지했다. 제품 코드0줄이므로 새 테스트를 작성하지 않았으며 빌드·새 QA를 수행하지 않았다. 새 API/DB/판정 계산 변경0줄·엔진 버전0.2.0 유지.
-
-추가로 Python 표준 라이브러리 검사로 변경 문서5개의 Markdown 상대 링크·HTML img src가 파일을 가리키는지와 cases JSON 수를 확인했다. 기존 PR #60의 임시 SQLite 캡처를 그대로 링크했고 날짜별 회고는 재작성하지 않았다. 실제 출력:
-
-```text
-Python 문서 상대 링크·이미지 경로 검사
-DOC_LOCAL_LINKS=56
+Python 표준 라이브러리 링크·제목 앵커 검사(HANDOFF.md, docs/frontend-redesign.md, docs/path-workbench.md)
+DOC_LOCAL_LINKS=49
 DOC_MISSING_LINKS=0
-README_CASES_COUNT=3
 
 git diff --check
 (출력 없음, 종료0)
 
-git diff --numstat -- engine/ server/ web/ scripts/ cases/ requirements.txt vercel.json AGENTS.md CLAUDE.md PROMPTS.md
-(출력 없음, 제품·설정·역할 지시문 변경0줄, 종료0)
-```
-
-Codex (GPT-6)
-
-## 작업 정의 — 용어 통일(F2)·받은 답 입력/표시 정리(F3)
-
-### 목표
-판정기·사례 목록/상세·대시보드의 결과 표현을 통일하고, 답 종류 선택과 선택 메모의 역할을 구분한다. 사례 상세의 종류·답·출처 중복을 줄이되 판정 불가·입력 오류에서도 원래 답을 잃지 않는다. [상세 설계·상태표·회귀 계약](docs/terminology-claim-design.md)이 기준이다. 사용자의 2026-10-11 “진행하자”로 구현을 승인받아 아래1~5를 구현했다.
-
-### 변경 범위 1~5 (승인된 구현)
-1. 새 `web/src/displayText.ts`·테스트, `caseView.ts`·`verdictView.ts`·테스트: 결과 통과/막힘/판정 불가/입력 오류, 받은 답 된다/안 된다, 실제 결과 통과/막힘, 비교 같음/다름/비교 불가/받은 답 없음, 종류 문맥 표시·기존 비교 머리 표시 조건 공유.
-2. `components/FlowForm.tsx`·새 테스트·최소 CSS: 답 선택 하나, 답 종류를 접힌 영역 밖에서 선택, 출처·내용은 선택 메모로 구분. hideClaim/기존 props·핸들러 유지.
-3. `components/Badges.tsx`·`ResultPanel.tsx`, `pages/CasesPage.tsx`·`CaseDetailPage.tsx`·`DashboardPage.tsx`와 테스트: 표시 통일, 상세에서는 종류·답은 비교 머리/출처·내용은 별도 패널. 비교 머리가 안 보이면 기존 종류·답을 별도 패널에 표시. `draft.ts`·테스트는 fromCase의 기존 kind 보존만.
-4. 웹 의미 회귀·임시 SQLite 실제 브라우저·캡처: 상태표, 입력 메모 보존, 비교 값 그대로, 확인 상태/스타일, 필터 값·주소, 접근성·넘침·기존 실습/고치기/재생 확인.
-5. 설계·docs/practice.md 관련 문구·HANDOFF·ai-work-log·QA 근거: 직접 실행 결과·제한 기록, 커밋/푸시·main 대상 템플릿 PR. 병합 결정은 사용자.
-
-### 건드리지 않을 것
-engine/·server/·scripts/·cases/*.json·expect·web/package*.json·requirements.txt·vercel.json·App의 입력 메모리/revision/current()·운영 DB·배포 설정은0줄. API/DB/라우트/URL 필터 값·공유/export 형식·엔진0.2.0·확인/저장/재생 의미 유지. 계산 comparison은 엔진 값을 그대로 표시하며 새 판정을 만들지 않는다. 사용자 제목/source/text·엔진 reason/detail/problems·ACL·고치기 prompt/label·원인 태그·오탐/미탐 정의는 치환하지 않는다. 정답·점수·완료·축하·해법·앱 안 LLM 없음.
-
-### 예상 리스크
-- UNSUPPORTED/INVALID/NO_CLAIM/비교 누락 때 중복 제거로 원래 답이 사라질 수 있으므로 기존 비교 머리 조건과 예외 표시를 함께 시험한다.
-- ai/self/null/생략을 보존한다. source에서 kind를 추측하지 않는다. 개인 입력은 내 예상, 저장된 사례는 사람 예상이며 목록에서 다른 사람의 예상을 내 예상으로 부르지 않는다.
-- 비교 안 함/종류 변경 뒤 source/text 유지·종류만 변경·fromCase kind 보존·복제 EMPTY_CLAIM을 시험한다. 전용 실습은 기존 예상 선택 하나를 유지한다.
-- 필터 enum/주소, confirmed 조건·plain/good/bad/warn 스타일, 엔진 comparison/reason, 분모와 요청 수를 바꾸지 않는다. 기술 원문·wire코드의 검색 결과를 분류하고 전역 치환하지 않는다.
-
-### 완료 조건 — 구현 후 직접 실행
-1. `cd engine && ../.venv/Scripts/python -m pytest -q`: 기준489 passed·2 xfailed 유지.
-2. `cd server && ../.venv/Scripts/python -m pytest -q`: 기준227 passed·1 skipped 유지(선택 pybatfish 없는 venv).
-3. `npm --prefix web test`: 기존656건과 상세 설계의 신규 상태·입력·비교 회귀 성공. 기존 의미 검사 삭제 없음.
-4. `npm --prefix web run build`: TypeScript·Vite 성공.
-5. `git diff --check`와 `git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json` 출력 없음. 상세 설계의 용어 검색 명령/결과와 허용 원문·기술 코드 목록 첨부.
-6. 로그·DB 환경 변수를 비운 `scripts/qa_local.py`의 임시 SQLite/합성 계정만 사용.320·375·768·1100·1101·1280px×라이트/다크에서 입력·상세 상태표·필터·실습/재생을 확인. 콘솔/페이지/버튼 넘침0, 캡처/원문 보존 후 서버·임시 DB 정리. 운영 DB에 접속하지 않음.
-
-### 테스트 결과 — F2·F3
-
-완료 조건1~4를 직접 실행했다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 출력이다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 6.72s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 52.87s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
-Test Files 47 passed (47)
-Tests 692 passed (692)
-Duration 1.42s (transform 65%, import 20%, tests 12%, worker 3%)
-
-npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 71 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html 0.60 kB | gzip: 0.44 kB
-dist/assets/index-BXlnygLT.css 88.64 kB | gzip: 24.01 kB
-dist/assets/index-COoJnoGM.js 395.97 kB | gzip: 118.30 kB
-✓ built in 267ms
-```
-
-기존656건을 유지하고 신규36건을 추가했다. 실제 FlowForm 핸들러로 종류 변경·비교 안 함 왕복·각 메모 필드의 값 보존을 검사하고, 상세 상태표160조합으로 정상 비교의 중복 제거와 비교 머리가 없는 경우의 원래 종류·답 보존을 대조했다. PASS/PASS/DISAGREE·PASS/DENY/AGREE 등 엔진 값을 화면에서 재계산하지 않는 기존 시험도 유지한다. fromCase의 ai/self/null/생략·JSON 가져오기·복제, 배지 confirmed/result 조건·스타일과 목록 필터 값·대시보드 분모/주소를 확인했다. 새 라이브러리 없음. 기존 xfail2·선택 pybatfish skip1 유지. 첫 빌드에서 새 테스트 fixture에 CaseSummary에 없는 owner_id·cause 필드를 발견해 제거한 뒤 웹 회귀와 빌드를 다시 실행했다.
-
-완료 조건5 — 공백 검사와 금지 경로 diff는 출력 없이 종료0이다. 구현 commit 뒤 main...HEAD 명령도 직접 실행해 확인했다. App.tsx도 변경0줄이다. 아래 용어 검색 원문과 허용 항목을 대조했다.
-
-```text
-git diff --check
+git diff --numstat -- engine/ server/ web/ scripts/ cases/ api/ requirements.txt vercel.json AGENTS.md CLAUDE.md PROMPTS.md
 (출력 없음, 종료0)
-
-git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json
-(출력 없음, 금지 경로0줄, 종료0)
-
-git diff main...HEAD --numstat -- web/src/App.tsx
-(출력 없음, 입력 메모리/revision 변경0줄, 종료0)
 ```
 
-```text
-rg -n '차단|일치|불일치|사람 예상|내 예상|PASS|DENY' web/src/components/Badges.tsx web/src/components/FlowForm.tsx web/src/components/ResultPanel.tsx web/src/pages/CasesPage.tsx web/src/pages/CaseDetailPage.tsx web/src/pages/DashboardPage.tsx web/src/caseView.ts web/src/verdictView.ts web/src/displayText.ts
-web/src/displayText.ts:4:export const RESULT_TEXT = { PASS: "통과", DENY: "막힘", UNSUPPORTED: "판정 불가", INVALID: "입력 오류" } as const;
-web/src/displayText.ts:5:export const ANSWER_TEXT = { PASS: "된다", DENY: "안 된다" } as const;
-web/src/displayText.ts:6:export const ACTUAL_TEXT = { PASS: "통과", DENY: "막힘" } as const;
-web/src/displayText.ts:12:  return kind === "ai" ? "AI 답" : kind === "self" ? context === "personal" ? "내 예상" : "사람 예상" : "종류 미정";
-web/src/verdictView.ts:6:  return !!verdict && (verdict.result === "PASS" || verdict.result === "DENY")
-web/src/verdictView.ts:12:  if (!verdict || !claim.expected || (verdict.result !== "PASS" && verdict.result !== "DENY")) return null;
-web/src/pages/DashboardPage.tsx:51:        <p className="hint">여기서 양성은 통신 차단(DENY)입니다. 막힌다고 본 것이 맞았는지를 셉니다.</p>
-web/src/pages/DashboardPage.tsx:54:          지원 범위 밖 제외는 NetProof 판정에 적용됩니다. AI 답·사람 예상은 답이 있으면 따로 비교합니다.</p>
-web/src/pages/DashboardPage.tsx:61:              <thead><tr><th scope="col">예측 ↓ · 실제 →</th><th scope="col">{ACTUAL_TEXT.DENY}(DENY)</th><th scope="col">{ACTUAL_TEXT.PASS}(PASS)</th></tr></thead>
-web/src/pages/DashboardPage.tsx:62:              <tbody>{(["DENY", "PASS"] as const).map((predicted) => <tr key={predicted}>
-web/src/pages/CaseDetailPage.tsx:210:                <p className="hint">관측은 판정이 아닙니다. 붙여넣은 출력은 실제로 본 것이고, PASS/DENY 판정은 계산 엔진이 정합니다.</p>
-web/src/pages/CaseDetailPage.tsx:253:                    <option value="PASS">{ACTUAL_TEXT.PASS}(PASS)</option>
-web/src/pages/CaseDetailPage.tsx:254:                    <option value="DENY">{ACTUAL_TEXT.DENY}(DENY)</option>
-web/src/pages/CasesPage.tsx:58:        <a href="#/cases?mine=1&claim_kind=self&comparison=DISAGREE">내 예상과 계산이 달랐던 내 사례</a>
-web/src/pages/CasesPage.tsx:79:            <option value="">전체</option><option value="PASS">{RESULT_TEXT.PASS}</option><option value="DENY">{RESULT_TEXT.DENY}</option>
-web/src/pages/CasesPage.tsx:94:            <option value="">전체</option><option value="PASS">{ACTUAL_TEXT.PASS}</option><option value="DENY">{ACTUAL_TEXT.DENY}</option><option value="none">미정</option>
-web/src/pages/CasesPage.tsx:103:            <option value="">전체</option><option value="PASS">{ANSWER_TEXT.PASS}</option><option value="DENY">{ANSWER_TEXT.DENY}</option>
-web/src/components/Badges.tsx:16:    {(item.result === "PASS" || item.result === "DENY") && (item.actual_result === item.result ? " · 판정과 같음" : " · 판정과 다름")}</span>;
-web/src/components/Badges.tsx:17:  if (item.result !== "PASS" && item.result !== "DENY") return <span className="badge warn">확인 · 비교 불가</span>;
-web/src/components/FlowForm.tsx:91:          {([null, "PASS", "DENY"] as const).map((value) => (
-web/src/components/FlowForm.tsx:113:                  <input value={claim.source} placeholder="예: ChatGPT 2026-10-02 / 내 예상" onChange={(e) => onClaim({ ...claim, source: e.target.value })} />
-web/src/components/ResultPanel.tsx:9:  PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
-web/src/components/ResultPanel.tsx:10:  DENY: "모델 안에서 계산한 결과, 이 통신은 막힙니다.",
-web/src/components/ResultPanel.tsx:29:  firewall_in: "방화벽에서 차단",
-```
-
-검색에 남는 값은 표시 사전의 wire enum, 결과/확인 배지의 기존 조건, 필터 option 값, 상세·대시보드의 한글 먼저/기술 코드 병기, 판정 불가의 기술 설명, DROP_TEXT·원인 태그/엔진 원문, 개인 문맥의 내 예상과 저장 문맥의 사람 예상이다. 방화벽 단계의 “차단”과 “양성은 통신 차단(DENY)” 정의는 허용된 기술 용어다. kind=none을 NO_CLAIM으로 합치거나 source에서 kind를 추론하지 않는다. 사용자 source/text·엔진 reason/detail/problems·ACL·고치기 prompt/label은 치환하지 않았다.
-
-완료 조건6 — 환경 변수4개를 비운 프로세스의 `& ./.venv/Scripts/python scripts/qa_local.py --port 4869`로 127.0.0.1·새 임시 SQLite만 사용했다. 기존 /api/auth/login·/api/examples·/api/cases·PATCH /api/cases로 변형 사례7개를 준비했다(운영 DB·새 API·SQL 작업 없음). 실제 API 응답에서 id6 AI/DENY/DISAGREE, id7 self/DENY/AGREE, id8·9 종류 미정/DENY, id10 UNSUPPORTED/NOT_COMPARABLE, id11 INVALID/NOT_COMPARABLE, id12 NO_CLAIM을 확인했다.
-
-판정기·위 상세7개·목록 필터·대시보드·실습02의11화면 × 320·375·768·1100·1101·1280px × 라이트/다크132조합을 실제 브라우저로 확인했다. [DOM 측정·입력·상세·기능·콘솔 원문](docs/screens/claim-qa.json)에 표준 라이브러리 assert를 실행한 출력:
-
-```text
-QA_LAYOUTS=132
-QA_LAYOUT_FAILURES=0
-QA_DETAIL_STATES=14
-QA_SOURCE_TEXT_DUPLICATION=0
-QA_NATIVE_CONSOLE_ERRORS_WARNINGS=0
-QA_INPUT_KIND_MEMO_FLOW_PRESERVED=True
-QA_FROM_CASE_KIND=self; QA_CLONE_EXPECTED=비교 안 함
-QA_RETURN_PLAYBACK=2/2 -> 1/2 -> 2/2
-QA_PRACTICE_FIELDSETS=1; QA_PRACTICE_RADIOS=3
-QA_ACTUAL_TONES=plain -> good -> plain
-QA_FIX_FORBIDDEN=False
-```
-
-종류 AI→self 변경, 비교 안 함→안 된다 복원에서 source/text/flow 유지, 미정 종류로 판정 가능, 종류/메모 label 각각1개·Tab 이동을 확인했다. 원문 출처·내용은 상태마다 한 번이며 판정 불가·입력 오류에서는 종류·답을 별도 패널에 유지한다. self 사례의 판정기에서 열기 및 복제 비우기도 확인했다. 필터 주소 `result=DENY&comparison=DISAGREE&claim_kind=none&claim_expected=PASS`로 실제 종류 미정 답 있는 사례를 조회했다. 확인/확인 거두기는 임시 합성 사례에서 plain→good→plain을 유지한다. 실습02 복귀 마지막2/2→이전1/2→다음2/2, 고치기01 처음 상태의 HTTPS DENY·SSH PASS·목표 밖 변화0건과 금지 낱말 없음도 확인했다.
-
-[새 입력](docs/screens/claim-input-desktop-light.jpg)·[AI 답 상세](docs/screens/claim-detail-desktop-light.jpg)·[판정 불가 모바일 다크](docs/screens/claim-unsupported-mobile-dark.jpg) 캡처를 열어 배치를 확인했다. 마지막 입력 캡처는 헤더·질문 영역을 포함한 브라우저 clip 캡처이며 이미지 편집은 하지 않았다. 마지막 빌드의 JS/CSS 해시는 브라우저에서 확인한 빌드와 같다. 브라우저 임시 viewport를 reset하고 탭을 닫았다. QA 실행 세션 종료 뒤 포트/관련 Python 프로세스0을 확인하고, 정확한 절대 임시 경로를 검증해 남은 qa.db·빈 폴더를 삭제했다. 정리 확인 출력:
-
-```text
-QA_TEMP_EXISTS=False
-QA_PORT_4869_LISTENERS=0
-QA_PROCESS_4869=0
-```
-
-운영 rejudge·Vercel 설정 변경·실제 장비 대조·사람의 수동 QA A~E 완료 표시·병합 없음. 엔진 계산 변경0줄이므로 버전0.2.0 유지.
-
-Codex (GPT-6)
-
-## 작업 정의 — 경로 작업대 (2026-10-11 사용자 시안 승인)
-
-### 목표
-NetProof의 질문·예상·경로·근거를 중심으로 독자적인 화면을 만든다. 사용자가 선택한 경로 작업대의 왼쪽 탐색·구성도 영역과 중성 회색 바탕·오렌지 주요 동작을 적용한다. 단순 색 교체에 그치지 않고 홈·학습실의 반복 진입 카드를 얇은 구분선과 번호가 있는 목록으로 정리한다. 승인된 시안은 배치 참고이며 가짜 설정·미리 만든 판정을 제품에 옮기지 않는다.
-
-### 변경 범위
-1. `web/src/styles.css`: 중성 회색·라이트/다크·오렌지 강조, 작은 모서리·그림자 제거, 공통 입력·표·카드 표시. PASS/DENY·점검·확인 의미 색은 유지.
-2. 공통 표시: 데스크톱 왼쪽 탐색과 중립 헤더·브랜드·푸터. 모바일 메뉴·Escape·본문 바로가기·현재 위치·키보드 접근 유지.
-3. 홈·학습실: 질문과 기존 예상 퍼즐·실습 이어서 하기, 번호 목록과 기존 진입 링크. 실습·판정·정책·사례·계정은 같은 작업대 색·영역 표시를 사용하되 입력·계산·저장·인증·재생 로직 유지.
-4. 표시 관련 웹 회귀 및 실제 브라우저 QA. 실습과 고치기의 메모리·늦은 응답·부분 실패·기존 판정·재생 규칙 유지. 새 API·정답·점수·축하·해법을 추가하지 않음.
-5. `docs/path-workbench.md`·제품 캡처·HANDOFF·ai-work-log. 테스트 원문과 QA 범위·제한을 기록하고 커밋·푸시·main 대상 템플릿 PR. 병합하지 않음.
-
-### 건드리지 않을 것
-engine/, server/, scripts/, cases/*.json·expect, 운영 requirements.txt, web/package*.json, vercel.json·배포·운영 DB. 엔진0.2.0·API 요청·입력 메모리·revision/current()·URL/저장 형식·재생 규칙 유지. 운영 rejudge와 Vercel 환경 변수 변경은 기존 사용자 할 일로 남긴다.
-
-### 완료 조건
-1. `cd engine && ../.venv/Scripts/python -m pytest -q`
-2. `cd server && ../.venv/Scripts/python -m pytest -q`
-3. `npm --prefix web test`
-4. `npm --prefix web run build`
-5. `git diff --check`, 금지 경로 diff 0줄.
-6. 127.0.0.1·임시 SQLite 실제 브라우저: 320·375·768·1100·1101·1280px 라이트/다크의 배치, 대표 공개·합성 계정 화면, 메뉴·키보드·실습 진입·복귀 재생·정책 결과·콘솔·넘침. 캡처/원문 보존 후 QA 서버·임시 DB 정리.
-
-### 테스트 결과 — 경로 작업대
-완료 조건1~4를 직접 실행했다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 원문:
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 7.37s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 54.40s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
-Test Files 44 passed (44)
-Tests 656 passed (656)
-Duration 1.47s (transform 68%, import 20%, tests 10%, worker 2%)
-
-npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 70 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html 0.60 kB | gzip: 0.44 kB
-dist/assets/index-D9mPdoNq.css 88.55 kB | gzip: 23.99 kB
-dist/assets/index-C8X6sD2c.js 395.92 kB | gzip: 118.11 kB
-✓ built in 291ms
-```
-
-테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 기존 xfail2·skip1(기본venv의 선택 pybatfish 미설치)을 유지했다. 새 회귀11건은 왼쪽 탐색의 기존 주소·현재 위치·검토자 전용 링크·추가 API 호출 없음을 확인한다. 기존 실습/고치기 메모리·늦은 응답 폐기·부분 실패·재생 테스트도 실행했다.
-
-완료 조건5:
-
-```text
-git diff --check
-(출력 없음, 종료0)
-
-git diff --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
-(출력 없음, 금지 경로0줄, 종료0)
-```
-
-완료 조건6 — 환경 변수를 비운 프로세스의 `& .venv/Scripts/python scripts/qa_local.py --port 4867`로 127.0.0.1·임시 SQLite만 사용했다. 공개10경로·합성 회원4경로 × 320·375·1280px × 라이트/다크 84조합, 초기 홈320·375·768·1100·1101·1280px × 라이트/다크12조합을 실제 브라우저에서 확인했다. [측정·기능·콘솔 원문](docs/screens/workbench-qa.json).
-
-```text
-{ count: 30, failures: [] }  # 라이트 공개
-{ count: 60, failures: [] }  # 다크 공개 누적
-{ count: 84, failures: [] }  # 합성 계정 포함 누적
-{ count: 12, failures: [] }  # 초기 홈·탐색 경계
-1100px: sidebar=0, headerNav=280.03125
-1101px: sidebar=164, headerNav=0
-native console errors/warnings: []
-menuQA: { expanded: 'false', focused: '메뉴' }
-skipQA: { focused: 'main-content', hash: '#/home' }
-Tab: { focused: '학습실', href: '#/learn' }
-Tab (새로고침 뒤): { focused: 'skip-link' }
-entryQA: { guess: '막힐 것 같다', hash: '#/practice/synthetic-01', heading: '실습 · HTTPS와 입력 ACL' }
-복귀 재생: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
-정책: 총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0
-고치기01: HTTPS DENY·SSH PASS, 모두 목표와 다름·목표 밖 변화0건
-{ fact: null, forbidden: false }  # 완료|성공|정답|점수|% 검색
-QA_TEMP_EXISTS=False
-QA_PORT_4867_LISTENERS=0
-```
-
-페이지 가로 넘침0·보이는 버튼 글자 넘침0·각 화면 h1=1. 홈 장비 칸 최소60px·ACL 높이 최대100px도 확인했다. 메뉴 Escape·버튼 포커스 복원, Tab 순서·본문 바로가기 Enter 후 hash 유지, 기존 홈 예상→실습과 예상 유지, 복귀 마지막 단계·이전/다음, 정책 계산 결과, 고치기 초기 상태를 직접 확인했다. 계정·사례·실측 기록은 QA 합성 데이터다. 모든 상태·실제 장비 대조나 사람의 수동 QA A~E를 완료로 바꾸지 않았다.
-
-실제 [홈](docs/screens/workbench-home-desktop-light.png)·[학습실](docs/screens/workbench-learning-desktop-light.png)·[합성 사례](docs/screens/workbench-cases-desktop-light.png)·[모바일 복귀 판정](docs/screens/workbench-practice-mobile-dark.png) 캡처를 보존했다. QA 실행 세션 종료 뒤 포트0·관련 Python 프로세스 없음을 확인하고 남은 qa.db·임시 폴더를 명시한 경로로 삭제했다. 운영 DB·배포·병합 작업 없음. 엔진 계산 변경0줄이므로 버전0.2.0 유지.
-
-Codex (GPT-6)
-
-## 리뷰 기록 — PR #60 (2026-10-11 사용자 요청)
-
-- 대상: main `d147af4` 대비 `codex/path-workbench` 제품 커밋 `7d32af0`. `git pull` 출력 `Already up to date.` 뒤 AGENTS.md·HANDOFF.md·PROMPTS.md, 전체 변경 파일과 제품 diff를 읽었다.
-- 결론: **PASS, 수정 지적0건**. 구현자가 적은 테스트 수·xfail/skip 수 및 빌드 자산 해시와 같다. 실행 시간만 달랐다. 화면 표시·탐색 범위이며 API·입력 메모리·revision/current()·저장·인증·재생 계산 변경이 없다. PASS/DENY·점검 의미 색 토큰을 유지했고 금지 경로 diff0줄이다.
-- 수행자: 사용자 요청에 따라 Codex (GPT-6). 구현과 같은 모델의 후속 검증이며 독립 Claude/Luna 리뷰로 기록하지 않는다. 제품 코드를 고치지 않고 리뷰 문서·근거만 추가했다.
-
-### 테스트 결과 — PR #60 리뷰
-
-완료 조건1~5를 이번 리뷰에서 직접 다시 실행했다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략한 출력:
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 7.48s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 57.32s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
-Test Files 44 passed (44)
-Tests 656 passed (656)
-Duration 1.65s (transform 69%, import 19%, tests 9%, worker 3%)
-
-npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 70 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html 0.60 kB | gzip: 0.44 kB
-dist/assets/index-D9mPdoNq.css 88.55 kB | gzip: 23.99 kB
-dist/assets/index-C8X6sD2c.js 395.92 kB | gzip: 118.11 kB
-✓ built in 289ms
-
-git diff --check
-(출력 없음, 종료0)
-
-git diff main...HEAD --numstat -- engine/ server/ scripts/ 'cases/*.json' requirements.txt 'web/package*.json' vercel.json
-(출력 없음, 금지 경로0줄, 종료0)
-```
-
-기존 xfail2·선택 pybatfish skip1을 유지했다. 완료 조건6은 새 `scripts/qa_local.py --port 4868`로 127.0.0.1·임시 SQLite·합성 계정만 사용했다. 공개10경로·회원4경로 × 320·375·1280px × 라이트/다크84조합, 초기 홈22조합, 합성 검토자 헤더11폭, 학습실22조합, 복귀 판정 결과6폭을 측정했다(총145개 배치 측정). 추가 폭은721·900·960·961·1024px, 기존 완료 조건의768·1100·1101px도 포함한다. [측정·기능·콘솔 원문](docs/screens/workbench-review-qa.json), [1101px 라이트 홈·키보드 포커스](docs/screens/workbench-review-home-1101-light.png), [375px 다크 학습실](docs/screens/workbench-review-learning-mobile-dark.png).
-
-```text
-회원 라이트: { count: 12, failures: [] }
-회원 다크 포함: { count: 24, failures: [] }
-공개 다크 포함: { count: 54, failures: [] }
-공개 라이트 포함: { count: 84, failures: [] }
-초기 홈: { homeCount: 22, failures: [] }
-학습실 다크: { learningDark: 11, failures: [] }
-복귀 판정 결과: { layoutFailures: [] }
-menu: { expanded: 'false', focus: '메뉴' }
-skip: { focus: 'main-content', hash: '#/home' }
-entry: { guess: '막힐 것 같다', hash: '#/practice/synthetic-01' }
-playback: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
-matrix: 총 10건 · PASS 10 · DENY 0 · UNSUPPORTED 0 · INVALID 0
-fix: HTTPS DENY·SSH PASS, 모두 목표와 다름·목표 밖 변화0건
-fix: { fact: null, forbidden: false }  # 완료|성공|정답|점수|% 검색
-tabFirst: { class: 'skip-link', text: '본문으로 바로가기' }
-tabSidebar: { href: '#/learn', text: '학습실' }
-native console error/warn: []
-QA_TEMP_EXISTS=False
-QA_PORT_4868_LISTENERS=0
-```
-
-가로 넘침·보이는 버튼 글자 넘침0, 84화면 h1=1. 홈 장비 칸 최소60px·ACL 높이 최대100px, 학습실 목록의 행 넘침0도 확인했다. 로그인 상태의960/961·1100/1101px 탐색 전환, 메뉴 Escape·포커스 복원, 본문 진입 시 hash 유지, 예상 진입과 복귀 재생을 직접 확인했다. 브라우저 탭을 닫고 임시 viewport를 복원했다. QA 실행 세션 종료 뒤 포트0·관련 Python 프로세스 없음을 확인하고 남은 qa.db·임시 폴더를 명시한 경로로 삭제했다. 운영 DB·배포·병합 작업 없음. 모든 입력 상태·실제 장비 대조와 사람의 수동 QA A~E는 이번 확인 범위에 포함하지 않는다.
-
-Codex (GPT-6)
-
-## 작업 정의 — 프론트 전체 리디자인 (2026-10-11 사용자 승인, 이번 설계·구현 Codex)
-
-### 목표
-동기 [학습 사이트](https://information-processing-study.vercel.app/) 공개 홈의 남색 헤더·밝은 배경·파란 주요 행동·여백·둥근 카드를 참고해 NetProof 전 화면의 표시를 일관되게 정리한다. 기존 실습·판정·기록 기능은 유지한다. 로그인 이후 참고 사이트의 내부 화면은 확인하지 않았다.
-
-### 변경 범위
-1. `web/src/styles.css`: 공통 색·타이포·여백·카드·입력·표, 라이트/다크·반응형.
-2. 공통 헤더·푸터·본문 바로가기, 홈·학습실의 진입 카드·주제 카드·아이콘. 기존 예상 퍼즐·이어서 하기·주제 내용·메뉴 동작 유지.
-3. 실습·고치기·판정·정책 검증·사례·대시보드·로그인·설정의 표시와 제목 계층. API·계산·입력 상태·저장·인증 로직은 바꾸지 않는다.
-4. 웹 회귀 테스트와 로컬 실브라우저 검증. 고치기 과제 문구·메모리·늦은 응답·부분 실패 규칙은 유지한다. SVG는 장식이며 보이는 글자와 키보드 포커스를 유지한다.
-5. `docs/frontend-redesign.md`·화면 캡처, HANDOFF·ai-work-log. 직접 실행한 결과와 QA 범위를 남기고 커밋·푸시·main 대상 PR, 병합하지 않는다.
-
-### 건드리지 않을 것
-engine/, server/, scripts/, cases/*.json·expect, 운영 requirements.txt, web/package*.json, vercel.json·배포·운영 DB. 판정 로직·엔진 버전0.2.0·API 요청·URL/저장 형식·메모리 입력·revision/current()·재생 규칙 유지. 해법·점수·축하 표시를 추가하지 않는다.
-
-### 완료 조건
-1. `cd engine && ../.venv/Scripts/python -m pytest -q`
-2. `cd server && ../.venv/Scripts/python -m pytest -q`
-3. `npm --prefix web test`
-4. `npm --prefix web run build`
-5. `git diff --check`와 금지 경로 diff 0줄 확인.
-6. 임시 SQLite 로컬 QA: 320·375·1280px 라이트/다크, 대표 공개 화면·합성 사례/검토자 화면, 메뉴·Escape·키보드·넘침·콘솔·판정·재생·정책 검증. 캡처 보존 후 서버·DB 정리.
-
-### 테스트 결과 — 프론트 전체 리디자인 (Codex 직접 실행, 2026-10-11)
-
-완료 조건 1~4 직접 실행 출력(진행 점·폰트 자산 목록·Vitest 성능 안내만 생략):
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 4.06s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 32.51s
-
-npm --prefix web test
-> netproof-web@0.1.0 test
-> vitest run
-RUN  v5.0.2 C:/gov/project/skt aleph/netproof/web
-Test Files  43 passed (43)
-Tests  645 passed (645)
-Duration  1.13s (transform 65%, import 20%, tests 12%, worker 3%)
-
-npm --prefix web run build
-> netproof-web@0.1.0 build
-> tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-transforming...
-✓ 69 modules transformed.
-rendering chunks...
-computing gzip size...
-dist/index.html                         0.60 kB │ gzip:   0.44 kB
-dist/assets/index-AgU_oDiV.css          88.18 kB │ gzip:  24.04 kB
-dist/assets/index-1tzp9H12.js          394.93 kB │ gzip: 118.06 kB
-✓ built in 193ms
-```
-
-엔진·서버 테스트와 QA 서버는 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비운 별도 프로세스에서 실행했다. 기존 xfail2·skip1 유지. 새 회귀는 고치기 화면에서도 학습실 탭만 활성화되는지, 새 시작 카드가 기존 화면으로 연결되고 API·사례·계정·진행 기록을 추가로 읽지 않는지 검사한다. 기존 퍼즐·이어서 하기·실습 메모리·늦은 응답·부분 실패·재생 테스트도 그대로 실행했다.
-
-완료 조건 5:
-
-```text
-git diff --check
-(공백 오류 없음)
-
-git diff --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
-(출력 없음)
-```
-
-완료 조건 6 — `& .venv/Scripts/python scripts/qa_local.py --port 4862`로 127.0.0.1·임시 SQLite만 사용했다. 실제 브라우저에서 10개 공개 경로와 4개 계정 경로(설정 중복 포함) × 320·375·1280px × 라이트/다크 = **84개 조합**을 검사했다. [배치·진단 원문 JSON](docs/screens/frontend-qa.json). 계정 화면은 qa_reviewer와 합성 사례만 사용했다. 페이지·버튼 내부 가로 넘침 0, 각 화면 h1 존재. 로그인 헤더의 브랜드·계정·메뉴 겹침도 별도 24개 조합에서 0이었다.
-
-```text
-{ checked: 30, failures: [], widths: [320, 375, 1280], theme: 'light' }
-{ checked: 30, failures: [], widths: [320, 375, 1280], theme: 'dark' }
-{ checked: 24, failures: [] }
-{ checked: 84, failures: [] }
-QA JS: console.error=0 error=0 rejection=0
-
-{ expanded: 'false', focused: '메뉴' }
-{ clip: 'none', skipFocused: 'skip-link' }
-{ focused: 'main-content', hash: '#/home' }
-{ client: 360, current: '2. R2 · 경로 · 차단', scroll: 360, width: 375 }
-```
-
-- 모바일 메뉴 펼치기·Escape 닫힘·버튼 포커스 복원을 직접 확인했다. Tab으로 본문 바로가기를 선택하고 Enter를 누르면 hash를 바꾸지 않고 main-content로 이동했다. 주제·고치기·도구 링크와 테마 선택을 직접 사용했다.
-- 실습02 판정은 복귀 R2 경로 차단·2/2에서 시작했다. 이전→SRV2 1/2, 다음→R2 2/2와 근거 원문을 확인했다. 고치기01 처음 구성은 HTTPS DENY·SSH PASS로 둘 다 목표와 다름, 목표 밖 변화0건이어도 사실 문장이 없었다(해법을 입력하지 않음). 정책 매트릭스는 기본 구성에서 총10건 PASS10·엔진0.2.0을 표시하고 320px에서도 페이지 가로 넘침이 없었다.
-- QA에서만 빌드 HTML에 같은 출처의 임시 진단 스크립트를 붙여 console.error·error·unhandledrejection 횟수를 보이는 output으로 읽었다. 서버 CSP와 앱 JS/CSS는 바꾸지 않았다. **진단 코드 제거 뒤 HTML SHA256은 원래 빌드와 동일**(`685E43F64C1B180F8DD69F227CF459759AF4D82A46BF6B680CA4C58CD03A851D`)이며 진단 스크립트 파일도 없다. 제품 캡처는 진단 코드를 제거한 빌드다. 브라우저 자체 경고 전체를 수집한 결과는 아니다.
-- 320px 홈 예상 버튼의 글자 넘침을 발견해 해당 폭에서만 글자·좌우 여백을 조정했다. 청록색 작은 링크 대비도 4.48:1에서 4.5:1 이상으로 높였다. 라이트/다크 의미 색은 기존 판정·확인 표시를 유지했다.
-
-QA 서버 종료 확인 후 남은 임시 SQLite 파일과 폴더를 각각 명시한 경로로 삭제했다. 운영 DB·배포 변경 없음.
-
-```text
-qa_directory_exists=False
-qa_port_4862_listeners=0
-```
-
-원문 JSON과 [홈](docs/screens/frontend-home-desktop-light.jpg)·[학습실](docs/screens/frontend-learning-desktop-light.jpg)·[합성 사례](docs/screens/frontend-cases-desktop-light.jpg)·[모바일 복귀 판정](docs/screens/frontend-practice-mobile-dark.jpg) 캡처를 리뷰 근거로 남겼다. 독립 리뷰 뒤 사용자 병합 결정이며 이 작업에서 병합하지 않는다.
-
-Codex (GPT-6)
-
-### 재리뷰 기록 — PR #59 (Codex, 2026-10-11)
-
-**PASS — R1 해소, 검토 범위의 추가 지적 없음.** 대상 `a52350e`. `git pull` 후 AGENTS·HANDOFF·PROMPTS와 PR의 [Codex] 코멘트를 읽고 `git diff 1b8c705..HEAD -- web/src`를 대조했다. 제품 수정은 CSS의 1100px 이하 홈 hero 한 열 배치뿐이고 엔진·API·입력·재생 로직 변경은 없다.
-
-새 임시 SQLite에서 홈320/375/720/721/768/900/960/1024/1100/1101/1280px 라이트/다크 **22건**을 직접 측정했다. R1의721~960px 장비명·ACL은 정상이며 721px 장비 칸106px·ACL47.94px·버튼 client259/scroll259px로 수정 기록과 같다. 화면·버튼 넘침0, 수정한721~1100px 장비 칸≥80px·ACL 높이≤90px 단언을 만족했다. 1101px 두 열 전환은 ACL104.02px로 줄바꿈이 있지만 글자 단위로 붕괴하지 않고 장비명·버튼을 읽을 수 있다. [전환 경계 실제 캡처](docs/screens/frontend-rereview-1101-dark.jpg), [이번 측정·84개 조합·기능 확인·콘솔 원문](docs/screens/frontend-rereview-qa.json).
-
-#### 직접 실행한 테스트 결과 — PR #59 재리뷰
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 6.64s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 58.71s
-
-npm --prefix web test
-Test Files 43 passed (43)
-Tests 645 passed (645)
-Duration 1.23s
-
-npm --prefix web run build
-tsc --noEmit && vite build
-69 modules transformed.
-dist/assets/index-BZkAbxlp.css 88.21 kB | gzip: 24.04 kB
-dist/assets/index-BZrhjkmL.js 394.93 kB | gzip: 118.06 kB
-built in 238ms
-
-git diff --check
-(출력 없음, 종료0)
-git diff main...HEAD --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
-(출력 없음, 금지 경로0줄)
-
-홈 라이트/다크22건: PASS
-공개60·합성 검토자24, 320/375/1280px 라이트/다크84조합: PASS
-native console errors/warnings: []
-복귀 재생: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
-QA_TEMP_EXISTS=False
-QA_PORT_4865_LISTENERS=0
-```
-
-구현/수정 기록과 테스트 개수·번들명·DOM 수치는 같고 실행 시간만 다르다. 서버 skip1은 기본 가상환경의 선택 pybatfish 의존성이다. 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 태블릿 홈의 다음 실습 예상 버튼→실습03·통과 예상 반영·출력 ACL 차단 비교, 메뉴 Escape·포커스 복귀, 본문 바로가기 Enter·main-content 포커스·#/home 유지, 실습02 복귀 마지막 단계와 이전/다음, 고치기01 초기 목표 HTTPS DENY/SSH PASS, 정책 검증10건/PASS10/엔진0.2.0을 확인했다. 기존84조합은 가로 넘침0·h1=1·버튼 넘침0이다. QA 종료·포트0 확인 후 잔여 임시 qa.db·폴더를 삭제했다.
-
-제품 코드는 고치지 않았다. PR에 [Codex] 재리뷰 결과·실제 출력을 남기고 기록만 커밋·푸시한다. 운영 DB·설정·배포·병합은 수행하지 않았다. 이번 검증 모델은 Codex (GPT-6)이며 별도 Luna 독립 리뷰를 호출한 기록은 없다. 다음 차례 사용자 최종 확인·병합 결정. Codex (GPT-6)
-
-### R1 수정·테스트 결과 — PR #59 (Codex, 2026-10-11)
-
-`git pull` 후 AGENTS·HANDOFF·PR의 [Codex] 리뷰를 읽고 사용자 “진행하자” 요청에 따라 반영했다. 제품 변경은 `web/src/styles.css`의 **1100px 이하 홈 hero 한 열 배치**뿐이다. 소개 뒤 퍼즐이 전체 폭을 쓰므로 실제 장비 영역140px가 있어도 PC1/R1/SRV·ACL을 읽을 공간이 남는다. 기존 720px 모바일·1280px 데스크톱 배치와 판정·API·메모리·재생은 그대로다.
-
-실제 빌드 DOM에서 721/768/900/960/1024/1100/1101/1280px 라이트/다크16건을 측정했다. 각 폭에서 화면·버튼 글자 넘침0을 검사했고, 수정한 태블릿 폭에서는 장비 칸≥80px·ACL 높이≤90px를 함께 단언했다. **721px 장비 칸0→106px, ACL333.30→47.94px**, 예상 버튼 client259/scroll259px. 768px 장비 칸4.38→121.66px, 960px31.67→180.33px다. 1101px 두 열 전환·1280px도 버튼 넘침0이다. [721px 라이트 캡처](docs/screens/frontend-fix-tablet-721-light.jpg), [768px 다크 캡처](docs/screens/frontend-fix-tablet-768-dark.jpg), [단언 기준·실제 측정·화면84개 원문](docs/screens/frontend-fix-qa.json). CSS 문자열을 대조하는 테스트 대신 빌드된 실제 화면 크기·넘침을 검사했다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 6.84s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 57.25s
-
-npm --prefix web test
-Test Files 43 passed (43)
-Tests 645 passed (645)
-Duration 1.35s
-
-npm --prefix web run build
-tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-69 modules transformed.
-dist/assets/index-BZkAbxlp.css 88.21 kB | gzip: 24.04 kB
-dist/assets/index-BZrhjkmL.js 394.93 kB | gzip: 118.06 kB
-built in 314ms
-
-git diff --check
-(출력 없음, 종료 0)
-git diff main --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
-(출력 없음, 금지 경로 0줄, 종료 0)
-
-실브라우저 R1 layout assertions
-16 checks: PASS
-실브라우저 공개60·합성 검토자24, 320/375/1280px 라이트/다크
-84 checks: PASS (넘침0・h1=1・버튼 글자 넘침0)
-native console errors/warnings: []
-복귀 재생: 2 / 2 단계 → 1 / 2 단계 → 2 / 2 단계
-QA_TEMP_EXISTS=False
-QA_PORT_4864_LISTENERS=0
-```
-
-서버 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 서버 skip1은 기본 가상환경의 선택 pybatfish 의존성이다. 임시 SQLite QA에서 태블릿 홈의 다음 실습 예상 버튼→실습03·통과 예상→출력 ACL 차단 결과의 비교를 확인했다. 모바일 메뉴 Escape·메뉴 포커스 복귀, 본문 바로가기 Enter·main-content 포커스와 #/home 유지, 실습02 복귀 차단 재생 이전/다음, 정책 검증10건/PASS10/엔진0.2.0도 확인했다. 서버 종료·포트0 확인 뒤 잔여 임시 qa.db·폴더를 삭제했다. 운영 DB·배포·병합은 수행하지 않았다. 독립 재리뷰 대기. Codex (GPT-6)
-
-### 리뷰 기록 — PR #59 (Codex, 2026-10-11)
-
-대상 `8589c85`, `git pull` 후 AGENTS·HANDOFF·PROMPTS와 `git diff main...HEAD`를 읽었다. **수정 필요, R1 [P2]**: `web/src/styles.css:414`의 2열 hero·48px 여백·40px 간격과 `:427`의 퍼즐 내부 24px 여백 때문에 721~960px에서 구성도 계산 범위가 눌린다. `path-outside`가 140px를 차지하고 세로 배치는 720px 이하에서만 적용된다. 721px에서 장비 칸 폭 0px·ACL 높이333.30px, 768px에서 장비 칸4.38px·ACL333.30px, 960px에서도 ACL198.03px다. 장비명·규칙이 글자 단위로 꺾이고 721px 예상 버튼은 client96/scroll102px로 글자가 넘친다. 문서/화면 넘침 0만으로 가독성을 확인할 수 없다.
-
-재현: `npm --prefix web run build` → 환경 변수를 비운 프로세스에서 `.venv/Scripts/python scripts/qa_local.py --port 4863` → 새 탭 `http://127.0.0.1:4863/#/home`을 721×900·768×900으로 설정한다. 홈 퍼즐의 PC1/R1/SRV·ACL과 예상 버튼을 본다. [721px 원문 캡처](docs/screens/frontend-review-tablet-721.jpg), [DOM 측정·84개 조합·콘솔 기록](docs/screens/frontend-review-qa.json). 수정은 태블릿에서 hero/범위 표시를 충분한 폭으로 배치하고 721·768·900·960px 라이트/다크의 장비명·ACL·버튼을 확인한다. 리뷰 중 제품 코드는 수정하지 않았다.
-
-#### 직접 실행한 테스트 결과 — PR #59 리뷰
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 8.72s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 58.26s
-
-npm --prefix web test
-Test Files  43 passed (43)
-Tests  645 passed (645)
-Duration  1.81s
-
-npm --prefix web run build
-tsc --noEmit && vite build
-vite v8.3.1 building client environment for production...
-69 modules transformed.
-dist/assets/index-AgU_oDiV.css 88.18 kB | gzip: 24.04 kB
-dist/assets/index-1tzp9H12.js 394.93 kB | gzip: 118.06 kB
-built in 1.11s
-
-git diff --check
-(출력 없음, 종료 0)
-git diff main...HEAD --numstat -- engine server scripts cases requirements.txt web/package.json web/package-lock.json vercel.json
-(출력 없음, 금지 경로 0줄, 종료 0)
-```
-
-서버 테스트·QA 자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 서버 skip1은 기본 가상환경에 pybatfish가 없는 선택 의존성 테스트다. 구현 기록과 테스트 개수는 같고 실행 시간만 다르다. 새 임시 SQLite에서 공개60·합성 검토자24 = **84조합(320/375/1280, 라이트/다크)**을 직접 다시 확인했다: 가로 넘침0·h1 누락0·버튼 글자 넘침0. 문서화된 브라우저 `dev.logs({levels:['error','warn'],limit:30})` 결과 `[]`. 추가 홈 폭721/768/900/960/1024/1280 측정에서 위 R1을 발견했다.
-
-메뉴 열기→Escape 닫힘·메뉴 포커스 복귀, Shift+Tab→본문 바로가기→Enter 시 main-content 포커스·기존 #/home 유지. 실습02 판정은 복귀 경로 없음(R2), 복귀 마지막2/2에서 시작·이전 SRV2 보냄1/2→다음 R2 경로 차단2/2. 고치기01 초기 확인은 HTTPS DENY·SSH PASS로 목표와 다름, 목표 밖 변화0건·사실 문장 없음. 정책 검증은10건/PASS10/엔진0.2.0. 375px 판정기 고정 버튼 top828.61/bottom900px·푸터 링크 bottom770.36px로 겹치지 않았다. 계산·재생·고치기 늦은 응답/부분 실패는 기존 회귀 테스트와 변경 diff로 대조했다.
-
-QA 종료 뒤 포트 리스너0을 확인했고 잔여 임시 qa.db·폴더를 삭제했다. 직접 정리 확인 출력:
-```text
-QA_TEMP_EXISTS=False
-QA_PORT_4863_LISTENERS=0
-```
-운영 DB·설정·배포·병합은 수행하지 않았다. PR 코멘트 첫 줄은 [Codex]. Codex (GPT-6)
-
-### 재리뷰 기록 — PR #58 (Claude, 2026-10-11)
-- 직접 실행(`f0eb3e5`): 엔진 489 passed·2 xfailed, 서버 227 passed·1 skipped, 웹 643 passed, 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. 도구 기본 실행 `compared=1660 result_same=1660 step_compared=1511 step_different=0`, 제외 0, 208.89초, **exit=0**. 컨테이너 정지.
-- R1 해결(`NEIGHBOR_UNREACHABLE`→`send`), N1 반영(host 노드 route 범주→`send`), `other`는 불일치·exit 1 유지 테스트, 문서·quality.md 숫자 일치. **PASS.**
-
-### 리뷰 기록 — PR #58 (Claude, 2026-10-11)
-- 직접 실행(`7ee059d`): 엔진 489 passed·2 xfailed, 서버 225 passed·1 skipped(`.venv`에 pybatfish 없음), 웹 643 passed. 불변 경로 diff 출력 없음, `git diff --check` 오류 없음. 도구 기본 실행 `compared=1660 result_same=1660 step_compared=1511 step_different=44`, exit=1 — Codex 기록과 같다.
-- 오류 주입(저장소 변경 없음): echo-reply만 막는 출력 ACL 구성 정상 20/20·exit 0, 복귀 ping을 type 8로 만드는 임시 변형 → 결과 불일치 1건·exit 1. 도구가 불일치를 잡는다.
-- **R1 (수정 필요, Claude 설계 오류)** `scripts/batfish_diff.py` `STEPS`: `NEIGHBOR_UNREACHABLE`은 엔진에서 `send` 단계(`trace.py:188` 다음 홉 없음, 의미론 §5-5)인데 설계 대응표가 `route`로 지정. `send`로만 바꾼 임시 실행 → `step_different=0`, exit 0. 요청: 대응표·테스트 2곳·문서(batfish-diff.md 대응표·마지막 실행, quality.md) 수정 후 기본값 재실행 결과 첨부.
-- 비차단 N1: 호스트 노드의 route 범주 drop(게이트웨이 없음)은 엔진에서 `send` — 원하면 「마지막 hop이 host면 send」 한 줄+테스트.
-- **Codex 반영(2026-10-11): R1·N1 수정·재검증 완료.** 잘못된 다음 홉 단계 같음·종료0, other 실제 차이 종료1 유지, 호스트 NO_ROUTE→send 시험1개 추가. 기본값 재실행 단계다름0·exit0(204.70초); 아래 최신 테스트 결과에 원문. 최초44건은 대응표 오류였고 수정했다.
-- 직전 과제: 비차단 후속 묶음 **PR #56 병합 완료**(`dcc1a3e`). 운영 번들 `index-B3OOalhE.js`, 공개 주소 실습 02가 복귀·R2 경로 차단으로 시작함을 Claude가 확인. 확인 전 불일치 배지는 브라우저 미확인(단위 테스트로 갈음, 사용자 수동 QA 때 확인).
-- 별도로 남은 사용자 확인:
-  1. **운영 재판정 보류** — 운영 DB 기존 사례는 아직 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 `docs/deploy.md` 절차.
-  2. Vercel `DATABASE_URL` → Production 전용으로(사용자).
-  3. pfSense 2단계(**D5 실습 사실 5가지** 필요). 배포 후속(가입·검토자 지정·수동 QA A~E)은 사람 대기.
-
-### 스파이크 결과 (Claude, 2026-10-11, 버린 코드 — 저장소 밖 임시 폴더, 커밋 안 함)
-- 환경: Docker 29.6.2(메모리 8GB), 이미지 `batfish/allinone:latest` 2.24GB(`sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c`), `pybatfish 2026.09.17.3748`(임시 venv). 사용자가 Docker 기동·두 다운로드를 허락했다. 컨테이너는 `127.0.0.1`에만 열었고 끝나고 멈췄다.
-- 방법: NetProof JSON → Cisco IOS(호스트는 기본 경로를 가진 Cisco 장비로), 호스트 쌍 × SSH·HTTP·HTTPS·DNS·Ping × session/one-way를 엔진 `verify`와 Batfish traceroute(왕복은 `bidirectionalTraceroute`)로 비교.
-- 결과: **960건 중 PASS/DENY 958건 일치**, DENY 500건은 막힌 장비·단계까지 일치(장비 이름은 대소문자 무시 — Batfish가 소문자로 바꾼다). 대상: `cases/` 3건·고치기 해법 3건·편법/특수 ACL 2건(160건) + 고정 시드 무작위 ACL 40구성(사례 01 모양, eq·neq·lt·gt·range·established·와일드카드·ICMP echo/echo-reply·출력 ACL, 800건).
-- 불일치 2건은 모두 ping 복귀: Batfish `bidirectionalTraceroute`가 복귀 ICMP를 **type 8(echo) 그대로** 만든다. 같은 구성에 echo-reply(type 0)를 직접 넣으면 Batfish도 엔진과 같은 장비·방향에서 막았다 → 엔진 버그 아님, 정식 도구는 복귀를 직접 만든다.
-- 미확인: 정적 경로 무작위(사례 02 모양), pfSense 상태 추적, UNSUPPORTED·INVALID, 비연속 와일드카드. 기준은 Batfish 모델이지 실제 장비가 아니다.
-
-## 작업 정의 — Batfish 교차 검증 도구 (Claude 설계, 2026-10-11 사용자 승인)
-
-로드맵 「F5·F6 다음 기능 순서」 8번(④). 브랜치: `main`에서 `codex/batfish-diff`.
-
-### 목표
-실제 장비 결과가 아직 없는 동안, **독립 계산기 Batfish로 엔진 판정을 교차 검증**하는 재현 가능한 로컬 도구를 둔다. 결과 숫자를 「엔진을 믿을 근거」로 남긴다. 판정은 엔진만 한다(ADR-001). Batfish는 비교 기준이지 정답이 아니다.
-
-### 변경 범위
-**1. 도구 — 새 `scripts/batfish_diff.py`, 새 `scripts/requirements-batfish.txt`**
-- 사람이 직접 실행하는 로컬 전용 도구. **CI·기본 pytest·배포에 넣지 않는다.** `pybatfish`는 `scripts/requirements-batfish.txt`에 `pybatfish==2026.09.17.3748`로 고정하고 운영 `requirements.txt`에는 넣지 않는다. `pybatfish` import는 실행 함수 안에서만 한다(아래 테스트가 pybatfish 없이 돌아야 함).
-- 실행 예: Docker로 `batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c`를 `-p 127.0.0.1:9996:9996 -p 127.0.0.1:9997:9997`로 띄운 뒤 `python scripts/batfish_diff.py [--host localhost] [--seed 20261010] [--count 40] [--keep DIR]`. 엔진은 `engine/src`에서 import한다.
-- **변환(NetProof JSON → Cisco IOS)**:
-  - 라우터: `hostname`, 인터페이스마다 `ip address`·`ip access-group N in|out`·`no shutdown`, `routes` → `ip route`, 붙은 ACL의 원문 줄.
-  - 호스트: 인터페이스 + `gateway`가 있으면 `ip route 0.0.0.0 0.0.0.0 게이트웨이`인 Cisco 장비로 흉내.
-  - 인터페이스 이름: 접두사 `g`→`GigabitEthernet`, `s`→`Serial`, `eth`·`e`→`Ethernet`, `f`→`FastEthernet`(뒤가 숫자일 때). 그 밖의 이름이 있는 구성은 **변환 불가로 건너뛰고 건수와 사유를 보고**(추측 금지).
-  - `stateful`·`rules_in`·`default_in`이 있는 장비가 있는 구성은 범위 밖으로 건너뛰고 보고.
-- **비교**:
-  - 출발 포트 50000(엔진과 같음). ICMP는 echo(type 8, code 0).
-  - 엔진 결과가 `UNSUPPORTED`·`INVALID`인 통신은 비교에서 빼고 건수 보고.
-  - one-way: Batfish 정방향 `traceroute` 하나. 모든 trace가 `ACCEPTED`면 PASS.
-  - session: **`bidirectionalTraceroute`를 쓰지 않는다.** 정방향 `traceroute` + **직접 만든 복귀 패킷**의 `traceroute`(목적지 호스트에서 출발). 복귀: 주소 교환, TCP/UDP는 포트 교환, ICMP echo는 echo-reply(type 0, code 0). TCP 플래그는 정방향 SYN, 복귀 ACK(엔진 `established` 처리와 맞춤). 정방향이 PASS일 때만 복귀를 본다.
-  - DENY 단계 대응(R1·N1 리뷰 반영): `DENIED_IN`→`acl_in`, `DENIED_OUT`→`acl_out`, `NEIGHBOR_UNREACHABLE`→`send`, `NO_ROUTE`·`NULL_ROUTED`·`INSUFFICIENT_INFO`·`LOOP`→`route`(마지막 hop이 host 장비면 `send`), 그 밖은 `other`(단계 비교에서 다름으로 셈). 막힌 장비는 마지막 hop 노드, **대소문자 무시**. 엔진 `decisive.device`·`step`과 방향(정방향/복귀)까지 비교.
-- **대상**: `cases/*.json` 전부 + 고정 시드 무작위 구성 두 모양(모양마다 `--count`개):
-  - A(사례 01 모양, 라우터 1대): 네 위치(g0/0·g0/1 × in·out)에 무작위 ACL(permit/deny, ip·tcp·udp·icmp, any·host·연속 와일드카드, eq·neq·lt·gt·range, tcp established, icmp echo·echo-reply, 끝 permit 있음/없음).
-  - B(사례 02 모양, 라우터 2대): A와 같은 무작위 ACL + 두 라우터의 무작위 정적 경로(맞는 경로·누락·잘못된 다음 홉·더 넓은/좁은 prefix).
-  - 통신: 구성의 호스트 순서쌍 × SSH·HTTP·HTTPS·DNS·Ping × session·one-way.
-- **출력**: 요약 한 줄(비교 건수·결과 일치·결과 불일치·단계 비교/다름·제외 건수(변환 불가·범위 밖·UNSUPPORTED·INVALID)) + 불일치마다 JSON 한 줄(구성 이름·통신·엔진 결과·reason·Batfish 처리 결과·방향). 불일치 구성의 Cisco 설정을 `--keep` 폴더(기본 임시 폴더)에 남기고 경로를 출력. **불일치가 있으면 종료 코드 1**, 없으면 0. Batfish 연결 실패는 종료 코드 2와 실행 방법 안내.
-
-**2. 테스트 — 새 `server/tests/test_batfish_diff.py`** (`test_qa_local.py`처럼 `importlib`로 스크립트를 읽는다. Docker·pybatfish 없이 돈다)
-- 변환 결과 문자열(사례 01·02·03 각각의 핵심 줄: 인터페이스·주소·access-group·ip route·ACL 원문, 호스트 기본 경로).
-- 인터페이스 이름 매핑과 모르는 이름 → 변환 불가 사유. 상태 추적 장비 → 범위 밖.
-- 복귀 패킷 만들기: TCP 포트·플래그(SYN/ACK), UDP 포트, ICMP echo → echo-reply.
-- 처리 결과 → 엔진 단계 대응표와 장비 이름 대소문자 무시.
-- 같은 시드면 같은 무작위 구성(모양 A·B), 생성한 구성을 엔진 `verify`가 INVALID 없이 읽는다(무작위 구성이 엔진 입력 형식에 맞는지).
-- `pybatfish`를 import하지 않고도 모듈을 읽을 수 있다.
-
-**3. 문서 — 새 `docs/batfish-diff.md`, `docs/quality.md` 한 단락, 이 HANDOFF·`decisions/ai-work-log.md`**
-- `batfish-diff.md`: 목적(교차 검증이지 정답 아님), 준비(Docker 이미지 digest·포트 127.0.0.1만·메모리 약 4GB·pybatfish 고정 버전), 실행·옵션·종료 코드, 변환 규칙, 비교 규칙, **알려진 의미 차이**(Batfish 왕복 추적의 ICMP 복귀 type 8 → 직접 복귀로 회피, 장비 이름 소문자, 호스트를 Cisco 장비로 흉내), 범위 밖(pfSense 상태 추적·UNSUPPORTED·INVALID·비연속 와일드카드·실제 장비), 마지막 실행 결과(날짜·시드·건수).
-- `quality.md`: 「1-1. 실제 결과로 대조된 사례가 0건」 아래에 Batfish 교차 검증 결과 한 단락(실제 장비 대조를 대신하지 않는다는 문장 포함).
-
-### 건드리지 않을 것
-- `engine/`(계산·버전), `server/netproof_api/`, `web/`, DB, `cases/*.json`·`expect`, 운영 `requirements.txt`, `vercel.json`·배포 구성.
-- 불일치가 나와도 **엔진을 고치지 않는다**. 그대로 보고하고 원인 분석은 별도 과제로.
-
-### 예상 리스크
-| 리스크 | 대응 |
-| --- | --- |
-| Batfish를 정답처럼 읽음 | 문서·출력에 「교차 검증, 정답·실제 장비 아님」 |
-| Batfish 모델링 차이를 엔진 버그로 오인 | 알려진 의미 차이 목록, 불일치 구성 설정 보존해 재현 |
-| 무작위 구성이 엔진에서 INVALID·UNSUPPORTED만 나옴 | 생성 구성 엔진 읽기 테스트, 제외 건수 출력 |
-| 운영 의존성 오염 | 별도 requirements 파일, 운영 `requirements.txt` diff 0 |
-| 컨테이너가 외부에 열림 | 127.0.0.1 바인딩만 문서화 |
-| 실행이 오래 걸림 | 기본 모양마다 40개, `--count`로 조절, 실행 시간 출력 |
-
-### 테스트 결과 — PR #58 R1·N1 (Codex 직접 재실행, 2026-10-11)
-
-`git pull` 후 PR #58의 [Claude] 코멘트와 위 리뷰 기록을 읽었다. R1은 NEIGHBOR_UNREACHABLE→send, N1은 입력 network의 host 장비에서 끝난 route 범주→send(대소문자 무시)로 반영했다. 나머지 단계 대응과 판정은 그대로다. **최초 44건은 대응표 오류였고 수정했다.** 엔진 계산·버전·expect는 바꾸지 않았다.
-
-잘못된 다음 홉 회귀는 단계 같음·종료0·불일치 자료 없음으로 바꿨다. 같은 구성의 EXITS_NETWORK(other)에는 단계 불일치 JSON·설정 보존·종료1을 검사해 오류를 숨기지 않는다. N1 테스트 1개는 게이트웨이 없는 호스트의 NO_ROUTE가 엔진 send와 같고 종료0인지 검사한다. 도구 테스트는 총53건이며 기본 .venv에 pybatfish 미설치(find_spec→None), Docker·pybatfish 없이 돈다.
-
-직접 실행한 회귀 명령 3개(진행 점 생략):
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 8.68s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-227 passed, 1 skipped in 55.74s
-
-npm --prefix web test
-Test Files  43 passed (43)
-Tests  643 passed (643)
-Duration  1.83s
-
-cd server && ../.venv/Scripts/python -m pytest -q tests/test_batfish_diff.py
-53 passed in 1.11s
-
-git diff --stat main... -- engine server/netproof_api web cases requirements.txt vercel.json
-(출력 없음)
-
-git diff --check
-(공백 오류 없음)
-```
-
-엔진·서버 시험은 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비우고 실행했다. 운영 DB 작업 없음. 화면 변경이 없어 build는 실행하지 않았다.
-
-실제 실행 명령(별도 venv의 고정 pybatfish 재사용, 옵션 생략으로 기본값):
-
-```powershell
-docker run -d --name netproof-batfish-codex-r1-20261011 -p 127.0.0.1:9996:9996 -p 127.0.0.1:9997:9997 batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c
-$batfishTaskDir = Join-Path $env:TEMP 'netproof-batfish-codex-20261011'
-$batfishTaskPython = Join-Path $batfishTaskDir 'venv/Scripts/python.exe'
-try {
-    & $batfishTaskPython scripts/batfish_diff.py 1> (Join-Path $batfishTaskDir 'run-r1.stdout.txt') 2> (Join-Path $batfishTaskDir 'run-r1.stderr.txt')
-    $batfishExit = $LASTEXITCODE
-    Write-Output "batfish_exit=$batfishExit"
-    Get-Content (Join-Path $batfishTaskDir 'run-r1.stdout.txt') -Tail 1
-} finally {
-    docker stop netproof-batfish-codex-r1-20261011
-}
-exit $batfishExit
-```
-
-실행 출력 원문:
-
-```text
-batfish_exit=0
-Cross-check only; not ground truth or real-device results. compared=1660 result_same=1660 result_different=0 step_compared=1511 step_different=0 conversion=0 scope=0 UNSUPPORTED=0 INVALID=0 seed=20261010 count_per_shape=40 elapsed_seconds=204.70
-netproof-batfish-codex-r1-20261011
-```
-
-```text
-checked configuration 1: synthetic-01-https-acl
-checked configuration 11: random-A-007
-checked configuration 21: random-A-017
-checked configuration 31: random-A-027
-checked configuration 41: random-A-037
-checked configuration 51: random-B-007
-checked configuration 61: random-B-017
-checked configuration 71: random-B-027
-checked configuration 81: random-B-037
-```
-
-컨테이너 정지·digest·localhost 바인딩 직접 확인:
-
-```text
-docker inspect netproof-batfish-codex-r1-20261011 --format 'running={{.State.Running}} status={{.State.Status}} image={{.Config.Image}} ports={{json .HostConfig.PortBindings}}'
-running=false status=exited image=batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c ports={"9996/tcp":[{"HostIp":"127.0.0.1","HostPort":"9996"}],"9997/tcp":[{"HostIp":"127.0.0.1","HostPort":"9997"}]}
-```
-
-cases3 + A40 + B40 = 83구성/1660통신의 결과가 모두 같고 DENY 단계1511건도 모두 같았다. 결과/단계 불일치0·제외0, 204.70초, 종료0이며 새 불일치 JSON은 없다. 이전 원문 JSON/설정은 아래 수정 전 기록에 보존했다. 다른 계산기와의 교차 검증으로서 실제 장비 대조를 대신하지 않는다. PR #58에 [Codex] 재실행 보고를 남기며 다음 차례는 Claude(재리뷰)다.
-
-Codex (GPT-6)
-
-### 최초 테스트 결과 — Batfish 교차 검증 도구 (R1 수정 전, Codex 직접 실행, 2026-10-11)
-
-이 절은 R1 수정 전의 실행 원문이다. 아래 44건은 리뷰에서 NEIGHBOR_UNREACHABLE의 대응표 오류로 확인됐으며 R1 수정 후 결과는 별도 최신 절에 기록한다. 엔진 결함으로 해석하지 않는다.
-
-완료 조건 1~6의 명령을 직접 실행했다. 엔진·서버 테스트는 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비우고 실행했다. 기본 `.venv`의 pybatfish는 미설치(`importlib.util.find_spec('pybatfish')` → `None`). 운영 DB·API·화면·엔진·사례 정답은 변경하지 않았다. 테스트 출력은 진행 점만 생략했다.
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 8.09s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-225 passed, 1 skipped in 58.11s
-
-cd server && ../.venv/Scripts/python -m pytest -q tests/test_batfish_diff.py
-51 passed in 0.97s
-
-npm --prefix web test
-Test Files  43 passed (43)
-Tests  643 passed (643)
-Duration  1.94s
-
-git diff --stat main... -- engine server/netproof_api web cases requirements.txt vercel.json
-(출력 없음)
-
-git diff --check
-(공백 오류 없음)
-```
-
-- 새 테스트 51건: 사례 01/02/03 변환 원문·기본 경로, 알려진 인터페이스 매핑·모르는 이름/충돌 제외, 상태 추적/구조화 필드 제외, TCP SYN/ACK·포트 교환·ICMP echo-reply 직접 복귀, 정방향 실패/one-way에 복귀 요청 없음, 처리 결과/장비/단계/방향 비교, 모든 trace ACCEPTED 조건, 고정 시드 A/B 80구성×20통신의 엔진 INVALID 없음, 선택 의존성 import 금지, 제외 집계·실패/불일치 종료 코드·설정 보존·실패 시 정리. 실제 실행에서 관측한 send/route 차이도 숨기지 않고 종료 코드 1로 남기는 회귀 시험을 추가했다.
-- 연동 예비 실행에서 `delete_network(name)`의 필수 이름 인자를 빠뜨려 종료 코드 2가 나왔고 수정했다. 첫 기본값 실행은 결과1660/1660·단계44 불일치(206.83초)였다. Windows 리다이렉션에서 한글 JSON이 깨지지 않도록 ASCII JSON escape 출력을 적용한 뒤 아래 기본값 실행을 다시 했다. 테스트 추가 중 임시 폴더 mock의 호출 형식을 수정했고 최종 전체 서버 시험은 위 225 passed·1 skipped다.
-- 화면 변경 없음으로 build는 완료 조건에 없으며 실행하지 않았다. 엔진 의미·버전 변경 없이 0.2.0 유지. pybatfish는 별도 임시 venv에만 설치했다.
-
-실제 준비·실행 명령(PowerShell, 기본 옵션):
-
-```powershell
-$batfishTaskDir = Join-Path $env:TEMP 'netproof-batfish-codex-20261011'
-.venv/Scripts/python -m venv (Join-Path $batfishTaskDir 'venv')
-$batfishTaskPython = Join-Path $batfishTaskDir 'venv/Scripts/python.exe'
-& $batfishTaskPython -m pip install -r scripts/requirements-batfish.txt
-docker run -d --name netproof-batfish-codex-20261011 -p 127.0.0.1:9996:9996 -p 127.0.0.1:9997:9997 batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c
-try {
-    & $batfishTaskPython scripts/batfish_diff.py 1> (Join-Path $batfishTaskDir 'run.stdout.txt') 2> (Join-Path $batfishTaskDir 'run.stderr.txt')
-    $batfishExit = $LASTEXITCODE
-    Write-Output "batfish_exit=$batfishExit"
-    Get-Content (Join-Path $batfishTaskDir 'run.stdout.txt') -Tail 1
-} finally {
-    docker stop netproof-batfish-codex-20261011
-}
-exit $batfishExit
-```
-
-클라이언트 설치 확인: `Successfully installed ... pybatfish-2026.9.17.3748 ...`(고정 요청 버전의 정규화 표기). 실제 비교 대상은 cases 3구성 + A40 + B40 = 83구성, 구성마다 호스트 순서쌍×5서비스×2모드 = 20통신이다.
-
-최종 실행 요약 원문과 종료/컨테이너 정지 출력:
-
-```text
-batfish_exit=1
-Cross-check only; not ground truth or real-device results. compared=1660 result_same=1660 result_different=0 step_compared=1511 step_different=44 conversion=0 scope=0 UNSUPPORTED=0 INVALID=0 seed=20261010 count_per_shape=40 elapsed_seconds=201.25
-netproof-batfish-codex-20261011
-```
-
-```text
-docker inspect netproof-batfish-codex-20261011 --format 'running={{.State.Running}} status={{.State.Status}} image={{.Config.Image}} ports={{json .HostConfig.PortBindings}}'
-running=false status=exited image=batfish/allinone@sha256:54cb0ed94fd9a3c1ca0985f73e5be479e955cee9b9f6a6799b66be3364fd8e5c ports={"9996/tcp":[{"HostIp":"127.0.0.1","HostPort":"9996"}],"9997/tcp":[{"HostIp":"127.0.0.1","HostPort":"9997"}]}
-```
-
-**결과 불일치 0건, 단계 불일치 44건으로 종료 코드 1**이다. 44건 모두 결과 DENY·차단 장비·방향은 같고, 잘못된 다음 홉(192.168.12.3)에서 엔진 decisive.step은 `send`, 지정된 Batfish NEIGHBOR_UNREACHABLE 대응은 `route`다. 목표 「불일치 0건」은 달성하지 못했다. 엔진과 대응표를 바꾸지 않았으며 원인 분석/의미 결정은 별도 과제다. 실제 장비의 정확성으로 해석하지 않는다.
-
-보존한 설정 경로(실제 존재·network.json/configs 확인):
-
-```text
-C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj\random-B-000
-C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj\random-B-009
-C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj\random-B-013
-C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj\random-B-016
-C:\Users\dora2\AppData\Local\Temp\netproof-batfish-mismatches-e41oi8sj\random-B-020
-```
-
-최종 실행 stdout 원문 전체(불일치 JSON 44줄 + 요약; JSON escape도 원문 유지):
-
-<details>
-<summary>불일치 JSON 원문과 요약</summary>
-
-```jsonl
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "session", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-000", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-000"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "one-way", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-000", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-000"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "session", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-009", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-009"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "one-way", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-009", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-009"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "session", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "one-way", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "icmp", "mode": "session", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "icmp", "mode": "one-way", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-013", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-013"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "session", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "udp", "mode": "one-way", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "icmp", "mode": "session", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.10.10.10", "dst": "10.30.30.5", "proto": "icmp", "mode": "one-way", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R1", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r1", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "udp", "mode": "session", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "udp", "mode": "one-way", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "session", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "one-way", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-016", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-016"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 22}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 80}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "session", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "tcp", "mode": "one-way", "src_port": 50000, "dst_port": 443}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "udp", "mode": "session", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "udp", "mode": "one-way", "src_port": 50000, "dst_port": 53}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "session", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-{"flow": {"src": "10.30.30.5", "dst": "10.10.10.10", "proto": "icmp", "mode": "one-way", "icmp": "echo"}, "engine": {"result": "DENY", "reason": "\uc815\ubc29\ud5a5: \ub2e4\uc74c \ud649 \uc5c6\uc74c", "decisive": {"device": "R2", "step": "send", "result": "drop", "detail": "\ub2e4\uc74c \ud649 \uc5c6\uc74c: \uac19\uc740 \ub9c1\ud06c(192.168.12.0/30)\uc5d0\uc11c \uc8fc\uc18c 192.168.12.3\uc758 \uc8fc\uc778 \uc7a5\ube44\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4", "in_if": null, "out_if": "s0/0", "rule": null, "rule_seq": null, "acl": null, "rule_line": null}, "direction": "forward"}, "batfish": {"result": "DENY", "direction": "forward", "outcomes": [{"disposition": "NEIGHBOR_UNREACHABLE", "device": "r2", "step": "route"}]}, "result_same": true, "step_compared": true, "step_same": false, "configuration": "random-B-020", "configs_path": "C:\\Users\\dora2\\AppData\\Local\\Temp\\netproof-batfish-mismatches-e41oi8sj\\random-B-020"}
-Cross-check only; not ground truth or real-device results. compared=1660 result_same=1660 result_different=0 step_compared=1511 step_different=44 conversion=0 scope=0 UNSUPPORTED=0 INVALID=0 seed=20261010 count_per_shape=40 elapsed_seconds=201.25
-```
-
-</details>
-
-진행 출력(stderr 원문):
-
-```text
-checked configuration 1: synthetic-01-https-acl
-checked configuration 11: random-A-007
-checked configuration 21: random-A-017
-checked configuration 31: random-A-027
-checked configuration 41: random-A-037
-checked configuration 51: random-B-007
-checked configuration 61: random-B-017
-checked configuration 71: random-B-027
-checked configuration 81: random-B-037
-```
-
-보존 자료와 실행 로그·별도 venv는 저장소 밖 임시 경로에 있으며 리뷰까지 보존했다. 컨테이너는 멈췄다. 완료 조건 7의 Claude 독립 재현·의도적 오류 주입은 별도로 남긴다.
-
-Codex (GPT-6)
-
-### 완료 조건 (Codex가 직접 실행해 출력 첨부)
-1. `cd engine && ../.venv/Scripts/python -m pytest -q` → 489 passed·2 xfailed(변화 없음).
-2. `cd server && ../.venv/Scripts/python -m pytest -q` → 174 passed·1 skipped에 `test_batfish_diff.py` 추가, 실패 0(pybatfish 미설치 venv에서).
-3. `npm --prefix web test` → 643 passed(변화 없음).
-4. **실제 실행**: Docker로 고정 digest 이미지를 띄우고 별도 venv에 `scripts/requirements-batfish.txt` 설치 후 `python scripts/batfish_diff.py`(기본값) 출력 전체 요약과 실행 시간. 목표는 불일치 0건이며, 불일치가 나오면 엔진을 고치지 말고 불일치 JSON과 보존한 설정 경로를 그대로 보고한다. 끝나면 컨테이너를 멈춘다.
-5. `git diff --stat main... -- engine server/netproof_api web cases requirements.txt vercel.json` → **출력 없음**.
-6. `git diff --check` 공백 오류 없음.
-7. 리뷰(Claude): 같은 명령(4)을 직접 재현하고, 도구에 일부러 틀린 Batfish 결과가 들어가는 경우(예: 복귀를 type 8로 만드는 임시 변형)에 불일치 JSON과 종료 코드 1이 나오는지 확인한다(커밋하지 않음).
-
-## 배포 기록 (2026-10-06)
-
-### 배포 구성 (2026-10-06)
+고정 커밋으로 바꾼 링크 5개의 제목은 `git show 9e0b6e8:HANDOFF.md`에서 268·347·437·513·557줄에 있음을 확인했다.
+
+Claude (Opus 5.5)
+
+## 지난 과제
+
+상세는 `decisions/ai-work-log.md`의 같은 날짜 줄, PR 본문·코멘트, 접기 전 HANDOFF에 있다.
+
+| PR | 과제 | 병합 커밋 | 기준 문서 |
+| --- | --- | --- | --- |
+| #62 | F2 용어 통일·F3 받은 답 입력/표시 정리(#61 포함) | `9fcde17` | [terminology-claim-design](docs/terminology-claim-design.md) |
+| #60 | 독자 경로 작업대(중성 회색·오렌지, 왼쪽 탐색) | `cc9d8a5` | [path-workbench](docs/path-workbench.md) |
+| #59 | 프론트 전체 리디자인 | `d147af4` | [frontend-redesign](docs/frontend-redesign.md) |
+| #58 | Batfish 교차 검증 도구(1660건 결과·DENY 단계 1511건 일치, 로컬 전용) | `de56130` | [batfish-diff](docs/batfish-diff.md) |
+| #56 | 비차단 후속 묶음(#47·#52·#54 N1 등) | `dcc1a3e` | — |
+| #54 | 고치기 과제 3개(목표 통신·목표 밖 변화, 점수 없음) | `bfb7b4f` | — |
+| #52 | 구성도·경로 재생 | `802fd76` | [topology-playback-design](docs/topology-playback-design.md) |
+| #49·#50 | 불일치 → 회귀 테스트 내보내기, 엔진 버전별 재판정 | `cd23e46`·`d7dabff` | [semantics §15](docs/semantics.md#15-엔진-버전) |
+| #47 | 학습 → 실습 → 기록·복습 흐름 | `225a618` | — |
+| #44 | pfSense 상태 추적 계산 1단계(ADR-016) | `b050348` | [semantics §14](docs/semantics.md#14-제한된-상태-추적-방화벽-adr-016) |
+| #41 | 원인 태그·통계 | `329e74c` | [semantics §13](docs/semantics.md#13-원인-태그) |
+| #34 | n8n 연동 예시·학습실 n8n | `1fef9b6` | [n8n](docs/n8n.md) |
+| #33 | 보안 로그(Graylog·Wazuh)·학습실 도구 주제 | `0a53519` | [security-logs](docs/security-logs.md) |
+| #32 | 변경 전/후 판정 비교·다른 통신 영향 | `baf6501` | — |
+| #23~#31 | 홈·학습실·실습 화면, 휴대폰 접기, 판정기 알림 | `82975e6`~`74c5255` | [home-learning-ui](docs/home-learning-ui.md), [practice](docs/practice.md) |
+| #27·#28 | 수동 QA 도구(`scripts/qa_local.py`)·체크리스트 | `2ad04a0`·`8268789` | [qa-manual](docs/qa-manual.md) |
+| #21 | 판정기 화면 개선 | `388a9cf` | — |
+| #20 | 사례 게시판 학습형 UI | `c2a998d` | [case-learning-ui](docs/case-learning-ui.md) |
+| #19 | 수정 후보 | `8be25a8` | [semantics §12](docs/semantics.md#12-수정-후보) |
+| #18 | ACL 점검 | `c19f554` | [semantics §11](docs/semantics.md#11-acl-점검) |
+| #17 | 오탐·미탐 대시보드 | `6c7c9b1` | [semantics §10](docs/semantics.md#10-오탐미탐혼동-행렬) |
+| #16 | 실제 결과 붙여넣기(ping·Nmap → 입력 후보) | `309238d` | [actual-paste](docs/actual-paste.md) |
+| #15 | 사례 복제·실습 과제 템플릿 | `7b15fde` | — |
+| #14 | 정책 검증·도달성 매트릭스 | `c0ab37e` | [policy-matrix](docs/policy-matrix.md) |
+| #13 이전 | 사례 검색·필터, URL 공유, 도달 못 한 목적지, ACL 줄 하이라이트, 숫자 `int()` 버그(#7·#9) | — | [case-search](docs/case-search.md) |
+
+## 유지되는 합의
+지난 리뷰에서 정한 규칙이다. 바꾸려면 먼저 사용자에게 요청한다.
+
+- **판정은 엔진만**(ADR-001). 점검·표시·집계·원인 태그·수정 후보는 PASS/DENY를 만들거나 바꾸지 않는다. 화면은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
+- **추측하지 않는다.** 결론을 못 내면 "점검 못 함", 분류 못 하면 "분류 못 함", 모르면 "판정 불가(UNSUPPORTED)". "문제 없음"이나 차단으로 단정하지 않는다.
+- **pfSense 상태 추적**: 상태는 규칙만 건너뛰고 경로는 건너뛰지 않는다(복귀 경로가 없으면 DENY). 기본 정책 미기재·복귀 중 상태 없는 장비·NAT·floating·그룹 규칙 등은 UNSUPPORTED(사용자 D4). 실제 pfSense와 대조하기 전에는 일치한다고 적지 않는다(D5).
+- **관측 ≠ 판정.** 무응답·filtered는 DENY의 증거가 아니다. 붙여넣은 원문은 저장하지 않는다.
+- **양성은 통신 차단(DENY).** 오탐 = 막힌다고 했는데 실제로 통함, 미탐 = 통한다고 했는데 실제로 막힘. 미확인·미정·미지원은 분모에서 빼고 제외 수를 보인다. 원인 태그는 혼동 행렬과 다른 축이다.
+- **과도함은 경고하지 않는다.** 열린 범위를 사실로만 적는다.
+- **정답·채점·점수·완료 표시·축하를 만들지 않는다**(AGENTS.md). 고치기 목표는 요구사항이지 정답이 아니며, 과제 문구에 고칠 장비·규칙·원인을 쓰지 않는다. 검사한 쌍 밖은 알 수 없다고 말한다. 기존 `expect`·`cases/*.json`을 바꾸지 않는다.
+- **구성도 선**은 입력 주소 구간 소속이지 실제 배선이 아니다. 재생은 받은 응답의 커서이고 API를 부르지 않는다.
+- **입력 상태**: 실습 입력은 `practiceDrafts`, 고치기는 `fixDrafts`에만 둔다. 판정기 `draft`는 `판정기로 가져가기` 때만 바꾼다. 저장은 서버가 다시 판정한 값이다. 「내 예상 ≠ 계산」과 「계산 ≠ 실제 결과」는 다른 조건이다.
+- **화면 구현 규칙**: 휴대폰 접기는 CSS `.mobile-fold`로만 하고 판정기는 접지 않는다. localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다. 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)은 먼저 요청한다.
+- **숫자 변환**: 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 돌아온다. 점검은 `parse_acl` 결과만 쓴다.
+- **리뷰**: 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다. 원인 태그 규칙(§13)은 먼저 요청한다.
+- 관계없는 줄바꿈 변경 금지.
+
+## 남은 후속 (비차단, 미착수)
+- PR #62 N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘) — 사용자 수동 QA 판단 뒤 설계.
+- pfSense: ① 2단계 실습 연동(D5) ② 화면 입력 ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ④ 네트워크 JSON의 추가 최상위 키가 전부 미지원 처리됨(화면 과제에서 `toNetwork` 키를 엔진 지원 필드와 먼저 대조) ⑤ 미대조 문구를 화면 패널에 한 번만.
+- F28: change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB).
+- PR #52: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향은 사용자 결정), N2 단계 목록이 선택한 방향만.
+- PR #41: 원인별 사례 목록 필터(저장 열 필요), 사람이 붙이는 원인 태그.
+- PR #17: 사례 목록 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind`와 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·지연 주입 미검증.
+- PR #16: Nmap 출력에 ping 낱줄 혼합, NBSP·전각 공백 거절, 거절 시 `target` 잔존.
+- PR #15: 제목 길이 UTF-16/코드포인트 차이.
+- PR #12: strict xfail 2건, Hypothesis 하한.
+- Batfish 교차 검증 범위 밖: pfSense 상태 추적, UNSUPPORTED·INVALID, 비연속 와일드카드. Batfish 일치는 실제 장비 보증이 아니다.
+
+## 사람 할 일
+- **운영 DB 재판정 보류**: 운영 사례는 아직 엔진 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 [deploy.md](docs/deploy.md) 절차로 재개하고, 주소는 가려진 입력으로만 받는다.
+- **Vercel `DATABASE_URL`**: Production and Preview 적용을 Production 전용으로 바꾼다(Codex·Claude는 설정을 바꾸지 않음).
+- **배포 6단계(가입·사례 저장·로그아웃)·7단계(검토자 지정)** 확인. `make-reviewer`는 `netproof` 계정 연결 주소로 실행하고, 주소는 채팅·명령줄·캡처에 넣지 않는다([deploy.md](docs/deploy.md) 7).
+- **수동 QA A~E**([체크리스트](docs/qa-manual.md)): A PR #20 G2, B 실제 기본 확인창 삭제 취소, C 홈·실습 흐름(변경 전/후 포함), D 수업 환경 Graylog·Wazuh 수집, E 수업 Docker n8n 실행. AI의 도구 실행·로컬 대역 확인은 수동 QA 통과가 아니다. 결과는 사람이 `docs/qa-manual.md`나 PR 코멘트에 적고, AI가 대신 완료로 바꾸지 않는다. 임시 DB·합성 계정만 쓰고 비밀번호·쿠키·토큰은 기록하지 않는다.
+- **D5(pfSense 실습 사실)**: 질문 답을 주면 2단계를 설계한다.
+- **사람 트랙**: 동기 3명 인터뷰, 실제 결과가 있는 사례 모으기, 사례 04 손계산, 표어 결정.
+- **t08 Postgres 오류**: 배포 전 t08 대시보드에 최근 60분 오류 111건이 일정 간격으로 보였다(NetProof와 무관, 원인 미확인). Supabase Logs에서 확인한다.
+
+## 배포 (2026-10-06 구성)
 | 항목 | 내용 |
 | --- | --- |
-| Vercel | 프로젝트 `netproof`(Hobby, `myeongjundev`). `main`에 병합하면 Production으로 자동 배포, 브랜치를 올리면 Preview 배포. Application Preset `Other`(가져오기 화면이 폴더를 보고 `Services`를 골라서 바꿨다). 함수 지역 `icn1`(`vercel.json`) |
-| 주소 | 공개 주소 `netproof-vert.vercel.app`. `netproof.vercel.app`은 다른 사람의 사이트다. `netproof-myeongjundev.vercel.app`과 배포별 주소는 Vercel 로그인으로 보호된다 |
-| 환경 변수 | `DATABASE_URL`(아래 `netproof` 계정의 Transaction pooler 주소), `NETPROOF_SECURE_COOKIES=1`. 보안 로그 변수는 넣지 않았다(꺼짐) |
-| DB 위치 | Supabase **t08 프로젝트(패스키 포트폴리오, 서울, 무료)** 안의 전용 공간. 무료 한도가 사람 기준 켜진 프로젝트 2개라 새 프로젝트를 만들 수 없었다(두 프로젝트 모두 사용 중). 사용자 결정(2026-10-06). 대안 중 Neon은 서울·도쿄 지역이 없고, Supabase Pro는 유료다 |
-| DB 계정 | `netproof`(로그인 전용, 자기 비밀번호, 기본 `search_path = netproof`). 풀러 사용자 이름은 `netproof.<프로젝트ID>`, 포트 6543 |
-| 스키마·표 | 스키마 `netproof`(소유 `postgres`, `netproof`에 USAGE·CREATE). 표 `users`·`sessions`·`cases`는 `netproof` 소유이고 RLS가 켜져 있다. `netproof` 계정에게 t08의 `public` 표는 0개 보인다 |
-| Data API | t08에서 이미 꺼져 있다(8번 과제 설정). `netproof` 스키마는 노출 대상도 아니다 |
+| Vercel | 프로젝트 `netproof`(Hobby). `main` 병합 = Production 자동 배포, 브랜치 = Preview. Preset `Other`, 함수 지역 `icn1`(`vercel.json`) |
+| 주소 | 공개 `netproof-vert.vercel.app`. `netproof.vercel.app`은 다른 사람의 사이트다. `netproof-myeongjundev.vercel.app`·배포별 주소는 Vercel 로그인 보호 |
+| 환경 변수 | `DATABASE_URL`(`netproof` 계정 Transaction pooler), `NETPROOF_SECURE_COOKIES=1`. 보안 로그 변수 없음(꺼짐) |
+| DB | Supabase **t08 프로젝트**(서울, 무료) 안의 스키마 `netproof`. 계정 `netproof`(로그인 전용, `search_path = netproof`), 풀러 포트 6543. 표 `users`·`sessions`·`cases`는 RLS 켜짐, t08 `public` 표는 0개 보임. Data API 꺼짐 |
 
-### 공개 주소 점검 (Claude, 로그인 없이, 2026-10-06)
-| 항목 | 결과 |
-| --- | --- |
-| 화면 | 판정기·학습실(n8n 포함)·정책 검증·실습·사례 게시판이 1280px·375px에서 열림. 가로 넘침 0, 콘솔 오류 0, 375 헤더 68px |
-| 판정 | 브라우저 판정하기 → 통과와 경로. API(synthetic-01): AI 답 PASS → `DISAGREE`, DENY → `AGREE`, 답 없음 → `NO_CLAIM`. `X-NetProof` 없으면 403 |
-| 엔진 | `/api/policy-matrix`·`/api/change-impact` 200(`includeFiles`로 서버·엔진·사례가 함수에 실림) |
-| DB | 없는 세션 쿠키로 `/api/auth/me` → `sessions` 조회 뒤 `{"user": null}` 200. 로그인 없이 `/api/cases` → 401 |
-| 지역·속도 | 응답 `x-vercel-id`가 `icn1::icn1`(서울에서 실행). API 38~330ms(사용자 PC에서 잰 값) |
-| 보안 헤더 | CSP·nosniff·no-referrer·X-Frame-Options DENY·HSTS. API는 `Cache-Control: no-store` |
-| 빌드 | 번들 `index-D1dnOq1Z.js`가 PR #34 리뷰 때와 같다 |
-- 가입·로그인·사례 저장·로그아웃은 실제 계정을 만드는 일이라 Claude가 하지 않았다(사람 확인 대기).
+- **NetProof DB는 t08에 기대어 있다.** t08을 멈추거나 지우면 NetProof도 멈춘다. 무료 프로젝트는 오래 쓰지 않으면 멈추고, 90일이 지나면 다시 켤 수 없다. `netproof` 비밀번호를 바꾸면 Vercel `DATABASE_URL`도 바꾸고 다시 배포한다.
+- 비밀값: `netproof` 비밀번호와 연결 주소는 사용자 비밀번호 관리자와 Vercel에만 둔다. SQL에는 SCRAM-SHA-256 확인값만 넣었다. 2026-10-06 Claude 세션 임시 폴더(저장소 밖)에 연결 주소 파일이 남아 있으면 검토자 지정 뒤 지운다.
+- 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
 
-### 비밀값 처리 (2026-10-06 배포)
-- 사용자가 "전부 진행"을 요청해서 `netproof` 계정 비밀번호는 Claude의 일회용 스크립트가 만들었다. 비밀번호와 연결 주소는 화면·채팅·저장소·캡처에 출력하지 않았고 사용자 클립보드로만 넘겼다. 비밀번호 관리자 저장, Vercel 입력, SQL Editor 실행은 사용자가 했다.
-- SQL Editor에는 비밀번호 대신 SCRAM-SHA-256 확인값만 넣었다(SQL 기록·DB 로그에 원문이 남지 않게). t08의 DB 비밀번호는 쓰지 않았다.
-- 연결 주소가 든 임시 파일이 Claude 세션의 임시 폴더(저장소 밖)에 남아 있다. **검토자 지정 뒤 지운다.** 그 뒤에는 사용자 비밀번호 관리자와 Vercel 환경 변수에만 있다.
-- 처음에는 사용자 터미널에서 스크립트를 돌리고 클립보드로 SQL을 옮겼는데, 계정 SQL이 실행되지 않아 두 번 실패했다(앱 터미널 연동 오류로 Claude가 터미널 패널에 명령을 넣지도 못했다). Claude가 스크립트를 돌리고 사용자는 SQL Editor에서 Run만 누르는 방식으로 바꿔 끝냈다.
-- 계정을 `postgres`에 다시 넘기는 문장(`GRANT netproof TO ...`)은 Supabase PostgreSQL 17.6에서 막힐 수 있다는 보고가 있어 뺐다. 바꾼 SQL은 슈퍼유저가 아닌 관리자와 같은 기본 경로를 흉내 낸 임시 PostgreSQL 17에서 두 번(처음·비밀번호 교체) 시험했다.
-
-## 이전 과제 기록 (요약 — 상세는 `decisions/ai-work-log.md`)
-- **PR #62 F2·F3 용어·받은 답 입력/표시 정리 (병합 완료, `9fcde17`, 2026-10-11)**: 표시 사전·종류 직접 선택·출처/내용 선택 메모·상세 중복 제거·비교 불가의 원래 답 및 fromCase kind 보존. 엔진/API/DB/입력 메모리/사례expect/의존성/배포 설정 변경0줄. Claude 리뷰 PASS(차단0), 엔진489+2xfail·서버227+1skip·웹692·빌드 성공, 로컬 SQLite QA132조합. 문서 PR #61을 포함하고 #61은 병합 없이 대체로 닫았다. 공개 JS/CSS가 리뷰한 빌드와 같음 확인. 비차단 N1 HANDOFF 누적 정리·N2 대시보드 받은 답 축 표현은 남음.
-- **PR #60 독자 경로 작업대 (병합 완료, `cc9d8a5`, 2026-10-11)**: 사용자 승인한 중성 회색·오렌지, 왼쪽 탐색·중립 헤더·전폭 질문·번호 학습 목록. 엔진/API/입력 메모리/저장/인증/재생/기준 사례/expect/의존성/배포 설정 변경0줄. 직접 리뷰 엔진489+2xfail·서버227+1skip·웹656·빌드289ms, 임시 SQLite 배치145건·메뉴/키보드/예상 진입/복귀 재생/정책/고치기·콘솔0, 지적0. 구현과 같은 모델의 리뷰이며 별도 독립 리뷰 기록 없음. 사용자 조건부 병합 승인 후 MERGED·Vercel main SUCCESS, 공개 홈·학습실과 번들 해시 확인. [병합/배포 기록](https://github.com/myeongjundev/netproof/pull/60#issuecomment-6105443031).
-- **PR #59 프론트 전체 리디자인 병합 완료(`d147af4`, 2026-10-11)**: 남색 헤더·파란 행동·공통 카드·홈/학습실·본문 바로가기. 태블릿 홈 R1 수정 후 Codex (GPT-6) 재검증, 사용자 병합 지시로 squash merge·공개 번들/홈/API 확인. 별도 Luna 독립 리뷰 수행 기록은 없다. 엔진/API/기준 사례 불변. 이후 사용자 승인한 독자 ‘경로 작업대’ 표시로 후속 구현한다.
-- **PR #58 Batfish 교차 검증 도구 병합 완료(`de56130`)**: 로컬 전용 Cisco 변환·정방향/직접 복귀 traceroute·고정 시드 두 모양·제외 보고·불일치 JSON/설정 보존. R1 NEIGHBOR_UNREACHABLE→send·N1 호스트 route→send를 수정했고 최초44건은 도구 대응표 오류였다. 기본값1660건 결과·DENY 단계1511건 일치, 불일치0·종료0, Claude 재리뷰 PASS. 엔진·운영 의존성·배포 불변.
-
-- **PR #56 비차단 후속 묶음 (병합 완료, `dcc1a3e`, 2026-10-10, 설계 #55)**: PR #54 N1 `factual` 분기·`factualText` 제거(Claude 설계 과잉 정리, 과제 근거도 일반 결과 패널), PR #52 N1 decisive가 복귀에서 유일하면 복귀 마지막 단계로 시작, PR #47 N1 `ActualBadge` 확인 전 `판정과 다름/같음`, N2 저장 안내 `저장했습니다: 사례 #N.`. 화면만 변경. Claude 리뷰 PASS. 최종: 엔진489+2xfail·서버174+1skip·웹643·빌드 성공(`index-B3OOalhE.js`), 운영 반영 확인.
-- **PR #54 고치기 과제 (병합 완료, `bfb7b4f`, 2026-10-10, 설계 #53)**: 학습실 「고치기 과제」 3개(`#/fix/:id`, 합성 01~03 처음 구성 + 승인된 목표 통신). 확인하기 한 번에 `policy-matrix`(목표 같음/다름/판정 불가)와 `change-impact`(처음 구성 대비 목표 밖 변화, 목표 칸은 화면에서만 제외), 근거 보기는 `verify` + 구성도·재생. 점수·완료 배지 없음, 사실 문장은 전부 같음·밖 변화 0·미비교 0일 때만. 구성은 App 메모리(`fixDrafts`)만. 서버 테스트로 처음엔 미해결·테스트 안 해법으로 풀림 확인(해법은 `server/tests/test_fix_exercises.py`에만, 번들 검색 0). **엔진·서버 API·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(편법 HTTPS만 허용 → 목표 밖 「새로 막힘」으로 드러남 실브라우저 확인). 최종: 엔진489+2xfail·서버174+1skip·웹629·빌드 성공(`index-BW8VCTzY.js`), 운영 반영 확인.
-  - 유지되는 합의: 목표는 문제의 요구사항이지 정답이 아니다. 과제 문구에 고칠 장비·규칙·원인을 쓰지 않는다. 검사한 서비스·호스트 쌍 밖은 알 수 없다고 말한다.
-- **PR #52 구성도·경로 재생 (병합 완료, `802fd76`, 2026-10-10, 설계 #51 포함 — 사용자 지시로 설계·구현 모두 Codex)**: 판정기·실습·사례 상세·정책 행렬에 판정 당시 network·flow로 만든 구성도(CIDR 구간 소속 선, 장비12·구간24 상한 뒤 경로 장비·목록 fallback)와 엔진 hops의 방향별 재생(1초 간격, 편집·숨김·reduced motion 시 정지), `firewall_in`·`state` 표시, 유일하게 일치하는 decisive에만 결정 단계 표시. **엔진·서버·cases·DB·배포·의존성 0줄.** Claude 리뷰 PASS(실브라우저 1280·375, 겹침·넘침·콘솔 0). 최종: 엔진489+2xfail·서버165+1skip·웹563·빌드 성공(`index-BHD-u76S.js`), 운영 반영 확인.
-  - 유지되는 합의: 그림 선은 입력 주소 구간 소속이지 실제 배선이 아니다. 기록되지 않은 연결을 그리지 않는다. 재생은 받은 응답의 커서이고 API를 부르지 않는다.
-  - 남은 비차단: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향 변경은 사용자 결정), N2 단계 목록이 선택한 방향만.
-- **PR #50 export note 조사 오류 수정 (병합 완료, `d7dabff`, 2026-10-10)**: PR #49 비차단 N1을 조사 없는 `엔진 판정(DENY) ≠ 확인된 실제 결과(PASS) — 사례 #N`으로 정리하고 양방향 내보내기 문구·expect 보존을 시험했다. Claude 리뷰 PASS(차단 0). 엔진489+2xfail·서버165+1skip·웹485·빌드 성공. 운영 재판정은 계속 보류.
-
-- **PR #49 불일치 회귀 테스트·엔진 버전별 재판정 (병합 완료, `cd23e46`, 2026-10-10)**: 엔진 0.2.0(PR #44 의미 변경 포함), known_mismatch strict xfail·별도 형식 검사, export 선택 필드, 기존 _judge 기반 100건 커밋·멱등 rejudge/dry-run. 확인·actual_*·updated_at 유지. Claude 리뷰 PASS, 엔진489+2xfail·서버164+1skip·웹485·빌드 성공, 임시 SQLite 독립 실연과 xfail/XPASS 확인. 운영 재판정은 보류. 비차단 N1(export note 조사)은 PR #50으로 해결·병합 완료.
-- **PR #47 학습 → 실습 → 기록·복습 흐름 강화 (병합 완료, `225a618`, 2026-10-10)**: 실습 화면 ⑤ 기록하기(판정 결과가 최신일 때만, 기존 `POST /api/cases`), 사례 상세 「다시 살펴보기」(저장된 원인 태그로 관련 학습 주제, 받은 답↔계산·계산↔실제 두 비교), `GET /api/cases?actual_mismatch=1`(확인 필터와 함께면 대시보드 `mismatches_total`과 같음), 게시판 바로가기 3개. **엔진·`cases/`·DB·배포 구성 변경 0줄.** Claude 리뷰 R1(저장 중 재판정·편집 뒤 조용히 저장돼 다시 누르면 중복 — Claude 설계 누락) → Codex 수정 `64a2460` → 재리뷰 PASS → 최신 커밋 재검증 PASS. 최종 실행: 엔진 478 passed·2 xfailed, 서버 157 passed·1 skipped, 웹 485 passed, 빌드 성공.
-  - 유지되는 합의: 실습 입력은 `practiceDrafts`, 저장은 서버 재판정. 관련 개념은 원인 태그로 고른 주제이고 정답·채점이 아니다(DENY만 연결). 「내 예상 ≠ 계산」과 「계산 ≠ 실제 결과」는 다른 조건이다.
-  - 남은 비차단 후속: N1 상세에서 미확인 불일치가 `확인 전 · PASS`로만 보임, N2 `사례 #N으로` 조사.
-- **PR #44 pfSense 상태 추적 계산 1단계 (병합 완료, `b050348`)**: 엔진에 **제한된 상태 추적**을 더했다(ADR-016 신설). `stateful: true` 장비의 인터페이스에 pfSense 화면과 1:1인 구조화 규칙 `rules_in`·`default_in`, 들어오는 방향 1차 일치, `session` 복귀는 **정방향이 지난 그 장비에서만** 규칙을 건너뛴다. 새 파일 `engine/firewall.py`(일치 계산은 기존 `acl.py` 재사용, 새 파서·새 숫자 변환 없음), `docs/semantics.md` §14, 서버는 `rules_in` 상한 500만. **`web/`·`cases/*.json`·DB·배포 구성 변경 0줄**(D2: 화면은 후속). Claude 리뷰 R1(상태 없는 복귀 장비를 `default_in`만 보고 단정) → Codex 수정 `a057d79` → **재리뷰 PASS**. 최종 실행: 엔진 478 passed·2 xfailed, 서버 149 passed·1 skipped, 웹 440 passed(그대로).
-  - 유지되는 합의: **상태는 규칙만 건너뛰고 경로는 건너뛰지 않는다**(복귀 경로가 없으면 상태가 있어도 DENY). **모르면 차단으로 단정하지 않고 판정 불가**(사용자 D4) — 기본 정책 미기재, 복귀 추적 중 상태 없는 상태 추적 장비(프로토콜·규칙·기본 정책과 무관), 기존 연결 상태에 기댄 패킷, NAT·floating·스케줄·XML 가져오기 등은 `UNSUPPORTED`. 기존 **무상태 ACL 동작은 그대로**(Claude 독립 A/B 6,000건 불일치 0). **실제 pfSense 장비와 대조하지 않았다**(D5).
-  - 남은 후속: ① 2단계 실습 연동(D5 확인 뒤) ② pfSense 화면 입력 ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ④ 네트워크 JSON의 추가 최상위 키가 전부 미지원 처리되는 점(화면 과제에서 `toNetwork` 키를 엔진 지원 필드와 먼저 대조) ⑤ 미대조 문구를 화면 패널에 한 번만 보이기.
-- **PR #41 원인 태그·통계 (병합 완료, `329e74c`)**: 저장된 판정 JSON만 읽는 엔진 순수 함수 `cause`(태그 9개 + 방향, 네트워크를 다시 읽거나 재판정하지 않음), 검토자 대시보드 「가장 많이 틀린 원인 Top 5」(분모 `comparison=DISAGREE`, 복귀 건수, 그 외·분류 못 함·세 제외, 상한 2,000건 표시), 사례 상세 판정 카드 제목의 `원인 태그(통계)`. `docs/semantics.md` §13 신설. **DB 표·열·판정 경로(`verify.py`·`trace.py`)·`cases/*.json`·`/api/verify`·사례 목록·혼동 행렬은 변경 0줄.** Claude 리뷰 R1(판정 불가 사례에도 원인·방향 표시)·R2(원인 줄이 패널 밖에 떠 있고 판정 문장과 중복) → Codex 수정 `aa29f2a` → **재리뷰 PASS**. 최종 실행: 엔진 382 passed·2 xfailed, 서버 149 passed·1 skipped, 웹 440 passed, 빌드 성공.
-  - 유지되는 합의: **집계 ≠ 판정.** 원인은 엔진 근거를 묶은 이름이고 정답·채점이 아니다. 분류 못 하면 **`분류 못 함`으로 두고 추측하지 않는다.** `UNSUPPORTED`·`INVALID`는 태그도 분모도 아니며 화면에도 원인·방향을 적지 않는다. 원인은 **혼동 행렬(오탐·미탐)과 다른 축**이라 `DISAGREE`에서 오탐·미탐을 유도하지 않는다.
-  - 남은 후속: 원인별 사례 목록 필터는 저장 열이 필요해 넣지 않았다(다음 과제). 사람이 붙이는 원인 태그(설계 D1의 선택지 b)도 별도 과제로 미뤘다.
-- **PR #34 n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 (병합 완료, `1fef9b6`)**: `examples/n8n` 워크플로(웹훅 2 → HTTP Request 4.2 → Code 2 → Respond to Webhook 1.1, `X-NetProof` 헤더, `comparison`만 쓰는 문장)·`request.json`(사례 01 + AI 답 PASS)·`docs/n8n.md`(Docker n8n에서 `host.docker.internal`, 서버는 `--host 0.0.0.0`, 선택 알림), 학습실 n8n 주제와 도구 주제 일반화, F27(server pytest가 worktree 엔진 사용)·F29(서버 테스트가 로그 환경 변수를 끔). Claude 리뷰 R1(n8n 출처 404 두 개 — Claude 설계 실수, 확인 문장, F29 빈틈, Docker 이미지) → 재리뷰 PASS. 수동 QA E(수업 Docker n8n)는 사람 대기.
-- **PR #33 보안 로그·학습실 도구 주제·F26 (병합 완료, `0a53519`)**: 환경 변수로 켜는 보안 로그(`NETPROOF_SECURITY_LOG` 파일, `NETPROOF_SYSLOG` UDP. login_success·login_failure·account_locked·password_check_failure, 비밀번호·없는 닉네임 미기록, 꺼지면 아무 데도 안 씀), `docs/security-logs.md`(Graylog 7.1 파이프라인, Wazuh 4.14 규칙 100200~100203), 학습실 Graylog·Wazuh 주제, F26(로그인한 휴대폰 헤더 한 줄). Claude 독립 리뷰 PASS(실제 QA 서버 로그 파일 10줄 = UDP 10개, 비밀번호 0건). 수동 QA D(수업 환경 Graylog·Wazuh)는 사람 대기.
-- **PR #32 변경 전/후 판정 비교 (병합 완료, `baf6501`)**: 같은 통신을 구성만 바꿔 다시 판정하면 판정기·실습의 결과 아래에 직전 판정과 지금 판정을 나란히 보인다(받은 답만 바꾸면 기준 유지, 통신 변경·불러오기는 해제). `다른 통신 영향 계산`은 엔진 `change_impact`(`policy_matrix` 두 번, 판정한 통신 제외, opened·closed·other·not_compared)와 `POST /api/change-impact`. 후속 F24(저장 제목)·F25(`은(는)`) 포함. Claude 독립 리뷰 PASS(엔진 무작위 대조 3,000회 불일치 0). 후속 F26은 이번 과제, F27(서버 pytest 경로)·F28(응답 크기)은 남음.
-- **PR #31 판정기 알림·조사 정리 F5·F6 (병합 완료, `74c5255`)**: 손대지 않은 빈 템플릿에서는 불러오기 되돌리기 알림을 띄우지 않는다(`hasCurrentInput` 재사용). 조사 일곱 곳을 고정 낱말 뒤 조사로 바꿨다(예시 주제 알림·ACL 삭제·ACL 점검 두 문장·로그인 안내·계정 삭제·비교 배너 `과`). Claude 독립 리뷰 PASS(사례 목록 실패 시 `사례가`까지 실브라우저 확인). 후속 F24(저장 제목)·F25(`은(는)`)는 변경 전/후 과제에 넣었다.
-- **PR #30 휴대폰 구성 접기 + 실습 후속 (병합 완료, `63515a6`)**: 900px 이하에서 실습 ②와 사례 상세 네트워크 구성을 CSS 접기(`.mobile-fold`, 넓은 화면은 요약 줄 숨김·펼침), `입력에서 보기`는 접기를 먼저 엶. F19 안내 뒤 ② 제목 포커스, F20 바뀐 것 없는 처음 상태로 무시, F21 실습 삭제 되돌리기, F22 홈 문구, F23 옛 문서 정리. R1(사용자 결정)으로 폭 360 대응: 요약 줄에서 확인할 것 개수 뺌, ③ 안내 `예상은 계산에 쓰지 않고 비교만 합니다.`, 휴대폰 실습 간격. Claude 재리뷰 PASS(360×800·375×812 실습 01·02·03의 ③ 제목·라디오·안내가 고정 줄 위, 1280 무변화).
-- **PR #29 실습 화면 + 라이트 기본 (병합 완료, `f034bff`)**: 전용 `#/practice/:caseId`(구성 왼쪽·예상과 결과 오른쪽, 칸 번호 ①~④, 첫 방문 안내 줄), 실습 입력 분리(`practiceDrafts`), `판정기로 가져가기`(기존 load·되돌리기), 판정기 실습 기능 제거, 홈 이어서 하기 실습 우선, 라이트 기본(설정에서 다크·기기 설정 따르기). Claude 독립 리뷰 PASS(OS 다크 + 빈 저장소 → 라이트를 리뷰에서 실브라우저로 확인). 후속 F18~F23은 이번 과제.
-- **PR #28 QA 서버 동시 연결 (병합 완료, `8268789`)**: `scripts/qa_local.py`의 `threaded=True`, 빈 연결을 유지한 채 두 번째 요청을 확인하는 회귀 테스트, 강제 종료 안내. PR #27 리뷰가 순차 요청만 확인해 놓친 결함(병합 후 실제 브라우저로 발견).
-- **PR #27 후속 F15~F17 + QA 준비 도구 (병합 완료, `2ad04a0`)**: 불러오기 뒤 실습 제목 포커스, reduced-motion 공용 스크롤, 학습 상세 부제, `scripts/qa_local.py`(임시 SQLite·127.0.0.1·DATABASE_URL 무시), `docs/qa-manual.md`. 리뷰가 순차 요청만 확인해 놓친 단일 스레드 결함은 PR #28에서 수정. 사용자 수동 QA·reduced-motion 실브라우저 미확인은 별도다.
-- **PR #26 비교 배너 중립 톤·실습 흐름 (병합 완료, `11c6ac2`)**: 배너 `≠ 내 예상(통과)와 NetProof 계산(막힘)이 다릅니다`+근거 안내, 빨강·초록 채움 제거(PR #21 배너 결정을 사용자가 변경). 진입 카드 guessPrompt·선택값별 안내, 이어서 하기 실습 이름·다음 실습, 퍼즐 질문 강조, 휴대폰 단추 한 줄(F12), 판정 뒤 결과 포커스(F14). Claude 독립 리뷰 PASS(`3c2c92d`). 홈 critique 27→26→26→25로 수렴하지 않아 다음 판단은 학생 관찰 권장.
-- **PR #25 홈·학습 2차 (병합 완료, `397ee0d`)**: 계산 범위 띠(`NetProof 계산 범위` + 점선 `실제 장비`), 홈 퍼즐을 채운 단추 주 행동으로(375 단추 아래 끝 745/812), 세 실습 모두 예상 블록(`guessPrompt`·공용 `GuessPuzzle`), 판정기 진입 카드 예상 라디오(통과/막힘/예상 없이). Claude 독립 리뷰 PASS(`cd49334`), critique 3회차 26/40 → 사용자 병합. 후속 F12~F14와 배너 톤은 이번 과제.
-- **PR #24 홈·학습실 개선 (병합 완료, `b8bb8e8`)**: 홈 예상 퍼즐(synthetic-01)·이어서 하기 얼굴·PathStrip 경로 그림·학습 상세 먼저·포커스 이동·말 다듬기·휴대폰 헤더. 리뷰 R1(메뉴 키보드 순서)·R2(제목 단계) → critique 2회차 26/40에서 P0(예상 직후 예시 단추 제목이 답 노출) 발견 → 사용자 결정으로 R3(예시 단추 주제 이름)·R4(F9~F11) → Claude 재리뷰 PASS(`575f902`) → 사용자 병합. 남은 P1·P2는 이번 과제.
-- **PR #23 홈·학습실·헤더 MVP (병합 완료, `82975e6`)**: 공개 홈·학습실 3주제·모바일 헤더·현재 입력 안내·명시적 실습 불러오기. 설계는 사용자 요청으로 Codex가 맡음(일회). Claude 독립 리뷰 PASS(`179d46e`) → 사용자 병합. 후속 F7(실습 알림 "실습" 중복, 이번 2절에서 처리), F8(낡은 지시, 이번 문서 정리로 처리), 실제 200% 확대 미확인. 병합 뒤 홈 critique 27/40 → 이번 과제.
-- **PR #22 문서 정리 (병합 완료, `b3f145b`)**: PR #21 병합 반영·수동 QA 절차 기록. Claude 문서 리뷰 PASS.
-- **PR #21 판정기 화면 개선 (병합 완료, `388a9cf`)**: 비교 배너·한 단계 되돌리기·blur 안내·결과 접기·접근성·스크롤 겹침 정리. R1(trim/옥텟 앞자리0) 수정 `79086d2` → Claude 재리뷰 PASS `5056cb0` → 사용자 지시로 병합. F5 빈 템플릿 첫 예시 알림, F6 조사 "을"은 비차단 후속. PR #20 수동 QA는 별도다.
-- **PR #20 사례 게시판 학습형 UI (사용자 지시로 병합 완료, `c2a998d`)**: 시작 안내·목록/카드·상세 구성 원문·출처 분리, 모바일 필터 F1 해결 확인, PR #19 main 최신화 포함.
-  - **사용자 G2·실제 기본 확인창 삭제 취소는 수동 QA 대기 유지.** Claude 조사에서는 confirm을 false로 대체하면 페이지 유지·GET200·DELETE 없음, true면 단일 DELETE·GET404였다. 이는 실제 네이티브 취소 버튼 검증이 아니다. 자동화 timeout 원인 추정과 재현 사실을 구분한다([Claude 조사](https://github.com/myeongjundev/netproof/pull/20#issuecomment-5969258205)).
-  - F2 용어 전체 통일은 후속(이번에는 승인된 judge-ux의 수정 후보 표기만 변경). F3 받은 답 종류·답 중복 정리, F4 모바일 네트워크 구성 접기도 후속 설계 대상. 금지된 상세/Badges/CaseNetwork는 이번에 바꾸지 않음.
-- **PR #19 수정 후보 (병합 완료, `8be25a8`)**: 엔진 재판정으로 확인한 ACL 삽입 후보·직접 목표 선택. 후보 ≠ 판정·정답·안전 보장, 다른 통신 영향은 미확인. Claude 독립 리뷰 PASS, 6,000회 무작위 probe 불일치0; 기존 엔진/API는 이번에 변경하지 않음.
-- **PR #18 ACL 점검 (병합 완료, `c19f554`)**: 엔진 `acl_audit`(정확 상자 합집합 계산)으로 가려짐·중복·일치 불가·점검 못 함과 permit 열린 범위를 계산, `POST /api/acl-audit`, 판정기 "ACL 점검" 섹션. Claude 독립 리뷰 PASS → 재확인 R1(전체 연산 한도 100k→300k 재측정)·R2 → 재리뷰 PASS(`cc5cf96`) → 사용자 병합.
-  - 유지되는 합의: **점검 ≠ 판정.** 결론을 못 내면 "점검 못 함"(추측 금지). **과도함은 경고하지 않고 열린 범위를 사실로만 적는다**(사용자 결정).
-- **PR #17 오탐·미탐 대시보드 (병합 완료, `6c7c9b1`)**: 기존 `/api/dashboard`에 DENY 양성·세 축(AI 답·사람 예상·NetProof 판정)·네 칸·상호 배타 제외 집계, 목록 필터 `actual`·`claim_kind`·`claim_expected`, 칸 → 목록 링크. Claude 독립 리뷰 PASS(`e0d26b3`, 차단 0) → 사용자 병합. 최종 실행: engine 263 passed·2 xfailed, server 85 passed·1 skipped, web 105 passed, build 성공.
-  - 유지되는 합의: **양성은 통신 차단(`DENY`)**(사용자 확정). **집계 ≠ 판정.** 미확인·미정·미지원은 분모에서 빼고 제외 수를 화면에 보인다. 필터 주소 동기화는 주소 → 화면 단방향.
-  - 남은 비차단 후속 3건: CasesPage 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind` 값과 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·DOM 전체 자동 테스트·지연 주입은 미검증.
-- **PR #16 실제 결과 붙여넣기 (병합 완료, `309238d`)**: 엔진 `observe` 순수 파서(ping·Nmap 출력 → 실제 결과 **입력 후보**), 상태 없는 `POST /api/observe`. **관측 ≠ 판정**, 무응답·filtered는 DENY 후보를 만들지 않고, 붙여넣은 원문은 저장하지 않는다. 후속 3건(Nmap에 ping 낱줄 혼합, NBSP·전각 공백 거절, 거절 시 `target` 잔존).
-- **PR #15 사례 복제·실습 과제 템플릿 (병합 완료, `7b15fde`)**: 앱은 기대값·정답·채점을 만들지 않는다. 후속: 예시 버튼 제목이 풀이 원인을 드러내는 문제, 제목 길이 UTF-16/코드포인트 차이.
-- **PR #14 정책 검증 + 도달성 매트릭스 (병합 완료, `c0ab37e`)**: 엔진 `policy_matrix`, `POST /api/policy-matrix`, `#/matrix`. 상한 초과는 잘라 계산하지 않고 거절한다.
-- **PR #13 사례 목록 검색·필터·페이지 (병합 완료)**: 비ASCII 검색은 DB 의존.
-- **그 전**: PR #2 사례 URL 공유, PR #4 도달 못 한 목적지, PR #6 ACL 줄 하이라이트, PR #8·#11 유니코드/긴 숫자 `int()` 버그 — 모두 병합 완료.
-
-## 남은 작업 — 로드맵 (2026-09-30 확정, ADR-015)
-**정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
-**순환 고리**: ① 입력 → ② 판정·설명 → ③ 보안 점검 → ④ 실제 결과로 확인 → ⑤ 통계·학습 → ①. 모든 기능은 이 중 하나를 강화한다.
-**근거**: 강사님 피드백 — 목록 필터·검색·최적화 / 오탐·미탐 감지 / 시각화·하이라이트·색. 사용자가 "전부 넣는다"로 결정.
-**원칙**: 판정·점검·수정 후보는 모두 엔진 계산(ADR-001). 앱 안 LLM 설명은 계속 제외(ADR-002). 과제마다 설계 → 구현 → 리뷰 → 병합 한 바퀴. 같은 폴더에서 Codex 작업은 한 번에 하나(병행하려면 별도 worktree).
-
-**끝난 것**
-- [x] 협업 파일 도입 · [x] P1 사례 URL 공유(PR #2) · [x] 도달 못 한 목적지 표시(PR #4)
-- [x] `plan.md` 목표 변경 기록(ADR-015)
-
-**2주차 전반 (~10-04)**
-- [x] ACL 규칙 줄 하이라이트(이슈 #5 · PR #6 병합)
-- [x] 이슈 #7 유니코드 숫자 `ValueError`·500 수정(PR #8 병합, 이슈 #7 닫음)
-- [x] 이슈 #9 긴 숫자 `int()` 한도(PR #11 병합)
-- [x] 사례 목록 검색·필터·페이지(PR #13 병합)
-
-**2주차 (10-05~10-11)**
-- [x] 정책 검증 + 도달성 매트릭스 ★대표 — ③ (PR #14 병합 완료)
-- [x] 사례 복제·실습 과제 템플릿 — ① (PR #15 병합 완료)
-- [ ] ~~Cisco 설정 붙여넣기 ①`interface`/`ip address` ②`ip route`~~ — **제외(2026-10-05 사용자 확인: 수업은 Cisco·pfSense를 쓰지 않음)**. 대체 기능은 사용자 결정 대기
-
-**3주차 (10-12~10-18, 해커톤 1차 주말 — 가볍게)**
-- [x] 실제 결과 붙여넣기(ping·Nmap 출력 → 실제 결과 입력 후보) — ④ (PR #16 병합 완료, `309238d`)
-- [x] 오탐·미탐 대시보드 — ⑤ (PR #17 병합 완료, `6c7c9b1`)
-- [x] ACL 점검(가려진 규칙·중복·열린 범위) — ③ (PR #18 병합 완료, `c19f554`)
-- [x] 판정기 화면 개선(critique 23/40 우선 문제 5개) — ② **PR #21 병합 완료 `388a9cf`**, F5·F6은 PR #31(`74c5255`)로 처리
-- [ ] ~~Cisco 설정 붙여넣기 ③`access-list`/`ip access-group`~~ — **제외**(위와 같은 이유)
-- [x] **배포** — 2026-10-06 공개 주소 https://netproof-vert.vercel.app (가입·검토자 지정 확인은 사람 대기)
-
-**F5·F6 다음 기능 순서 (2026-10-05 사용자 합의 — 아래 4·5주차 목록의 순서를 대신한다)**
-수업은 Cisco·pfSense를 쓰지 않고 Cloudflare·Graylog·Wazuh·n8n·Kali Linux를 쓴다. 기능마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 11-01 기능 동결 원칙은 그대로다.
-1. [x] 변경 전/후 판정 비교 — ② PR #32 병합(`baf6501`)
-2. [x] NetProof 로그인 실패·계정 잠금 기록을 Graylog·Wazuh로 보내기(로컬 시연) + 학습실 Graylog·Wazuh 주제 + F26 — PR #33 병합(`0a53519`). 실제 수집은 수동 QA D(사람)
-3. [x] n8n 연동 예시 + 학습실 n8n 주제 + F27·F29 — PR #34 병합(`1fef9b6`). 실제 Docker n8n은 수동 QA E(사람)
-4. [x] 원인 태그·통계("가장 많이 틀린 원인 Top 5") — ⑤ PR #41 병합(`329e74c`). 운영 화면 확인은 검토자 계정 생성 뒤
-- [x] **pfSense 상태 추적 계산 1단계(이슈 #40, 순서 밖·수업 장비)** — PR #44 병합(`b050348`). 2단계 실습 연동은 D5 확인 뒤, 화면 입력은 후속
-5. [x] 불일치 사례 → 회귀 테스트 내보내기, 엔진 버전별 재판정 — ④ **PR #49 병합(`cd23e46`), 운영 재판정은 비밀번호 미확보·사용자 요청으로 보류. 비차단 N1 문구는 PR #50 병합(`d7dabff`)으로 해결**
-6. [x] 구성도 그림 + 경로 재생 — ② PR #52 병합(`802fd76`, 설계 #51 포함). [설계·제품 화면](docs/topology-playback-design.md)
-7. [x] 연습 문제 모드 다시 정의("채점" 없이, AGENTS.md 원칙) — ⑤ 「고치기 과제」로 정의. 설계 PR #53, 구현 PR #54 병합(`bfb7b4f`)
-8. [x] Batfish 차등 테스트(엔진 검증용, 수업과 거리 있어 낮춤) — ④ **PR #58 병합(`de56130`), R1·N1 수정 후 Claude 재리뷰 PASS. 정식 도구 1660건 결과·DENY 단계1511건 일치, 불일치0·종료0, 최초44건은 대응표 오류 수정, 엔진 변경 없음**
-- Kali: 기존 실제 결과 붙여넣기(PR #16, Nmap·ping)가 수업과 맞는다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
-
-**4주차 (10-19~10-25) — 사용자 테스트 주간, 기능은 병행** (항목은 위 순서로 옮김)
-- [x] 수정 후보 제안("무엇을 바꾸면 통하나") — ② **PR #19 병합 완료, 8be25a8**
-
-**6주차 (11-02~11-08)**: 버그 수정만, 2차 테스트, 발표·제출
-
-**사람 트랙 (동시에, LLM에 넘기지 않음)**
-- [ ] 동기 3명 인터뷰 · [ ] 실제 결과가 있는 사례 모으기(붙여넣기 기능의 재료) · [ ] 사례 04 손계산
-- [x] **수업 ACL이 Cisco인지 pfSense인지 확인** — 둘 다 아님(2026-10-05). 수업 도구는 Cloudflare·Graylog·Wazuh·n8n·Kali Linux 등 · [x] **오탐·미탐 양성 정의: 통신 차단(DENY)** · [ ] 표어 결정
-- [x] 배포(2026-10-06, 가입·검토자 지정 확인은 대기) · [ ] README 화면 다시 캡처(기능이 늘어난 뒤)
-
-**위험**: 4주차 전에 ①~⑤의 핵심(하이라이트·목록 필터·정책 검증·오탐/미탐·실제 결과 붙여넣기)이 끝나지 않으면 사용자 테스트가 흔들린다. 밀리면 4·5주차 항목부터 미룬다.
-
-- [x] **홈·학습실·헤더 MVP(2026-10-04 추가)** — ①② PR #23 병합(`82975e6`).
-- [x] **홈·학습실 개선(critique 27/40, 아이디어 A~D)** — ①② PR #24 병합(`b8bb8e8`).
-- [x] **홈·학습 2차(계산 범위 띠·퍼즐 주 행동·실습마다 예상·진입 카드 예상 바꾸기)** — ①② PR #25 병합(`397ee0d`).
-- [x] **비교 배너 톤·실습 흐름 다듬기** — ② PR #26 병합(`11c6ac2`).
-- [x] **후속 F15~F17 + 수동 QA 준비 도구·체크리스트** — ② PR #27 `2ad04a0`, QA 서버 동시 연결 PR #28 `8268789`. 수동 QA는 사람 대기.
-- [x] **실습 화면 + 라이트 기본(프로그래머스 벤치마크, 2차 설계)** — ①② PR #29 병합(`f034bff`).
-- [x] **휴대폰 구성 접기(F18·F4) + 실습 후속 F19~F23** — ①② PR #30 병합(`63515a6`).
-- [x] **판정기 알림·조사 정리(F5·F6)** — ② PR #31 병합(`74c5255`). 후속 F24·F25는 변경 전/후 과제에 포함
-- [x] **사례 게시판 학습형 UI 1차(2026-10-03 추가)** — ①②④ PR #20 사용자 지시로 병합(`c2a998d`). **사용자 G2/삭제 취소 수동 QA는 별도 대기 유지.**
-- [x] **프론트 전체 리디자인(2026-10-11 사용자 승인)** — PR #59 R1 수정 후 사용자 요청으로 main `d147af4` 병합·공개 배포 확인. [PR #59 화면 기록](docs/frontend-redesign.md).
-- [x] **독자 경로 작업대(2026-10-11 사용자 시안 승인)** — PR #60 main `cc9d8a5` 병합·공개 배포 확인. 사용자 요청 리뷰 PASS(지적0), 별도 독립 리뷰 수행 기록 없음. [새 화면 기준·제품 캡처](docs/path-workbench.md).
-- [x] **F2 용어 통일·F3 받은 답 입력/표시 정리** — PR #62 main `9fcde17` 병합. Claude 리뷰 PASS(차단0)·공개 JS/CSS 확인. 비차단 N1·N2는 위 현재 상태 참고. [상태표·범위·제품 캡처](docs/terminology-claim-design.md).
+## 남은 작업 — 로드맵 (ADR-015)
+- **정체성**: 네트워크 설정에 대한 답(AI·사람)을 계산으로 검증하고, 왜 그런지 보여 주고, 실제 결과로 그 검증까지 검증하는 실습실.
+- **순환 고리**: ① 입력 → ② 판정·설명 → ③ 보안 점검 → ④ 실제 결과로 확인 → ⑤ 통계·학습 → ①. 모든 기능은 이 중 하나를 강화한다.
+- **원칙**: 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 앱 안 LLM은 계속 제외(ADR-002). 같은 폴더에서 Codex 작업은 한 번에 하나(병행하려면 별도 worktree).
+- **일정**: 11-01 기능 동결. 6주차(11-02~11-08)는 버그 수정·2차 테스트·발표·제출만.
+- **완료**: 2026-10-05 합의한 F5·F6 다음 기능 순서 1~8과 홈·학습·사례·리디자인 과제는 모두 병합했다([지난 과제](#지난-과제)).
+- **다음 후보(사용자 결정)**: pfSense 2단계 실습 연동. Cisco 설정 붙여넣기는 "수업은 Cisco·pfSense를 쓰지 않음"(2026-10-05)으로 제외했다. 팀 캡스톤 실습망은 pfSense를 쓰므로 pfSense 쪽 우선순위는 사용자가 다시 정한다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
 
 ## 다음 LLM이 확인할 내용
-- **사용자:** 운영 DB rejudge는 보류 중이다. 비밀번호 확보 뒤 재개하며 주소는 가려진 입력으로만 받는다. Vercel DATABASE_URL의 Production and Preview 적용을 Production 전용으로 변경한다(Codex는 설정을 바꾸지 않음).
-- **Claude(다음 과제 시작):** PR #62 F2·F3는 리뷰 PASS 후 main `9fcde17`에 병합됐다. 비차단 N1은 HANDOFF의 지난 작업 정의를 요약으로 접는 문서 정리다. 과거 회귀·리뷰 근거는 Git 이력·작업 로그에서 찾을 수 있게 한다. N2 대시보드 받은 답 축 표현은 사용자 수동 QA 판단 후 설계한다.
-- **Claude(리뷰):** 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다.
-- **사용자:** D5(실습 사실)를 주면 2단계를 설계한다. 그다음 기능도 사용자가 정한다. 배포 후속(가입·사례 저장·로그아웃·검토자 지정·Vercel 환경 변수)과 수동 QA A~E는 사람이 확인한다.
-- **다음 설계자(Claude):** pfSense 규칙은 `docs/semantics.md` §14와 ADR-016이 기준이다. **모르면 판정 불가**가 이 기능의 핵심 합의다. 실제 장비와 대조하기 전에는 일치한다고 적지 않는다.
-- **다음 설계자(Claude):** 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴다. 원인 태그 규칙은 `docs/semantics.md` §13이 기준이고 바꾸려면 먼저 요청한다. 원인은 판정이 아니다.
-- **검토자 지정(7단계):** `make-reviewer`는 `netproof` 계정 연결 주소로 실행한다(`docs/deploy.md` 7). 주소는 채팅·명령줄·캡처에 넣지 않는다.
-- **배포 흐름:** `main`에 병합하면 바로 운영에 나간다. 리뷰 원칙은 그대로이고, 병합 뒤 공개 주소에서 바뀐 화면·API를 한 번 확인한다.
-- **t08 Postgres 오류:** 배포 전 t08 대시보드에 최근 60분 Postgres 오류 111건이 일정한 간격으로 보였다(NetProof와 무관, 원인 미확인). 사용자가 Supabase Logs에서 확인한다.
-- **남은 후속:** F28 change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB)은 별도 후속. F2·F3는 PR #62 병합 완료이며 비차단 N1·N2와 사용자의 수동 QA는 남았다.
-- 접기는 CSS(`.mobile-fold`)로만 하고 React로 `open`을 관리하지 않는다. 넓은 화면은 지금과 같아야 한다. 판정기는 접지 않는다.
-- 실습 입력은 `practiceDrafts`에만 두고 판정기 `draft`는 `판정기로 가져가기`(기존 되돌리기) 때만 바꾼다. 실습 판정은 verify, ⑤ 기록은 기존 createCase를 부르고 서버가 재판정해 저장한다. 승인된 다른 통신 영향은 단추로 change-impact를 요청하고 비교·분류를 화면에서 다시 계산하지 않는다(ADR-001). 정답·채점·완료 표시를 만들지 않는다.
-- 첫 방문 안내 줄과 테마의 localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다.
-- 수동 QA 결과는 사람이 `docs/qa-manual.md`로 기록한다. AI가 대신 완료로 바꾸지 않는다.
-- 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)을 바꾸고 싶으면 먼저 요청한다.
-
-## 사용자 수동 QA 대기 (배포 확인 + PR #20 G2·삭제 취소 + 홈·실습 흐름 + 수업 도구)
-- **배포 6단계(가입·사례 저장·로그아웃)·7단계(검토자 지정): 사람 확인 대기.** Claude의 공개 주소 점검은 로그인 없이 할 수 있는 것만이다.
-- **A(PR #20 G2)·B(실제 기본 확인창 삭제 취소)·C(홈·실습 흐름): 사용자 수동 확인 대기.** 도구 실행 확인과 F15·F17 구현 검증은 수동 QA 통과가 아니다.
-- 병합 뒤 [체크리스트](docs/qa-manual.md)와 `scripts/qa_local.py`로 사람이 직접 확인한다. 결과는 사람이 PR 코멘트나 이 절에 적는다. 비밀번호·쿠키·토큰은 기록하지 않는다.
-- 원칙: 임시 DB·합성 계정/사례만 쓴다. 실제 기본 확인창을 대체·우회하지 않는다. 비밀번호·쿠키·토큰을 기록하지 않는다. 확인한 항목만 완료로 바꾼다.
-- C에 변경 전/후 항목을 더했다(PR #32). `판정기로 가져가기` 항목은 빈 판정기에서 알림이 없다는 점(PR #31 F5)을 반영해 고쳤다(PR #32 리뷰).
-- D(수업 환경의 Graylog·Wazuh 실제 수집·검색·경보)는 체크리스트에 신설했고 **사용자 확인 대기**다. AI의 로컬 파일·UDP 확인은 실제 도구 수집 확인이 아니다.
-- E(수업 Docker n8n에서 예시 워크플로 가져오기·실행)는 체크리스트에 신설했고 **사용자 확인 대기**다. AI의 API·스크립트 대역 검사는 실제 n8n 실행 확인이 아니다.
-
-## 주의사항 / 미해결 이슈
-- 관계없는 줄바꿈 변경 금지.
-- **점검 ≠ 판정.** ACL 점검은 PASS/DENY를 만들거나 바꾸지 않는다. PASS/DENY는 `engine/`의 `verify`가 정한다(ADR-001).
-- **추측하지 않는다.** 한도 초과·해석 못 한 줄 때문에 결론을 낼 수 없으면 "점검 못 함"이다. "문제 없음"으로 바꾸지 않는다.
-- **과도함은 경고하지 않는다**(사용자 결정). 열린 범위를 사실로만 적는다.
-- **양성은 통신 차단(`DENY`)이다**(사용자 확정, PR #17). 오탐 = 막힌다고 했는데 실제로 통함, 미탐 = 통한다고 했는데 실제로 막힘.
-- **관측 ≠ 판정.** 무응답·filtered는 DENY의 증거가 아니다. 붙여넣은 원문은 저장하지 않는다.
-- 앱은 기대값·정답·채점을 만들지 않는다(AGENTS.md). 기존 `expect`·`cases/*.json`을 바꾸지 않는다.
-- 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 되돌아온다. 점검은 `parse_acl` 결과만 쓰므로 새 숫자 변환을 만들지 않는다.
-- 이전 PR #12의 별도 버그(strict xfail 두 건), Hypothesis 하한 문제는 별도 후속 범위.
-- PR #15·#16·#17의 다른 후속(위 이전 과제 기록)은 이번 범위가 아니다. PR #15 후속 "예시 버튼 제목이 풀이 원인을 드러냄"은 PR #24의 사용자 승인 R3로 JudgePage 예시 단추 표시만 수정했다. 이번에도 cases JSON·서버·다른 화면의 제목은 그대로다.
-- **worktree에서 서버 테스트(F27):** server/pyproject.toml의 pythonpath에 ../engine/src를 추가해 PYTHONPATH 없이 해당 worktree 엔진을 쓴다. 이번 전체 실행과 경로 assert로 확인했다.
-- **표시 ≠ 판정.** 판정기 개선은 엔진이 준 `result`·`comparison`·`problems`를 보여 주는 방식만 바꾼다.
-- **NetProof DB는 t08 프로젝트에 기대어 있다.** t08을 멈추거나 지우면 NetProof도 멈춘다. Supabase 무료 프로젝트는 오래 쓰지 않으면 멈출 수 있고, 멈춘 지 90일이 지나면 다시 켤 수 없다. t08의 DB 비밀번호를 바꿔도 NetProof는 영향이 없다. `netproof` 비밀번호를 바꾸면 Vercel `DATABASE_URL`도 바꾸고 다시 배포한다.
-- 주 작업 폴더(`C:/gov/project/skt aleph/netproof`)는 이제 `main`이다. 2026-10-05까지 `codex/acl-suggest`에 머물러 있어서 공유 venv가 옛 엔진을 불러왔다.
-- [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 현재 상태는 이 문서가 기준이다.
-- 날짜별 작업 정리: [10-04 ~ 10-06 첫 배포](docs/work-summary-2026-10-04_06.md), [10-06 배포 이후](docs/work-summary-2026-10-06.md).
-
-2026-10-06 당시 pfSense 상태 추적 1단계 설계: Claude Opus 5(사용자 승인). 구현·수정: Codex (GPT-6). 이후 PR #44는 재리뷰 PASS·병합 완료했고 실제 장비 대조는 대기다. 원인 태그·통계 설계·리뷰: Claude Opus 5, 구현: Codex (GPT-6), PR #41은 2026-10-06 병합 완료. 현재 과제와 다음 차례는 문서 맨 위를 따른다. 결정·병합: 사용자.
-이전 배포 작업: 단계 안내·DB 준비 스크립트·공개 주소 점검·문서 Claude (Claude Opus 5.5). 가입·SQL 실행·Vercel 입력·병합: 사용자.
-
-## 프로젝트 소개·회고 문서 (2026-10-06)
-
-- 사용자 요청: 대화에서 정리한 NetProof 소개와 다섯 단계 회고를 Markdown으로 저장한다. 이번 문서 작업은 사용자가 직접 요청한 별도 범위다.
-- 브랜치: `codex/project-retrospective`, 기준 `main` `329e74c`.
-- 결과물: [프로젝트 소개와 개발 과정 회고](docs/netproof-retrospective-2026-10-06.md).
-- 내용: 문제 발견 → 접근 → 시행착오 → 피드백 반영 → 배운 점, 내부 네트워크 수업 구성, 구현 상태와 pfSense 계획 구분, 설명용 짧은 소개와 근거 링크.
-- 최신화: GitHub에서 PR #41의 병합(`2026-10-06T03:22:38Z`)을 확인해 회고에 반영했다. 공개 사이트의 신규 기능 반영은 이번 작업에서 확인하지 않았다. 위 원인 태그 과제 기록은 별도 이력으로 유지한다.
-- 제품 코드·화면 변경 없음. pfSense 설계나 구현을 수행하지 않았고, 실제 실습·사람의 수동 QA를 완료로 바꾸지 않았다.
-- 상태: `main`에 들어갔다(`5199532`). Claude 확인(2026-10-06): 링크 8개 유효, AI 답 기록 16행(CLCO 12 + qwen3.5:9b 4)·판정 불일치 0건, 합성 사례 3개로 본문과 맞는다. **고칠 곳 두 군데** — ① 「원인 태그·불일치 원인 Top 5」의 "공개 사이트 반영 미확인"은 **반영 확인됨**(번들 해시가 리뷰 때 빌드한 것과 같다) ② "HANDOFF에 병합 대기 문구가 남아 있다"는 PR #42에서 해소됐다. 작성자가 고친다.
-
-실제 실행한 테스트 출력(2026-10-06):
-
-```text
-cd engine && ../.venv/Scripts/python -m pytest -q
-382 passed, 2 xfailed in 4.45s
-
-cd server && ../.venv/Scripts/python -m pytest -q
-149 passed, 1 skipped in 26.65s
-
-npm --prefix web test
-Test Files  32 passed (32)
-     Tests  440 passed (440)
-  Duration  2.52s (transform 52%, import 30%, tests 10%, worker 8%)
-```
-
-`git diff --check` 오류 없음. 화면을 변경하지 않아 web build는 실행하지 않았다.
-
-Codex (GPT-6)
+- **worktree에서 서버 테스트(F27)**: `server/pyproject.toml`의 pythonpath에 `../engine/src`가 있어 PYTHONPATH 없이 그 worktree 엔진을 쓴다.
+- 테스트·QA 자식 프로세스에서는 `DATABASE_URL`·`NETPROOF_TEST_DATABASE_URL`·`NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG`를 비운다. QA는 `scripts/qa_local.py`의 127.0.0.1·임시 SQLite만 쓴다.
+- 기본 venv에는 선택 의존성 pybatfish가 없어 서버 1 skip이 정상이다. 엔진 2 xfail은 PR #12의 strict xfail이다.
+- 주 작업 폴더(`C:/gov/project/skt aleph/netproof`)는 `main`이다.
+- [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 날짜별 정리: [10-04~06 첫 배포](docs/work-summary-2026-10-04_06.md), [10-06 배포 이후](docs/work-summary-2026-10-06.md), [10-08](docs/work-summary-2026-10-08.md), [회고 10-06](docs/netproof-retrospective-2026-10-06.md).
