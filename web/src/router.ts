@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { lessonById, lessonByCaseId } from "./learning";
 import { toolTopicById } from "./toolTopics";
 import { exerciseById } from "./exercises";
+import { breachById } from "./breach";
 
 export type Route =
   | { page: "home" }
@@ -9,6 +10,7 @@ export type Route =
   | { page: "judge"; share?: string }
   | { page: "practice"; caseId: string }
   | { page: "fix"; id: string }
+  | { page: "breach"; id: string }
   | { page: "matrix" }
   | { page: "login" }
   | { page: "cases"; query?: string }
@@ -24,6 +26,7 @@ export function parseRoute(hash: string): Route {
   if (path === "/home") return { page: "home" };
   if (path === "/learn") return { page: "learn" };
   if (path.startsWith("/fix/")) return exerciseById(path.slice(5)) ? { page: "fix", id: path.slice(5) } : { page: "learn" };
+  if (path.startsWith("/breach/")) return breachById(path.slice(8)) ? { page: "breach", id: path.slice(8) } : { page: "learn" };
   if (path.startsWith("/learn/") && (lessonById(path.slice(7)) || toolTopicById(path.slice(7)))) return { page: "learn", lessonId: path.slice(7) };
   if (path.startsWith("/practice/") && lessonByCaseId(path.slice(10))) return { page: "practice", caseId: path.slice(10) };
   if (path === "/") return { page: "judge" };

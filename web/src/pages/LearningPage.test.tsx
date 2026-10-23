@@ -4,6 +4,7 @@ import { LearningPage } from "./LearningPage";
 import { LESSONS } from "../learning";
 import { TOOL_TOPICS, TOOL_NOTICE, SECURITY_EXAMPLE, SECURITY_DOC } from "../toolTopics";
 import { EXERCISES } from "../exercises";
+import { BREACHES } from "../breach";
 
 it("학습실 고치기 과제에는 합성 안내·제목·설명·시작 링크만 있다", () => {
   const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
@@ -11,6 +12,14 @@ it("학습실 고치기 과제에는 합성 안내·제목·설명·시작 링�
   expect(section).toContain("합성 구성"); expect(section.match(/시작하기 →/g)).toHaveLength(3);
   for (const exercise of EXERCISES) { expect(section).toContain(exercise.title); expect(section).toContain(exercise.prompt); expect(section).toContain(`href="#/fix/${exercise.id}"`); }
   expect(section).not.toMatch(/완료|성공|정답|점수|%|badge|access-list/);
+});
+
+it("학습실 침해 가정 실습은 고치기 과제 위에 제목·과제·시작 링크만 보인다", () => {
+  const html = renderToStaticMarkup(createElement(LearningPage, { onGuess: () => {} }));
+  const section = html.slice(html.indexOf("<h2>침해 가정 실습"), html.indexOf("<h2>고치기 과제"));
+  expect(html.indexOf("<h2>침해 가정 실습")).toBeGreaterThan(-1);
+  for (const item of BREACHES) { expect(section).toContain(item.title); expect(section).toContain(item.task); expect(section).toContain(`href="#/breach/${item.id}"`); }
+  expect(section).not.toMatch(/완료|성공|정답|점수|%|badge/);
 });
 
 it("목록의 세 연습 주제는 축소 구성도와 상세 링크를 보인다", () => {

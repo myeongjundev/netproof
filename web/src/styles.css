@@ -666,6 +666,11 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .topology-device[aria-pressed="true"] { background: var(--gray-bg); }
 .topology-device.current { border: 2px solid var(--accent); }
 .topology-device.drop { border-color: var(--deny); }
+/* 침해 가정 실습: 뚫림은 차단과 같은 위험색, 닿음·판정 불가는 경고색, 안 닿음은 중립 */
+.topology-device.mark-breached { border: 2px solid var(--deny); background: var(--deny-bg); }
+.topology-device.mark-reach, .topology-device.mark-unknown { border: 2px solid var(--warn); background: var(--warn-bg); }
+.topology-device.mark-breached .topology-position { color: var(--deny); font-weight: 700; }
+.topology-device.mark-reach .topology-position, .topology-device.mark-unknown .topology-position { color: var(--warn); font-weight: 700; }
 .topology-position { min-height: 19px; }
 .topology-subnet { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 6px; font-size: 12px; text-align: center; }
 .topology-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
@@ -690,6 +695,18 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .fix-fact { border-top: 1px solid var(--line); padding-top: 16px; }
 .fix-exercise .practice-problem { grid-template-columns: 1fr; }
 .fix-exercise .practice-config { margin-top: 20px; }
+/* 침해 가정 실습 */
+.breach-roles, .breach-guess ul, .breach-targets { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 8px; }
+.breach-roles li, .breach-target { overflow-wrap: anywhere; }
+.breach-guess { min-width: 0; }
+.breach-guess legend { font-size: 18px; font-weight: 700; color: var(--ink); padding: 0 4px; }
+.breach-guess li { border-top: 1px solid var(--line); padding-top: 10px; }
+.breach-guess-options { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.breach-guess-options label { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); font-size: 14px; min-height: 36px; }
+.breach-total { font-size: 18px; font-weight: 700; margin: 4px 0 0; }
+.breach-target { border-top: 1px solid var(--line); padding-top: 8px; }
+.breach-target.reach > p strong { color: var(--warn); }
+.breach-services { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }
 @media(pointer: coarse) { .trace-player button, .topology-inventory summary { min-height: 44px; } }
 @media (max-width: 380px) {

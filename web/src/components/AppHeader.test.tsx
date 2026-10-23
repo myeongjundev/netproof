@@ -4,7 +4,7 @@ import { AppHeader } from "./AppHeader";
 import type { User } from "../types";
 
 const user: User = { id: 1, nickname: "동기", role: "user", role_name: "사용자" };
-it.each([{ page: "practice", caseId: "synthetic-01" }, { page: "fix", id: "fix-01" }] as const)("실습·고치기 화면은 학습실 탭만 현재 화면으로 표시한다: $page", route => {
+it.each([{ page: "practice", caseId: "synthetic-01" }, { page: "fix", id: "fix-01" }, { page: "breach", id: "breach-01" }] as const)("실습·고치기·침해 가정 화면은 학습실 탭만 현재 화면으로 표시한다: $page", route => {
   const html = renderToStaticMarkup(createElement(AppHeader, { route, user: null, checked: true, onLogout: () => {} }));
   expect(html).toContain('href="#/learn" class="tab on" aria-current="page"');
   expect(html).not.toContain('href="#/" class="tab on"');

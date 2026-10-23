@@ -19,7 +19,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업: **방화벽(상태 추적) 화면 입력**(아래 작업 정의). 사용자 방향(2026-10-23): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. pfSense 2단계 중 팀 실습망 대조(D5)는 질문 답이 필요해 이번 범위에서 뺐다.
+- 작업(2026-10-24): **침해 가정 실습 구현 완료** — `claude/breach-practice`(PR #66, 설계+구현). 아래 "설계 — 침해 가정 실습"·작업 정의·테스트 결과가 기준이다. PR 순서는 #64 → #65 → #66이다.
+- 다음 차례(침해 가정): **사용자(병합 순서대로 결정, 화면 직접 확인).** 후속 후보: 2차 확산("닿은 장비도 뚫렸다고 가정"), 정책 검증 화면의 "이 장비가 뚫리면" 보기.
+- 직전 작업: **방화벽(상태 추적) 화면 입력**(아래 작업 정의, PR #65). 사용자 방향(2026-10-23): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. pfSense 2단계 중 팀 실습망 대조(D5)는 질문 답이 필요해 이번 범위에서 뺐다.
 - 브랜치: `claude/firewall-input`, `claude/handoff-fold`(PR #64, HANDOFF 접기)에서 분기. **PR #64를 먼저 병합해야 한다.**
 - 제품 상태: main은 PR #62까지 반영, 엔진 0.2.0. 공개 배포는 2026-10-11에 JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`가 리뷰한 빌드와 SHA256까지 같음을 확인했다(로그인·저장·수동 QA 완료를 뜻하지 않음).
 - 다음 차례: **사용자(PR #64 → 이 PR 순서로 병합 결정, 화면 직접 확인, pfSense 2단계 질문 답변).** 구현·테스트·실브라우저 확인은 끝났다(아래 테스트 결과). 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
@@ -27,13 +29,79 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 
 ## 설계 — 침해 가정 실습 (2026-10-24 사용자 "설계해 줘 · 너가 판단해줘")
 
-- 설계 문서: [docs/breach-practice-design.md](docs/breach-practice-design.md). 브랜치 `claude/breach-practice`는 `claude/firewall-input`(PR #65) 위에서 분기했다. **구현 전이며 사용자 승인을 기다린다.**
+- 설계 문서: [docs/breach-practice-design.md](docs/breach-practice-design.md). 브랜치 `claude/breach-practice`는 `claude/firewall-input`(PR #65) 위에서 분기했다. 승인 뒤 구현했다(아래 테스트 결과).
 - 요지:
   - 학습실의 새 실습 `#/breach/breach-01` "학교 홈페이지가 뚫렸다면". 학생은 ① 상황 → ② 장비별 예상 → ③ 피해 범위 지도(구성도 표시 + 장비별 서비스 목록, 처음 구성에 대한 예상과 계산 비교) → ④ 방화벽 규칙 고치기 → ⑤ 전/후 피해 범위·지켜야 할 서비스 3개·바뀐 통신 순서로 간다.
   - 새 엔진·서버 API는 없다. `policy-matrix`·`change-impact`·`verify`만 쓴다.
   - 처음 구성은 `web/src/breach.json`에 두고, 참고 구성은 서버 시험에만 둔다.
 - 엔진 0.2.0으로 미리 계산해 확인했다(저장소 밖 임시 스크립트): 처음 구성은 WEB에서 3곳·15서비스, 지켜야 할 서비스 3개 통과 / em1을 WEB→DB 3306 하나로 줄이면 1개, 서비스 3개 통과 / em1을 모두 막으면 0개, 하지만 `WEB → DB` MySQL이 막힘.
-- 다음 차례: **사용자(설계 승인 또는 수정 요청).** 승인되면 Claude가 같은 브랜치에서 구현한다(Claude 단독 예외 유지).
+- 사용자 승인(2026-10-24 "설계 승인. 이대로 구현 시작해 줘"). Claude가 같은 브랜치에서 구현한다(Claude 단독 예외 유지).
+
+### 작업 정의 — 침해 가정 실습 구현 (계획)
+기준은 설계 문서다. 아래는 파일과 이름만 정한 계획이다.
+
+1. **실습망 데이터와 서버 시험**: 새 `web/src/breach.json`(설계 §3·§6), 새 `server/tests/test_breach_scenarios.py`(엔진 `policy_matrix` 직접 호출).
+   - 형식: 키, 주소, 서비스.
+   - 처음 구성: 지켜야 할 서비스 모두 `AGREE`, 뚫린 장비에서 닿는 장비 3곳 이상.
+   - 참고 구성(시험 파일에만 둠): 지켜야 할 서비스 모두 `AGREE`, 닿는 곳 `{(10.0.20.10, tcp/3306)}`.
+   - em1 규칙 삭제: `WEB → DB` MySQL만 `BLOCKED`.
+2. **계산 도우미** `web/src/breach.ts`·테스트:
+   - `BREACHES`, `breachById(id)`, `breachSpec(s): MatrixSpec`, `breachDraft(s): Draft`, `layoutFlow(draft, breached): Flow`
+   - `reach(matrix, breached): { found; targets: { device, cells }[]; undecided: MatrixCell[]; count }` — 엔진 `endpoints`로 장비를 묶고, PASS만 닿음
+   - `guessText(guess, reached)`, `keepText(cell)`, `splitChanges(impact, breached)`, `reachMarks(scenario, result)`
+3. **구성도 표시**: `NetworkDiagram`에 선택 속성 `marks?: Record<string, { tone: "breached" | "reach" | "safe"; text: string }>`. 재생 단계가 없을 때만 칸에 글과 `mark-<tone>` class를 붙인다. CSS·정적 렌더 시험.
+4. **화면과 연결**:
+   - 새 `pages/BreachPage.tsx`: 고치기 과제와 같은 revision·이전 결과·늦은 응답 규칙. 확인하기 한 번에 지금 구성 매트릭스 + `change-impact`를 요청하고, 처음 구성 매트릭스는 한 번만 요청해 둔다.
+   - `router.ts`의 `#/breach/:id`, `App.tsx`의 `breachDrafts`·제목 포커스·판정기로 가져가기, `LearningPage`의 "침해 가정 실습" 구역, 시험.
+5. **확인**: 기존 엔진 489+2xfail·서버 227+1skip·웹 753 유지 + 신규, 빌드, 금지 경로(`engine/`·`server/netproof_api/`·`scripts/`·`cases/`·`api/`·의존성·`vercel.json`) diff 0, 실브라우저(설계 §9-4), 문서·작업 로그·PR #66 갱신.
+
+### 테스트 결과 — 침해 가정 실습 (Claude 직접 실행, 2026-10-24)
+
+자식 프로세스의 DATABASE_URL·NETPROOF_TEST_DATABASE_URL·NETPROOF_SECURITY_LOG·NETPROOF_SYSLOG를 비웠다. 진행 점·폰트 자산 목록·Vitest 성능 안내만 생략했다.
+
+```text
+cd engine && ../.venv/Scripts/python -m pytest -q
+489 passed, 2 xfailed in 5.27s
+
+cd server && ../.venv/Scripts/python -m pytest -q
+231 passed, 1 skipped in 56.56s
+
+npm --prefix web test
+RUN v5.0.2 C:/gov/project/skt aleph/netproof/web
+Test Files 52 passed (52)
+Tests 785 passed (785)
+
+npm --prefix web run build
+dist/assets/index-BMXKaoYR.css 90.93 kB │ gzip: 24.42 kB
+dist/assets/index-CF8k2fco.js 420.04 kB │ gzip: 124.11 kB
+✓ built in 233ms
+
+git diff --check
+(출력 없음, 종료0)
+
+git diff --numstat claude/firewall-input -- engine/ server/netproof_api/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(출력 없음, 종료0)
+```
+
+- **신규 시험**: 서버 4건, 웹 32건.
+  - 서버 `test_breach_scenarios.py`: 데이터 형식, 처음 구성(지켜야 할 서비스 AGREE·3곳 이상), 참고 구성(지켜야 할 서비스 AGREE·DB MySQL 하나), em1 전부 차단(WEB→DB MySQL만 BLOCKED).
+  - 웹, 엔진 응답 fixture 사용: 피해 범위 고르기·묶기, 판정 불가 분리, 뚫린 장비 없음, 예상 문구, 지켜야 할 서비스 문구, 바뀐 통신 나누기.
+  - 웹, 구성도: 표시 class, 첫 층 배치, 경로 재생과의 분리.
+  - 웹, `BreachPage`(훅 대역 드라이버): 확인 전 요청 0, 첫 확인의 요청 본문, 처음 구성 재요청 없음, 전/후·지켜야 할 서비스·변화 14건, 근거 흐름, 뚫린 장비 삭제, 늦은 응답 폐기, 가져가기 복사본.
+  - 웹, 주소·탐색·학습실.
+- **실브라우저**(`scripts/qa_local.py` 127.0.0.1:4870·임시 SQLite, 빌드 `index-CF8k2fco.js`):
+  1. 학습실 "침해 가정 실습" 카드 → 화면 진입 시 제목에 포커스.
+  2. 예상(OUTSIDE 안 닿음·DB 닿음·ADMIN 안 닿음) → 확인: `처음 구성 3곳 · 서비스 15개 → 지금 3곳 · 서비스 15개`. 예상 비교는 다름·같음·다름. 구성도는 WEB 뚫림, 나머지 셋 닿음 · 서비스 5개. 지켜야 할 서비스 3개는 그대로 됩니다.
+  3. em1 1번 규칙을 `TCP 10.0.10.10 → 10.0.20.10:3306`으로 고침 → 결과에 "이전 결과" 표시 → 확인: `… → 지금 1곳 · 서비스 1개`, 지켜야 할 서비스 3개 그대로, WEB에서 시작하는 변화 14건(새로 막힘), 그 밖의 변화 0건.
+  4. "MySQL 근거 보기" → 통과, 규칙 `통과 · TCP · 10.0.10.10 → 10.0.20.10:3306`, 미대조 문구 1회.
+  5. em1 규칙 삭제 → 확인: `지금 0곳 · 서비스 0개`, `WEB → DB · MySQL · 막혔습니다`.
+  6. 처음 구성으로 → 되돌리기 단추·이전 결과 표시. 판정기로 가져가기 → 판정기에 장비 5대·FW 방화벽 규칙 3개.
+  7. 320px 라이트·다크와 1280px 라이트에서 본문 가로 넘침 0. 콘솔 오류 0, 서버 오류 로그 0.
+- **하지 않은 것·제한**:
+  - 375px은 브라우저 창이 가려져 크기 강제가 적용되지 않아 측정하지 못했다(같은 휴대폰 배치 구간인 320px로 갈음).
+  - 같은 이유로 캡처가 깨져 문서용 캡처는 저장하지 않았다.
+  - 768px 태블릿, 사람의 수동 QA, 실제 장비 대조는 하지 않았다. 같은 모델의 자체 점검이며 독립 리뷰가 아니다.
+  - QA 종료 뒤 임시 폴더(qa.db 1개)를 경로 접두사 확인 후 지웠다(남은 폴더 0, 4870 대기 0).
 
 ## 작업 정의 — 방화벽(상태 추적) 화면 입력 (2026-10-23 사용자 "구현 시작하자")
 
