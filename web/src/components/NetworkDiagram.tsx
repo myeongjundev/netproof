@@ -51,7 +51,7 @@ export function NetworkDiagram({ network, flow, trace, index, selectedDevice, on
           return <button type="button" key={key} data-topology-key={key} aria-label={`${node.label} 장비 보기`}
             aria-pressed={selectedDevice === node.device.id} className={`topology-device${current ? " current" : ""}${current && hop.result === "drop" ? " drop" : ""}`}
             onClick={() => onSelectDevice(node.device!.id)}>
-            <strong>{node.label}</strong><span>{node.device.kind === "host" ? "호스트" : node.device.kind === "router" ? "라우터" : node.device.kind}</span>
+            <strong>{node.label}</strong><span>{node.device.stateful ? "방화벽" : node.device.kind === "host" ? "호스트" : node.device.kind === "router" ? "라우터" : node.device.kind}</span>
             <span className="topology-position">{current ? hop.result === "drop" ? "× 차단" : hop.step === "deliver" ? "✓ 도착" : `● ${index + 1}단계` : unreached ? "도달 못 함" : ""}</span>
           </button>;
         })}

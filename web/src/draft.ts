@@ -1,4 +1,4 @@
-import type { CaseItem, Draft, Network } from "./types";
+import type { CaseItem, Draft, FirewallRule, Network } from "./types";
 
 export const EMPTY_CLAIM = { expected: null, source: "", text: "" } as const;
 
@@ -37,15 +37,35 @@ export function toNetwork(draft: Draft): Network {
     ...device,
     gateway: device.kind === "host" && device.gateway?.trim() ? device.gateway.trim() : undefined,
     routes: device.kind === "router" ? (device.routes ?? []).filter((r) => r.prefix.trim()) : undefined,
-    interfaces: device.interfaces.map((iface) => ({
+    // 상태 추적 장비는 acl 키가 있으면 엔진이 INVALID로 거절한다. 라우터일 때 고른 ACL은 입력에만 남긴다.
+    interfaces: device.interfaces.map((iface) => device.stateful ? {
+      name: iface.name,
+      ip: iface.ip.trim(),
+      // 저장된 사례는 형식이 틀릴 수 있다. 목록이 아니면 그대로 보내 엔진이 INVALID로 알린다.
+      ...(iface.rules_in && { rules_in: Array.isArray(iface.rules_in) ? iface.rules_in.map(sendRule) : iface.rules_in }),
+      ...(iface.default_in && { default_in: iface.default_in }),
+    } : {
       name: iface.name,
       ip: iface.ip.trim(),
       // 이름이 비어 사라진 ACL을 가리키면 엔진이 INVALID로 알려 준다. 빈 선택만 걸러 낸다.
       acl_in: iface.acl_in ? iface.acl_in : null,
       acl_out: iface.acl_out ? iface.acl_out : null,
-    })),
+    }),
   }));
   return { devices, acls };
+}
+
+/** 빈 포트 칸은 "제한 없음"이라 뺀다. 모르는 키는 지우지 않아 엔진이 판정 불가로 알린다. */
+function sendRule(rule: FirewallRule): FirewallRule {
+  if (typeof rule !== "object" || rule === null) return rule;
+  const sent = { ...rule };
+  for (const key of ["src", "dst"] as const) if (typeof sent[key] === "string") sent[key] = sent[key].trim();
+  for (const key of ["src_port", "dst_port"] as const) {
+    const port = sent[key];
+    if (typeof port === "string" && port.trim()) sent[key] = port.trim();
+    else if (typeof port !== "number") delete sent[key];
+  }
+  return sent;
 }
 
 export function fromCase(item: CaseItem): Draft {

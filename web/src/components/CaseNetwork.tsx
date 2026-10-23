@@ -20,6 +20,8 @@ export function CaseNetwork({ network, flow }: { network: Network; flow: Flow })
                 <code>{iface.name} · {iface.ip}</code>
                 {iface.aclIn && <span className="meta">들어올 때 ACL: {iface.aclIn}</span>}
                 {iface.aclOut && <span className="meta">나갈 때 ACL: {iface.aclOut}</span>}
+                {iface.rules && <span className="meta">들어오는 규칙 {iface.rules.length}개 · 안 맞으면 {iface.defaultIn}</span>}
+                {iface.rules && iface.rules.length > 0 && <ol className="fw-case-rules">{iface.rules.map((text, i) => <li key={i}><code>{text}</code></li>)}</ol>}
               </li>)}
             </ul>
             {device.gateway && <p>게이트웨이: <code>{device.gateway}</code></p>}

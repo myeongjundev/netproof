@@ -1,6 +1,8 @@
 import type { CaseFilters, CaseSummary, Flow, Network } from "./types";
 import { ACTUAL_TEXT, ANSWER_TEXT, COMPARISON_TEXT, RESULT_TEXT, claimComparisonText, claimKindText } from "./displayText";
 
+import { DEFAULT_TEXT, firewallRuleText } from "./firewall";
+
 export { claimKindText } from "./displayText";
 
 export function comparisonCaption(item: Pick<CaseSummary, "comparison" | "claim_kind">): string {
@@ -19,10 +21,15 @@ const present = (value?: string | null): string | null => value?.trim() || null;
 export function networkView(network: Pick<Network, "devices"> & Partial<Pick<Network, "acls">>) {
   const devices = network.devices.map((device) => ({
     id: device.id,
-    kind: device.kind === "host" ? "호스트" : "라우터",
+    kind: device.stateful ? "방화벽(상태 추적)" : device.kind === "host" ? "호스트" : "라우터",
     gateway: present(device.gateway),
     interfaces: device.interfaces.map((iface) => ({
       name: iface.name, ip: iface.ip, aclIn: present(iface.acl_in), aclOut: present(iface.acl_out),
+      // 저장된 입력을 그대로 보인다. 형식이 틀린 규칙 목록도 숨기지 않고 원문으로 보인다.
+      ...(device.stateful && {
+        rules: Array.isArray(iface.rules_in) ? iface.rules_in.map(firewallRuleText) : iface.rules_in == null ? [] : [JSON.stringify(iface.rules_in)],
+        defaultIn: DEFAULT_TEXT[iface.default_in ?? "unknown"] ?? String(iface.default_in),
+      }),
     })),
     routes: (device.routes ?? []).map((route) => ({
       prefix: route.prefix,

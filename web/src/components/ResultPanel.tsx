@@ -4,6 +4,7 @@ import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
 import { comparisonBanner, showsComparisonHeader, statusLine } from "../verdictView";
 import { ANSWER_TEXT, RESULT_TEXT, claimComparisonText, type ClaimContext } from "../displayText";
+import { firewallNote, hopRuleText, withoutLimitation } from "../firewall";
 
 const RESULT_NOTE = {
   PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
@@ -105,8 +106,8 @@ function Path({ title, trace, decisiveIndex }: { title: string; trace: Trace; de
                 <p className="hop-head">
                   <strong>{hop.device}</strong> <span className="tag">{stepText(hop.step)}</span>
                 </p>
-                <p>{hop.detail}</p>
-                {hop.rule && <code className="rule">{hop.rule}</code>}
+                <p>{withoutLimitation(hop.detail)}</p>
+                {hop.rule && <code className="rule">{hopRuleText(hop)}</code>}
               </div>
             </li>
           );
@@ -172,7 +173,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
               <p>{verdict.result === "INVALID" ? "입력을 고쳐야 계산할 수 있습니다. 받은 답과는 비교하지 않았습니다." : "지원 범위 밖이라 계산을 멈췄습니다. 받은 답과는 비교하지 않았습니다."}</p>
               {verdict.problems.length > 0 && <ul className="problems">{verdict.problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>}
             </>}
-            <p>{verdict.reason}</p>
+            <p>{withoutLimitation(verdict.reason)}</p>
             <p className="verdict-note">{RESULT_NOTE[verdict.result]}</p>
           </div>
           {!cannotCompare && verdict.problems.length > 0 && (
@@ -186,6 +187,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
             {verdict.forward && <Path title="가는 길" trace={verdict.forward} decisiveIndex={decisive?.direction === "forward" ? decisive.index : undefined} />}
             {verdict.return && <Path title="돌아오는 길" trace={verdict.return} decisiveIndex={decisive?.direction === "return" ? decisive.index : undefined} />}
           </>}
+          {firewallNote(verdict) && <p className="hint below">방화벽 단계는 제한된 상태 추적 모델로 계산했습니다. 실제 pfSense 장비와 대조하지 않았습니다.</p>}
           {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale || loading} onShow={onShowAcl} />}
         </>
       )}

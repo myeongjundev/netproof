@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appliedFilterText, claimKindText, comparisonCaption, flowText, networkView } from "./caseView";
 import { emptyCaseFilters } from "./caseSearch";
 import { blankDraft, toNetwork } from "./draft";
+import { firewallDraft } from "./testFixtures/firewallDraft";
 import type { Claim, Comparison, Flow, Network } from "./types";
 
 describe("받은 답 표시", () => {
@@ -45,6 +46,17 @@ describe("저장된 네트워크 표시", () => {
     expect(networkView({ devices: [{ id: "H", kind: "host", gateway: "  ", interfaces: [{ name: "eth0", ip: "x", acl_in: "", acl_out: null }] }] })).toEqual({
       devices: [{ id: "H", kind: "호스트", gateway: null, interfaces: [{ name: "eth0", ip: "x", aclIn: null, aclOut: null }], routes: [] }], acls: [],
     });
+  });
+  it("방화벽은 종류와 들어오는 규칙·기본 동작을 읽는 글로 보이고, 기본 동작이 없거나 낯설면 그대로 알린다", () => {
+    const view = networkView(toNetwork(firewallDraft()));
+    expect(view.devices[1].kind).toBe("방화벽(상태 추적)");
+    expect(view.devices[1].interfaces).toEqual([
+      { name: "g0/0", ip: "10.10.10.1/24", aclIn: null, aclOut: null, rules: ["통과 · TCP · any → 10.20.20.5:443"], defaultIn: "차단" },
+      { name: "g0/1", ip: "10.20.20.1/24", aclIn: null, aclOut: null, rules: [], defaultIn: "모름(판정 불가)" },
+    ]);
+    const odd = networkView({ devices: [{ id: "FW", kind: "router", stateful: true,
+      interfaces: [{ name: "em0", ip: "x", rules_in: "x" as never, default_in: "maybe" as never }] }] });
+    expect(odd.devices[0].interfaces[0]).toMatchObject({ rules: ['"x"'], defaultIn: "maybe" });
   });
   it("경로의 두 값·각 한 값·누락을 순서대로 표시", () => {
     const routes = [{ prefix: "a", next_hop: "hop", out_if: "if" }, { prefix: "b", next_hop: "hop" }, { prefix: "c", out_if: "if" }, { prefix: "d" }];

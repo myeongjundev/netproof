@@ -13,6 +13,9 @@ export class ShareError extends Error {
 const object = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const optionalText = (value: unknown) => value == null || typeof value === "string";
+const port = (value: unknown) => optionalText(value) || typeof value === "number";
+const rules = (value: unknown) => value == null || (Array.isArray(value) && value.every((rule: unknown) => object(rule) &&
+  ["action", "proto", "src", "dst"].every((key) => typeof rule[key] === "string") && port(rule.src_port) && port(rule.dst_port)));
 
 function validate(value: unknown): CaseItem {
   if (!object(value) || !object(value.network) || !Array.isArray(value.network.devices) ||
@@ -26,8 +29,9 @@ function validate(value: unknown): CaseItem {
   if (!object(acls) || !Object.values(acls).every((lines) => Array.isArray(lines) && lines.every((line) => typeof line === "string")) ||
       !devices.every((device: unknown) => object(device) && typeof device.id === "string" &&
         typeof device.kind === "string" && optionalText(device.gateway) && Array.isArray(device.interfaces) &&
+        (device.stateful == null || typeof device.stateful === "boolean") &&
         device.interfaces.every((iface: unknown) => object(iface) && typeof iface.name === "string" && typeof iface.ip === "string" &&
-          optionalText(iface.acl_in) && optionalText(iface.acl_out)) &&
+          optionalText(iface.acl_in) && optionalText(iface.acl_out) && rules(iface.rules_in) && optionalText(iface.default_in)) &&
         (device.routes == null || (Array.isArray(device.routes) && device.routes.every((route: unknown) =>
           object(route) && typeof route.prefix === "string" && optionalText(route.next_hop) && optionalText(route.out_if))))) ||
       !optionalText(flow.proto) || !optionalText(flow.mode) ||
