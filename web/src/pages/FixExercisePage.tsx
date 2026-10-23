@@ -6,6 +6,7 @@ import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { aclSelection } from "../components/AclEvidence";
 import { scrollTo } from "../motion";
+import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 import type { CaseItem, ChangeImpact, Draft, Flow, Network, PolicyMatrix, Verdict } from "../types";
 
 interface Props {
@@ -121,7 +122,7 @@ export function FixExercisePage({ id, draft, setDraft, onReady, onImport }: Prop
         const cell = goalCell(matrix, goal);
         return <li key={index}><strong>{goal.label}</strong><p>{goal.src} → {goal.dst} · {goal.service} · {goal.expect === "PASS" ? "열려야 함" : "막혀야 함"}</p>
           <p>{checkedSnapshot === null ? "확인 전" : matrix ? `${goalText(cell)}${cell ? ` · ${cell.result}` : ""}` : checking ? "계산 중…" : "결과 없음"}</p>
-          {cell && <p className="hint">{cell.reason}</p>}
+          {cell && <p className="hint">{withoutLimitation(cell.reason)}</p>}
           <button type="button" className="ghost small" disabled={stale || checking || checkedSnapshot === null} onClick={() => showEvidence(goal)}>근거 보기<span className="sr-only"> · {goal.label}</span></button>
         </li>;
       })}</ul>
@@ -148,10 +149,11 @@ export function FixExercisePage({ id, draft, setDraft, onReady, onImport }: Prop
             {impact.totals.not_compared > 0 && <p>끝점이 바뀌어 비교하지 않은 통신 {impact.totals.not_compared}건</p>}
             {changes.length === 0 ? <p>목표에 없는 통신의 변화 0건</p> : <ol className="change-list">{changes.map((change, index) => <li key={index}>
               <p>{change.kind === "opened" ? "새로 열림" : change.kind === "closed" ? "새로 막힘" : "그 밖의 변화"} · {change.src_device}({change.src}) → {change.dst_device}({change.dst}) · {change.service}</p>
-              <p>{change.before.result} → {change.after.result}</p><p className="hint">{change.after.reason}</p>
+              <p>{change.before.result} → {change.after.result}</p><p className="hint">{withoutLimitation(change.after.reason)}</p>
             </li>)}</ol>}
           </> : <p>{checking ? "계산 중…" : checkedSnapshot === null ? "확인 전" : "결과 없음"}</p>}
         {!stale && !checking && exerciseFact(exercise, matrix, impact) && <p className="fix-fact">{EXERCISE_FACT}</p>}
+        {limitationNote([...exercise.goals.map(goal => goalCell(matrix, goal)?.reason ?? ""), ...changes.map(change => change.after.reason)]) && <p className="hint">{FIREWALL_NOTE}</p>}
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
       </section>
       <ResultPanel title="목표 통신의 근거" emptyHint="목표의 근거 보기를 누르면 해당 통신을 계산합니다." verdict={evidence?.verdict ?? null} network={evidence?.network} flow={evidence?.flow}

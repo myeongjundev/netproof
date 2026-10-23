@@ -159,3 +159,14 @@ it("판정기로 가져가기는 지금 구성의 복사본을 넘긴다", () =>
   expect(page.onImport).toHaveBeenCalledWith(page.draft);
   expect(page.onImport.mock.calls[0][0]).not.toBe(page.draft);
 });
+
+it("그 밖의 변화 이유의 방화벽 미대조 끝 문장은 떼고 한 번만 보인다", async () => {
+  const tag = ". 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다";
+  const other = { src: "10.0.30.10", dst: "10.0.10.10", src_device: "ADMIN", dst_device: "WEB", service: "tcp/22", kind: "closed" as const,
+    before: { result: "PASS", reason: "before", decisive: null }, after: { result: "DENY", reason: `정방향: em3 in: 기본 정책으로 차단${tag}`, decisive: null } };
+  vi.mocked(api.changeImpact).mockResolvedValue({ ...impact, changes: [...impact.changes, other] } as ChangeImpact);
+  const shown = await driver().check();
+  expect(shown).toContain("그 밖의 변화 1건"); expect(shown).toContain("정방향: em3 in: 기본 정책으로 차단");
+  expect(shown.match(/실제 pfSense 장비와 대조하지 않았습니다/g)).toHaveLength(1);
+  expect(shown).not.toContain(`차단${tag}`); expect(shown).toContain("방화벽 단계는 제한된 상태 추적 모델로 계산했습니다");
+});

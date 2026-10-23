@@ -3,6 +3,7 @@ import { api, message } from "../api";
 import { EMPTY_CLAIM, toNetwork } from "../draft";
 import { breachById, breachDraft, breachSpec, cellFlow, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges, type Guess, type Reach } from "../breach";
 import { reachTargets, REACH_MEANING, STATUS_TEXT } from "../components/ReachTargets";
+import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { ResultPanel } from "../components/ResultPanel";
@@ -178,7 +179,8 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
             <h3>그 밖의 변화 {changes.others.length}건</h3>
             {changes.others.length > 0 && <ol className="change-list">{changes.others.map((change, index) => <li key={index}>
               <p>{CHANGE_TEXT[change.kind]} · {change.src_device}({change.src}) → {change.dst_device}({change.dst}) · {serviceName(scenario.services, change.service)}</p>
-              <p className="hint">{change.after.reason}</p></li>)}</ol>}
+              <p className="hint">{withoutLimitation(change.after.reason)}</p></li>)}</ol>}
+            {limitationNote(changes.others.map((change) => change.after.reason)) && <p className="hint">{FIREWALL_NOTE}</p>}
           </> : <p>{checking ? "계산 중…" : checkedSnapshot === null ? "확인 전" : "결과 없음"}</p>}
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
       </section>

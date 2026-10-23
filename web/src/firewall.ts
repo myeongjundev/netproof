@@ -27,9 +27,12 @@ export function hopRuleText(hop: Hop): string | null {
 
 const SUFFIX = `. ${FIREWALL_LIMITATION}`;
 export const withoutLimitation = (text: string) => text.endsWith(SUFFIX) ? text.slice(0, -SUFFIX.length) : text;
+/** 문장마다 뗀 미대조 문장을 대신해 결과 아래에 한 번 보이는 안내. */
+export const FIREWALL_NOTE = "방화벽 단계는 제한된 상태 추적 모델로 계산했습니다. 실제 pfSense 장비와 대조하지 않았습니다.";
+export const limitationNote = (texts: string[]) => texts.some((text) => text.endsWith(SUFFIX));
 
 /** 이유나 단계에 미대조 문장이 붙어 있었는지. 있으면 결과 아래에 한 번 보인다. */
 export function firewallNote(verdict: Verdict): boolean {
   const hops = [...(verdict.forward?.hops ?? []), ...(verdict.return?.hops ?? [])];
-  return [verdict.reason, ...hops.map((hop) => hop.detail)].some((text) => text.endsWith(SUFFIX));
+  return limitationNote([verdict.reason, ...hops.map((hop) => hop.detail)]);
 }

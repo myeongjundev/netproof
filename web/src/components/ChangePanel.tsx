@@ -1,5 +1,6 @@
 import type { ChangeHistory } from "../changeView";
 import type { ChangeImpact } from "../types";
+import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 
 const RESULT = { PASS: "통과", DENY: "막힘", INVALID: "입력 오류", UNSUPPORTED: "판정 불가" };
 
@@ -14,8 +15,8 @@ export function ChangePanel({ history, result, error, loading, stale, disabled, 
   return <section className="panel change-panel" aria-labelledby="change-title">
     <h2 id="change-title">변경 전/후</h2>
     <p>{flow.src} → {flow.dst} · {service}</p>
-    <p>변경 전: {RESULT[before.verdict.result]} — {before.verdict.reason}</p>
-    <p>변경 후: {RESULT[last.verdict.result]} — {last.verdict.reason}</p>
+    <p>변경 전: {RESULT[before.verdict.result]} — {withoutLimitation(before.verdict.reason)}</p>
+    <p>변경 후: {RESULT[last.verdict.result]} — {withoutLimitation(last.verdict.reason)}</p>
     {stale && <p className="hint">이전 입력의 비교입니다. 다시 판정해 주세요.</p>}
     <button type="button" className="ghost" disabled={stale || disabled || loading} onClick={onCalculate}>다른 통신 영향 계산</button>
     {loading && <p role="status">계산 중…</p>}
@@ -28,12 +29,14 @@ export function ChangePanel({ history, result, error, loading, stale, disabled, 
         {result.totals.changed === 0 ? <p>검사한 범위에서 결과가 바뀐 다른 통신이 없습니다.</p> : <>
           <ol className="change-list">{result.changes.slice(0, 30).map((change, index) => <li key={index}>
             <p>{change.src_device}({change.src}) → {change.dst_device}({change.dst}) · {result.services.find(s => s.key === change.service)?.label || change.service}: {RESULT[change.before.result]} → {RESULT[change.after.result]}</p>
-            <p className="hint">{change.after.reason}</p>
+            <p className="hint">{withoutLimitation(change.after.reason)}</p>
           </li>)}</ol>
           {result.totals.changed > 30 && <p>외 {result.totals.changed - 30}건</p>}
         </>}
       </>}
       <p className="hint">검사한 서비스와 호스트 쌍만 계산했습니다. 바뀐 통신이 없어도 안전을 보장하지 않으며, 실제 장비 결과가 아닙니다.</p>
     </div>}
+    {limitationNote([before.verdict.reason, last.verdict.reason, ...(result?.status === "OK" ? result.changes.slice(0, 30).map(change => change.after.reason) : [])])
+      && <p className="hint">{FIREWALL_NOTE}</p>}
   </section>;
 }

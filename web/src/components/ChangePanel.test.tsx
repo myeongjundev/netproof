@@ -47,3 +47,16 @@ it("오류·INVALID 원문과 계산 뒤 안내를 그대로 보인다", () => {
   expect(html).toContain("변경 전 구성: bad"); expect(html).toContain("안전을 보장하지 않으며");
   expect(html).not.toContain("검사한 범위에서 결과가 바뀐 다른 통신이 없습니다.");
 });
+
+it("방화벽 미대조 끝 문장은 이유마다 떼고 패널 아래에 한 번만 보인다", () => {
+  const tag = ". 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다";
+  const tagged: ChangeHistory = { before: { ...judgment, verdict: { ...verdict, reason: `정방향: em1 in: 기본 정책으로 차단${tag}` } },
+    last: { ...judgment, verdict: { ...verdict, result: "PASS", reason: "정방향 · 복귀 방향 모두 통과" } } };
+  const changes = [{ src: "10.0.0.1", dst: "10.0.1.1", src_device: "H", dst_device: "S", service: "tcp/443", kind: "closed" as const,
+    before: verdict, after: { ...verdict, reason: `정방향: em1 in: 1번 규칙에서 차단${tag}` } }];
+  const html = render({ history: tagged, result: { ...response, changes, totals: { ...response.totals, changed: 1, closed: 1 } } });
+  expect(html).toContain("변경 전: 막힘 — 정방향: em1 in: 기본 정책으로 차단</p>");
+  expect(html).toContain("정방향: em1 in: 1번 규칙에서 차단</p>");
+  expect(html.match(/실제 pfSense 장비와 대조하지 않았습니다/g)).toHaveLength(1);
+  expect(render().match(/pfSense/g)).toBeNull();
+});
