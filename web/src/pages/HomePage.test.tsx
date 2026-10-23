@@ -100,7 +100,8 @@ it("시작 카드는 기존 화면으로 직접 연결하고 사례·계정·진
   const spies = [vi.spyOn(api, "searchCases"), vi.spyOn(api, "examples"), vi.spyOn(api, "verify")];
   const html = renderToStaticMarkup(createElement(HomePage, { draft: blankDraft(), user: null, checked: true, onGuess: () => {} }));
   const cards = html.split('class="start-cards"')[1].split("</section>")[0];
-  expect([...cards.matchAll(/href="([^"]+)"/g)].map(match => match[1])).toEqual(["#/learn", "#/", "#/matrix"]);
+  expect([...cards.matchAll(/href="([^"]+)"/g)].map(match => match[1])).toEqual(["#/learn", "#/", "#/matrix", "#/breach/breach-01"]);
+  expect(cards).toContain("뚫렸다고 가정해 보기"); expect(cards).toContain("침해 가정 실습 열기");
   expect(cards).not.toMatch(/button|완료|성공|정답|점수|%|badge|PASS|DENY/);
   for (const spy of spies) { expect(spy).not.toHaveBeenCalled(); spy.mockRestore(); }
 });

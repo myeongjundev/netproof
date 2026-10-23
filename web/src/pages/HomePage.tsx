@@ -4,11 +4,13 @@ import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
 import type { Draft, User } from "../types";
 import { UiIcon } from "../components/UiIcon";
+import { BREACHES } from "../breach";
 
 const STARTS: { title: string; description: string; action: string; href: string }[] = [
   { title: "개념에서 시작하기", description: "경로와 ACL을 살펴보고, 연습용 구성으로 내 예상을 확인해 보세요.", action: "학습 주제 보기", href: "#/learn" },
   { title: "직접 구성해 보기", description: "장비와 통신을 입력하고 계산 결과와 판정 근거를 살펴보세요.", action: "판정기 열기", href: "#/" },
   { title: "여러 통신 비교하기", description: "호스트와 서비스별 통신을 한눈에 보고 의도한 정책과 비교해 보세요.", action: "정책 검증 열기", href: "#/matrix" },
+  { title: "뚫렸다고 가정해 보기", description: "서버가 뚫렸다면 어디까지 닿는지 보고, 방화벽으로 피해 범위를 줄여 보세요.", action: "침해 가정 실습 열기", href: `#/breach/${BREACHES[0].id}` },
 ];
 
 export function HomePage({ draft, user, checked, onGuess, practiceCaseId, practiceDraft }: { draft: Draft; user: User | null; checked: boolean; onGuess: OnGuess; practiceCaseId?: string | null; practiceDraft?: Draft }) {
