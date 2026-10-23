@@ -6,6 +6,12 @@
 - `reach()`는 계산 편의를 위해 `others`(뚫린 장비 외 장비)와 `unknown`(판정 불가 칸만 있는 장비)을 함께 돌려준다.
 - 웹 시험은 엔진 0.2.0 응답을 저장한 `web/src/testFixtures/breach-responses.json`으로 확인한다.
 
+| 휴대폰 다크 · 피해 범위 지도 | 데스크톱 라이트 · 규칙을 고친 뒤 |
+|---|---|
+| <img src="screens/breach-reach-mobile-dark.jpg" alt="375px 다크: WEB 뚫림, OUTSIDE·DB·ADMIN 닿음 서비스 5개" width="260"> | ![1280px 라이트: 처음 구성 3곳 · 서비스 15개 → 지금 1곳 · 서비스 1개, DB만 닿음](screens/breach-contained-desktop-light.jpg) |
+
+![1280px 라이트: 지켜야 할 서비스 3개 그대로, WEB에서 시작하는 통신 14건 새로 막힘](screens/breach-after-desktop-light.jpg)
+
 ## 1. 왜 만드는가
 
 - **학생이 가져갈 한마디(Claude 판단):** "서버 하나가 뚫려도 피해가 그 구역에 머물게, 필요한 길만 남긴다."
