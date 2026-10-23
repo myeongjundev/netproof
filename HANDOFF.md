@@ -23,6 +23,7 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 브랜치: `claude/handoff-fold`, main `9e0b6e8`에서 분기. `git pull`은 `Already up to date.`
 - 제품 상태: main은 PR #62까지 반영, 엔진 0.2.0. 공개 배포는 2026-10-11에 JS `index-COoJnoGM.js`·CSS `index-BXlnygLT.css`가 리뷰한 빌드와 SHA256까지 같음을 확인했다(로그인·저장·수동 QA 완료를 뜻하지 않음).
 - 다음 차례: **사용자(이 문서 PR 병합 결정, pfSense 2단계 질문 답변).** 다음 과제 후보는 pfSense 2단계 실습 연동이다. 사용자의 팀 캡스톤 실습망이 pfSense·OpenVPN을 써서 D5(실습 사실)의 재료가 생겼다. 답을 받으면 Claude가 설계한다. 실습망의 주소·규칙을 공개 저장소에 그대로 실을지는 팀 동의 뒤에 정한다.
+- **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: pfSense 2단계는 Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·병합·제품 방향 결정은 그대로 사용자가 한다.
 
 ## 작업 정의 — HANDOFF 접기 (2026-10-23 사용자 요청)
 - 범위: `HANDOFF.md`, `decisions/ai-work-log.md`, 사라진 HANDOFF 절을 가리키던 `docs/frontend-redesign.md`·`docs/path-workbench.md`의 링크(접기 전 고정 커밋 링크로 교체).
