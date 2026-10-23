@@ -167,3 +167,14 @@ it.each(EXERCISES)("$id SSR는 과제·목표 순서를 보이고 계산하지 �
   expect(html).toContain(exercise.title); expect(html).toContain(exercise.prompt); expect(html).toContain("처음 구성을 불러오는 중");
   expect(html).not.toMatch(/완료|성공|정답|점수|%|badge/); expect(api.policyMatrix).not.toHaveBeenCalled();
 });
+it("목표 이유와 변화 목록의 방화벽 미대조 끝 문장은 떼고 결과 아래에 한 번만 보인다", async () => {
+  const tag = ". 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다";
+  vi.mocked(api.policyMatrix).mockResolvedValue({ ...matrix, cells: [{ ...cells[0], reason: `정방향: em1 in: 1번 규칙에서 허용${tag}` }, cells[1]] });
+  const change = { ...task.goals[0], service: "tcp/80", kind: "closed" as const, src_device: "PC1", dst_device: "SRV",
+    before: { result: "PASS", reason: "before", decisive: null }, after: { result: "DENY", reason: `정방향: em1 in: 기본 정책으로 차단${tag}`, decisive: null } };
+  vi.mocked(api.changeImpact).mockResolvedValue({ ...impact, changes: [change] } as ChangeImpact);
+  const d = await driver(); await d.button("확인하기").props.onClick(); const output = text(d.render());
+  expect(output).toContain("정방향: em1 in: 1번 규칙에서 허용"); expect(output).toContain("정방향: em1 in: 기본 정책으로 차단");
+  expect(output.match(/실제 pfSense 장비와 대조하지 않았습니다/g)).toHaveLength(1);
+  expect(output).not.toContain(`차단${tag}`); expect(output).toContain("방화벽 단계는 제한된 상태 추적 모델로 계산했습니다");
+});

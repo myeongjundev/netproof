@@ -12,6 +12,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 단계별 지시문: [PROMPTS.md](PROMPTS.md).
 - **사람만 하는 일**: 사례 정답(손계산), 동기 인터뷰, 배포 가입·비밀값 입력, 제품 방향 결정. 어느 LLM에도 넘기지 않습니다.
 - 과제가 병합되면 그 과제의 작업 정의·테스트 원문·리뷰 기록은 [지난 과제](#지난-과제) 표 한 줄로 접는다. 원문은 Git 이력과 PR에 남는다.
+- **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·제품 방향 결정은 그대로 사용자가 한다.
+- **병합 위임(2026-10-24 사용자: "앞으로 너가 올린 PR은 테스트가 통과하면 병합하고 다음 작업으로 넘어가도 돼")**: Claude가 만든 PR만 해당한다. 직접 실행한 엔진·서버·웹 시험과 빌드, PR 검사(Vercel)가 통과하고 충돌이 없으면 병합 커밋으로 병합한다. 병합 뒤 main에서 시험을 다시 돌리고 공개 번들 SHA256을 확인해 기록한다.
 
 ## 검증 원칙
 - "두 LLM이 동의했다/통과라고 했다"는 검증이 아닙니다. 근거는 테스트 출력, `git diff`, 실제 실행 결과뿐입니다.
@@ -19,59 +21,48 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업(2026-10-24): **침해 가정 실습 두 번째 장면 "관리자 PC가 뚫렸다면"**(아래 작업 정의). 브랜치 `claude/breach-admin`, main `4fb7e7d`에서 분기.
-- 직전: 사용자 지시("병합은 너가 맡아서 다해줘")로 Claude가 PR #64 → #65 → #66 → #67을 병합 커밋으로 차례로 병합했다(`7922c62`·`6e20c29`·`c158c4e`·`4fb7e7d`). 병합 전 네 PR 모두 충돌 없음, Vercel 검사 통과.
-  - main에서 직접 실행: 엔진 489+2xfail, 서버 231+1skip, 웹 790, 빌드 `index-DGWX1Bqi.js`·`index-1ljI70ti.css`.
-  - 공개 배포 확인: 공개 홈이 새 번들을 내보내고 JS·CSS SHA256이 로컬 빌드와 같다. 공개 `/api/policy-matrix`에 breach-01 실습망을 보내면 엔진 0.2.0, 60건, WEB에서 닿는 서비스 15개, 지켜야 할 서비스 모두 AGREE. 로그인·저장·수동 QA 완료를 뜻하지는 않는다.
-- 사용자 방향(2026-10-23~24): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. Claude가 다음 작업을 골라 진행하도록 위임받았다.
-- 다음 차례: **Claude(구현 중) → 사용자(이 PR 확인).** 병합은 사용자 지시가 있을 때 Claude가 한다.
-- **운영 방식 예외(2026-10-23 사용자 지시: "이번 작업은 클로드로만")**: Claude가 설계·구현·테스트·자체 점검을 모두 맡고 Codex에 넘기지 않는다. 브랜치는 `claude/<작업명>`. 같은 모델의 점검은 독립 리뷰로 기록하지 않으며, 근거는 직접 실행한 테스트 출력·`git diff`·실제 관측 대조뿐이다. 사례 기대값(손계산)·제품 방향 결정은 그대로 사용자가 한다.
+- 작업(2026-10-24): **기능 동결 전 마무리 묶음**(아래 작업 정의). 브랜치 `claude/prefreeze-polish`, main `d1756d6`에서 분기.
+- 직전: PR #68(침해 가정 두 번째 장면)을 사용자 지시로 병합했다(`d1756d6`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 792, 빌드 `index-Xv-E35ss.js`. 공개 JS·CSS SHA256이 로컬 빌드와 같다.
+- 사용자 방향(2026-10-23~24): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. 다음 작업 선택은 Claude에게 위임됐다.
+- 다음 차례: **Claude(이 PR 병합 뒤 다음 작업).** Claude가 올린 PR은 테스트가 통과하면 Claude가 병합한다(아래 운영 방식).
 
-## 작업 정의 — 침해 가정 실습 두 번째 장면 (2026-10-24 사용자 "병합이 끝나면 다음 작업 시작해줘")
+## 작업 정의 — 기능 동결 전 마무리 묶음 (2026-10-24, Claude 선택)
 
-- **선택(Claude):** 같은 학교 망에서 이어지는 두 번째 장면. 첫 장면에서 DMZ(em1)를 좁힌 뒤, 이번에는 피싱으로 관리자 PC(ADMIN)가 뚫린다. 배울 점은 "관리 구역도 필요한 관리 포트만 남긴다"다. 여러 장면을 담을 수 있는 기존 구조(`breach.json` 목록, 설계 §6)에 데이터만 더한다. 2차 확산은 "닿음 ≠ 뚫을 수 있음" 표현을 먼저 정해야 해서 계속 뒤로 둔다.
+- **선택 이유:** 11/1 기능 동결과 발표 전에 새 기능보다 지금 있는 화면을 학생이 막힘 없이 쓰게 하는 쪽을 먼저 했다.
 - **변경 범위:**
-  - `web/src/breach.json`에 `breach-02` 추가. 처음 구성은 breach-01에서 em1만 `통과 · TCP · 10.0.10.10 → 10.0.20.10:3306` 하나로 줄인 것이다. 지켜야 할 서비스는 OUTSIDE→WEB HTTPS, WEB→DB MySQL, ADMIN→WEB SSH, ADMIN→DB SSH.
-  - `server/tests/test_breach_scenarios.py`에 breach-02 참고 구성(em3을 관리 SSH 두 개로 줄임)과 em3 전부 차단 시험을 더한다.
-  - 웹 시험에서 실습 목록·데이터 왕복을 두 장면 모두로 넓힌다. 문서·HANDOFF·작업 로그도 갱신한다.
-- **엔진 0.2.0 사전 계산(저장소 밖 임시 스크립트):** 처음 구성은 ADMIN에서 15개, 지켜야 할 서비스 4개 AGREE / 참고 구성은 2개(WEB SSH·DB SSH), 4개 AGREE / em3 전부 차단은 0개, ADMIN→WEB SSH·ADMIN→DB SSH BLOCKED.
-- **건드리지 않을 것:** engine/, server API, cases/, 화면 코드(데이터만으로 동작해야 한다), 의존성, 배포 설정.
-- **완료 조건:** 엔진·서버·웹 기존 시험 유지 + 신규, 빌드, 금지 경로 diff 0, 실브라우저(학습실 카드 2개, breach-02 예상 → 15 → em3 수정 → 2, 과차단 표시), 콘솔 오류 0, 가로 넘침 0.
+  1. 단계마다 붙던 "실제 pfSense 장비와 대조하지 않았습니다"가 남은 세 곳에도 판정 결과 패널과 같은 규칙(끝 문장만 떼고 아래에 한 번)을 적용했다. 대상은 판정기 변경 전/후 패널(`ChangePanel`), 고치기 과제의 목표 이유와 변화 목록, 침해 가정의 "그 밖의 변화"다. `firewall.ts`에 `FIREWALL_NOTE`·`limitationNote`를 두고 결과 패널도 같은 상수를 쓴다.
+  2. 새 화면 세 가지의 768px 태블릿 확인.
+  3. `docs/qa-manual.md`에 사람이 확인할 F(방화벽 입력)·G(침해 가정 두 장면)·H(이 장비가 뚫리면)를 더하고, 기록 표를 I로 옮겼다(다른 문서가 거는 D·E 링크는 그대로).
+- **건드리지 않을 것:** engine/, server/, cases/, API, 계산·분류(문장 표시만 바꿈).
 
-### 테스트 결과 — 두 번째 장면 (Claude 직접 실행, 2026-10-24)
+### 테스트 결과 — 마무리 묶음 (Claude 직접 실행, 2026-10-24)
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 3.68s
+489 passed, 2 xfailed in 3.76s
 
 cd server && ../.venv/Scripts/python -m pytest -q
-236 passed, 1 skipped in 32.52s
+236 passed, 1 skipped in 45.39s
 
 npm --prefix web test
 Test Files 52 passed (52)
-Tests 792 passed (792)
+Tests 796 passed (796)
 
 npm --prefix web run build
 dist/assets/index-1ljI70ti.css 91.08 kB │ gzip: 24.45 kB
-dist/assets/index-Xv-E35ss.js 424.01 kB │ gzip: 124.72 kB
+dist/assets/index-BchmBEi1.js 424.79 kB │ gzip: 124.84 kB
 
-git diff --check / git diff --numstat main -- engine/ server/netproof_api/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md web/src/pages web/src/components web/src/breach.ts
-(둘 다 출력 없음, 종료0 — 화면 코드 변경 0줄)
+git diff --check / git diff --numstat main -- engine/ server/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(둘 다 출력 없음, 종료0)
 ```
 
-- **신규 시험:**
-  - 서버 5건: breach-02 형식·처음 구성 매개변수 2건, breach-01에서 em1만 좁힌 이어지는 구성인지, 참고 구성(관리 SSH 2개, 지켜야 할 서비스 AGREE), em3 전부 차단(관리 SSH 2개 BLOCKED).
-  - 웹 2건: 두 장면 목록, 장면별 데이터 왕복·구성 안 주소·역할.
-  - `breach.json`은 첫 장면 줄을 건드리지 않고 두 번째 장면만 덧붙였다(45줄 추가, 삭제 0).
-- **실브라우저**(임시 SQLite, 빌드 `index-Xv-E35ss.js`):
-  1. 학습실 침해 가정 카드 2개. breach-02 진입 시 제목 포커스, 예상 대상 OUTSIDE·WEB·DB, 지켜야 할 서비스 4개.
-  2. 확인: `처음 구성 3곳 · 서비스 15개 → 지금 3곳 · 서비스 15개`, 지켜야 할 서비스 4개 그대로.
-  3. em3을 관리 SSH 두 규칙으로 고친 뒤 확인: `→ 지금 2곳 · 서비스 2개`. 구성도는 OUTSIDE 안 닿음, WEB·DB 닿음 · 서비스 1개. 지켜야 할 서비스 4개 그대로, ADMIN에서 시작하는 변화 13건, 그 밖의 변화 0건.
-  4. em3 규칙 삭제 뒤 확인: `→ 지금 0곳 · 서비스 0개`, ADMIN→WEB SSH·ADMIN→DB SSH 막혔습니다.
-  5. 1263px 라이트와 375px 다크에서 넘침 0, 단추 글자 넘침 0.
-- **콘솔:** `ERR_CONNECTION_REFUSED` 2건이 보였다. QA 서버를 내린 동안 열려 있던 탭에서 남은 기록이다. 서버를 다시 띄우고 새로 읽은 뒤 끝까지 확인해도 오류 수는 그대로였고, 요청은 모두 200/304였다. 앱 오류는 0으로 판단했다. 임시 DB 삭제·4870 대기 0.
-- **캡처:** [관리자 PC 장면 15 → 2](docs/screens/breach-admin-contained-desktop-light.jpg).
-- **하지 않은 것:** 768px, 사람의 수동 QA. 같은 모델의 자체 점검이다.
+- **신규 시험 4건:** `limitationNote`·`FIREWALL_NOTE`, 변경 전/후 패널, 고치기 과제, 침해 가정의 "그 밖의 변화". 각 화면 시험은 이유에서 끝 문장이 떼였는지와 안내가 한 번만 보이는지를 함께 단언한다. 처음 쓴 침해 가정 시험은 고치기 전에도 통과해서(문구가 하나뿐이면 개수만으로는 구분이 안 됨) 단언을 강화했다.
+- **768px 실브라우저**(임시 SQLite, 빌드 `index-BchmBEi1.js`, 라이트):
+  - 침해 가정 장면 1 확인 뒤: 문서 폭 753 ≤ 768, 요소 넘침 0, 단추 글자 넘침 0, 구성도 가로 배치.
+  - 판정기로 가져간 방화벽 규칙 3개: 규칙 칸 687px, 3열(407·204·32px), 넘침 0.
+  - 정책 검증 WEB 가정: `3곳 · 서비스 15개`, 단추 15개, 넘침 0(가로 스크롤 영역인 표는 제외하고 측정).
+  - 콘솔: 이전에 서버를 내린 동안 남은 `ERR_CONNECTION_REFUSED` 2건 외 새 오류 0. 임시 DB 삭제·4870 대기 0.
+- **하지 않은 것:** 사람의 수동 QA(F·G·H 체크리스트는 사람 몫). 같은 모델의 자체 점검이다.
 
 ## 지난 과제
 
@@ -79,6 +70,7 @@ git diff --check / git diff --numstat main -- engine/ server/netproof_api/ scrip
 
 | PR | 과제 | 병합 커밋 | 기준 문서 |
 | --- | --- | --- | --- |
+| #68 | 침해 가정 실습 두 번째 장면 "관리자 PC가 뚫렸다면"(15 → 2, 데이터만) | `d1756d6` | [breach-practice-design §3.4](docs/breach-practice-design.md#34-두-번째-장면-breach-02-관리자-pc가-뚫렸다면-2026-10-24-추가) |
 | #67 | 정책 검증의 "이 장비가 뚫리면" 보기(엔진 칸만 고름, 구성도 표시) | `4fb7e7d` | [policy-matrix](docs/policy-matrix.md#이-장비가-뚫리면-침해-가정-보기) |
 | #66 | 침해 가정 실습 "학교 홈페이지가 뚫렸다면"(설계+구현, 15 → 1) | `c158c4e` | [breach-practice-design](docs/breach-practice-design.md) |
 | #65 | 방화벽(상태 추적) 화면 입력·규칙 한 줄 표시·미대조 문구 1회 | `6e20c29` | [semantics §14](docs/semantics.md#14-제한된-상태-추적-방화벽-adr-016) |
@@ -130,9 +122,9 @@ git diff --check / git diff --numstat main -- engine/ server/netproof_api/ scrip
 
 ## 남은 후속 (비차단, 미착수)
 - PR #62 N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘) — 사용자 수동 QA 판단 뒤 설계.
-- pfSense: ① 2단계 실습 연동(D5) ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) ⑤ 미대조 문구 한 번만 — 판정 결과 패널은 PR #65에서 해결, 정책 검증 칸 상세·변경 전/후 문장에는 아직 단계마다 붙음. (② 화면 입력·④ `toNetwork` 키 대조는 PR #65에서 처리)
+- pfSense: ① 2단계 실습 연동(D5) ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) (② 화면 입력·④ `toNetwork` 키 대조는 PR #65, ⑤ 미대조 문구 한 번만은 PR #65·마무리 묶음에서 처리)
 - F28: change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB).
-- 침해 가정: 2차 확산("닿은 장비도 뚫렸다고 가정") — 표현을 먼저 정한다. 홈 화면에 침해 가정 실습을 따로 보일지는 사용자 결정. 새 화면들(방화벽 입력·침해 가정·이 장비가 뚫리면)의 768px 폭과 사람의 수동 QA는 아직이다.
+- 침해 가정: 2차 확산("닿은 장비도 뚫렸다고 가정") — 표현을 먼저 정한다. 홈 화면에 침해 가정 실습을 따로 보일지는 사용자 결정. 새 화면들의 사람 수동 QA(F·G·H)는 아직이다.
 - PR #52: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향은 사용자 결정), N2 단계 목록이 선택한 방향만.
 - PR #41: 원인별 사례 목록 필터(저장 열 필요), 사람이 붙이는 원인 태그.
 - PR #17: 사례 목록 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind`와 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·지연 주입 미검증.
@@ -145,7 +137,7 @@ git diff --check / git diff --numstat main -- engine/ server/netproof_api/ scrip
 - **운영 DB 재판정 보류**: 운영 사례는 아직 엔진 `0.1.4` 판정. `netproof` 비밀번호 확보 뒤 [deploy.md](docs/deploy.md) 절차로 재개하고, 주소는 가려진 입력으로만 받는다.
 - **Vercel `DATABASE_URL`**: Production and Preview 적용을 Production 전용으로 바꾼다(Codex·Claude는 설정을 바꾸지 않음).
 - **배포 6단계(가입·사례 저장·로그아웃)·7단계(검토자 지정)** 확인. `make-reviewer`는 `netproof` 계정 연결 주소로 실행하고, 주소는 채팅·명령줄·캡처에 넣지 않는다([deploy.md](docs/deploy.md) 7).
-- **수동 QA A~E**([체크리스트](docs/qa-manual.md)): A PR #20 G2, B 실제 기본 확인창 삭제 취소, C 홈·실습 흐름(변경 전/후 포함), D 수업 환경 Graylog·Wazuh 수집, E 수업 Docker n8n 실행. AI의 도구 실행·로컬 대역 확인은 수동 QA 통과가 아니다. 결과는 사람이 `docs/qa-manual.md`나 PR 코멘트에 적고, AI가 대신 완료로 바꾸지 않는다. 임시 DB·합성 계정만 쓰고 비밀번호·쿠키·토큰은 기록하지 않는다.
+- **수동 QA A~H**([체크리스트](docs/qa-manual.md)): A PR #20 G2, B 실제 기본 확인창 삭제 취소, C 홈·실습 흐름(변경 전/후 포함), D 수업 환경 Graylog·Wazuh 수집, E 수업 Docker n8n 실행, F 방화벽 화면 입력, G 침해 가정 실습 두 장면, H 정책 검증의 이 장비가 뚫리면. AI의 도구 실행·로컬 대역 확인은 수동 QA 통과가 아니다. 결과는 사람이 `docs/qa-manual.md`나 PR 코멘트에 적고, AI가 대신 완료로 바꾸지 않는다. 임시 DB·합성 계정만 쓰고 비밀번호·쿠키·토큰은 기록하지 않는다.
 - **D5(pfSense 실습 사실)**: 질문 답을 주면 2단계를 설계한다.
 - **사람 트랙**: 동기 3명 인터뷰, 실제 결과가 있는 사례 모으기, 사례 04 손계산, 표어 결정.
 - **t08 Postgres 오류**: 배포 전 t08 대시보드에 최근 60분 오류 111건이 일정 간격으로 보였다(NetProof와 무관, 원인 미확인). Supabase Logs에서 확인한다.
@@ -168,7 +160,7 @@ git diff --check / git diff --numstat main -- engine/ server/netproof_api/ scrip
 - **원칙**: 과제마다 설계 → 승인 → 구현 → 리뷰 → 병합 한 바퀴. 앱 안 LLM은 계속 제외(ADR-002). 같은 폴더에서 Codex 작업은 한 번에 하나(병행하려면 별도 worktree).
 - **일정**: 11-01 기능 동결. 6주차(11-02~11-08)는 버그 수정·2차 테스트·발표·제출만.
 - **완료**: 2026-10-05 합의한 F5·F6 다음 기능 순서 1~8과 홈·학습·사례·리디자인 과제는 모두 병합했다([지난 과제](#지난-과제)).
-- **2026-10-23~24 추가**: 방화벽 화면 입력(#65), 침해 가정 실습(#66), 이 장비가 뚫리면 보기(#67).
+- **2026-10-23~24 추가**: 방화벽 화면 입력(#65), 침해 가정 실습(#66·#68), 이 장비가 뚫리면 보기(#67), 동결 전 마무리 묶음.
 - **다음 후보(사용자 결정)**: pfSense 2단계 실습 연동. Cisco 설정 붙여넣기는 "수업은 Cisco·pfSense를 쓰지 않음"(2026-10-05)으로 제외했다. 팀 캡스톤 실습망은 pfSense를 쓰므로 pfSense 쪽 우선순위는 사용자가 다시 정한다. Cloudflare 활용은 수업 용도를 확인한 뒤 정한다.
 
 ## 다음 LLM이 확인할 내용

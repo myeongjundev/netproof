@@ -4,7 +4,7 @@ import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
 import { comparisonBanner, showsComparisonHeader, statusLine } from "../verdictView";
 import { ANSWER_TEXT, RESULT_TEXT, claimComparisonText, type ClaimContext } from "../displayText";
-import { firewallNote, hopRuleText, withoutLimitation } from "../firewall";
+import { FIREWALL_NOTE, firewallNote, hopRuleText, withoutLimitation } from "../firewall";
 
 const RESULT_NOTE = {
   PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
@@ -187,7 +187,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
             {verdict.forward && <Path title="가는 길" trace={verdict.forward} decisiveIndex={decisive?.direction === "forward" ? decisive.index : undefined} />}
             {verdict.return && <Path title="돌아오는 길" trace={verdict.return} decisiveIndex={decisive?.direction === "return" ? decisive.index : undefined} />}
           </>}
-          {firewallNote(verdict) && <p className="hint below">방화벽 단계는 제한된 상태 추적 모델로 계산했습니다. 실제 pfSense 장비와 대조하지 않았습니다.</p>}
+          {firewallNote(verdict) && <p className="hint below">{FIREWALL_NOTE}</p>}
           {network && <AclEvidence verdict={verdict} acls={network.acls} stale={stale || loading} onShow={onShowAcl} />}
         </>
       )}

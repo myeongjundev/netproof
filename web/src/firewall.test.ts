@@ -1,5 +1,5 @@
 import verdicts from "./testFixtures/topology-verdicts.json";
-import { firewallNote, firewallRuleText, hopRuleText, withoutLimitation } from "./firewall";
+import { FIREWALL_LIMITATION, FIREWALL_NOTE, firewallNote, firewallRuleText, hopRuleText, limitationNote, withoutLimitation } from "./firewall";
 import type { Hop, Verdict } from "./types";
 
 const verdictOf = (id: string) => verdicts.find((item) => item.id === id)!.verdict as unknown as Verdict;
@@ -42,5 +42,14 @@ describe("엔진 응답 표시", () => {
     expect(firewallNote(verdictOf("synthetic-unsupported"))).toBe(true);
     expect(firewallNote(verdictOf("synthetic-01-https-acl"))).toBe(false);
     expect(withoutLimitation("다른 문장. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다 덧붙임")).toContain("덧붙임");
+  });
+});
+
+describe("목록 문장의 미대조 끝 문장", () => {
+  it("여러 문장 가운데 하나라도 끝 문장이 있으면 결과 아래 안내를 한 번 보인다", () => {
+    const tagged = `R1 em1 in: 1번 규칙에서 차단. ${FIREWALL_LIMITATION}`;
+    expect(limitationNote(["다른 이유", tagged])).toBe(true);
+    expect(limitationNote(["다른 이유", `${FIREWALL_LIMITATION} 뒤에 덧붙임`])).toBe(false);
+    expect(FIREWALL_NOTE).toBe("방화벽 단계는 제한된 상태 추적 모델로 계산했습니다. 실제 pfSense 장비와 대조하지 않았습니다.");
   });
 });
