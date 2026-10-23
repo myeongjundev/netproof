@@ -1,5 +1,5 @@
 import responses from "./testFixtures/breach-responses.json";
-import { BREACHES, breachById, breachDraft, breachImport, breachSpec, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges } from "./breach";
+import { BREACHES, breachById, breachDraft, breachImport, breachSpec, cellFlow, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges } from "./breach";
 import { toNetwork } from "./draft";
 import type { ChangeImpact, PolicyMatrix } from "./types";
 
@@ -9,13 +9,21 @@ const narrowed = responses.narrowed as unknown as PolicyMatrix;
 const impact = responses.narrowedImpact as unknown as ChangeImpact;
 
 describe("실습 데이터와 입력", () => {
-  it("실습은 하나이고, 처음 구성은 데이터 그대로 판정기 입력이 된다", () => {
-    expect(BREACHES.map((item) => item.id)).toEqual(["breach-01"]);
-    const draft = breachDraft(scenario);
+  it("실습은 학교 망의 두 장면이고 id는 겹치지 않는다", () => {
+    expect(BREACHES.map((item) => item.id)).toEqual(["breach-01", "breach-02"]);
+    expect(BREACHES.map((item) => item.breached)).toEqual(["WEB", "ADMIN"]);
+  });
+
+  it.each(BREACHES)("$id: 처음 구성은 데이터 그대로 판정기 입력이 되고, 뚫린 장비·지켜야 할 서비스는 구성 안에 있다", (item) => {
+    const draft = breachDraft(item);
     // 호스트의 acl_in·acl_out: null은 기존 toNetwork 정규화다. null만 걷어 내면 데이터와 같다.
-    expect(JSON.parse(JSON.stringify(toNetwork(draft), (_, value) => value ?? undefined))).toEqual(scenario.network);
+    expect(JSON.parse(JSON.stringify(toNetwork(draft), (_, value) => value ?? undefined))).toEqual(item.network);
     expect(draft.claim.expected).toBeNull();
-    expect(breachDraft(scenario).devices).not.toBe(breachDraft(scenario).devices);
+    expect(breachDraft(item).devices).not.toBe(breachDraft(item).devices);
+    expect(layoutFlow(draft, item.breached).src).not.toBe("");
+    const hosts = item.network.devices.filter((device) => device.kind === "host").flatMap((device) => device.interfaces.map((iface) => iface.ip.split("/")[0]));
+    for (const keep of item.keep) { expect(hosts).toContain(keep.src); expect(hosts).toContain(keep.dst); expect(cellFlow(item, keep).mode).toBe("session"); }
+    expect(Object.keys(item.roles).sort()).toEqual(item.network.devices.map((device) => device.id).sort());
   });
 
   it("판정기로 가져가기는 복사본과 실습 이름이 든 안내를 만든다", () => {
