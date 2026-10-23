@@ -21,28 +21,25 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업(2026-10-24): **기능 동결 전 마무리 묶음**(아래 작업 정의). 브랜치 `claude/prefreeze-polish`, main `d1756d6`에서 분기.
-- 직전: PR #68(침해 가정 두 번째 장면)을 사용자 지시로 병합했다(`d1756d6`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 792, 빌드 `index-Xv-E35ss.js`. 공개 JS·CSS SHA256이 로컬 빌드와 같다.
-- 사용자 방향(2026-10-23~24): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. 다음 작업 선택은 Claude에게 위임됐다.
-- 다음 차례: **Claude(이 PR 병합 뒤 다음 작업).** Claude가 올린 PR은 테스트가 통과하면 Claude가 병합한다(아래 운영 방식).
+- 작업(2026-10-24): **홈 시작 카드에 "뚫렸다고 가정해 보기" 추가**(아래 작업 정의). 브랜치 `claude/home-breach-card`, main `40c2ebb`에서 분기.
+- 직전: PR #69(동결 전 마무리 묶음)를 위임에 따라 병합했다(`40c2ebb`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 796, 빌드 `index-BchmBEi1.js`. 공개 JS·CSS SHA256이 로컬 빌드와 같다(Python hashlib로 비교).
+- 사용자 방향(2026-10-23~24): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. 다음 작업 선택과 Claude PR 병합은 Claude에게 위임됐다(운영 방식).
+- 다음 차례: **Claude(이 PR 병합 뒤 다음 작업 또는 사용자 보고).**
 
-## 작업 정의 — 기능 동결 전 마무리 묶음 (2026-10-24, Claude 선택)
+## 작업 정의 — 홈 시작 카드 (2026-10-24, Claude 선택)
 
-- **선택 이유:** 11/1 기능 동결과 발표 전에 새 기능보다 지금 있는 화면을 학생이 막힘 없이 쓰게 하는 쪽을 먼저 했다.
-- **변경 범위:**
-  1. 단계마다 붙던 "실제 pfSense 장비와 대조하지 않았습니다"가 남은 세 곳에도 판정 결과 패널과 같은 규칙(끝 문장만 떼고 아래에 한 번)을 적용했다. 대상은 판정기 변경 전/후 패널(`ChangePanel`), 고치기 과제의 목표 이유와 변화 목록, 침해 가정의 "그 밖의 변화"다. `firewall.ts`에 `FIREWALL_NOTE`·`limitationNote`를 두고 결과 패널도 같은 상수를 쓴다.
-  2. 새 화면 세 가지의 768px 태블릿 확인.
-  3. `docs/qa-manual.md`에 사람이 확인할 F(방화벽 입력)·G(침해 가정 두 장면)·H(이 장비가 뚫리면)를 더하고, 기록 표를 I로 옮겼다(다른 문서가 거는 D·E 링크는 그대로).
-- **건드리지 않을 것:** engine/, server/, cases/, API, 계산·분류(문장 표시만 바꿈).
+- **선택 이유:** 침해 가정 실습은 학습실에만 있어 학생이 홈에서 바로 찾기 어려웠다. 설계 §10에서 "홈 노출은 사용자 결정"으로 남겼지만, 사용자가 다음 작업 선택을 위임해 Claude가 정했다. 되돌리기 쉬운 카드 한 장이다.
+- **변경 범위:** `HomePage.tsx`의 "원하는 방식으로 살펴보세요" 카드에 4번째 카드를 더했다. 제목 "뚫렸다고 가정해 보기", 설명 "서버가 뚫렸다면 어디까지 닿는지 보고, 방화벽으로 피해 범위를 줄여 보세요.", 단추 "침해 가정 실습 열기", 주소는 `#/breach/` + 첫 장면 id. 설명은 다른 카드처럼 한 줄에 들도록 두 번 줄였다. 시험은 카드 주소 4개와 제목·단추를 단언한다.
+- **건드리지 않을 것:** 다른 홈 영역, 계산·API·데이터.
 
-### 테스트 결과 — 마무리 묶음 (Claude 직접 실행, 2026-10-24)
+### 테스트 결과 — 홈 시작 카드 (Claude 직접 실행, 2026-10-24)
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 3.76s
+489 passed, 2 xfailed in 5.52s
 
 cd server && ../.venv/Scripts/python -m pytest -q
-236 passed, 1 skipped in 45.39s
+236 passed, 1 skipped in 59.31s
 
 npm --prefix web test
 Test Files 52 passed (52)
@@ -50,19 +47,16 @@ Tests 796 passed (796)
 
 npm --prefix web run build
 dist/assets/index-1ljI70ti.css 91.08 kB │ gzip: 24.45 kB
-dist/assets/index-BchmBEi1.js 424.79 kB │ gzip: 124.84 kB
+dist/assets/index-DVHPqSQR.js 425.01 kB │ gzip: 124.90 kB
 
-git diff --check / git diff --numstat main -- engine/ server/ scripts/ 'cases/*.json' api/ requirements.txt 'web/package*.json' vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+git diff --check / 금지 경로 numstat
 (둘 다 출력 없음, 종료0)
 ```
 
-- **신규 시험 4건:** `limitationNote`·`FIREWALL_NOTE`, 변경 전/후 패널, 고치기 과제, 침해 가정의 "그 밖의 변화". 각 화면 시험은 이유에서 끝 문장이 떼였는지와 안내가 한 번만 보이는지를 함께 단언한다. 처음 쓴 침해 가정 시험은 고치기 전에도 통과해서(문구가 하나뿐이면 개수만으로는 구분이 안 됨) 단언을 강화했다.
-- **768px 실브라우저**(임시 SQLite, 빌드 `index-BchmBEi1.js`, 라이트):
-  - 침해 가정 장면 1 확인 뒤: 문서 폭 753 ≤ 768, 요소 넘침 0, 단추 글자 넘침 0, 구성도 가로 배치.
-  - 판정기로 가져간 방화벽 규칙 3개: 규칙 칸 687px, 3열(407·204·32px), 넘침 0.
-  - 정책 검증 WEB 가정: `3곳 · 서비스 15개`, 단추 15개, 넘침 0(가로 스크롤 영역인 표는 제외하고 측정).
-  - 콘솔: 이전에 서버를 내린 동안 남은 `ERR_CONNECTION_REFUSED` 2건 외 새 오류 0. 임시 DB 삭제·4870 대기 0.
-- **하지 않은 것:** 사람의 수동 QA(F·G·H 체크리스트는 사람 몫). 같은 모델의 자체 점검이다.
+- **실브라우저**(임시 SQLite, 빌드 `index-DVHPqSQR.js`):
+  - 1280px 라이트: 시작 카드 4장 주소 `#/learn`·`#/`·`#/matrix`·`#/breach/breach-01`, 카드 높이 모두 67px(설명 한 줄), 넘침 0.
+  - 375px 다크: 넘침 0. 카드를 누르면 `#/breach/breach-01`로 가고 제목 "학교 홈페이지가 뚫렸다면"에 포커스.
+  - QA 종료 직후 임시 DB가 잠겨 한 번 실패했다. QA 프로세스가 없는 것을 확인한 뒤 다시 지웠다(남은 폴더 0, 4870 대기 0).
 
 ## 지난 과제
 
@@ -70,6 +64,7 @@ git diff --check / git diff --numstat main -- engine/ server/ scripts/ 'cases/*.
 
 | PR | 과제 | 병합 커밋 | 기준 문서 |
 | --- | --- | --- | --- |
+| #69 | 동결 전 마무리: 미대조 문구 한 번만(변경 전/후·고치기·침해 가정), 768px 확인, 수동 QA F·G·H | `40c2ebb` | [qa-manual](docs/qa-manual.md) |
 | #68 | 침해 가정 실습 두 번째 장면 "관리자 PC가 뚫렸다면"(15 → 2, 데이터만) | `d1756d6` | [breach-practice-design §3.4](docs/breach-practice-design.md#34-두-번째-장면-breach-02-관리자-pc가-뚫렸다면-2026-10-24-추가) |
 | #67 | 정책 검증의 "이 장비가 뚫리면" 보기(엔진 칸만 고름, 구성도 표시) | `4fb7e7d` | [policy-matrix](docs/policy-matrix.md#이-장비가-뚫리면-침해-가정-보기) |
 | #66 | 침해 가정 실습 "학교 홈페이지가 뚫렸다면"(설계+구현, 15 → 1) | `c158c4e` | [breach-practice-design](docs/breach-practice-design.md) |
@@ -124,7 +119,7 @@ git diff --check / git diff --numstat main -- engine/ server/ scripts/ 'cases/*.
 - PR #62 N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘) — 사용자 수동 QA 판단 뒤 설계.
 - pfSense: ① 2단계 실습 연동(D5) ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) (② 화면 입력·④ `toNetwork` 키 대조는 PR #65, ⑤ 미대조 문구 한 번만은 PR #65·마무리 묶음에서 처리)
 - F28: change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB).
-- 침해 가정: 2차 확산("닿은 장비도 뚫렸다고 가정") — 표현을 먼저 정한다. 홈 화면에 침해 가정 실습을 따로 보일지는 사용자 결정. 새 화면들의 사람 수동 QA(F·G·H)는 아직이다.
+- 침해 가정: 2차 확산("닿은 장비도 뚫렸다고 가정") — 표현을 먼저 정한다. 홈 시작 카드는 2026-10-24 추가(Claude 결정, 되돌리기 쉬움). 새 화면들의 사람 수동 QA(F·G·H)는 아직이다.
 - PR #52: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향은 사용자 결정), N2 단계 목록이 선택한 방향만.
 - PR #41: 원인별 사례 목록 필터(저장 열 필요), 사람이 붙이는 원인 태그.
 - PR #17: 사례 목록 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind`와 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·지연 주입 미검증.
