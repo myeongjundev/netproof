@@ -20,7 +20,7 @@ Claude(Claude Code, Sonnet 5)가 `main` `a716341`(엔진 0.1.3, PR #8 병합 직
 | axe-core 4.12.1 (판정기) | 위반 1 · 통과 46 | `agent-browser a11y` |
 | 375px 가로 넘침 | 없음 | 브라우저 직접 확인 |
 | 기준 사례 | **3개** (목표 30) | `ls cases/` |
-| 실제 결과가 있는 사례 | **0건** (목표 10) | `cases/*.json`에 `actual` 필드 없음 |
+| 실제 결과가 있는 사례 | **0건** (목표 10) | `actual` 형식은 2026-10-24에 정함(아래 1-1), 데이터는 아직 없음 |
 | CI | **없음** | `.github/`에 workflow 0개 |
 
 ---
@@ -45,7 +45,17 @@ Claude(Claude Code, Sonnet 5)가 `main` `a716341`(엔진 0.1.3, PR #8 병합 직
 
 **할 일**
 1. 동기 실습에서 실제 결과(ping·접속·Nmap 캡처)가 있는 사례를 모은다.
-2. 사례 JSON에 `actual` 필드를 더할지, 게시판의 "실제 결과" 입력만 쓸지 정한다 → 정해지면 `[Claude]`가 설계로 옮긴다.
+2. ~~사례 JSON에 `actual` 필드를 더할지, 게시판의 "실제 결과" 입력만 쓸지 정한다~~ → **2026-10-24 정함(Claude, 사용자 위임).** 기준 사례에 아래 `actual`을 둔다. 게시판의 실제 결과 입력은 그대로 둔다.
+
+   ```json
+   "actual": { "result": "DENY", "date": "2026-10-24", "how": "nc -zv 대상 22", "evidence": "pfSense 방화벽 로그에 차단 기록" }
+   ```
+
+   - `result`는 PASS·DENY만 쓴다. 관측이 판정을 대신하지 않으므로 무응답만으로는 DENY로 적지 않는다([semantics §9](semantics.md#9-관측실제-결과과-판정의-구분)). `evidence`에 차단 로그 같은 근거를 적는다.
+   - `date`는 `YYYY-MM-DD`, `how`(확인 방법)와 `evidence`(근거)는 비어 있지 않은 글이다. 다른 키는 두지 않는다.
+   - 사람이 손계산한 `expect.result`와 같아야 한다. 엔진 계산이 다르면 기존 `known_mismatch`(strict xfail)로 남기고 `expect`·`actual`은 고치지 않는다.
+   - `source`에 "합성"이 들어간 사례에는 두지 않는다. 팀 실습망 사례는 공개 저장소에 주소·이름을 바꿔 싣는다(사용자 결정, 2026-10-24). 실제↔공개 대응표는 저장소에 넣지 않는다.
+   - 검사는 `engine/tests/test_cases.py`의 `validate_actual`이 한다. 엔진 판정 코드는 바꾸지 않았다.
 
 **먼저 할 30초짜리**
 강사님께 **"수업 실습 방화벽이 Cisco ACL인가 pfSense인가"**를 묻는다. pfSense(상태 기반)면 엔진의 무상태 ACL 모델(ADR-005)과 의미가 달라 일치율 자체가 무의미해진다(`plan.md` Risk 2). 사람 트랙에 아직 미해결로 남아 있는데, 답 하나로 품질 리스크가 사라지거나 범위를 다시 잡게 된다.
