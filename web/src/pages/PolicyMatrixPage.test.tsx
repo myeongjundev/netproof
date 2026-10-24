@@ -31,7 +31,10 @@ const matrix = { status: "OK", problems: [], mode: "one-way", services: [{ proto
 const verdict: Verdict = { result: "PASS", comparison: "NO_CLAIM", reason: "engine", problems: [], forward: null, return: null, decisive: null };
 beforeEach(() => {
   harness.states = [spec, true, { matrix, network, signature: JSON.stringify({ network, spec }) }, false, null, "tcp/443", cell, verdict, false, null]; harness.refs = [];
+  // 통신 상세를 열 때 스크롤을 다음 그림으로 미룬다. node 시험 환경에는 없어 처리 안 된 오류가 났다.
+  vi.stubGlobal("requestAnimationFrame", () => 0);
 });
+afterEach(() => vi.unstubAllGlobals());
 function render(current = draft) { harness.index = 0; harness.ref = 0; return PolicyMatrixPage({ draft: current }); }
 it("셀 상세 재생은 계산된 network·서비스·모드로 구성한 정확한 flow만 받는다", () => {
   const panel = find(render(), node => node.type === ResultPanel)!;
@@ -97,5 +100,33 @@ describe("이 장비가 뚫리면", () => {
   it("다시 계산해 장비가 사라지면 고르지 않은 상태로 본다", () => {
     expect(find(show("NOPE"), node => node.type === NetworkDiagram)).toBeUndefined();
     expect(picker(show("NOPE")).props.value).toBe("");
+  });
+
+  const chainPicker = (tree: unknown) => find(tree, node => node.type === "select" && node.props["aria-label"] === "WEB 다음으로 뚫렸다고 가정할 장비")!;
+  it("한 단계 더 가정: 닿은 장비만 고르고, 같은 응답에서 2차 결과·구성도·근거 단추를 보인다", () => {
+    const first = show("WEB");
+    expect(findAll(chainPicker(first).props.children, node => node.type === "option").map(option => option.props.value)).toEqual(["", "ADMIN", "DB", "OUTSIDE"]);
+    expect(findAll(first, node => node.type === NetworkDiagram)).toHaveLength(1);
+    chainPicker(first).props.onChange({ target: { value: "ADMIN" } });
+    const tree = render(breachDraftValue);
+    expect(text(tree)).toContain("ADMIN에서 시작하는 연결이 닿는 곳: 2곳 · 서비스 10개 · WEB에서는 닿지 않던 서비스 0개");
+    expect(text(tree)).toContain("닿는다고 실제로 뚫을 수 있다는 뜻은 아닙니다");
+    const diagrams = findAll(tree, node => node.type === NetworkDiagram);
+    expect(diagrams).toHaveLength(2);
+    expect(diagrams[1].props.marks.ADMIN).toEqual({ tone: "assumed", text: "뚫렸다고 가정" });
+    expect(diagrams[1].props.marks.WEB).toEqual({ tone: "breached", text: "처음 뚫림" });
+    vi.spyOn(api, "verify").mockResolvedValue(verdict);
+    const button = findAll(tree, node => node.type === "button" && String(node.props.className).includes("reach-service") && text(node).includes("ADMIN → DB · MySQL"))[0];
+    void button.props.onClick();
+    expect(harness.states[6]).toMatchObject({ src: "10.0.30.10", dst: "10.0.20.10", service: "tcp/3306" });
+    vi.restoreAllMocks();
+  });
+
+  it("처음 뚫린 장비를 바꾸면 한 단계 더 가정한 장비는 고르지 않음으로 돌아간다", () => {
+    const tree = show("WEB");
+    chainPicker(tree).props.onChange({ target: { value: "ADMIN" } });
+    picker(render(breachDraftValue)).props.onChange({ target: { value: "ADMIN" } });
+    const after = render(breachDraftValue);
+    expect(find(after, node => node.type === "select" && node.props["aria-label"] === "ADMIN 다음으로 뚫렸다고 가정할 장비")!.props.value).toBe("");
   });
 });

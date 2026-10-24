@@ -1,5 +1,5 @@
 import responses from "./testFixtures/breach-responses.json";
-import { BREACHES, breachById, breachDraft, breachImport, breachSpec, cellFlow, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges } from "./breach";
+import { BREACHES, breachById, breachDraft, breachImport, breachSpec, cellFlow, chainMarks, deviceStatus, freshCells, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges } from "./breach";
 import { toNetwork } from "./draft";
 import type { ChangeImpact, PolicyMatrix } from "./types";
 
@@ -7,6 +7,7 @@ const scenario = breachById("breach-01")!;
 const start = responses.start as unknown as PolicyMatrix;
 const narrowed = responses.narrowed as unknown as PolicyMatrix;
 const impact = responses.narrowedImpact as unknown as ChangeImpact;
+const adminNarrowed = responses.adminNarrowed as unknown as PolicyMatrix;
 
 describe("실습 데이터와 입력", () => {
   it("실습은 학교 망의 두 장면이고 id는 겹치지 않는다", () => {
@@ -94,6 +95,40 @@ describe("피해 범위 (엔진 응답을 고르고 묶기만 한다)", () => {
     expect(reach(null, "WEB")).toBeNull();
     expect(reach({ ...start, status: "INVALID" }, "WEB")).toBeNull();
     expect(reach({ ...start, limit_exceeded: true }, "WEB")).toBeNull();
+  });
+});
+
+describe("한 단계 더 가정 (2차 확산, 같은 응답에서 고르기만 한다)", () => {
+  it("이미 뚫린 장비는 목적지에서 뺀다: 처음 구성의 ADMIN은 DB·OUTSIDE에만 닿고 WEB은 목록에 없다", () => {
+    const second = reach(start, "ADMIN", ["WEB"])!;
+    expect(second.others).toEqual(["DB", "OUTSIDE"]);
+    expect(second.targets.map((target) => target.device)).toEqual(["DB", "OUTSIDE"]);
+    expect(second.count).toBe(10);
+    expect(second.targets.flatMap((target) => target.cells).every((cell) => cell.dst !== "10.0.10.10")).toBe(true);
+  });
+
+  it("처음 구성에서는 WEB이 이미 모두 닿으므로 ADMIN을 더 가정해도 새로 닿는 서비스가 없다", () => {
+    expect(freshCells(reach(start, "WEB")!, reach(start, "ADMIN", ["WEB"])!)).toEqual([]);
+  });
+
+  it("관리자 장면에서 em3을 SSH 하나로 줄여도, WEB을 더 가정하면 DB MySQL이 새로 닿는다", () => {
+    const first = reach(adminNarrowed, "ADMIN")!, second = reach(adminNarrowed, "WEB", ["ADMIN"])!;
+    expect(first.targets.map((target) => [target.device, target.cells.map((cell) => cell.service)])).toEqual([["WEB", ["tcp/22"]]]);
+    const fresh = freshCells(first, second);
+    expect(fresh.map((cell) => [cell.dst, cell.service, cell.expect])).toEqual([["10.0.20.10", "tcp/3306", "PASS"]]);
+    expect(chainMarks("ADMIN", "WEB", second, fresh)).toEqual({
+      ADMIN: { tone: "breached", text: "처음 뚫림" },
+      WEB: { tone: "assumed", text: "뚫렸다고 가정" },
+      DB: { tone: "reach", text: "닿음 · 서비스 1개 · 새로 1개" },
+      OUTSIDE: { tone: "safe", text: "안 닿음" },
+    });
+  });
+
+  it("새로 닿음은 목적지 주소와 서비스로 비교한다: 이미 닿은 장비라도 다른 서비스면 새로 센다", () => {
+    const first = reach(adminNarrowed, "ADMIN")!, second = reach(adminNarrowed, "OUTSIDE", ["ADMIN"])!;
+    expect(second.targets.map((target) => [target.device, target.cells.map((cell) => cell.service)])).toEqual([["WEB", ["tcp/443"]]]);
+    expect(freshCells(first, second).map((cell) => cell.service)).toEqual(["tcp/443"]);
+    expect(freshCells(first, first)).toEqual([]);
   });
 });
 

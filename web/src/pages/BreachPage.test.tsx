@@ -1,6 +1,7 @@
 import { createElement, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BreachPage } from "./BreachPage";
+import { NetworkDiagram } from "../components/NetworkDiagram";
 import { api } from "../api";
 import { breachById, breachDraft, breachSpec } from "../breach";
 import { toNetwork } from "../draft";
@@ -34,6 +35,7 @@ const scenario = breachById("breach-01")!;
 const start = responses.start as unknown as PolicyMatrix;
 const narrowed = responses.narrowed as unknown as PolicyMatrix;
 const impact = responses.narrowedImpact as unknown as ChangeImpact;
+const adminNarrowed = responses.adminNarrowed as unknown as PolicyMatrix;
 const verdict: Verdict = { result: "PASS", comparison: "NO_CLAIM", reason: "engine response", problems: [], forward: null, return: null, decisive: null };
 const isStart = (network: Network) => JSON.stringify(network) === JSON.stringify(toNetwork(breachDraft(scenario)));
 beforeEach(() => {
@@ -54,12 +56,12 @@ function text(node: unknown): string {
   if (isValidElement<any>(node)) return text(node.props.children);
   return typeof node === "string" || typeof node === "number" ? String(node) : "";
 }
-function driver(initial: Draft = breachDraft(scenario)) {
+function driver(initial: Draft = breachDraft(scenario), item = scenario) {
   fixture.enabled = true;
   let draft = initial;
   const onImport = vi.fn();
   const setDraft = vi.fn((update: (current: Draft) => Draft) => { draft = update(draft); });
-  const render = () => { fixture.s = 0; fixture.r = 0; fixture.e = 0; return BreachPage({ id: scenario.id, draft, setDraft, onImport }); };
+  const render = () => { fixture.s = 0; fixture.r = 0; fixture.e = 0; return BreachPage({ id: item.id, draft, setDraft, onImport }); };
   const effects = async () => { for (const effect of fixture.queue.splice(0)) effect(); for (let i = 0; i < 4; i++) await Promise.resolve(); };
   const button = (label: string) => findAll(render(), (node) => node.type === "button" && text(node).includes(label))[0];
   const check = async () => { render(); await effects(); await button("확인하기").props.onClick(); render(); await effects(); return text(render()); };
@@ -169,4 +171,60 @@ it("그 밖의 변화 이유의 방화벽 미대조 끝 문장은 떼고 한 번
   expect(shown).toContain("그 밖의 변화 1건"); expect(shown).toContain("정방향: em3 in: 기본 정책으로 차단");
   expect(shown.match(/실제 pfSense 장비와 대조하지 않았습니다/g)).toHaveLength(1);
   expect(shown).not.toContain(`차단${tag}`); expect(shown).toContain("방화벽 단계는 제한된 상태 추적 모델로 계산했습니다");
+});
+
+const chainPicker = (tree: unknown, breached = "WEB") => findAll(tree, (node) => node.type === "select" && node.props["aria-label"] === `${breached} 다음으로 뚫렸다고 가정할 장비`)[0];
+const options = (select: ReactElement<any>) => findAll(select.props.children, (node) => node.type === "option").map((option) => option.props.value);
+
+it("한 단계 더 가정: 닿은 장비만 고를 수 있고, 새 요청 없이 같은 응답에서 2차 결과를 보인다", async () => {
+  const page = driver();
+  const shown = await page.check();
+  expect(shown).toContain("한 단계 더 가정해 보기");
+  expect(shown).toContain("닿는다고 실제로 뚫을 수 있다는 뜻은 아닙니다");
+  expect(shown).toContain("측면 이동(lateral movement)");
+  expect(options(chainPicker(page.render()))).toEqual(["", "ADMIN", "DB", "OUTSIDE"]);
+  expect(chainPicker(page.render()).props.value).toBe("");
+  expect(findAll(page.render(), (node) => node.type === NetworkDiagram)).toHaveLength(1);
+  chainPicker(page.render()).props.onChange({ target: { value: "ADMIN" } });
+  const tree = page.render(), chained = text(tree);
+  expect(chained).toContain("ADMIN에서 시작하는 연결이 닿는 곳: 2곳 · 서비스 10개 · WEB에서는 닿지 않던 서비스 0개");
+  expect(chained).toContain("WEB에서 이미 닿는 서비스뿐입니다. 이 가정으로 닿는 범위가 넓어지지 않습니다.");
+  const diagrams = findAll(tree, (node) => node.type === NetworkDiagram);
+  expect(diagrams).toHaveLength(2);
+  expect(diagrams[1].props.marks.WEB).toEqual({ tone: "breached", text: "처음 뚫림" });
+  expect(diagrams[1].props.marks.ADMIN).toEqual({ tone: "assumed", text: "뚫렸다고 가정" });
+  expect(diagrams[1].props.flow.src).toBe("10.0.30.10");
+  expect(api.policyMatrix).toHaveBeenCalledTimes(2);
+  chainPicker(page.render()).props.onChange({ target: { value: "DB" } });
+  expect(text(page.render())).toContain("DB에서 시작하는 연결은 닿는 곳이 없습니다.");
+  expect(text(page.render())).not.toMatch(/완료|성공|정답|점수|%|축하|침투 가능|털림/);
+});
+
+it("관리자 장면: WEB을 더 가정하면 ADMIN에서 닿지 않던 DB MySQL이 새로 닿고, 지켜야 할 통신이라 방화벽 밖 대책을 안내한다", async () => {
+  const admin = breachById("breach-02")!;
+  vi.mocked(api.policyMatrix).mockResolvedValue(adminNarrowed);
+  const page = driver(breachDraft(admin), admin);
+  await page.check();
+  expect(options(chainPicker(page.render(), "ADMIN"))).toEqual(["", "WEB"]);
+  chainPicker(page.render(), "ADMIN").props.onChange({ target: { value: "WEB" } });
+  const tree = page.render(), shown = text(tree);
+  expect(shown).toContain("WEB에서 시작하는 연결이 닿는 곳: 1곳 · 서비스 1개 · ADMIN에서는 닿지 않던 서비스 1개");
+  expect(shown).toContain("새로 닿는 서비스 가운데 1개는 통과로 정해 둔(지켜야 할) 통신입니다.");
+  expect(findAll(tree, (node) => node.type === "em" && node.props.className === "reach-fresh")).toHaveLength(1);
+  expect(findAll(tree, (node) => node.type === NetworkDiagram)[1].props.marks.DB).toEqual({ tone: "reach", text: "닿음 · 서비스 1개 · 새로 1개" });
+  const button = findAll(tree, (node) => node.type === "button" && text(node).includes("WEB → DB · MySQL"))[0];
+  await button.props.onClick();
+  expect(vi.mocked(api.verify).mock.calls[0][1]).toEqual({ src: "10.0.10.10", dst: "10.0.20.10", proto: "tcp", dst_port: 3306, mode: "session" });
+});
+
+it("다시 확인해 더 가정한 장비가 닿지 않게 되면 고르지 않음으로 돌아가고 다른 장비를 대신 고르지 않는다", async () => {
+  const page = driver();
+  await page.check();
+  chainPicker(page.render()).props.onChange({ target: { value: "ADMIN" } });
+  page.setDraft((current) => ({ ...current, devices: current.devices.map((device) => device.id === "FW" ? { ...device, interfaces: device.interfaces.map((iface) =>
+    iface.name === "em1" ? { ...iface, rules_in: [{ action: "pass" as const, proto: "tcp" as const, src: "10.0.10.10", dst: "10.0.20.10", dst_port: "22" }] } : iface) } : device) }));
+  await page.check();
+  expect(options(chainPicker(page.render()))).toEqual(["", "DB"]);
+  expect(chainPicker(page.render()).props.value).toBe("");
+  expect(findAll(page.render(), (node) => node.type === NetworkDiagram)).toHaveLength(1);
 });

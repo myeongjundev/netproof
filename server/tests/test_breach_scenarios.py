@@ -24,8 +24,8 @@ def keep_policies(scenario, result):
             for cell in result["cells"] if (cell["src"], cell["dst"], cell["service"]) in keys}
 
 
-def reach(scenario, result):
-    sources = {endpoint["ip"] for endpoint in result["endpoints"] if endpoint["device"] == scenario["breached"]}
+def reach(scenario, result, device=None):
+    sources = {endpoint["ip"] for endpoint in result["endpoints"] if endpoint["device"] == (device or scenario["breached"])}
     return {(cell["dst"], cell["service"]) for cell in result["cells"] if cell["src"] in sources and cell["result"] == "PASS"}
 
 
@@ -105,3 +105,22 @@ def test_breach_02_blocking_everything_breaks_management():
     assert reach(scenario, result) == set()
     assert {label: policy for label, policy in keep_policies(scenario, result).items() if policy != "AGREE"} == {
         "ADMIN → WEB · SSH": "BLOCKED", "ADMIN → DB · SSH": "BLOCKED"}
+
+
+# 한 단계 더 가정(2차 확산, docs/breach-practice-design.md §4.1): 화면은 같은 매트릭스에서 다음 장비 출발 칸만 고른다.
+def test_breach_01_one_more_assumption_stops_at_the_database():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-01")
+    result = matrix(scenario, firewall_with_em1(scenario, [
+        {"action": "pass", "proto": "tcp", "src": "10.0.10.10", "dst": "10.0.20.10", "dst_port": "3306"}]))
+    assert reach(scenario, result, "DB") == set()
+
+
+def test_breach_02_one_more_assumption_reaches_mysql_through_web():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-02")
+    result = matrix(scenario, firewall_with(scenario, "em3", [
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.10.10", "dst_port": "22"},
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.20.10", "dst_port": "22"}]))
+    from_web = reach(scenario, result, "WEB")
+    assert from_web == {("10.0.20.10", "tcp/3306")}
+    assert not from_web & reach(scenario, result)
+    assert keep_policies(scenario, result)["WEB → DB · MySQL"] == "AGREE"

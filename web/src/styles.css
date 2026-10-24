@@ -669,7 +669,9 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 /* 침해 가정 실습: 뚫림은 차단과 같은 위험색, 닿음·판정 불가는 경고색, 안 닿음은 중립 */
 .topology-device.mark-breached { border: 2px solid var(--deny); background: var(--deny-bg); }
 .topology-device.mark-reach, .topology-device.mark-unknown { border: 2px solid var(--warn); background: var(--warn-bg); }
-.topology-device.mark-breached .topology-position { color: var(--deny); font-weight: 700; }
+/* 한 단계 더 가정한 장비: 같은 위험색이되 점선으로 "가정"임을 구분한다 */
+.topology-device.mark-assumed { border: 2px dashed var(--deny); background: var(--deny-bg); }
+.topology-device.mark-breached .topology-position, .topology-device.mark-assumed .topology-position { color: var(--deny); font-weight: 700; }
 .topology-device.mark-reach .topology-position, .topology-device.mark-unknown .topology-position { color: var(--warn); font-weight: 700; }
 .topology-position { min-height: 19px; }
 .topology-subnet { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 4px 6px; font-size: 12px; text-align: center; }
@@ -709,6 +711,9 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .breach-services { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .matrix-breach { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 16px 0; padding: 4px 0 12px; }
 .matrix-breach h3 { margin: 12px 0 4px; }
+.breach-chain { border-top: 2px dashed var(--line); margin-top: 16px; padding-top: 4px; }
+.breach-chain h3 { margin: 12px 0 4px; }
+.reach-fresh { align-self: center; margin-right: 4px; color: var(--deny); font-size: 12px; font-style: normal; font-weight: 700; }
 .trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }
 @media(pointer: coarse) { .trace-player button, .topology-inventory summary { min-height: 44px; } }
 @media (max-width: 380px) {

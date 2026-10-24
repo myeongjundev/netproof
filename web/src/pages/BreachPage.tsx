@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api, message } from "../api";
 import { EMPTY_CLAIM, toNetwork } from "../draft";
 import { breachById, breachDraft, breachSpec, cellFlow, deviceStatus, guessText, keepText, layoutFlow, reach, reachMarks, serviceName, splitChanges, type Guess, type Reach } from "../breach";
-import { reachTargets, REACH_MEANING, STATUS_TEXT } from "../components/ReachTargets";
+import { chainTargets, reachTargets, REACH_MEANING, STATUS_TEXT } from "../components/ReachTargets";
 import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
@@ -35,6 +35,9 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
   // 피해 범위 그림은 확인한 그때의 구성으로 그린다(고친 뒤에도 계산과 그림이 어긋나지 않게).
   const [checkedNetwork, setCheckedNetwork] = useState<Network | null>(null);
+  // 한 단계 더 가정한 장비와 그 구성도에서 고른 장비. 다시 확인해 닿지 않게 되면 화면에서 "고르지 않음"으로 본다.
+  const [chained, setChained] = useState("");
+  const [chainDevice, setChainDevice] = useState<string | null>(null);
   const active = useRef(true), revision = useRef(0), pending = useRef(false), evidenceRevision = useRef(0);
   const snapshot = useMemo(() => JSON.stringify(draft), [draft]);
   const latest = useRef(snapshot), previous = useRef(snapshot);
@@ -154,6 +157,10 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
           <p className="hint">서비스 단추를 누르면 그 연결이 왜 닿는지 아래 근거에서 봅니다.</p>
           {reachTargets(now, scenario.services, (cell, name, device) =>
             evidenceButton(cell, `${name} 근거 보기`, `${scenario.breached} → ${device} · ${name}`, "ghost small reach-service"), scenario.roles)}
+          {matrix && chainTargets({ breached: scenario.breached, first: now, matrix, next: chained, onNext: setChained, services: scenario.services, roles: scenario.roles,
+            service: (cell, name, device) => evidenceButton(cell, `${name} 근거 보기`, `${chained} → ${device} · ${name}`, "ghost small reach-service"),
+            diagram: (marks, device) => checkedNetwork && <NetworkDiagram network={checkedNetwork} flow={layoutFlow(checkedNetwork, device)} trace={null} index={0}
+              selectedDevice={chainDevice} onSelectDevice={setChainDevice} marks={marks} /> })}
         </>}
       </section>
 
