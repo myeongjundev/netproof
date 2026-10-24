@@ -255,3 +255,16 @@ def test_qa_cause_example_and_cleanup():
         assert board["causes"]["excluded"] == {"agree": 1, "no_claim": 2, "not_comparable": 0}
         assert board["causes"]["claim_kinds"] == {"ai": 2, "self": 0, "unknown": 0}
     assert not directory.exists()
+
+
+def test_saved_firewall_blocks_are_split_into_rule_and_default(app, reviewer, monkeypatch):
+    # 이미 저장된 방화벽 차단도 읽을 때 나눈다. 재판정·엔진 버전 변경 없이 분류만 늘어난다.
+    add_cause_rows(app, [blocked(step="firewall_in", seq=None)] * 3 + [blocked(step="firewall_in", seq=2)])
+    monkeypatch.setattr("netproof_api.cases.verify", lambda *args: pytest.fail("must not rejudge"))
+    board = reviewer.get("/api/dashboard").get_json()
+    assert_cause_partition(board)
+    assert board["causes"]["top"] == [{"tag": "firewall_default", "count": 3, "return_count": 0},
+                                      {"tag": "firewall_rule", "count": 1, "return_count": 0}]
+    assert board["causes"]["other"]["count"] == 0
+    assert reviewer.get("/api/cases/1").get_json()["cause"] == {"tag": "firewall_default", "direction": "forward"}
+    assert reviewer.get("/api/cases/4").get_json()["cause"] == {"tag": "firewall_rule", "direction": "forward"}
