@@ -5,7 +5,7 @@ import { exerciseById, exerciseFact, exerciseSpec, EXERCISE_FACT, goalCell, goal
 import { NetworkEditor } from "../components/NetworkEditor";
 import { ResultPanel } from "../components/ResultPanel";
 import { aclSelection } from "../components/AclEvidence";
-import { scrollTo } from "../motion";
+import { scrollTo, scrollToId } from "../motion";
 import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 import type { CaseItem, ChangeImpact, Draft, Flow, Network, PolicyMatrix, Verdict } from "../types";
 
@@ -98,6 +98,7 @@ export function FixExercisePage({ id, draft, setDraft, onReady, onImport }: Prop
     const current = () => active.current && evidenceRevision.current === started && latest.current === requested;
     const network = structuredClone(toNetwork(draft)), flow = goalFlow(exercise, goal);
     setEvidenceLoading(true); setEvidence(null); setEvidenceError(null);
+    scrollToId("fix-evidence");
     try { const verdict = await api.verify(network, flow, { ...EMPTY_CLAIM }); if (current()) setEvidence({ network, flow, verdict }); }
     catch (error) { if (current()) setEvidenceError(message(error)); }
     finally { if (current()) setEvidenceLoading(false); }
@@ -156,8 +157,8 @@ export function FixExercisePage({ id, draft, setDraft, onReady, onImport }: Prop
         {limitationNote([...exercise.goals.map(goal => goalCell(matrix, goal)?.reason ?? ""), ...changes.map(change => change.after.reason)]) && <p className="hint">{FIREWALL_NOTE}</p>}
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
       </section>
-      <ResultPanel title="목표 통신의 근거" emptyHint="목표의 근거 보기를 누르면 해당 통신을 계산합니다." verdict={evidence?.verdict ?? null} network={evidence?.network} flow={evidence?.flow}
-        claim={EMPTY_CLAIM} stale={stale} loading={evidenceLoading || checking} error={evidenceError} onShowAcl={showAcl} />
+      <div id="fix-evidence"><ResultPanel title="목표 통신의 근거" emptyHint="목표의 근거 보기를 누르면 해당 통신을 계산합니다." verdict={evidence?.verdict ?? null} network={evidence?.network} flow={evidence?.flow}
+        claim={EMPTY_CLAIM} stale={stale} loading={evidenceLoading || checking} error={evidenceError} onShowAcl={showAcl} /></div>
       <div className="practice-import"><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
     </>}
   </div>;
