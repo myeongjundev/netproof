@@ -5,6 +5,7 @@
 """
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -97,3 +98,55 @@ def test_bad_mismatch_format_is_not_xfailed(tmp_path, change):
     case_params([path])  # 수집은 가능하지만 별도 형식 검사가 실패해야 한다.
     with pytest.raises(AssertionError):
         validate_known_mismatch(json.loads(path.read_text(encoding="utf-8")))
+
+
+ACTUAL_KEYS = {"result", "date", "how", "evidence"}
+
+
+def validate_actual(case):
+    """실습망에서 관측한 실제 결과. 사람이 정한 기대값과 같아야 하고, 합성 사례에는 두지 않는다."""
+    if "actual" not in case:
+        return
+    actual = case["actual"]
+    assert isinstance(actual, dict) and set(actual) == ACTUAL_KEYS
+    assert actual["result"] in ("PASS", "DENY")
+    assert isinstance(actual["date"], str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", actual["date"])
+    for key in ("how", "evidence"):
+        assert isinstance(actual[key], str) and actual[key].strip()
+    assert "합성" not in case["source"]
+    assert case["expect"]["result"] == actual["result"]
+
+
+@pytest.mark.parametrize("path", CASES, ids=[p.stem for p in CASES])
+def test_actual_format(path):
+    validate_actual(json.loads(path.read_text(encoding="utf-8")))
+
+
+def test_synthetic_cases_have_no_actual():
+    for path in CASES:
+        case = json.loads(path.read_text(encoding="utf-8"))
+        if "합성" in case["source"]:
+            assert "actual" not in case, path.name
+
+
+GOOD_ACTUAL = {"source": "팀 실습망 관측(주소·이름 바꿈)", "expect": {"result": "DENY"},
+               "actual": {"result": "DENY", "date": "2026-10-24", "how": "nc -zv 대상 22", "evidence": "방화벽 로그 차단 기록"}}
+
+
+def test_good_actual_passes():
+    validate_actual(GOOD_ACTUAL)
+
+
+@pytest.mark.parametrize("change", [
+    {"actual": None}, {"actual.result": "UNSUPPORTED"}, {"actual.date": "10/24"}, {"actual.how": " "},
+    {"actual.evidence": 1}, {"actual.extra": "x"}, {"source": "합성 사례"}, {"expect": {"result": "PASS"}},
+])
+def test_bad_actual_is_rejected(change):
+    case = json.loads(json.dumps(GOOD_ACTUAL))
+    for key, value in change.items():
+        if key.startswith("actual."):
+            case["actual"][key.split(".", 1)[1]] = value
+        else:
+            case[key] = value
+    with pytest.raises(AssertionError):
+        validate_actual(case)

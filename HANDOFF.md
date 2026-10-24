@@ -21,42 +21,44 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업(2026-10-24): **홈 시작 카드에 "뚫렸다고 가정해 보기" 추가**(아래 작업 정의). 브랜치 `claude/home-breach-card`, main `40c2ebb`에서 분기.
-- 직전: PR #69(동결 전 마무리 묶음)를 위임에 따라 병합했다(`40c2ebb`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 796, 빌드 `index-BchmBEi1.js`. 공개 JS·CSS SHA256이 로컬 빌드와 같다(Python hashlib로 비교).
-- 사용자 방향(2026-10-23~24): 보안 네트워크 학생에게 교육적으로 도움이 되고 쓰기 쉬운 사이트. 유료 서비스(결제)는 다음으로 미룸. 다음 작업 선택과 Claude PR 병합은 Claude에게 위임됐다(운영 방식).
-- 다음 차례: **Claude(이 PR 병합 뒤 다음 작업 또는 사용자 보고).**
+- 작업(2026-10-24): **기준 사례의 `actual`(실제 결과) 형식과 검사**(아래 작업 정의). 브랜치 `claude/case-actual-field`, main `29a97a0`에서 분기.
+- 직전: PR #70(홈 시작 카드)을 위임에 따라 병합했다(`29a97a0`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 796, 빌드 `index-DVHPqSQR.js`. 공개 JS·CSS SHA256이 로컬과 같다.
+- **pfSense 2단계 — 팀 실습망 기준 사례(진행 중, 사용자 자료 대기):**
+  - 사용자 답(2026-10-24): VPN 규칙은 `Firewall > Rules > OpenVPN` 탭이다(인터페이스 그룹이라 팀·수업 VPN 두 인스턴스가 같은 규칙을 씀). 공개 저장소에는 **주소·이름을 바꿔** 싣는다(실제↔공개 대응표는 저장소에 넣지 않음).
+  - 팀 저장소 기록에서 확인한 사실: pfSense CE 2.7.2, WAN em0·LAN em1·DMZ em2·WORK em3·TRANSIT em4, DB는 WORK에 있고 게이트웨이는 pfSense, WORK·Floating 탭 비어 있음, Outbound NAT는 Automatic이고 목록이 비어 있음(10/21 화면).
+  - 대기 중인 자료: OpenVPN 탭 규칙 표 캡처(사용자가 규칙을 모름 → 학원 B PC에서 캡처), 별칭 화면, A VM에서 DB로 TCP 3306·22 `nc -zv` 결과와 차단 로그. 이 PC에서는 pfSense 관리망(10.10.30.1)에 닿지 않는다.
+  - 모델링 방침: OpenVPN 그룹 규칙은 두 터널 인터페이스에 같은 `rules_in`으로 넣는다(엔진 변경 없음, 그룹 탭만 쓰는 경우에만 성립한다고 사례에 적음). A VM은 터널 주소·게이트웨이 10.250.0.1인 호스트로 단순화한다. 기대값은 사람이 손계산한다.
+- 다음 차례: **Claude(이 PR 병합) → 사용자(캡처·관측 자료).** 자료가 오면 규칙을 옮겨 적고 손계산 표를 드린 뒤 사례를 만든다.
 
-## 작업 정의 — 홈 시작 카드 (2026-10-24, Claude 선택)
+## 작업 정의 — 기준 사례 `actual` 형식 (2026-10-24, Claude 선택·사용자 위임)
 
-- **선택 이유:** 침해 가정 실습은 학습실에만 있어 학생이 홈에서 바로 찾기 어려웠다. 설계 §10에서 "홈 노출은 사용자 결정"으로 남겼지만, 사용자가 다음 작업 선택을 위임해 Claude가 정했다. 되돌리기 쉬운 카드 한 장이다.
-- **변경 범위:** `HomePage.tsx`의 "원하는 방식으로 살펴보세요" 카드에 4번째 카드를 더했다. 제목 "뚫렸다고 가정해 보기", 설명 "서버가 뚫렸다면 어디까지 닿는지 보고, 방화벽으로 피해 범위를 줄여 보세요.", 단추 "침해 가정 실습 열기", 주소는 `#/breach/` + 첫 장면 id. 설명은 다른 카드처럼 한 줄에 들도록 두 번 줄였다. 시험은 카드 주소 4개와 제목·단추를 단언한다.
-- **건드리지 않을 것:** 다른 홈 영역, 계산·API·데이터.
+- **이유:** 실제 기준 사례를 담을 칸이 없었다(`docs/quality.md` 1-1의 미결정 항목). 캡처가 오기 전에 형식과 검사를 먼저 정해, 자료가 오면 데이터만 채우게 한다.
+- **변경 범위:** `engine/tests/test_cases.py`에 `validate_actual`과 시험(모든 사례 형식, 합성 사례에는 없음, 올바른 예 1·잘못된 예 8)을 더했다. `docs/quality.md` 1-1에 형식·규칙을 적었다.
+- **형식:** `actual: {result: PASS|DENY, date: YYYY-MM-DD, how, evidence}`. 사람이 정한 `expect.result`와 같아야 하고, 무응답만으로는 DENY로 적지 않는다(semantics §9).
+- **건드리지 않을 것:** `engine/src`(판정·버전 0.2.0), server, web, cases 데이터, API.
 
-### 테스트 결과 — 홈 시작 카드 (Claude 직접 실행, 2026-10-24)
+### 테스트 결과 — `actual` 형식 (Claude 직접 실행, 2026-10-24)
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
-489 passed, 2 xfailed in 5.52s
+502 passed, 2 xfailed in 6.42s
 
 cd server && ../.venv/Scripts/python -m pytest -q
-236 passed, 1 skipped in 59.31s
+236 passed, 1 skipped in 56.42s
 
 npm --prefix web test
 Test Files 52 passed (52)
 Tests 796 passed (796)
 
 npm --prefix web run build
-dist/assets/index-1ljI70ti.css 91.08 kB │ gzip: 24.45 kB
-dist/assets/index-DVHPqSQR.js 425.01 kB │ gzip: 124.90 kB
+dist/assets/index-DVHPqSQR.js 425.01 kB (main과 같은 번들 — 화면 변경 없음)
 
-git diff --check / 금지 경로 numstat
-(둘 다 출력 없음, 종료0)
+git diff --check / git diff --numstat main -- engine/src server/ web/ scripts/ cases/ api/ requirements.txt vercel.json AGENTS.md CLAUDE.md PROMPTS.md
+(둘 다 출력 없음, 종료0 — 판정 코드·데이터 변경 0줄)
 ```
 
-- **실브라우저**(임시 SQLite, 빌드 `index-DVHPqSQR.js`):
-  - 1280px 라이트: 시작 카드 4장 주소 `#/learn`·`#/`·`#/matrix`·`#/breach/breach-01`, 카드 높이 모두 67px(설명 한 줄), 넘침 0.
-  - 375px 다크: 넘침 0. 카드를 누르면 `#/breach/breach-01`로 가고 제목 "학교 홈페이지가 뚫렸다면"에 포커스.
-  - QA 종료 직후 임시 DB가 잠겨 한 번 실패했다. QA 프로세스가 없는 것을 확인한 뒤 다시 지웠다(남은 폴더 0, 4870 대기 0).
+- **엔진 시험이 489 → 502로 늘었다(신규 13).** 기존 사례 3개의 `actual` 형식 검사 3, 합성 사례에 `actual`이 없음 1, 올바른 예 1, 잘못된 예 8(없음·UNSUPPORTED·날짜 형식·빈 how·숫자 evidence·추가 키·합성 출처·기대값 불일치)이다.
+- 실브라우저 확인은 화면 변경이 없어 하지 않았다.
 
 ## 지난 과제
 
@@ -64,6 +66,7 @@ git diff --check / 금지 경로 numstat
 
 | PR | 과제 | 병합 커밋 | 기준 문서 |
 | --- | --- | --- | --- |
+| #70 | 홈 시작 카드 "뚫렸다고 가정해 보기" | `29a97a0` | — |
 | #69 | 동결 전 마무리: 미대조 문구 한 번만(변경 전/후·고치기·침해 가정), 768px 확인, 수동 QA F·G·H | `40c2ebb` | [qa-manual](docs/qa-manual.md) |
 | #68 | 침해 가정 실습 두 번째 장면 "관리자 PC가 뚫렸다면"(15 → 2, 데이터만) | `d1756d6` | [breach-practice-design §3.4](docs/breach-practice-design.md#34-두-번째-장면-breach-02-관리자-pc가-뚫렸다면-2026-10-24-추가) |
 | #67 | 정책 검증의 "이 장비가 뚫리면" 보기(엔진 칸만 고름, 구성도 표시) | `4fb7e7d` | [policy-matrix](docs/policy-matrix.md#이-장비가-뚫리면-침해-가정-보기) |
