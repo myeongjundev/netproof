@@ -49,6 +49,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
     </a>)}</nav>
     <p className="home-description">확인할 주제를 선택하세요. 연습용 네트워크로 실습합니다.</p>
     <section className="learning-section"><p className="home-eyebrow">공격자 시점</p><h2>침해 가정 실습</h2><p className="hint">이미 뚫린 장비에서 어디까지 닿는지 예상하고 계산한 뒤, 방화벽 규칙으로 피해 범위를 줄여 봅니다.</p>
+      <p className="hint">보안 관제(XDR)가 이상 행위를 탐지하면 어디까지 확인하고 격리할지 정해야 합니다. 피해 범위는 그 판단의 출발점입니다. NetProof는 탐지·격리를 하지 않고, 방화벽과 경로로 닿는 범위만 계산합니다.</p>
       <nav className="learning-cards" aria-label="침해 가정 실습">{BREACHES.map((item, index) => <a className="learning-card" href={`#/breach/${item.id}`} key={item.id}>
         <span className="lesson-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <div className="lesson-summary"><span className="learning-card-title">{item.title}</span><span>{item.task}</span></div><span>시작하기 →</span>

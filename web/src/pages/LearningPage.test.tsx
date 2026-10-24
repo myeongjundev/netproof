@@ -19,6 +19,8 @@ it("학습실 침해 가정 실습은 고치기 과제 위에 제목·과제·�
   const section = html.slice(html.indexOf("<h2>침해 가정 실습"), html.indexOf("<h2>고치기 과제"));
   expect(html.indexOf("<h2>침해 가정 실습")).toBeGreaterThan(-1);
   for (const item of BREACHES) { expect(section).toContain(item.title); expect(section).toContain(item.task); expect(section).toContain(`href="#/breach/${item.id}"`); }
+  // XDR은 기능이 아니라 설명으로만 잇는다: 피해 범위는 확인·격리 판단의 출발점이고, NetProof는 탐지·격리를 하지 않는다.
+  expect(section).toContain("보안 관제(XDR)"); expect(section).toContain("NetProof는 탐지·격리를 하지 않고");
   expect(section).not.toMatch(/완료|성공|정답|점수|%|badge/);
 });
 

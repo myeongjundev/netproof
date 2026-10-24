@@ -52,7 +52,7 @@ def test_scenario_shape_uses_existing_hosts_and_services(scenario):
 
 
 # breach-03은 규칙을 이미 좁힌 뒤라 우회 길 하나(LOG)와 DB만 닿는다.
-WIDE_REACH = {"breach-01": 3, "breach-02": 3, "breach-03": 2}
+WIDE_REACH = {"breach-01": 3, "breach-02": 3, "breach-03": 2, "breach-04": 5}
 
 
 @pytest.mark.parametrize("scenario", BREACHES, ids=lambda item: item["id"])
@@ -179,3 +179,36 @@ def test_breach_03_one_more_assumption_reaches_the_admin_pc():
     from_log = {(dst, service) for dst, service in reach(scenario, result, "LOG") if dst != "10.0.10.10"}
     assert from_log == {("10.0.30.10", service) for service in ("tcp/22", "tcp/80", "tcp/443", "tcp/3306", "icmp/echo")}
     assert not from_log & reach(scenario, result)
+
+
+def test_breach_04_continues_with_a_vendor_vpn():
+    third, fourth = (next(item for item in BREACHES if item["id"] == key) for key in ("breach-03", "breach-04"))
+    expected = without_interface(third, "LOG", "eth1")
+    expected["devices"].insert(5, {"id": "VENDOR", "kind": "host", "gateway": "10.8.0.1", "interfaces": [{"name": "tun0", "ip": "10.8.0.10/24"}]})
+    next(device for device in expected["devices"] if device.get("stateful"))["interfaces"].append(
+        {"name": "ovpns1", "ip": "10.8.0.1/24", "default_in": "block", "rules_in": [{"action": "pass", "proto": "ip", "src": "10.8.0.0/24", "dst": "any"}]})
+    assert fourth["breached"] == "VENDOR" and fourth["keep"][:4] == third["keep"]
+    assert fourth["network"] == expected
+
+
+def test_breach_04_vpn_reaches_every_host_with_every_service():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-04")
+    result = matrix(scenario, scenario["network"])
+    endpoints = {endpoint["ip"]: endpoint["device"] for endpoint in result["endpoints"]}
+    assert {endpoints[dst] for dst, _ in reach(scenario, result)} == {"OUTSIDE", "WEB", "DB", "ADMIN", "LOG"}
+    assert len(reach(scenario, result)) == 25
+
+
+def test_breach_04_only_the_maintenance_app_left():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-04")
+    result = matrix(scenario, firewall_with(scenario, "ovpns1", [
+        {"action": "pass", "proto": "tcp", "src": "10.8.0.10", "dst": "10.0.20.10", "dst_port": "22"}]))
+    assert set(keep_policies(scenario, result).values()) == {"AGREE"}
+    assert reach(scenario, result) == {("10.0.20.10", "tcp/22")}
+
+
+def test_breach_04_blocking_the_vpn_breaks_vendor_maintenance():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-04")
+    result = matrix(scenario, firewall_with(scenario, "ovpns1", []))
+    assert reach(scenario, result) == set()
+    assert {label: policy for label, policy in keep_policies(scenario, result).items() if policy != "AGREE"} == {"VENDOR → DB · SSH": "BLOCKED"}
