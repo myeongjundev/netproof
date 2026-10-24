@@ -137,5 +137,60 @@
       ],
       "acls": {}
     }
+  },
+  {
+    "id": "breach-04",
+    "title": "외주 VPN 계정이 탈취됐다면",
+    "story": "외주 업체가 DB 서버를 유지보수하려고 OpenVPN으로 학교 망에 접속합니다. 업체 PC가 악성코드에 감염돼 VPN 계정이 탈취됐다고 가정합니다. VPN은 '연결되면 망 안에 있다'고 보고 넓게 열어 두기 쉽습니다. 제로 트러스트 접근(ZTNA)은 사용자·기기·앱을 확인하고 필요한 앱만 엽니다. NetProof는 그중 '필요한 길만 연다'는 네트워크 부분만 계산하고, 사용자·기기 확인은 계산하지 않습니다. 탈취된 VPN 계정으로는 어디까지 닿을까요?",
+    "task": "외주 업체의 DB 서버 관리는 그대로 두면서, VPN에서 닿는 곳을 필요한 앱만 남도록 줄여 보세요.",
+    "breached": "VENDOR",
+    "roles": {
+      "OUTSIDE": "외부 사용자 · 외부 서버",
+      "WEB": "학교 홈페이지 서버(PHP)",
+      "DB": "홈페이지 DB(MySQL)",
+      "ADMIN": "관리자 PC",
+      "LOG": "로그 수집 서버",
+      "VENDOR": "외주 업체 PC(VPN 접속)",
+      "FW": "방화벽(상태 추적)"
+    },
+    "services": [
+      { "proto": "tcp", "dst_port": 22, "label": "SSH" },
+      { "proto": "tcp", "dst_port": 80, "label": "HTTP" },
+      { "proto": "tcp", "dst_port": 443, "label": "HTTPS" },
+      { "proto": "tcp", "dst_port": 3306, "label": "MySQL" },
+      { "proto": "icmp", "icmp": "echo", "label": "Ping" }
+    ],
+    "keep": [
+      { "src": "203.0.113.10", "dst": "10.0.10.10", "service": "tcp/443", "expect": "PASS", "label": "OUTSIDE → WEB · HTTPS", "why": "누구나 홈페이지에 접속합니다" },
+      { "src": "10.0.10.10", "dst": "10.0.20.10", "service": "tcp/3306", "expect": "PASS", "label": "WEB → DB · MySQL", "why": "홈페이지가 DB를 씁니다" },
+      { "src": "10.0.30.10", "dst": "10.0.10.10", "service": "tcp/22", "expect": "PASS", "label": "ADMIN → WEB · SSH", "why": "관리자가 웹서버를 관리합니다" },
+      { "src": "10.0.30.10", "dst": "10.0.20.10", "service": "tcp/22", "expect": "PASS", "label": "ADMIN → DB · SSH", "why": "관리자가 DB 서버를 관리합니다" },
+      { "src": "10.8.0.10", "dst": "10.0.20.10", "service": "tcp/22", "expect": "PASS", "label": "VENDOR → DB · SSH", "why": "외주 업체가 DB 서버를 유지보수합니다" }
+    ],
+    "network": {
+      "devices": [
+        { "id": "OUTSIDE", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "203.0.113.10/24" }], "gateway": "203.0.113.1" },
+        { "id": "WEB", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.10.10/24" }], "gateway": "10.0.10.1" },
+        { "id": "DB", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.20.10/24" }], "gateway": "10.0.20.1" },
+        { "id": "ADMIN", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.30.10/24" }], "gateway": "10.0.30.1" },
+        { "id": "LOG", "kind": "host", "interfaces": [{ "name": "eth0", "ip": "10.0.30.20/24" }], "gateway": "10.0.30.1" },
+        { "id": "VENDOR", "kind": "host", "interfaces": [{ "name": "tun0", "ip": "10.8.0.10/24" }], "gateway": "10.8.0.1" },
+        { "id": "FW", "kind": "router", "stateful": true, "routes": [], "interfaces": [
+          { "name": "em0", "ip": "203.0.113.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "tcp", "src": "any", "dst": "10.0.10.10", "dst_port": "443" }] },
+          { "name": "em1", "ip": "10.0.10.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "tcp", "src": "10.0.10.10", "dst": "10.0.20.10", "dst_port": "3306" }] },
+          { "name": "em2", "ip": "10.0.20.1/24", "default_in": "block", "rules_in": [] },
+          { "name": "em3", "ip": "10.0.30.1/24", "default_in": "block",
+            "rules_in": [
+              { "action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.10.10", "dst_port": "22" },
+              { "action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.20.10", "dst_port": "22" }
+            ] },
+          { "name": "ovpns1", "ip": "10.8.0.1/24", "default_in": "block",
+            "rules_in": [{ "action": "pass", "proto": "ip", "src": "10.8.0.0/24", "dst": "any" }] }
+        ] }
+      ],
+      "acls": {}
+    }
   }
 ]

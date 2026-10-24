@@ -10,9 +10,9 @@ const impact = responses.narrowedImpact as unknown as ChangeImpact;
 const adminNarrowed = responses.adminNarrowed as unknown as PolicyMatrix;
 
 describe("실습 데이터와 입력", () => {
-  it("실습은 학교 망의 세 장면이고 id는 겹치지 않는다", () => {
-    expect(BREACHES.map((item) => item.id)).toEqual(["breach-01", "breach-02", "breach-03"]);
-    expect(BREACHES.map((item) => item.breached)).toEqual(["WEB", "ADMIN", "WEB"]);
+  it("실습은 학교 망의 네 장면이고 id는 겹치지 않는다", () => {
+    expect(BREACHES.map((item) => item.id)).toEqual(["breach-01", "breach-02", "breach-03", "breach-04"]);
+    expect(BREACHES.map((item) => item.breached)).toEqual(["WEB", "ADMIN", "WEB", "VENDOR"]);
   });
 
   it.each(BREACHES)("$id: 처음 구성은 데이터 그대로 판정기 입력이 되고, 뚫린 장비·지켜야 할 서비스는 구성 안에 있다", (item) => {
