@@ -5,6 +5,7 @@ import { emptyCaseFilters, loadCasePage, parseCaseFilters } from "../caseSearch"
 import { appliedFilterText, comparisonCaption } from "../caseView";
 import { ACTUAL_TEXT, ANSWER_TEXT, COMPARISON_TEXT, RESULT_TEXT, claimKindText } from "../displayText";
 import { useRoute } from "../router";
+import { SecurityNewsSection } from "../components/SecurityNews";
 import type { CaseFilters, CasePage } from "../types";
 
 export function CasesPage() {
@@ -59,6 +60,7 @@ export function CasesPage() {
         <a href="#/cases?mine=1&actual_mismatch=1">계산과 실제 결과가 다른 내 사례</a>
         <a href="#/cases?mine=1&actual=none">실제 결과를 아직 안 적은 내 사례</a>
       </nav>
+      <SecurityNewsSection />
       <form className="case-search" role="search" onSubmit={(e) => { e.preventDefault(); changeFilters({ q: search.trim() }); }}>
         <label htmlFor="case-query">사례 검색
           <input id="case-query" type="search" value={search} maxLength={100}

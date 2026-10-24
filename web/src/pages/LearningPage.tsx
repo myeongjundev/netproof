@@ -1,7 +1,7 @@
 import { LESSONS, lessonById } from "../learning";
 import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
-import { TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
+import { SECURITY_DOC, TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
 import { EXERCISES } from "../exercises";
 import { BREACHES } from "../breach";
 
@@ -18,7 +18,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
       <p className="learning-question">이 주제에서 볼 것: {tool.focus}</p>
       <h2>개념</h2><ul>{tool.concepts.map(point => <li key={point}>{point}</li>)}</ul>
       <h2>쉬운 비유</h2><p>{tool.analogy}</p>
-      <h2>{tool.id === "n8n" ? "NetProof로 해 보기" : "NetProof 로그로 해 보기"}</h2><ol>{tool.steps.map(point => <li key={point}>{point}</li>)}</ol>
+      <h2>{tool.doc.href === SECURITY_DOC ? "NetProof 로그로 해 보기" : "NetProof로 해 보기"}</h2><ol>{tool.steps.map(point => <li key={point}>{point}</li>)}</ol>
       <h2>{tool.example.title}</h2><pre><code>{tool.example.text}</code></pre>
       <h2>확인할 것</h2><ul>{tool.checkpoints.map(point => <li key={point}>{point}</li>)}</ul>
       <div className="learning-source"><p>출처: 공식 문서</p><ul>{tool.sources.map(source => <li key={source.href}><a href={source.href} target="_blank" rel="noreferrer">{source.label} ↗</a></li>)}</ul>

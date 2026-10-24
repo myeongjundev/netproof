@@ -102,21 +102,32 @@ const securityTopics = [
     ]
   }
 ];
-it("세 도구는 실습과 별도 id·공식 출처·문서·예·버전·확인 날짜를 가진다", () => {
-  expect(TOOL_TOPICS.map(t => t.id)).toEqual(["graylog", "wazuh", "n8n"]);
-  const versions = ["Graylog 7.1", "Wazuh 4.14", "n8n 2.41"];
-  const domains = ["https://go2docs.graylog.org/", "https://documentation.wazuh.com/", "https://docs.n8n.io/"];
+it("네 도구는 실습과 별도 id·공식 출처·문서·예·버전·확인 날짜를 가진다", () => {
+  expect(TOOL_TOPICS.map(t => t.id)).toEqual(["graylog", "wazuh", "n8n", "pfsense"]);
+  const expected = [
+    { version: "Graylog 7.1", checked: "2026-10-05", domain: "https://go2docs.graylog.org/", doc: "연결 설정 전체: docs/security-logs.md", example: "NetProof 로그 예" },
+    { version: "Wazuh 4.14", checked: "2026-10-05", domain: "https://documentation.wazuh.com/", doc: "연결 설정 전체: docs/security-logs.md", example: "NetProof 로그 예" },
+    { version: "n8n 2.41", checked: "2026-10-05", domain: "https://docs.n8n.io/", doc: "연결 설정 전체: docs/n8n.md", example: "응답 예" },
+    { version: "pfSense CE 2.7.2", checked: "2026-10-24", domain: "https://docs.netgate.com/pfsense/", doc: "방화벽 모델 전체: docs/semantics.md", example: "NetProof 방화벽 규칙 예" },
+  ];
   TOOL_TOPICS.forEach((topic, i) => {
     expect(LESSONS.some(lesson => lesson.id === topic.id)).toBe(false);
-    expect(topic.version).toBe(versions[i]); expect(topic.checked).toBe("2026-10-05");
-    expect(topic.sources.every(source => source.href.startsWith(domains[i]))).toBe(true);
+    expect(topic.version).toBe(expected[i].version); expect(topic.checked).toBe(expected[i].checked);
+    expect(topic.sources.every(source => source.href.startsWith(expected[i].domain))).toBe(true);
     expect(topic.concepts).toHaveLength(6);
-    const doc = i === 2 ? "n8n" : "security-logs";
-    expect(topic.doc).toEqual({label: `연결 설정 전체: docs/${doc}.md`, href: `https://github.com/myeongjundev/netproof/blob/main/docs/${doc}.md`});
+    const file = expected[i].doc.split(": ")[1];
+    expect(topic.doc).toEqual({label: expected[i].doc, href: `https://github.com/myeongjundev/netproof/blob/main/${file}`});
     expect(() => JSON.parse(topic.example.text)).not.toThrow();
-    expect(topic.example.title).toBe(i === 2 ? "응답 예" : "NetProof 로그 예");
+    expect(topic.example.title).toBe(expected[i].example);
   });
   expect(TOOL_NOTICE).toBe("NetProof는 이 도구를 설치하거나 대신 실행하지 않습니다. 수업 환경에서 직접 확인하세요.");
+});
+it("pfSense 원고는 NetProof가 계산하지 않는 별칭·NAT·Floating을 판정 불가로 밝힌다", () => {
+  const topic = TOOL_TOPICS.find(item => item.id === "pfsense")!;
+  expect(topic.concepts.join(" ")).toContain("판정 불가");
+  expect(topic.concepts.join(" ")).toContain("별칭을 계산하지 않으니");
+  expect(topic.steps.join(" ")).toContain("응답이 없다는 것만으로 막혔다고 단정하지 않습니다");
+  expect(JSON.parse(topic.example.text)).toEqual({action: "pass", proto: "tcp", src: "10.0.10.10", dst: "10.0.20.10", dst_port: "3306"});
 });
 it.each(securityTopics)("$id 원고·예·링크는 PR #33 승인 값 그대로다", expected => {
   const {doc, example, ...manuscript} = TOOL_TOPICS.find(item => item.id === expected.id)!;

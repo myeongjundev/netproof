@@ -2,6 +2,7 @@ import { createElement, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BreachPage } from "./BreachPage";
 import { NetworkDiagram } from "../components/NetworkDiagram";
+import { SectionRail } from "../components/SectionRail";
 import { scrollToId } from "../motion";
 import { downloadText } from "../download";
 import { api } from "../api";
@@ -301,4 +302,19 @@ it("수복 기록: 확인 전에는 안내만, 확인 뒤에는 대조 숫자와
   expect(fixed).toContain("처음 닿던 15개 가운데 막힘 14 · 아직 닿음 1 · 판정 불가 0 · 주소 사라짐 0, 새로 닿음 0");
   expect(fixed).toContain("FW em1 들어오는 규칙 — 처음: 통과 · 모든 프로토콜 · any → any / 지금: 통과 · TCP · 10.0.10.10 → 10.0.20.10:22");
   expect(fixed).not.toMatch(/점수|정답|완료|축하|안전합니다/);
+});
+
+it("옆 구역 이동 막대: 구역 여덟 개가 화면의 id와 맞고, 다시 확인은 같은 계산 뒤 피해 범위로 옮겨 간다", async () => {
+  const page = driver();
+  page.render(); await page.effects();
+  const rail = findAll(page.render(), (node) => node.type === SectionRail)[0];
+  expect(rail.props.sections.map((section: { label: string }) => section.label)).toEqual(["상황", "장비", "예상", "피해 범위", "구성 고치기", "지켜야 할 서비스", "수복 기록", "근거"]);
+  for (const section of rail.props.sections as { id: string }[]) expect(findAll(page.render(), (node) => node.props.id === section.id)).toHaveLength(1);
+  expect(rail.props.recheckDisabled).toBe(false);
+  vi.mocked(scrollToId).mockClear();
+  await rail.props.onRecheck(); page.render(); await page.effects();
+  expect(api.policyMatrix).toHaveBeenCalledTimes(2);
+  expect(scrollToId).toHaveBeenCalledWith("breach-reach");
+  const none = renderToStaticMarkup(createElement(BreachPage, { id: scenario.id, draft: undefined, setDraft: () => {}, onImport: () => {} }));
+  expect(none).not.toContain("이 화면의 구역");
 });

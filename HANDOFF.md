@@ -21,6 +21,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태 — v1.0.0 (2026-10-24, 최종 제출본)
+- **v1.1 작업(사용자 승인 2026-10-24):** 수업 도구 pfSense, 침해 가정 옆 구역 이동 막대, 사례 게시판 네트워크 장비 보안 소식(CISA KEV). 설계 [docs/v1.1-design.md](docs/v1.1-design.md), 브랜치 `claude/v1.1-design`. 동결을 이 세 기능에 한해 풀었고 v1.1.0 태그 뒤 다시 동결이다.
+  - 서버 새 API `GET /api/security-news`(`server/netproof_api/security_news.py`): 정해진 CISA 주소 하나만, 5초·5MB, 인스턴스 메모리 6시간 저장, 로그인 필요, 실패 시 이전 자료(stale)나 502(내부 정보 없음). 바깥 요청은 이것뿐이다. CSP는 그대로.
+  - 직접 실행: 엔진 508+2xfail, 서버 262+1skip(+10), 웹 831(+8, 종료 0), 빌드 `index-Cgq6J1mZ.js`. 실브라우저(로컬 QA·합성 계정): 학습실 수업 도구 4장·pfSense 화면, 1280px 침해 가정 막대(본문 오른쪽, sticky, 구역별 강조 — 숨은 창이라 스크롤 이벤트는 직접 보냄), 사례 게시판에서 실제 CISA 자료 10건·카탈로그 판·받은 시각·NVD 새 창 링크, 375px 막대 숨김·넘침 0, 콘솔 오류 0. 써 본 뒤 고친 것: 짧은 구역으로 가면 다음 구역이 강조되어 기준선을 140px→80px로. 캡처 `section-rail-desktop-light.jpg`·`security-news-desktop-light.jpg`.
 - **v1.0.0 릴리스 완료:** PR #78 병합 `a1fa3d4`, 태그 `v1.0.0`(주석 태그, 원격 확인)이 그 커밋을 가리킨다. main에서 엔진 508+2xfail, 서버 252+1skip, 웹 823(종료 0), 빌드 `index-DXGWHAxM.js`·`index-Do86t9w7.css`, 공개 JS·CSS SHA256이 로컬과 같다.
 - **v1.0 작업(사용자 승인 2026-10-24):** "방어전 했던 걸 참고해 NetProof 다음 버전(최종 제출)을 구상·설계·구현" → 설계 [docs/v1-final-design.md](docs/v1-final-design.md) 승인 → 구현(브랜치 `claude/v1-design`).
   - A. 침해 가정 **수복 기록**: 처음 닿던 연결을 지금 결과와 하나씩 대조(막힘·아직 닿음·판정 불가·주소 사라짐·새로 닿음), 바꾼 구성(입력 차이), 남은 한계, Markdown 내려받기(`web/src/remediation.ts`·`download.ts`). 엔진·서버·DB 변경 없음.

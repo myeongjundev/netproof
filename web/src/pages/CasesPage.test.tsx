@@ -40,3 +40,10 @@ it("계산·실제·받은 답은 기존 필터 값을 유지하며 다른 문�
   expect(markup).toContain('<option value="INVALID">입력 오류</option>');
   expect(markup).not.toMatch(/>차단<|>일치<|>불일치<|>종류 없음</);
 });
+
+it("사례 게시판에 네트워크 장비 보안 소식 구역이 있고, 처음에는 불러오는 중이다", () => {
+  const markup = renderToStaticMarkup(createElement(CasesPage));
+  expect(markup).toContain("네트워크 장비 보안 소식 · CISA KEV");
+  expect(markup.indexOf("다시 살펴보기")).toBeLessThan(markup.indexOf("네트워크 장비 보안 소식"));
+  expect(markup).toContain("불러오는 중");
+});
