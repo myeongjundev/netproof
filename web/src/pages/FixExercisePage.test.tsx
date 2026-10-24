@@ -8,6 +8,9 @@ import { EXERCISES, EXERCISE_FACT, exerciseSpec, goalFlow, initializeFixDrafts }
 import { toNetwork } from "../draft";
 import type { CaseItem, ChangeImpact, Draft, MatrixCell, PolicyMatrix, Verdict } from "../types";
 import example from "../../../cases/synthetic-01-https-acl.json";
+import { scrollToId } from "../motion";
+
+vi.mock("../motion", () => ({ scrollTo: vi.fn(), scrollToId: vi.fn() }));
 
 const fixture = vi.hoisted(() => ({ enabled: false, states: [] as any[], refs: [] as any[], effects: [] as any[], queue: [] as (() => void)[], s: 0, r: 0, e: 0 }));
 vi.mock("react", async () => {
@@ -113,6 +116,8 @@ it.each(["matrix", "impact"])("%s INVALID/limit 문제 원문을 그대로 보�
 it("근거는 클릭할 때만 그 목표 flow·구성 스냅샷을 판정한다", async () => {
   const d = await driver(); await d.button("확인하기").props.onClick(); expect(api.verify).not.toHaveBeenCalled();
   await d.goals()[1].props.onClick(); expect(api.verify).toHaveBeenCalledWith(toNetwork(d.draft), goalFlow(task, task.goals[1]), { expected: null, source: "", text: "" });
+  expect(scrollToId).toHaveBeenCalledWith("fix-evidence");
+  expect(findAll(d.render(), node => node.props.id === "fix-evidence")).toHaveLength(1);
   const snapshot = structuredClone({ network: d.panel().props.network, flow: d.panel().props.flow });
   expect(d.panel().props.claim.expected).toBeNull(); d.edit(); expect(d.panel().props.stale).toBe(true);
   expect(d.goals().every(button => button.props.disabled)).toBe(true); expect(text(d.render())).toContain("이전 결과"); expect(text(d.render())).not.toContain(EXERCISE_FACT);

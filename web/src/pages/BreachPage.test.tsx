@@ -2,6 +2,7 @@ import { createElement, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BreachPage } from "./BreachPage";
 import { NetworkDiagram } from "../components/NetworkDiagram";
+import { scrollToId } from "../motion";
 import { api } from "../api";
 import { breachById, breachDraft, breachSpec } from "../breach";
 import { toNetwork } from "../draft";
@@ -30,6 +31,9 @@ vi.mock("react", async () => {
     },
   };
 });
+
+// 결과가 먼 곳에 생길 때의 스크롤만 대역으로 확인한다(node 환경에는 문서가 없다).
+vi.mock("../motion", () => ({ scrollTo: vi.fn(), scrollToId: vi.fn() }));
 
 const scenario = breachById("breach-01")!;
 const start = responses.start as unknown as PolicyMatrix;
@@ -242,4 +246,34 @@ it("판정 불가 칸은 주소·서비스와 근거 단추를 펼쳐 볼 수 �
   const button = findAll(details, (node) => node.type === "button")[0];
   await button.props.onClick();
   expect(vi.mocked(api.verify).mock.calls[0][1]).toEqual({ src: "10.0.10.10", dst: "203.0.113.10", proto: "tcp", dst_port: 22, mode: "session" });
+});
+
+it("근거 보기를 누르면 아래 근거 패널로 스크롤한다", async () => {
+  const page = driver();
+  await page.check();
+  vi.mocked(scrollToId).mockClear();
+  await findAll(page.render(), (node) => node.type === "button" && String(node.props.className).includes("reach-service"))[0].props.onClick();
+  expect(scrollToId).toHaveBeenCalledWith("breach-evidence");
+  expect(findAll(page.render(), (node) => node.props.id === "breach-evidence")).toHaveLength(1);
+});
+
+it("구성 고치기 아래의 '고친 구성 확인하기'는 같은 계산을 하고 피해 범위로 스크롤한다", async () => {
+  const page = driver();
+  page.render(); await page.effects();
+  vi.mocked(scrollToId).mockClear();
+  const recheck = findAll(page.render(), (node) => node.type === "button" && text(node) === "고친 구성 확인하기")[0];
+  expect(recheck.props.className).toContain("breach-recheck");
+  await recheck.props.onClick(); page.render(); await page.effects();
+  expect(api.policyMatrix).toHaveBeenCalledTimes(2);
+  expect(scrollToId).toHaveBeenCalledWith("breach-reach");
+  expect(findAll(page.render(), (node) => node.props.id === "breach-reach")).toHaveLength(1);
+  expect(text(page.render())).toContain("처음 구성 3곳 · 서비스 15개 → 지금 3곳 · 서비스 15개");
+});
+
+it("예상 선택지 라디오는 전역 입력칸 너비를 덮어쓰고, 휴대폰에서는 아래 고정 단추가 있어 두 번째 확인 단추를 숨긴다", async () => {
+  const { readFileSync } = await vi.importActual<{ readFileSync(path: URL, encoding: "utf8"): string }>("node:fs");
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  expect(css).toContain(".breach-guess-options input { width: auto; min-height: 0; margin: 0; }");
+  const mobile = css.split("@media (max-width: 900px) {")[1].split("@media")[0];
+  expect(mobile).toContain(".breach-recheck { display: none; }");
 });

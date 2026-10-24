@@ -7,6 +7,7 @@ import { FIREWALL_NOTE, limitationNote, withoutLimitation } from "../firewall";
 import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { ResultPanel } from "../components/ResultPanel";
+import { scrollToId } from "../motion";
 import type { ChangeImpact, Draft, Flow, MatrixCell, Network, PolicyMatrix, Verdict } from "../types";
 
 interface Props { id: string; draft?: Draft; setDraft: (update: (current: Draft) => Draft) => void; onImport: (draft: Draft) => void }
@@ -92,12 +93,16 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
     await Promise.all([matrixRequest(), impactRequest(), startRequest()]);
     if (current()) { pending.current = false; setChecking(false); }
   };
+  // 구성 편집기 아래에서 다시 확인할 때: 같은 계산을 하고 위의 피해 범위로 옮겨 간다.
+  const recheck = () => { scrollToId("breach-reach"); return check(); };
   const showEvidence = async (cell: Pick<MatrixCell, "src" | "dst" | "service">) => {
     if (!draft || stale || checking || checkedSnapshot === null) return;
     const started = ++evidenceRevision.current, requested = snapshot;
     const current = () => active.current && evidenceRevision.current === started && latest.current === requested;
     const network = structuredClone(toNetwork(draft)), flow = cellFlow(scenario, cell);
     setEvidenceLoading(true); setEvidence(null); setEvidenceError(null);
+    // 근거 패널은 구성 편집기 아래라 멀다. 누른 뒤 반응이 보이도록 옮겨 간다.
+    scrollToId("breach-evidence");
     try { const verdict = await api.verify(network, flow, { ...EMPTY_CLAIM }); if (current()) setEvidence({ network, flow, verdict }); }
     catch (error) { if (current()) setEvidenceError(message(error)); }
     finally { if (current()) setEvidenceLoading(false); }
@@ -140,7 +145,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
     {!draft ? <p role="status">구성을 준비하는 중…</p> : <>
       <div className="judge"><button type="button" className="primary" disabled={checking} onClick={check}>{checking ? "계산 중…" : "확인하기"}</button></div>
 
-      <section className="panel breach-reach" aria-labelledby="breach-reach-title" aria-busy={checking}><h2 id="breach-reach-title">피해 범위</h2>
+      <section id="breach-reach" className="panel breach-reach" aria-labelledby="breach-reach-title" aria-busy={checking}><h2 id="breach-reach-title">피해 범위</h2>
         {stale && <p className="previous-result">이전 결과 · 입력이 바뀌었습니다. 다시 확인해 주세요.</p>}
         {checkedSnapshot === null && <p>확인 전 · 예상을 고른 뒤 확인하기를 누르세요(고르지 않아도 됩니다).</p>}
         {checking && !matrix && <p role="status">계산 중…</p>}
@@ -169,6 +174,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         <details className="mobile-fold"><summary>구성 펼쳐 보기</summary>
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })} />
         </details>
+        <button type="button" className="primary breach-recheck" disabled={checking} onClick={recheck}>고친 구성 확인하기</button>
       </section>
 
       <section className="panel fix-results" aria-labelledby="breach-after-title"><h2 id="breach-after-title">지켜야 할 서비스와 바뀐 통신</h2>
@@ -192,8 +198,8 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
       </section>
 
-      <ResultPanel title="왜 닿나요? · 근거" emptyHint="서비스나 지켜야 할 서비스의 근거 보기를 누르면 그 통신을 계산합니다." verdict={evidence?.verdict ?? null}
-        network={evidence?.network} flow={evidence?.flow} claim={EMPTY_CLAIM} stale={stale} loading={evidenceLoading || checking} error={evidenceError} />
+      <div id="breach-evidence"><ResultPanel title="왜 닿나요? · 근거" emptyHint="서비스나 지켜야 할 서비스의 근거 보기를 누르면 그 통신을 계산합니다." verdict={evidence?.verdict ?? null}
+        network={evidence?.network} flow={evidence?.flow} claim={EMPTY_CLAIM} stale={stale} loading={evidenceLoading || checking} error={evidenceError} /></div>
       <div className="practice-import"><button type="button" className="ghost" onClick={() => onImport(structuredClone(draft))}>판정기로 가져가기</button></div>
     </>}
   </div>;

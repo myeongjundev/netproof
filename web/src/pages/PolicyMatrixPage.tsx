@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api, message } from "../api";
 import { ResultPanel } from "../components/ResultPanel";
 import { EMPTY_CLAIM, toNetwork } from "../draft";
-import { scrollTo } from "../motion";
+import { scrollToId } from "../motion";
 import { defaultMatrixSpec, flowForCell, guardedRequest, MATRIX_STORAGE_KEY, matrixGrid, POLICY_TEXT,
   readMatrixSpec, setCellIntent } from "../policyMatrix";
 import type { Draft, MatrixCell, MatrixService, MatrixSpec, Network, PolicyMatrix, Verdict } from "../types";
@@ -80,10 +80,7 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
     const sequence = ++detailSequence.current;
     const started = signature;
     setSelected(cell); setDetail(null); setDetailError(null); setDetailLoading(true);
-    requestAnimationFrame(() => {
-      const element = document.getElementById("matrix-detail");
-      if (element) scrollTo(element);
-    });
+    scrollToId("matrix-detail");
     await guardedRequest(() => api.verify(checked.network, flowForCell(cell, checked.matrix.services, checked.matrix.mode),
       { ...EMPTY_CLAIM, expected: cell.expect }),
       () => mounted.current && current.current === started && detailSequence.current === sequence,
