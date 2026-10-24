@@ -8,6 +8,7 @@ import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { ResultPanel } from "../components/ResultPanel";
 import { scrollToId } from "../motion";
+import { SectionRail, type RailSection } from "../components/SectionRail";
 import { downloadText } from "../download";
 import { RECHECK_TEXT, remediationReport, reportMarkdown } from "../remediation";
 import type { ChangeImpact, Draft, Flow, MatrixCell, Network, PolicyMatrix, Verdict } from "../types";
@@ -17,6 +18,13 @@ interface Props { id: string; draft?: Draft; setDraft: (update: (current: Draft)
 const GUESS_TEXT: Record<Guess, string> = { reach: "닿을 것 같다", safe: "안 닿을 것 같다" };
 const CHANGE_TEXT = { opened: "새로 열림", closed: "새로 막힘", other: "그 밖의 변화" } as const;
 const total = (result: Reach) => `${result.targets.length}곳 · 서비스 ${result.count}개`;
+
+// 옆 구역 이동 막대의 순서(docs/v1.1-design.md §B). 구성을 준비하기 전에는 막대를 그리지 않는다.
+const RAIL: RailSection[] = [
+  { id: "breach-story", label: "상황" }, { id: "breach-setting", label: "장비" }, { id: "breach-guess", label: "예상" },
+  { id: "breach-reach", label: "피해 범위" }, { id: "breach-config", label: "구성 고치기" }, { id: "breach-after", label: "지켜야 할 서비스" },
+  { id: "breach-remediation", label: "수복 기록" }, { id: "breach-evidence", label: "근거" },
+];
 
 /** 침해 가정 실습(docs/breach-practice-design.md). 판정·분류는 엔진 응답을 그대로 쓰고 고르고 세기만 한다. */
 export function BreachPage({ id, draft, setDraft, onImport }: Props) {
@@ -122,20 +130,21 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
   const keepCell = (keep: (typeof scenario.keep)[number]) => matrix?.status === "OK" ? matrix.cells.find((cell) => cell.src === keep.src && cell.dst === keep.dst && cell.service === keep.service) : undefined;
 
   return <div className="practice-page breach-practice">
+    {draft && <SectionRail sections={RAIL} onRecheck={recheck} recheckDisabled={checking} />}
     <nav className="practice-breadcrumb" aria-label="현재 위치"><a href="#/learn">학습실</a><span> › 침해 가정 실습</span></nav>
-    <section className="practice-problem"><div><p className="home-eyebrow">합성 구성 · 침해 가정 실습</p><h1>{scenario.title}</h1>
+    <section id="breach-story" className="practice-problem"><div><p className="home-eyebrow">합성 구성 · 침해 가정 실습</p><h1>{scenario.title}</h1>
       <p>{scenario.story}</p><p className="practice-question">{scenario.task}</p>
       <p className="hint below">{REACH_MEANING}</p>
       <p className="hint below">다른 화면에 다녀와도 남지만 새로고침하면 사라집니다.</p></div></section>
 
-    <section className="panel breach-setting" aria-labelledby="breach-setting-title"><h2 id="breach-setting-title">장비와 지켜야 할 서비스</h2>
+    <section id="breach-setting" className="panel breach-setting" aria-labelledby="breach-setting-title"><h2 id="breach-setting-title">장비와 지켜야 할 서비스</h2>
       <ul className="breach-roles">{Object.entries(scenario.roles).map(([device, role]) =>
         <li key={device}><strong>{device}</strong> · {role}{device === scenario.breached ? " · 뚫림" : ""}</li>)}</ul>
       <h3>지켜야 할 서비스</h3>
       <ul className="breach-roles">{scenario.keep.map((keep) => <li key={keep.label}><strong>{keep.label}</strong> · {keep.why}</li>)}</ul>
     </section>
 
-    <fieldset className="panel breach-guess"><legend>{scenario.breached}에서 시작한 연결이 닿을 것 같은 장비</legend>
+    <fieldset id="breach-guess" className="panel breach-guess"><legend>{scenario.breached}에서 시작한 연결이 닿을 것 같은 장비</legend>
       <p className="hint">처음 구성에 대한 내 예상입니다. 고르지 않아도 확인할 수 있습니다.</p>
       <ul>{targets.map((device) => {
         const status = before && before.found ? deviceStatus(before, device) : undefined;
@@ -175,7 +184,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         </>}
       </section>
 
-      <section className="panel practice-config"><div className="panel-head"><h2>구성 고치기</h2><button type="button" className="ghost small" onClick={reset}>처음 구성으로</button></div>
+      <section id="breach-config" className="panel practice-config"><div className="panel-head"><h2>구성 고치기</h2><button type="button" className="ghost small" onClick={reset}>처음 구성으로</button></div>
         {undo && <p role="status">처음 구성으로 돌아갔습니다. <button type="button" className="ghost small" onClick={() => { invalidate(); setDraft(() => structuredClone(undo)); setUndo(null); }}>되돌리기</button></p>}
         <details className="mobile-fold"><summary>구성 펼쳐 보기</summary>
           <NetworkEditor devices={draft.devices} acls={draft.acls} onDevices={(devices) => update({ devices })} onAcls={(acls) => update({ acls })} />
@@ -183,7 +192,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         <button type="button" className="primary breach-recheck" disabled={checking} onClick={recheck}>고친 구성 확인하기</button>
       </section>
 
-      <section className="panel fix-results" aria-labelledby="breach-after-title"><h2 id="breach-after-title">지켜야 할 서비스와 바뀐 통신</h2>
+      <section id="breach-after" className="panel fix-results" aria-labelledby="breach-after-title"><h2 id="breach-after-title">지켜야 할 서비스와 바뀐 통신</h2>
         {stale && <p className="previous-result">이전 결과 · 다시 확인해 주세요.</p>}
         <ul>{scenario.keep.map((keep) => { const cell = keepCell(keep);
           return <li key={keep.label}><p>{keep.label} · {checkedSnapshot === null ? "확인 전" : matrix ? keepText(cell) : checking ? "계산 중…" : "결과 없음"}</p>
@@ -204,7 +213,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
       </section>
 
-      <section className="panel remediation" aria-labelledby="remediation-title"><h2 id="remediation-title">수복 기록</h2>
+      <section id="breach-remediation" className="panel remediation" aria-labelledby="remediation-title"><h2 id="remediation-title">수복 기록</h2>
         <p className="hint">고친 뒤에도 처음 닿던 연결이 다시 막히는지 하나씩 대조합니다. 내려받은 기록은 과제나 보고서에 붙일 수 있습니다.</p>
         {stale && <p className="previous-result">이전 결과 · 다시 확인해 주세요. 확인한 뒤에 내려받을 수 있습니다.</p>}
         {!report ? <p>{checking ? "계산 중…" : checkedSnapshot === null ? "확인하기를 누르면 처음 구성과 지금 구성을 비교한 기록을 만듭니다." : "처음 구성과 지금 구성을 모두 계산해야 기록을 만듭니다."}</p> : <>

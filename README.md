@@ -9,7 +9,7 @@ SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판�
 
 ## 현재 화면과 기능
 
-**v1.0.0(2026-10-24, 최종 제출본)** 기준입니다. 무엇이 바뀌었는지는 [`CHANGELOG.md`](CHANGELOG.md), 확인 방법과 근거 구분(자동 시험·실제 브라우저·공개 배포·실제 장비 미대조·사용자 확인 없음)은 [`docs/release-v1.0.md`](docs/release-v1.0.md)에 있습니다. 아래 첫 캡처들은 경로 작업대를 적용한 10/11 화면이고, 침해 가정 캡처는 10/24 화면입니다.
+**v1.1.0(2026-10-24)** 기준입니다(최종 제출본 v1.0.0에 pfSense 수업 도구·구역 이동 막대·보안 소식을 더함). 무엇이 바뀌었는지는 [`CHANGELOG.md`](CHANGELOG.md), 확인 방법과 근거 구분(자동 시험·실제 브라우저·공개 배포·실제 장비 미대조·사용자 확인 없음)은 [`docs/release-v1.0.md`](docs/release-v1.0.md)에 있습니다. 아래 첫 캡처들은 경로 작업대를 적용한 10/11 화면이고, 침해 가정 캡처는 10/24 화면입니다.
 
 ![홈: 질문·예상·구성도와 경로 작업대 탐색](docs/screens/workbench-home-preview.png)
 
@@ -31,7 +31,7 @@ SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판�
 | 판정기·구성도 | IPv4 통신의 판정·경로·규칙 근거, 구성도와 정방향·복귀 단계 재생, pfSense 방식 상태 추적 방화벽의 들어오는 규칙 입력 |
 | 정책 검증 | 여러 호스트·서비스의 도달성 표와 의도한 정책 비교, 변경 전/후 다른 통신 영향 |
 | ACL 점검·수정 후보 | 규칙의 중복·가려짐·열린 범위 확인, 엔진이 계산한 제한된 수정 후보 확인 |
-| 사례·검토자 대시보드 | 받은 답·계산·사람이 적은 실제 결과를 구분, 확인 표시·오탐/미탐·원인 통계 |
+| 사례·검토자 대시보드 | 받은 답·계산·사람이 적은 실제 결과를 구분, 확인 표시·오탐/미탐·원인 통계. 사례 게시판 위에 네트워크·보안 장비의 실제 악용 취약점(CISA KEV) 최신 10건 |
 | 개발용 검증 도구 | 기준 사례·불일치 회귀 내보내기, 엔진 버전별 재판정, 로컬 Batfish 교차 검증 |
 
 현재 화면의 설계·검증 근거는 [`docs/path-workbench.md`](docs/path-workbench.md), 사람의 확인 대기는 [`docs/qa-manual.md`](docs/qa-manual.md), 다음 작업은 [`HANDOFF.md`](HANDOFF.md)에 있습니다. 2026-10-06 기준의 소개·회고는 [`docs/netproof-retrospective-2026-10-06.md`](docs/netproof-retrospective-2026-10-06.md)에 날짜별 기록으로 남깁니다.
@@ -83,11 +83,14 @@ npm --prefix web test                               # 화면: 입력 변환·주
 npm --prefix web run build                          # TypeScript 검사·운영 번들
 ```
 
-v1.0.0 기준 결과: 엔진 508 passed·2 xfailed, 서버 252 passed·1 skipped(선택 의존성 pybatfish가 없으면 1 skip이 정상), 웹 823 passed. 새 폴더에 복제해 같은 수가 나오면 같은 소스입니다.
+v1.1.0 기준 결과: 엔진 508 passed·2 xfailed, 서버 262 passed·1 skipped(선택 의존성 pybatfish가 없으면 1 skip이 정상), 웹 831 passed. 새 폴더에 복제해 같은 수가 나오면 같은 소스입니다.
 
 사례 하나를 명령줄에서 판정: `PYTHONPATH=engine/src .venv/Scripts/python -m netproof_engine cases/synthetic-01-https-acl.json`
 
 ## 하지 않는 것
+
+서버가 바깥으로 보내는 요청은 사례 게시판의 보안 소식을 위한 CISA KEV 공개 JSON 하나뿐이다(정해진 주소, 5초·5MB 제한, 6시간 저장). 받지 못하면 이전 자료를 "오래된 자료"로 보이거나 오류를 보이고, 사례 게시판은 그대로 동작한다.
+
 
 실제 네트워크에 패킷을 보내지 않는다(ADR-011). 최종 PASS/DENY는 엔진만 정하며, 받은 답·내 예상은 비교에만 쓰인다. 실제 결과와 사례 기대값은 사람이 확인한다.
 

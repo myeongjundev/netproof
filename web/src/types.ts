@@ -268,3 +268,10 @@ export interface CauseStat {
   limit: number;
   limited: boolean;
 }
+
+/** 서버가 받아 둔 CISA KEV 가운데 네트워크·보안 장비 최신 항목(GET /api/security-news). */
+export interface SecurityNewsItem { cve: string; vendor: string; product: string; name: string; date_added: string; description: string; ransomware: boolean; nvd: string }
+export interface SecurityNews {
+  source: string; catalog_version: string; catalog_url: string; fetched_at: string; stale: boolean;
+  vendors: string[]; total: number; items: SecurityNewsItem[];
+}

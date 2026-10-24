@@ -1,4 +1,4 @@
-import type { CaseDetail, CaseFilters, CaseItem, CasePage, CaseSummary, Claim, Dashboard, Flow, Network, User, Verdict } from "./types";
+import type { CaseDetail, CaseFilters, CaseItem, CasePage, CaseSummary, Claim, Dashboard, Flow, Network, User, Verdict, SecurityNews } from "./types";
 import { caseSearchParams } from "./caseSearch";
 import type { MatrixSpec, PolicyMatrix } from "./types";
 import type { Observation } from "./types";
@@ -78,6 +78,7 @@ export const api = {
   unconfirm: (id: number) => call<CaseDetail>("DELETE", `/api/cases/${id}/confirm`),
   exportCase: (id: number) => call<Record<string, unknown>>("GET", `/api/cases/${id}/export`),
   dashboard: () => call<Dashboard>("GET", "/api/dashboard"),
+  securityNews: () => call<SecurityNews>("GET", "/api/security-news"),
   changePassword: (current_password: string, new_password: string) => call("POST", "/api/auth/password", { current_password, new_password }),
   changeNickname: (nickname: string) => call<{ user: User }>("POST", "/api/auth/nickname", { nickname }),
   logoutAll: async () => {

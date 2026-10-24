@@ -175,6 +175,61 @@ export const TOOL_TOPICS = [
         "href": "https://docs.n8n.io/deploy/host-n8n/install-options/install-with-docker"
       }
     ]
+  },
+  {
+    "id": "pfsense",
+    "title": "pfSense — 방화벽 규칙으로 구역 나누기",
+    "description": "인터페이스마다 들어오는 규칙으로 구역 사이 통신을 허용·차단하는 오픈소스 방화벽",
+    "focus": "pfSense 인터페이스 탭의 규칙을 NetProof 판정기에 옮겨 적고, 계산 근거와 실제 연결·차단 기록을 비교하는 과정",
+    "version": "pfSense CE 2.7.2",
+    "checked": "2026-10-24",
+    "category": "방화벽",
+    "concepts": [
+      "인터페이스 탭(Firewall > Rules): 규칙은 그 인터페이스로 들어오는 통신에 걸립니다. 예를 들어 DMZ 탭의 규칙은 DMZ에 있는 서버가 보내는 통신을 거릅니다.",
+      "첫 일치: 위에서부터 차례로 보고 처음 맞는 규칙 하나만 따릅니다. 그래서 규칙 순서가 결과를 바꿉니다.",
+      "기본 차단: 어느 규칙에도 맞지 않으면 막힙니다. 이때 그 통신을 막는 규칙이 따로 있는 것은 아닙니다.",
+      "상태 추적: 허용된 연결의 응답은 규칙 없이 돌아옵니다. 그래서 응답 방향 규칙을 따로 만들지 않습니다.",
+      "별칭(Aliases): 주소·포트 묶음에 이름을 붙여 규칙에서 씁니다. NetProof는 별칭을 계산하지 않으니 실제 주소로 풀어 적습니다.",
+      "NAT·Floating 규칙: 포트포워딩과 여러 인터페이스에 걸치는 규칙입니다. NetProof는 이 둘을 계산하지 않고 판정 불가로 멈춥니다."
+    ],
+    "analogy": "층마다 있는 출입 게이트와 같습니다. 각 층(인터페이스)에서 나가려는 사람을 명단(규칙) 위에서부터 확인하고, 명단에 없으면 막습니다. 한 번 나간 사람이 돌아올 때는 다시 묻지 않습니다.",
+    "steps": [
+      "pfSense 웹 화면의 Firewall > Rules에서 인터페이스 탭(예: DMZ)의 규칙을 위에서부터 옮겨 적습니다(동작·프로토콜·출발지·목적지·포트).",
+      "NetProof 판정기에서 장비 종류를 \"방화벽\"으로 고르고, 같은 인터페이스에 같은 순서로 규칙과 \"어느 규칙에도 안 맞으면\"을 적습니다. 별칭은 실제 주소로 풀어 적습니다.",
+      "확인하고 싶은 통신(예: 웹서버 → DB TCP 3306)을 계산하고, 근거에서 어느 규칙에 걸렸는지 봅니다.",
+      "실습망에서 같은 통신을 nc -zv로 시도하고 pfSense의 Status > System Logs > Firewall 기록과 비교합니다. 응답이 없다는 것만으로 막혔다고 단정하지 않습니다."
+    ],
+    "doc": {
+      "label": "방화벽 모델 전체: docs/semantics.md",
+      "href": "https://github.com/myeongjundev/netproof/blob/main/docs/semantics.md"
+    },
+    "example": {
+      "title": "NetProof 방화벽 규칙 예",
+      "text": "{\"action\":\"pass\",\"proto\":\"tcp\",\"src\":\"10.0.10.10\",\"dst\":\"10.0.20.10\",\"dst_port\":\"3306\"}"
+    },
+    "checkpoints": [
+      "규칙 순서를 바꾸면 계산 결과가 바뀌나요(첫 일치)?",
+      "어느 규칙에도 맞지 않은 통신의 근거에 \"기본 차단\"이 나오나요?",
+      "같은 서브넷 안의 통신은 근거에 방화벽 단계가 없나요?"
+    ],
+    "sources": [
+      {
+        "label": "Firewall Fundamentals",
+        "href": "https://docs.netgate.com/pfsense/en/latest/firewall/fundamentals.html"
+      },
+      {
+        "label": "Rule Methodology",
+        "href": "https://docs.netgate.com/pfsense/en/latest/firewall/rule-methodology.html"
+      },
+      {
+        "label": "Configuring Firewall Rules",
+        "href": "https://docs.netgate.com/pfsense/en/latest/firewall/configure.html"
+      },
+      {
+        "label": "Aliases",
+        "href": "https://docs.netgate.com/pfsense/en/latest/firewall/aliases.html"
+      }
+    ]
   }
 ];
 export function toolTopicById(id: string) { return TOOL_TOPICS.find(topic => topic.id === id); }

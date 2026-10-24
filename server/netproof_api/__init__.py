@@ -11,7 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.pool import NullPool
 from werkzeug.exceptions import HTTPException
 
-from . import auth, cases, security_log
+from . import auth, cases, security_log, security_news
 from .models import ROLE_REVIEWER, ROLE_USER, User, db, ensure_case_indexes
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,6 +74,7 @@ def create_app(overrides: dict | None = None) -> Flask:
     app.before_request(auth.csrf_guard)
     app.register_blueprint(auth.bp)
     app.register_blueprint(cases.bp)
+    app.register_blueprint(security_news.bp)
 
     @app.after_request
     def headers(response):
