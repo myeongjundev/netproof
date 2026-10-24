@@ -51,12 +51,16 @@ def test_scenario_shape_uses_existing_hosts_and_services(scenario):
         assert keep["expect"] == "PASS"
 
 
+# breach-03은 규칙을 이미 좁힌 뒤라 우회 길 하나(LOG)와 DB만 닿는다.
+WIDE_REACH = {"breach-01": 3, "breach-02": 3, "breach-03": 2}
+
+
 @pytest.mark.parametrize("scenario", BREACHES, ids=lambda item: item["id"])
 def test_starting_network_keeps_services_but_reaches_widely(scenario):
     result = matrix(scenario, scenario["network"])
     assert set(keep_policies(scenario, result).values()) == {"AGREE"}
     endpoints = {endpoint["ip"]: endpoint["device"] for endpoint in result["endpoints"]}
-    assert len({endpoints[dst] for dst, _ in reach(scenario, result)}) >= 3
+    assert len({endpoints[dst] for dst, _ in reach(scenario, result)}) >= WIDE_REACH[scenario["id"]]
 
 
 def test_breach_01_can_shrink_to_the_database_service_only():
@@ -124,3 +128,54 @@ def test_breach_02_one_more_assumption_reaches_mysql_through_web():
     assert from_web == {("10.0.20.10", "tcp/3306")}
     assert not from_web & reach(scenario, result)
     assert keep_policies(scenario, result)["WEB → DB · MySQL"] == "AGREE"
+
+
+def without_interface(scenario, device_id, name):
+    network = copy.deepcopy(scenario["network"])
+    device = next(device for device in network["devices"] if device["id"] == device_id)
+    device["interfaces"] = [iface for iface in device["interfaces"] if iface["name"] != name]
+    return network
+
+
+def test_breach_03_continues_with_a_dual_homed_log_server():
+    second, third = (next(item for item in BREACHES if item["id"] == key) for key in ("breach-02", "breach-03"))
+    expected = firewall_with(second, "em3", [
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.10.10", "dst_port": "22"},
+        {"action": "pass", "proto": "tcp", "src": "10.0.30.10", "dst": "10.0.20.10", "dst_port": "22"}])
+    expected["devices"].insert(4, {"id": "LOG", "kind": "host", "gateway": "10.0.30.1", "interfaces": [
+        {"name": "eth0", "ip": "10.0.30.20/24"}, {"name": "eth1", "ip": "10.0.10.20/24"}]})
+    assert third["breached"] == "WEB" and third["keep"] == second["keep"]
+    assert third["network"] == expected
+
+
+def test_breach_03_reaches_the_log_server_around_the_firewall():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-03")
+    result = matrix(scenario, scenario["network"])
+    assert reach(scenario, result) == {("10.0.20.10", "tcp/3306")} | {("10.0.10.20", service) for service in
+                                                                     ("tcp/22", "tcp/80", "tcp/443", "tcp/3306", "icmp/echo")}
+
+
+def test_breach_03_firewall_rules_alone_do_not_close_the_bypass():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-03")
+    network = copy.deepcopy(scenario["network"])
+    firewall = next(device for device in network["devices"] if device.get("stateful"))
+    for iface in firewall["interfaces"]:
+        iface["rules_in"] = []
+    result = matrix(scenario, network)
+    assert {dst for dst, _ in reach(scenario, result)} == {"10.0.10.20"}
+    assert set(keep_policies(scenario, result).values()) == {"BLOCKED"}
+
+
+def test_breach_03_removing_the_extra_card_leaves_the_database_service_only():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-03")
+    result = matrix(scenario, without_interface(scenario, "LOG", "eth1"))
+    assert set(keep_policies(scenario, result).values()) == {"AGREE"}
+    assert reach(scenario, result) == {("10.0.20.10", "tcp/3306")}
+
+
+def test_breach_03_one_more_assumption_reaches_the_admin_pc():
+    scenario = next(item for item in BREACHES if item["id"] == "breach-03")
+    result = matrix(scenario, scenario["network"])
+    from_log = {(dst, service) for dst, service in reach(scenario, result, "LOG") if dst != "10.0.10.10"}
+    assert from_log == {("10.0.30.10", service) for service in ("tcp/22", "tcp/80", "tcp/443", "tcp/3306", "icmp/echo")}
+    assert not from_log & reach(scenario, result)
