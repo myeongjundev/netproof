@@ -9,13 +9,15 @@ SKT ALEPH 프리미엄 실습 프로젝트. 계획은 [`plan.md`](plan.md), 판�
 
 ## 현재 화면과 기능
 
-PR #60이 병합된 main `cc9d8a5` 기준입니다(2026-10-11). 중성 회색·오렌지의 경로 작업대와 왼쪽 탐색을 적용했습니다. 아래 캡처는 같은 제품 버전을 임시 SQLite에서 확인한 화면입니다. 공개 홈·학습실에도 반영된 것을 확인했습니다.
+**v1.0.0(2026-10-24, 최종 제출본)** 기준입니다. 무엇이 바뀌었는지는 [`CHANGELOG.md`](CHANGELOG.md), 확인 방법과 근거 구분(자동 시험·실제 브라우저·공개 배포·실제 장비 미대조·사용자 확인 없음)은 [`docs/release-v1.0.md`](docs/release-v1.0.md)에 있습니다. 아래 첫 캡처들은 경로 작업대를 적용한 10/11 화면이고, 침해 가정 캡처는 10/24 화면입니다.
 
 ![홈: 질문·예상·구성도와 경로 작업대 탐색](docs/screens/workbench-home-preview.png)
 
 | 학습실 | 사례 게시판 |
 |---|---|
 | ![개념·고치기 과제·수업 도구의 번호 목록](docs/screens/workbench-learning-desktop-light.png) | ![받은 답 비교와 실제 결과 상태를 구분하는 합성 사례 목록](docs/screens/workbench-cases-desktop-light.png) |
+
+![침해 가정 장면 4: 외주 VPN 계정 하나가 다섯 장비에 닿음 — 5곳 · 서비스 25개](docs/screens/breach-vpn-desktop-light.jpg)
 
 <img src="docs/screens/workbench-practice-mobile-dark.png" alt="휴대폰 다크 실습: 돌아오는 길의 R2에서 막힌 계산과 구성도·경로 재생" width="280">
 
@@ -24,7 +26,7 @@ PR #60이 병합된 main `cc9d8a5` 기준입니다(2026-10-11). 중성 회색·�
 | 기능 | 할 수 있는 일 |
 |---|---|
 | 학습실·실습 | 개념·연습용 구성을 살펴보고 내 예상과 계산을 비교, 구성 편집·다시 판정·사례 기록 |
-| 침해 가정 실습 | 뚫린 장비에서 어디까지 닿는지 먼저 예상하고 계산으로 확인한 뒤, 방화벽 규칙으로 피해 범위를 줄이면서 지켜야 할 서비스가 그대로인지 확인. 닿은 장비도 뚫렸다고 한 단계 더 가정해 측면 이동 범위를 비교. 장면 4개(웹서버·관리자 PC·방화벽을 거치지 않는 길·외주 VPN — ZTNA의 "필요한 앱만 연다" 원칙) |
+| 침해 가정 실습 | 뚫린 장비에서 어디까지 닿는지 먼저 예상하고 계산으로 확인한 뒤, 방화벽 규칙으로 피해 범위를 줄이면서 지켜야 할 서비스가 그대로인지 확인. 닿은 장비도 뚫렸다고 한 단계 더 가정해 측면 이동 범위를 비교. 장면 4개(웹서버·관리자 PC·방화벽을 거치지 않는 길·외주 VPN — ZTNA의 "필요한 앱만 연다" 원칙). 고친 뒤 처음 닿던 연결이 다시 막히는지 대조한 **수복 기록**을 Markdown으로 내려받기 |
 | 고치기 과제 | 목표 통신과 처음 구성을 받고 목표별 계산·목표 밖 변화를 확인. 정답·점수·완료 표시는 없음 |
 | 판정기·구성도 | IPv4 통신의 판정·경로·규칙 근거, 구성도와 정방향·복귀 단계 재생, pfSense 방식 상태 추적 방화벽의 들어오는 규칙 입력 |
 | 정책 검증 | 여러 호스트·서비스의 도달성 표와 의도한 정책 비교, 변경 전/후 다른 통신 영향 |
@@ -80,6 +82,8 @@ cd server && ../.venv/Scripts/python -m pytest -q   # 서버: 로그인·권한�
 npm --prefix web test                               # 화면: 입력 변환·주소
 npm --prefix web run build                          # TypeScript 검사·운영 번들
 ```
+
+v1.0.0 기준 결과: 엔진 508 passed·2 xfailed, 서버 252 passed·1 skipped(선택 의존성 pybatfish가 없으면 1 skip이 정상), 웹 823 passed. 새 폴더에 복제해 같은 수가 나오면 같은 소스입니다.
 
 사례 하나를 명령줄에서 판정: `PYTHONPATH=engine/src .venv/Scripts/python -m netproof_engine cases/synthetic-01-https-acl.json`
 

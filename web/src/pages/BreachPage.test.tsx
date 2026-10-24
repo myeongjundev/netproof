@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BreachPage } from "./BreachPage";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { scrollToId } from "../motion";
+import { downloadText } from "../download";
 import { api } from "../api";
 import { breachById, breachDraft, breachSpec } from "../breach";
 import { toNetwork } from "../draft";
@@ -34,6 +35,7 @@ vi.mock("react", async () => {
 
 // 결과가 먼 곳에 생길 때의 스크롤만 대역으로 확인한다(node 환경에는 문서가 없다).
 vi.mock("../motion", () => ({ scrollTo: vi.fn(), scrollToId: vi.fn() }));
+vi.mock("../download", () => ({ downloadText: vi.fn() }));
 
 const scenario = breachById("breach-01")!;
 const start = responses.start as unknown as PolicyMatrix;
@@ -276,4 +278,27 @@ it("예상 선택지 라디오는 전역 입력칸 너비를 덮어쓰고, 휴�
   expect(css).toContain(".breach-guess-options input { width: auto; min-height: 0; margin: 0; }");
   const mobile = css.split("@media (max-width: 900px) {")[1].split("@media")[0];
   expect(mobile).toContain(".breach-recheck { display: none; }");
+});
+
+it("수복 기록: 확인 전에는 안내만, 확인 뒤에는 대조 숫자와 내려받기, 입력이 바뀌면 내려받기를 막는다", async () => {
+  const before = renderToStaticMarkup(createElement(BreachPage, { id: scenario.id, draft: breachDraft(scenario), setDraft: () => {}, onImport: () => {} }));
+  expect(before).toContain("확인하기를 누르면 처음 구성과 지금 구성을 비교한 기록을 만듭니다.");
+  const page = driver();
+  const shown = await page.check();
+  expect(shown).toContain("처음 닿던 15개 가운데 막힘 0 · 아직 닿음 15 · 판정 불가 0 · 주소 사라짐 0, 새로 닿음 0");
+  expect(shown).toContain("처음 구성과 같습니다");
+  const download = page.button("수복 기록 내려받기");
+  expect(download.props.disabled).toBe(false);
+  download.props.onClick();
+  const [filename, text] = vi.mocked(downloadText).mock.calls[0];
+  expect(filename).toBe("netproof-breach-01-수복기록.md");
+  expect(text.startsWith("# 학교 홈페이지가 뚫렸다면 · 수복 기록")).toBe(true);
+  expect(text).toContain("합성 구성 · NetProof 모델 계산(실제 장비 결과 아님)");
+  page.setDraft((current) => ({ ...current, devices: current.devices.map((device) => device.id === "FW" ? { ...device, interfaces: device.interfaces.map((iface) =>
+    iface.name === "em1" ? { ...iface, rules_in: [{ action: "pass" as const, proto: "tcp" as const, src: "10.0.10.10", dst: "10.0.20.10", dst_port: "22" }] } : iface) } : device) }));
+  expect(page.button("수복 기록 내려받기").props.disabled).toBe(true);
+  const fixed = await page.check();
+  expect(fixed).toContain("처음 닿던 15개 가운데 막힘 14 · 아직 닿음 1 · 판정 불가 0 · 주소 사라짐 0, 새로 닿음 0");
+  expect(fixed).toContain("FW em1 들어오는 규칙 — 처음: 통과 · 모든 프로토콜 · any → any / 지금: 통과 · TCP · 10.0.10.10 → 10.0.20.10:22");
+  expect(fixed).not.toMatch(/점수|정답|완료|축하|안전합니다/);
 });

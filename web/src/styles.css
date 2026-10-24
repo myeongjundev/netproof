@@ -716,6 +716,11 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .matrix-breach { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 16px 0; padding: 4px 0 12px; }
 .matrix-breach h3 { margin: 12px 0 4px; }
 .breach-recheck { width: 100%; margin-top: 12px; }
+.remediation-list summary { cursor: pointer; color: var(--accent); }
+.remediation-list li, .remediation-changes li { overflow-wrap: anywhere; padding-top: 4px; }
+.remediation-list .recheck-open strong, .remediation-list .recheck-opened strong { color: var(--warn); }
+.remediation-list .recheck-unknown strong, .remediation-list .recheck-missing strong { color: var(--muted); }
+.remediation > button { margin-top: 12px; }
 .breach-chain { border-top: 2px dashed var(--line); margin-top: 16px; padding-top: 4px; }
 .breach-chain h3 { margin: 12px 0 4px; }
 .breach-undecided { margin-top: 10px; font-size: 14px; }
