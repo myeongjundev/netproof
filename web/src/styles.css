@@ -756,3 +756,7 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
   .section-rail-actions button { min-width: 40px; min-height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 18px; cursor: pointer; }
   .section-rail-actions button:disabled { opacity: 0.5; cursor: default; }
 }
+@media (max-width: 720px) {
+  /* 휴대폰: 영어 설명은 두 줄만 보이고 전문은 NVD 링크로 본다 */
+  .news-list .hint[lang="en"] { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}

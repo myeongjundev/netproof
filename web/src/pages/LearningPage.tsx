@@ -2,6 +2,7 @@ import { LESSONS, lessonById } from "../learning";
 import { PathStrip } from "../components/PathStrip";
 import { GuessPuzzle, type OnGuess } from "../components/GuessPuzzle";
 import { SECURITY_DOC, TOOL_TOPICS, TOOL_NOTICE, toolTopicById } from "../toolTopics";
+import { SecurityNewsSection } from "../components/SecurityNews";
 import { EXERCISES } from "../exercises";
 import { BREACHES } from "../breach";
 
@@ -54,6 +55,7 @@ export function LearningPage({ lessonId, onGuess }: { lessonId?: string; onGuess
         <span className="lesson-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <div className="lesson-summary"><span className="learning-card-title">{item.title}</span><span>{item.task}</span></div><span>시작하기 →</span>
       </a>)}</nav>
+      <SecurityNewsSection />
     </section>
     <section className="learning-section"><p className="home-eyebrow">구성 실습</p><h2>고치기 과제</h2><p className="hint">합성 구성과 목표 통신을 받고 구성을 바꿔 계산을 확인합니다.</p>
       <nav className="learning-cards" aria-label="고치기 과제">{EXERCISES.map((item, index) => <a className="learning-card" href={`#/fix/${item.id}`} key={item.id}>
