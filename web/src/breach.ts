@@ -48,13 +48,17 @@ export function cellFlow(scenario: BreachScenario, cell: Pick<MatrixCell, "src" 
   return flowForCell(cell, scenario.services.map((service) => ({ ...service, key: serviceKey(service) })), "session");
 }
 
-/** 엔진 칸 가운데 뚫린 장비에서 시작하는 것을 고르고 목적지 장비로 묶기만 한다. 판정을 다시 하지 않는다. */
-export function reach(matrix: PolicyMatrix | null, breached: string): Reach | null {
+/**
+ * 엔진 칸 가운데 뚫린 장비에서 시작하는 것을 고르고 목적지 장비로 묶기만 한다. 판정을 다시 하지 않는다.
+ * assumed: 이미 뚫렸다고 가정한 장비. 목적지에서 뺀다(한 단계 더 가정할 때 처음 뚫린 장비).
+ */
+export function reach(matrix: PolicyMatrix | null, breached: string, assumed: string[] = []): Reach | null {
   if (!matrix || matrix.status !== "OK" || matrix.limit_exceeded) return null;
   const owner = new Map(matrix.endpoints.map((endpoint) => [endpoint.ip, endpoint.device]));
+  const skip = new Set([breached, ...assumed]);
   const sources = new Set(matrix.endpoints.filter((endpoint) => endpoint.device === breached).map((endpoint) => endpoint.ip));
-  const others = [...new Set(matrix.endpoints.map((endpoint) => endpoint.device))].filter((device) => device !== breached);
-  const mine = sources.size ? matrix.cells.filter((cell) => sources.has(cell.src)) : [];
+  const others = [...new Set(matrix.endpoints.map((endpoint) => endpoint.device))].filter((device) => !skip.has(device));
+  const mine = sources.size ? matrix.cells.filter((cell) => sources.has(cell.src) && !skip.has(owner.get(cell.dst) ?? cell.dst)) : [];
   const targets: Reach["targets"] = [];
   for (const cell of mine.filter((item) => item.result === "PASS")) {
     const device = owner.get(cell.dst) ?? cell.dst;
@@ -80,6 +84,24 @@ export function reachMarks(breached: string, result: Reach): Record<string, Mark
     marks[device] = { tone: status, text: status === "reach" ? `닿음 · 서비스 ${count}개` : status === "unknown" ? "판정 불가" : "안 닿음" };
   }
   return marks;
+}
+
+const cellKey = (cell: MatrixCell) => `${cell.dst}/${cell.service}`;
+
+/** 한 단계 더 가정했을 때 처음 뚫린 장비에서는 닿지 않던 칸(목적지 주소·서비스로 비교). */
+export function freshCells(first: Reach, second: Reach): MatrixCell[] {
+  const seen = new Set(first.targets.flatMap((target) => target.cells.map(cellKey)));
+  return second.targets.flatMap((target) => target.cells.filter((cell) => !seen.has(cellKey(cell))));
+}
+
+/** 2차 구성도: 다음 장비 기준 표시에 처음 뚫린 장비·가정한 장비·새로 닿는 수를 덧붙인다. */
+export function chainMarks(breached: string, next: string, second: Reach, fresh: MatrixCell[]): Record<string, Mark> {
+  const marks = reachMarks(next, second);
+  for (const target of second.targets) {
+    const count = target.cells.filter((cell) => fresh.includes(cell)).length;
+    if (count) marks[target.device] = { tone: "reach", text: `${marks[target.device].text} · 새로 ${count}개` };
+  }
+  return { ...marks, [breached]: { tone: "breached", text: "처음 뚫림" }, [next]: { tone: "assumed", text: "뚫렸다고 가정" } };
 }
 
 /** 학생 예상은 처음 구성에 대한 것이다. 맞힌 수나 점수는 세지 않는다. */

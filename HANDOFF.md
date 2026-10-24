@@ -21,8 +21,9 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
 ## 현재 작업 상태
-- 작업(2026-10-24): **기준 사례의 `actual`(실제 결과) 형식과 검사**(아래 작업 정의). 브랜치 `claude/case-actual-field`, main `29a97a0`에서 분기.
-- 직전: PR #70(홈 시작 카드)을 위임에 따라 병합했다(`29a97a0`). main에서 엔진 489+2xfail, 서버 236+1skip, 웹 796, 빌드 `index-DVHPqSQR.js`. 공개 JS·CSS SHA256이 로컬과 같다.
+- 작업(2026-10-24): **침해 가정 "한 단계 더 가정해 보기"(2차 확산)**(아래 작업 정의). 브랜치 `claude/breach-chain`, main `ee14b09`에서 분기.
+- 직전: PR #71(기준 사례 `actual` 형식)을 위임에 따라 병합했다(`ee14b09`). main에서 엔진 502+2xfail, 서버 236+1skip, 웹 796, 빌드 `index-DVHPqSQR.js`. 공개 JS·CSS SHA256이 로컬과 같다.
+- **바로잡음:** main의 `npm --prefix web test`는 시험 796개가 모두 통과해도 **종료 코드 1**이었다. PR #67에서 넣은 정책 검증 시험이 `requestAnimationFrame`(node 환경에 없음)을 불러 처리 안 된 오류 1건이 났다. #67~#71 보고의 "웹 796 통과"는 이 오류를 놓친 것이다. 이번 PR에서 시험에 대역을 넣어 종료 0을 확인했다(화면 코드 변경 없음).
 - **pfSense 2단계 — 팀 실습망 기준 사례(진행 중, 사용자 자료 대기):**
   - 사용자 답(2026-10-24): VPN 규칙은 `Firewall > Rules > OpenVPN` 탭이다(인터페이스 그룹이라 팀·수업 VPN 두 인스턴스가 같은 규칙을 씀). 공개 저장소에는 **주소·이름을 바꿔** 싣는다(실제↔공개 대응표는 저장소에 넣지 않음).
   - 팀 저장소 기록에서 확인한 사실: pfSense CE 2.7.2, WAN em0·LAN em1·DMZ em2·WORK em3·TRANSIT em4, DB는 WORK에 있고 게이트웨이는 pfSense, WORK·Floating 탭 비어 있음, Outbound NAT는 Automatic이고 목록이 비어 있음(10/21 화면).
@@ -30,35 +31,42 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
   - 모델링 방침: OpenVPN 그룹 규칙은 두 터널 인터페이스에 같은 `rules_in`으로 넣는다(엔진 변경 없음, 그룹 탭만 쓰는 경우에만 성립한다고 사례에 적음). A VM은 터널 주소·게이트웨이 10.250.0.1인 호스트로 단순화한다. 기대값은 사람이 손계산한다.
 - 다음 차례: **Claude(이 PR 병합) → 사용자(캡처·관측 자료).** 자료가 오면 규칙을 옮겨 적고 손계산 표를 드린 뒤 사례를 만든다.
 
-## 작업 정의 — 기준 사례 `actual` 형식 (2026-10-24, Claude 선택·사용자 위임)
+## 작업 정의 — 한 단계 더 가정해 보기 (2026-10-24, 사용자 요청 "표현은 너가 판단해")
 
-- **이유:** 실제 기준 사례를 담을 칸이 없었다(`docs/quality.md` 1-1의 미결정 항목). 캡처가 오기 전에 형식과 검사를 먼저 정해, 자료가 오면 데이터만 채우게 한다.
-- **변경 범위:** `engine/tests/test_cases.py`에 `validate_actual`과 시험(모든 사례 형식, 합성 사례에는 없음, 올바른 예 1·잘못된 예 8)을 더했다. `docs/quality.md` 1-1에 형식·규칙을 적었다.
-- **형식:** `actual: {result: PASS|DENY, date: YYYY-MM-DD, how, evidence}`. 사람이 정한 `expect.result`와 같아야 하고, 무응답만으로는 DENY로 적지 않는다(semantics §9).
-- **건드리지 않을 것:** `engine/src`(판정·버전 0.2.0), server, web, cases 데이터, API.
+- **이유:** 침해 가정 실습이 "뚫린 장비 하나에서 닿는 곳"까지만 보여 줬다. 닿은 장비가 다음 장비의 발판이 되는 측면 이동과 "필요한 통신 경로는 방화벽만으로 못 줄인다"를 배우게 한다.
+- **설계:** `docs/breach-practice-design.md` §4.1. 학생이 1차 닿음 장비 하나를 직접 고른다(자동 확산·3단계 이상 없음). 같은 매트릭스 응답에서 고르기만 한다(새 요청·API 없음). "닿는다고 실제로 뚫을 수 있다는 뜻은 아닙니다" 단서와 측면 이동 용어를 한 번 적는다.
+- **변경 범위:**
+  - `breach.ts`: `reach(matrix, 장비, assumed)`(이미 뚫린 장비를 목적지에서 뺌), `freshCells`, `chainMarks`. `NetworkDiagram`의 표시 종류에 `assumed`(위험색 점선).
+  - `ReachTargets.tsx`: `chainTargets()`(두 화면 공용, 훅 없음), `reachTargets`에 "새로" 표시.
+  - `BreachPage`·`PolicyMatrixPage`: 2차 블록과 2차 구성도. 정책 검증은 처음 장비를 바꾸면 2차 선택을 비운다.
+  - 시험: 웹 도우미 4·침해 가정 화면 3·정책 검증 2, 서버 2(장면 1 참고 구성에서 DB는 닿는 곳 0, 장면 2 참고 구성에서 WEB은 ADMIN이 못 닿던 DB MySQL에 닿음). fixture `adminNarrowed`(장면 2 em3을 ADMIN→WEB SSH 하나로 줄인 변형, 해법 아님).
+  - 정책 검증 시험의 `requestAnimationFrame` 대역(위 바로잡음).
+  - 문서: 설계 §4.1·§8, `policy-matrix.md`, QA G·H 항목, README 기능 표, 캡처 `breach-chain-desktop-light.jpg`.
+- **건드리지 않을 것:** `engine/src`(판정·버전 0.2.0), 서버 코드·API, `breach.json`, `cases/`.
 
-### 테스트 결과 — `actual` 형식 (Claude 직접 실행, 2026-10-24)
+### 테스트 결과 — 한 단계 더 가정 (Claude 직접 실행, 2026-10-24)
 
 ```text
 cd engine && ../.venv/Scripts/python -m pytest -q
-502 passed, 2 xfailed in 6.42s
+502 passed, 2 xfailed
 
 cd server && ../.venv/Scripts/python -m pytest -q
-236 passed, 1 skipped in 56.42s
+238 passed, 1 skipped
 
 npm --prefix web test
 Test Files 52 passed (52)
-Tests 796 passed (796)
+Tests 805 passed (805)   (종료 0 — 처리 안 된 오류 없음)
 
 npm --prefix web run build
-dist/assets/index-DVHPqSQR.js 425.01 kB (main과 같은 번들 — 화면 변경 없음)
+dist/assets/index-CSWpZlN0.js 428.47 kB, index-5fRxqO9O.css 91.44 kB
 
-git diff --check / git diff --numstat main -- engine/src server/ web/ scripts/ cases/ api/ requirements.txt vercel.json AGENTS.md CLAUDE.md PROMPTS.md
-(둘 다 출력 없음, 종료0 — 판정 코드·데이터 변경 0줄)
+git diff --check
+(출력 없음)
 ```
 
-- **엔진 시험이 489 → 502로 늘었다(신규 13).** 기존 사례 3개의 `actual` 형식 검사 3, 합성 사례에 `actual`이 없음 1, 올바른 예 1, 잘못된 예 8(없음·UNSUPPORTED·날짜 형식·빈 how·숫자 evidence·추가 키·합성 출처·기대값 불일치)이다.
-- 실브라우저 확인은 화면 변경이 없어 하지 않았다.
+- 서버 236 → 238(한 단계 더 가정 2), 웹 796 → 805(도우미 4·침해 가정 3·정책 검증 2).
+- 실브라우저(임시 SQLite, `scripts/qa_local.py`): 장면 2에서 em3을 관리 SSH 두 규칙으로 고치고 확인 → WEB을 더 가정 → `1곳 · 서비스 1개 · ADMIN에서는 닿지 않던 서비스 1개`, 방화벽 밖 대책 안내, WEB 점선·ADMIN 처음 뚫림·DB 새로 1개 확인. 정책 검증에 가져가 ADMIN → WEB을 더 가정해 2차 블록·구성도 확인(이 화면 기본 서비스에는 MySQL이 없어 WEB에서 닿는 곳 0이 맞음).
+- 폭: 320·375·768px에서 가로 넘침 0(DOM 측정), 다크에서 점선·"새로" 색 계산값 확인. **브라우저 창이 가려져 좁은 폭·다크 캡처는 깨져서 싣지 않았다**(데스크톱 라이트 캡처 1장만). 콘솔 앱 오류 0(제가 시도한 iframe이 CSP `frame-ancestors 'none'`에 막힌 1건뿐 — 보안 헤더가 정상 동작).
 
 ## 지난 과제
 
@@ -66,6 +74,7 @@ git diff --check / git diff --numstat main -- engine/src server/ web/ scripts/ c
 
 | PR | 과제 | 병합 커밋 | 기준 문서 |
 | --- | --- | --- | --- |
+| #71 | 기준 사례 `actual`(실제 결과) 형식과 검사 | `ee14b09` | — |
 | #70 | 홈 시작 카드 "뚫렸다고 가정해 보기" | `29a97a0` | — |
 | #69 | 동결 전 마무리: 미대조 문구 한 번만(변경 전/후·고치기·침해 가정), 768px 확인, 수동 QA F·G·H | `40c2ebb` | [qa-manual](docs/qa-manual.md) |
 | #68 | 침해 가정 실습 두 번째 장면 "관리자 PC가 뚫렸다면"(15 → 2, 데이터만) | `d1756d6` | [breach-practice-design §3.4](docs/breach-practice-design.md#34-두-번째-장면-breach-02-관리자-pc가-뚫렸다면-2026-10-24-추가) |
@@ -114,7 +123,7 @@ git diff --check / git diff --numstat main -- engine/src server/ web/ scripts/ c
 - **화면 구현 규칙**: 휴대폰 접기는 CSS `.mobile-fold`로만 하고 판정기는 접지 않는다. localStorage는 try/catch. 떠 있는 투어는 만들지 않는다. cases JSON은 테스트에서만 import한다. 판정기 규칙(배너 문장, 되돌리기 한 단계, 즉시 검사가 판정을 막지 않음, ACL 점검 펼침 조건)은 먼저 요청한다.
 - **숫자 변환**: 유니코드 숫자·긴 숫자로 `int()`를 부르면 이슈 #7·#9가 돌아온다. 점검은 `parse_acl` 결과만 쓴다.
 - **리뷰**: 엔진 diff가 있는 PR은 `docs/semantics.md` §15에 따라 버전을 올렸는지 대조한다. `rejudge` 보고서에 사례 제목·닉네임이 없어야 한다. 원인 태그 규칙(§13)은 먼저 요청한다.
-- **침해 가정·피해 범위**: "닿음"은 방화벽과 경로가 막지 않아 연결을 시작할 수 있다는 뜻일 뿐이다. 서비스가 열려 있는지·취약한지, "뚫을 수 있다"고 말하지 않는다. 판정 불가 칸은 "안 닿음"에 넣지 않는다. 화면은 엔진 칸을 고르고 세기만 하며, 바뀐 통신의 분류는 엔진 `change_impact`를 그대로 쓴다. 실습의 참고 구성(해법)은 서버 시험 파일에만 둔다.
+- **침해 가정·피해 범위**: "닿음"은 방화벽과 경로가 막지 않아 연결을 시작할 수 있다는 뜻일 뿐이다. 서비스가 열려 있는지·취약한지, "뚫을 수 있다"고 말하지 않는다. 판정 불가 칸은 "안 닿음"에 넣지 않는다. 화면은 엔진 칸을 고르고 세기만 하며, 바뀐 통신의 분류는 엔진 `change_impact`를 그대로 쓴다. 실습의 참고 구성(해법)은 서버 시험 파일에만 둔다. 한 단계 더 가정(2차 확산)은 학생이 1차 닿음 장비 하나를 직접 고르는 한 단계뿐이고, 같은 매트릭스 응답에서 고르기만 한다(자동 확산·3단계 이상 없음, 설계 §4.1).
 - **방화벽 화면 입력**: 화면에서 새로 만들거나 라우터에서 바꾼 방화벽 인터페이스만 기본 동작을 보이는 "차단"으로 채운다. 불러온 입력에 기본 동작이 없으면 "모름"으로 보이고 그대로 보낸다(D4). 상태 추적 장비에는 `acl_in`·`acl_out` 키를 보내지 않는다.
 - 관계없는 줄바꿈 변경 금지.
 
@@ -122,7 +131,7 @@ git diff --check / git diff --numstat main -- engine/src server/ web/ scripts/ c
 - PR #62 N2: 대시보드 혼동 행렬의 받은 답 축 행 표기(통과/막힘) — 사용자 수동 QA 판단 뒤 설계.
 - pfSense: ① 2단계 실습 연동(D5) ③ 방화벽 원인 태그(지금은 `firewall_in` 차단이 전부 `분류 못 함`) (② 화면 입력·④ `toNetwork` 키 대조는 PR #65, ⑤ 미대조 문구 한 번만은 PR #65·마무리 묶음에서 처리)
 - F28: change-impact 응답에 바뀐 칸 전체가 담김(최대 971줄·571 KiB).
-- 침해 가정: 2차 확산("닿은 장비도 뚫렸다고 가정") — 표현을 먼저 정한다. 홈 시작 카드는 2026-10-24 추가(Claude 결정, 되돌리기 쉬움). 새 화면들의 사람 수동 QA(F·G·H)는 아직이다.
+- 침해 가정: 홈 시작 카드(2026-10-24, Claude 결정, 되돌리기 쉬움)와 한 단계 더 가정(2차 확산, 같은 날)의 문구는 사람 판단이 남았다. 새 화면들의 사람 수동 QA(F·G·H)는 아직이다.
 - PR #52: N1 복귀에서 막힌 DENY도 처음엔 정방향 「도착」 선택(처음 방향은 사용자 결정), N2 단계 목록이 선택한 방향만.
 - PR #41: 원인별 사례 목록 필터(저장 열 필요), 사람이 붙이는 원인 태그.
 - PR #17: 사례 목록 진입 시 조회 2번, 빈 질의 `#/cases?`의 빈 query 키, 임의 DB `kind`와 `claim_kind=none`(NULL만) 차이. PostgreSQL 실연결·지연 주입 미검증.

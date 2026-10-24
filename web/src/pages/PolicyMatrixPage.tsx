@@ -7,7 +7,7 @@ import { defaultMatrixSpec, flowForCell, guardedRequest, MATRIX_STORAGE_KEY, mat
   readMatrixSpec, setCellIntent } from "../policyMatrix";
 import type { Draft, MatrixCell, MatrixService, MatrixSpec, Network, PolicyMatrix, Verdict } from "../types";
 import { NetworkDiagram } from "../components/NetworkDiagram";
-import { reachTargets, REACH_MEANING } from "../components/ReachTargets";
+import { chainTargets, reachTargets, REACH_MEANING } from "../components/ReachTargets";
 import { layoutFlow, reach, reachMarks } from "../breach";
 
 type Checked = { matrix: PolicyMatrix; network: Network; signature: string };
@@ -29,6 +29,8 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
   // 침해 가정: 고른 장비에서 시작하는 칸만 엔진 결과에서 고른다(새 계산 없음).
   const [breached, setBreached] = useState("");
   const [diagramDevice, setDiagramDevice] = useState<string | null>(null);
+  const [chained, setChained] = useState("");
+  const [chainDevice, setChainDevice] = useState<string | null>(null);
   const network = useMemo(() => toNetwork(draft), [draft]);
   const signature = JSON.stringify({ network, spec });
   const current = useRef(signature);
@@ -155,7 +157,7 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
             <span>{cell.src} → {cell.dst} · {cell.service}</span>{cellButton(cell)}</li>)}</ul></details>}
         <div className="matrix-breach">
           <h3>이 장비가 뚫리면</h3>
-          <label className="matrix-mode">뚫렸다고 가정할 장비<select aria-label="뚫렸다고 가정할 장비" value={breachedDevice} onChange={e => setBreached(e.target.value)}>
+          <label className="matrix-mode">뚫렸다고 가정할 장비<select aria-label="뚫렸다고 가정할 장비" value={breachedDevice} onChange={e => { setBreached(e.target.value); setChained(""); }}>
             <option value="">고르지 않음</option>{devices.map(device => <option key={device} value={device}>{device}</option>)}
           </select></label>
           {breachReach && checked && <>
@@ -165,6 +167,11 @@ export function PolicyMatrixPage({ draft }: { draft: Draft }) {
               selectedDevice={diagramDevice} onSelectDevice={setDiagramDevice} marks={reachMarks(breachedDevice, breachReach)} />
             {reachTargets(breachReach, matrix.services, (cell, name, device) => <button type="button" className="ghost small reach-service"
               disabled={stale || loading} onClick={() => void openCell(cell)}>{name} 근거 보기<span className="sr-only"> · {breachedDevice} → {device} · {name}</span></button>)}
+            {chainTargets({ breached: breachedDevice, first: breachReach, matrix, next: chained, onNext: setChained, services: matrix.services,
+              service: (cell, name, device) => <button type="button" className="ghost small reach-service" disabled={stale || loading}
+                onClick={() => void openCell(cell)}>{name} 근거 보기<span className="sr-only"> · {chained} → {device} · {name}</span></button>,
+              diagram: (marks, device) => <NetworkDiagram network={checked.network} flow={layoutFlow(checked.network, device)} trace={null} index={0}
+                selectedDevice={chainDevice} onSelectDevice={setChainDevice} marks={marks} /> })}
           </>}
         </div>
         <label className="matrix-mode">표시할 서비스<select value={service} onChange={e => {

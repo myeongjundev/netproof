@@ -4,7 +4,7 @@ import type { Flow, Network, Trace } from "../types";
 
 interface Edge { key: string; x1: number; y1: number; x2: number; y2: number; active: boolean }
 /** 경로 재생이 없을 때 장비 칸에 붙이는 표시(침해 가정 실습의 피해 범위). 판정이 아니라 엔진 결과를 옮긴 글이다. */
-export interface DiagramMark { tone: "breached" | "reach" | "safe" | "unknown"; text: string }
+export interface DiagramMark { tone: "breached" | "assumed" | "reach" | "safe" | "unknown"; text: string }
 export function NetworkDiagram({ network, flow, trace, index, selectedDevice, onSelectDevice, marks }: {
   network: Network; flow: Flow; trace: Trace | null; index: number; selectedDevice: string | null;
   onSelectDevice: (id: string) => void; marks?: Record<string, DiagramMark>;

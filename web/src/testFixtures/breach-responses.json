@@ -2619,5 +2619,1330 @@
    "other": 0,
    "not_compared": 0
   }
+ },
+ "adminNarrowed": {
+  "status": "OK",
+  "problems": [],
+  "mode": "session",
+  "engine_version": "0.2.0",
+  "endpoints": [
+   {
+    "ip": "10.0.30.10",
+    "device": "ADMIN",
+    "interface": "eth0"
+   },
+   {
+    "ip": "10.0.20.10",
+    "device": "DB",
+    "interface": "eth0"
+   },
+   {
+    "ip": "203.0.113.10",
+    "device": "OUTSIDE",
+    "interface": "eth0"
+   },
+   {
+    "ip": "10.0.10.10",
+    "device": "WEB",
+    "interface": "eth0"
+   }
+  ],
+  "services": [
+   {
+    "key": "tcp/22",
+    "proto": "tcp",
+    "dst_port": 22,
+    "label": "SSH"
+   },
+   {
+    "key": "tcp/80",
+    "proto": "tcp",
+    "dst_port": 80,
+    "label": "HTTP"
+   },
+   {
+    "key": "tcp/443",
+    "proto": "tcp",
+    "dst_port": 443,
+    "label": "HTTPS"
+   },
+   {
+    "key": "tcp/3306",
+    "proto": "tcp",
+    "dst_port": 3306,
+    "label": "MySQL"
+   },
+   {
+    "key": "icmp/echo",
+    "proto": "icmp",
+    "icmp": "echo",
+    "label": "Ping"
+   }
+  ],
+  "cells": [
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "BLOCKED",
+    "expect": "PASS",
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "203.0.113.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/22",
+    "result": "PASS",
+    "policy": "AGREE",
+    "expect": "PASS",
+    "reason": "정방향 · 복귀 방향 모두 통과",
+    "decisive": null
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.10.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.30.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "203.0.113.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.20.10",
+    "dst": "10.0.10.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em2 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em2",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.30.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.20.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/443",
+    "result": "PASS",
+    "policy": "AGREE",
+    "expect": "PASS",
+    "reason": "정방향 · 복귀 방향 모두 통과",
+    "decisive": null
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.10.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "203.0.113.10",
+    "dst": "10.0.10.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em0 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em0",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.30.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.30.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/3306",
+    "result": "PASS",
+    "policy": "AGREE",
+    "expect": "PASS",
+    "reason": "정방향 · 복귀 방향 모두 통과",
+    "decisive": null
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "10.0.20.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/80",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/443",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "203.0.113.10",
+    "service": "tcp/3306",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   },
+   {
+    "src": "10.0.10.10",
+    "dst": "203.0.113.10",
+    "service": "icmp/echo",
+    "result": "DENY",
+    "policy": "NO_POLICY",
+    "expect": null,
+    "reason": "정방향: em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em1 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em1",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   }
+  ],
+  "exposures": [
+   {
+    "src": "10.0.30.10",
+    "dst": "10.0.20.10",
+    "service": "tcp/22",
+    "result": "DENY",
+    "policy": "BLOCKED",
+    "expect": "PASS",
+    "reason": "정방향: em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+    "decisive": {
+     "device": "FW",
+     "step": "firewall_in",
+     "result": "drop",
+     "detail": "em3 in: 사용자가 적은 기본 정책(block)으로 차단. 제한된 상태 추적 모델이며 실제 pfSense 장비와 대조하지 않았습니다",
+     "in_if": "em3",
+     "out_if": null,
+     "rule": null,
+     "rule_seq": null,
+     "acl": null,
+     "rule_line": null
+    }
+   }
+  ],
+  "totals": {
+   "checks": 60,
+   "PASS": 3,
+   "DENY": 57,
+   "UNSUPPORTED": 0,
+   "INVALID": 0,
+   "EXPOSED": 0,
+   "BLOCKED": 1,
+   "UNDECIDED": 0,
+   "AGREE": 3,
+   "NO_POLICY": 56
+  },
+  "limit_exceeded": false
  }
 }

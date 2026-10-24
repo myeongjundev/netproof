@@ -6,4 +6,4 @@
 
 테스트는 기록된 단계·목적지·원문·버전의 **표시와 재생**을 검증한다. 엔진 응답을 웹에서 다시 계산하지 않는다. 저장된 옛 응답도 표시 대상이므로 fixture를 최신 판정에 맞춰 자동 수정하지 않는다.
 
-`breach-responses.json`은 엔진 0.2.0의 `policy_matrix`·`change_impact` 응답을 그대로 저장한 것이다(2026-10-24, 저장소 밖 생성 도구). `start`는 `breach.json`의 처음 구성, `narrowed`는 em1 규칙을 "WEB → DB SSH 통과" 하나로 바꾼 시험용 변형, `narrowedImpact`는 둘 사이의 변경 영향이다. `narrowed`는 해법이 아니라 지켜야 할 서비스가 막히는 모양을 고정하려는 입력이다. 기대 결과나 사람이 정한 `expect`가 아니다.
+`breach-responses.json`은 엔진 0.2.0의 `policy_matrix`·`change_impact` 응답을 그대로 저장한 것이다(2026-10-24, 저장소 밖 생성 도구). `start`는 `breach.json`의 처음 구성, `narrowed`는 em1 규칙을 "WEB → DB SSH 통과" 하나로 바꾼 시험용 변형, `narrowedImpact`는 둘 사이의 변경 영향이다. `narrowed`는 해법이 아니라 지켜야 할 서비스가 막히는 모양을 고정하려는 입력이다. `adminNarrowed`는 두 번째 장면(`breach-02`)의 em3을 "ADMIN → WEB SSH 통과" 하나로 줄인 변형으로, 한 단계 더 가정(2차 확산) 시험에 쓴다. ADMIN → DB SSH가 막히므로 이것도 해법이 아니다. 기대 결과나 사람이 정한 `expect`가 아니다.
