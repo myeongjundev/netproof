@@ -1,6 +1,7 @@
 """네트워크·보안 장비 보안 소식(CISA KEV, docs/v1.1-design.md §C).
 
 정해진 주소 하나만 받는다(사용자가 주소를 넘길 수 없다). 시간·크기를 제한하고 6시간 저장한다.
+공개 자료라 로그인 없이 부를 수 있다(2026-10-24 사용자 결정). 받는 동안에는 잠가서 동시에 여러 번 받으러 가지 않는다.
 실패하면 저장해 둔 것을 '오래된 자료'로 주거나 502를 준다. 오류에 내부 정보를 넣지 않는다.
 """
 
@@ -15,7 +16,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify
 
-from .auth import error, login_required
+from .auth import error
 
 bp = Blueprint("security_news", __name__, url_prefix="/api")
 
@@ -34,6 +35,7 @@ _FIELDS = ("cveID", "vendorProject", "product", "vulnerabilityName", "dateAdded"
 _cache: dict = {"at": 0.0, "payload": None}
 # ponytail: 인스턴스마다 메모리 저장 — 서버리스 인스턴스가 늘면 각자 한 번씩 받는다. 필요하면 DB·KV 저장으로.
 _lock = threading.Lock()
+_fetch_lock = threading.Lock()  # 한 인스턴스에서 CISA에 한 번에 하나만 받으러 간다
 
 
 def _download() -> bytes:
@@ -69,20 +71,29 @@ def _parse(raw: bytes, fetched_at: str) -> dict:
     }
 
 
-@bp.get("/security-news")
-@login_required
-def security_news():
-    now = time.time()
+def _fresh(now: float):
     with _lock:
         cached, at = _cache["payload"], _cache["at"]
-    if cached and now - at < TTL:
+    return cached, bool(cached) and now - at < TTL
+
+
+@bp.get("/security-news")
+def security_news():
+    cached, fresh = _fresh(time.time())
+    if fresh:
         return jsonify(cached)
-    try:
-        payload = _parse(_download(), datetime.now(timezone.utc).isoformat(timespec="seconds"))
-    except (OSError, ValueError, KeyError, TypeError):
-        if cached:
-            return jsonify({**cached, "stale": True})
-        return error(502, "보안 소식을 가져오지 못했습니다. 잠시 뒤 다시 시도하세요", reason="upstream")
-    with _lock:
-        _cache.update(at=now, payload=payload)
+    with _fetch_lock:
+        # 기다리는 사이 다른 요청이 새로 받았으면 그것을 쓴다.
+        now = time.time()
+        cached, fresh = _fresh(now)
+        if fresh:
+            return jsonify(cached)
+        try:
+            payload = _parse(_download(), datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        except (OSError, ValueError, KeyError, TypeError):
+            if cached:
+                return jsonify({**cached, "stale": True})
+            return error(502, "보안 소식을 가져오지 못했습니다. 잠시 뒤 다시 시도하세요", reason="upstream")
+        with _lock:
+            _cache.update(at=now, payload=payload)
     return jsonify(payload)

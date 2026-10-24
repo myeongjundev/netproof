@@ -121,7 +121,7 @@ Remove-Item Env:DATABASE_URL
 
 ## 운영 주의
 
-- **바깥으로 나가는 요청(v1.1):** `GET /api/security-news`가 CISA KEV 공개 JSON(`https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json`) 하나만 받는다. 키·환경 변수가 필요 없다. 시간 5초·크기 5MB 제한, 인스턴스 메모리에 6시간 저장, 로그인한 사람만 부를 수 있다. CISA가 막히면 이전 자료나 502가 나가고 다른 기능은 영향이 없다. 브라우저 CSP(`connect-src 'self'`)는 바꾸지 않았다.
+- **바깥으로 나가는 요청(v1.1):** `GET /api/security-news`가 CISA KEV 공개 JSON(`https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json`) 하나만 받는다. 키·환경 변수가 필요 없다. 시간 5초·크기 5MB 제한, 인스턴스 메모리에 6시간 저장, 받는 동안 잠가 한 번에 하나만 받는다. v1.1.1부터 로그인 없이 부를 수 있다(공개 자료). CISA가 막히면 이전 자료나 502가 나가고 다른 기능은 영향이 없다. 브라우저 CSP(`connect-src 'self'`)는 바꾸지 않았다.
 
 - **Supabase 무료 프로젝트는 한동안 쓰지 않으면 일시 정지될 수 있다.** 사용자 테스트 기간에는 주기적으로 접속하고, 정지되면 대시보드에서 다시 켠다(현재 정책은 가입할 때 확인).
 - **첫 배포는 로그를 꼭 본다.** `vercel.json`의 `includeFiles`(서버·엔진·사례 폴더를 함수에 싣는 설정)는 로컬에서 흉내 낼 수 없어, 함수가 `netproof_api`를 못 찾으면 여기부터 본다.

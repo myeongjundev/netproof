@@ -45,10 +45,24 @@ def member(api):
     return api
 
 
-def test_requires_login(api, downloads):
+def test_public_without_login(api, downloads):
+    # 공개 자료라 로그인 없이 본다(2026-10-24 사용자 결정). 쓰기 요청이 아니라 CSRF 검사도 없다.
     response = api.get("/api/security-news")
-    assert response.status_code == 401
-    assert downloads == []
+    assert response.status_code == 200
+    assert len(response.get_json()["items"]) == 10 and len(downloads) == 1
+
+
+def test_download_runs_under_the_fetch_lock(api, monkeypatch):
+    seen = []
+
+    def fake():
+        seen.append(security_news._fetch_lock.locked())
+        return json.dumps(CATALOG).encode("utf-8")
+
+    monkeypatch.setattr(security_news, "_download", fake)
+    api.get("/api/security-news")
+    assert seen == [True]
+    assert not security_news._fetch_lock.locked()
 
 
 def test_network_vendors_latest_ten_with_source_and_time(member, downloads):
