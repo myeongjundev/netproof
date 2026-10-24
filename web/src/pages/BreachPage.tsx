@@ -8,6 +8,8 @@ import { NetworkEditor } from "../components/NetworkEditor";
 import { NetworkDiagram } from "../components/NetworkDiagram";
 import { ResultPanel } from "../components/ResultPanel";
 import { scrollToId } from "../motion";
+import { downloadText } from "../download";
+import { RECHECK_TEXT, remediationReport, reportMarkdown } from "../remediation";
 import type { ChangeImpact, Draft, Flow, MatrixCell, Network, PolicyMatrix, Verdict } from "../types";
 
 interface Props { id: string; draft?: Draft; setDraft: (update: (current: Draft) => Draft) => void; onImport: (draft: Draft) => void }
@@ -111,6 +113,10 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
   const now = reach(matrix, scenario.breached), before = reach(startMatrix, scenario.breached);
   const targets = scenario.network.devices.filter((device) => device.kind === "host" && device.id !== scenario.breached).map((device) => device.id);
   const changes = splitChanges(impact, scenario.breached);
+  // 수복 기록: 처음 구성과 확인한 그때의 구성으로 만든다(docs/v1-final-design.md §3).
+  // 방화벽 미대조 문장은 화면에 한 번만: 바뀐 통신 구역에 이미 있으면 수복 기록 화면에서는 뺀다(내려받는 파일에는 남긴다).
+  const othersNote = !!impact && impact.status === "OK" && !impact.limit_exceeded && limitationNote(changes.others.map((change) => change.after.reason));
+  const report = checkedNetwork ? remediationReport(scenario, startMatrix, matrix, toNetwork(breachDraft(scenario)), checkedNetwork) : null;
   const evidenceButton = (cell: MatrixCell, label: string, context: string, className = "ghost small") =>
     <button type="button" className={className} disabled={stale || checking} onClick={() => showEvidence(cell)}>{label}<span className="sr-only"> · {context}</span></button>;
   const keepCell = (keep: (typeof scenario.keep)[number]) => matrix?.status === "OK" ? matrix.cells.find((cell) => cell.src === keep.src && cell.dst === keep.dst && cell.service === keep.service) : undefined;
@@ -193,9 +199,26 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
             {changes.others.length > 0 && <ol className="change-list">{changes.others.map((change, index) => <li key={index}>
               <p>{CHANGE_TEXT[change.kind]} · {change.src_device}({change.src}) → {change.dst_device}({change.dst}) · {serviceName(scenario.services, change.service)}</p>
               <p className="hint">{withoutLimitation(change.after.reason)}</p></li>)}</ol>}
-            {limitationNote(changes.others.map((change) => change.after.reason)) && <p className="hint">{FIREWALL_NOTE}</p>}
+            {othersNote && <p className="hint">{FIREWALL_NOTE}</p>}
           </> : <p>{checking ? "계산 중…" : checkedSnapshot === null ? "확인 전" : "결과 없음"}</p>}
         <p className="hint below">검사한 서비스와 호스트 쌍만 계산합니다. 실제 장비 결과가 아니며 검사하지 않은 통신은 알 수 없습니다.</p>
+      </section>
+
+      <section className="panel remediation" aria-labelledby="remediation-title"><h2 id="remediation-title">수복 기록</h2>
+        <p className="hint">고친 뒤에도 처음 닿던 연결이 다시 막히는지 하나씩 대조합니다. 내려받은 기록은 과제나 보고서에 붙일 수 있습니다.</p>
+        {stale && <p className="previous-result">이전 결과 · 다시 확인해 주세요. 확인한 뒤에 내려받을 수 있습니다.</p>}
+        {!report ? <p>{checking ? "계산 중…" : checkedSnapshot === null ? "확인하기를 누르면 처음 구성과 지금 구성을 비교한 기록을 만듭니다." : "처음 구성과 지금 구성을 모두 계산해야 기록을 만듭니다."}</p> : <>
+          <p className="breach-total">처음 닿던 {report.recheck.length}개 가운데 막힘 {report.counts.blocked} · 아직 닿음 {report.counts.open} · 판정 불가 {report.counts.unknown} · 주소 사라짐 {report.counts.missing}, 새로 닿음 {report.counts.opened}</p>
+          <details className="remediation-list"><summary>대조 목록 펼치기</summary>
+            <ul>{[...report.recheck, ...report.opened].map((row) => <li key={`${row.status}/${row.dst}/${row.service}`} className={`recheck-${row.status}`}>{row.device}({row.dst}) · {row.service} · <strong>{RECHECK_TEXT[row.status]}</strong></li>)}</ul>
+          </details>
+          <h3>바꾼 구성</h3>
+          {report.changes.length === 0 ? <p>처음 구성과 같습니다</p> : <ul className="remediation-changes">{report.changes.map((line) => <li key={line}>{line}</li>)}</ul>}
+          <h3>남은 위험과 한계</h3>
+          <ul className="remediation-limits">{report.limits.filter((line) => !(othersNote && line === FIREWALL_NOTE)).map((line) => <li key={line} className="hint">{line}</li>)}</ul>
+        </>}
+        <button type="button" className="ghost" disabled={!report || stale || checking}
+          onClick={() => report && downloadText(`netproof-${scenario.id}-수복기록.md`, reportMarkdown(report, new Date()))}>수복 기록 내려받기(.md)</button>
       </section>
 
       <div id="breach-evidence"><ResultPanel title="왜 닿나요? · 근거" emptyHint="서비스나 지켜야 할 서비스의 근거 보기를 누르면 그 통신을 계산합니다." verdict={evidence?.verdict ?? null}
