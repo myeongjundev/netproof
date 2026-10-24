@@ -713,6 +713,9 @@ a.learning-card.selected { border-color: var(--accent); border-width: 2px; paddi
 .matrix-breach h3 { margin: 12px 0 4px; }
 .breach-chain { border-top: 2px dashed var(--line); margin-top: 16px; padding-top: 4px; }
 .breach-chain h3 { margin: 12px 0 4px; }
+.breach-undecided { margin-top: 10px; font-size: 14px; }
+.breach-undecided summary { color: var(--muted); cursor: pointer; }
+.breach-undecided li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; overflow-wrap: anywhere; padding-top: 6px; }
 .reach-fresh { align-self: center; margin-right: 4px; color: var(--deny); font-size: 12px; font-style: normal; font-weight: 700; }
 .trace-player .path h4 { margin-block: 18px 8px; font-size: 14px; }
 @media(pointer: coarse) { .trace-player button, .topology-inventory summary { min-height: 44px; } }

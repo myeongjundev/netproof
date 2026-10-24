@@ -228,3 +228,18 @@ it("다시 확인해 더 가정한 장비가 닿지 않게 되면 고르지 않�
   expect(chainPicker(page.render()).props.value).toBe("");
   expect(findAll(page.render(), (node) => node.type === NetworkDiagram)).toHaveLength(1);
 });
+
+it("판정 불가 칸은 주소·서비스와 근거 단추를 펼쳐 볼 수 있다(안 닿음에 넣지 않음)", async () => {
+  const odd = structuredClone(start);
+  const cell = odd.cells.find((item) => item.src === "10.0.10.10" && item.dst === "203.0.113.10" && item.service === "tcp/22")!;
+  cell.result = "UNSUPPORTED";
+  vi.mocked(api.policyMatrix).mockResolvedValue(odd);
+  const page = driver();
+  const shown = await page.check();
+  expect(shown).toContain("판정 불가 1건 — 안전하다는 뜻이 아닙니다");
+  const details = findAll(page.render(), (node) => node.type === "details" && node.props.className === "breach-undecided")[0];
+  expect(text(details)).toContain("10.0.10.10 → 203.0.113.10 · SSH");
+  const button = findAll(details, (node) => node.type === "button")[0];
+  await button.props.onClick();
+  expect(vi.mocked(api.verify).mock.calls[0][1]).toEqual({ src: "10.0.10.10", dst: "203.0.113.10", proto: "tcp", dst_port: 22, mode: "session" });
+});

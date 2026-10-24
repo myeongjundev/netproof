@@ -21,7 +21,10 @@ export function reachTargets(result: Reach, services: MatrixService[], service: 
           <span key={`${cell.dst}/${cell.service}`}>{fresh.includes(cell) && <em className="reach-fresh">새로</em>}{service(cell, serviceName(services, cell.service), device)}</span>)}</div>}
       </li>;
     })}</ul>
-    {result.undecided.length > 0 && <p className="hint">판정 불가 {result.undecided.length}건 — 안전하다는 뜻이 아닙니다. 근거에서 이유를 확인하세요.</p>}
+    {result.undecided.length > 0 && <details className="breach-undecided"><summary>판정 불가 {result.undecided.length}건 — 안전하다는 뜻이 아닙니다. 펼쳐서 이유를 확인하세요.</summary>
+      <ul>{result.undecided.map((cell) => { const name = serviceName(services, cell.service);
+        return <li key={`${cell.src}/${cell.dst}/${cell.service}`}>{cell.src} → {cell.dst} · {name} {service(cell, name, cell.dst)}</li>; })}</ul>
+    </details>}
   </>;
 }
 
