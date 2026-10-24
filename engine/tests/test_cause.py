@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import device, interface
+from conftest import device, interface, one_router
 from netproof_engine import cause, verify
 
 FLOW = {"src": "10.10.10.10", "dst": "10.20.20.5", "proto": "tcp", "dst_port": 443}
@@ -19,6 +19,31 @@ def test_acl_topology(net1, step, implicit):
     verdict = verify(net1, FLOW)
     assert verdict["result"] == "DENY"
     assert cause(verdict) == {"tag": "acl_implicit" if implicit else "acl_rule", "direction": "forward"}
+
+
+@pytest.mark.parametrize("default", [False, True])
+def test_firewall_topology(default):
+    # 방화벽(상태 추적) 들어오는 규칙: 차단 규칙에 걸림과 일치 규칙 없이 기본 차단을 나눈다(ACL의 규칙·암묵적 deny와 같은 기준).
+    net = one_router()
+    device(net, "R1")["stateful"] = True
+    incoming = interface(net, "R1", "g0/0")
+    incoming["rules_in"] = [{"action": "pass", "proto": "udp", "src": "any", "dst": "any"}] if default else [
+        {"action": "block", "proto": "tcp", "src": "any", "dst": "10.20.20.5", "dst_port": "443"}]
+    incoming["default_in"] = "block"
+    verdict = verify(net, FLOW)
+    assert verdict["result"] == "DENY"
+    assert verdict["decisive"]["step"] == "firewall_in"
+    assert cause(json.loads(json.dumps(verdict))) == {"tag": "firewall_default" if default else "firewall_rule", "direction": "forward"}
+
+
+def test_firewall_default_pass_and_unknown_are_not_blocks():
+    net = one_router()
+    device(net, "R1")["stateful"] = True
+    interface(net, "R1", "g0/0")["default_in"] = "pass"
+    assert cause(verify(net, FLOW))["tag"] == "no_block"
+    interface(net, "R1", "g0/0")["default_in"] = "unknown"
+    assert verify(net, FLOW)["result"] == "UNSUPPORTED"
+    assert cause(verify(net, FLOW))["tag"] == "other"
 
 
 @pytest.mark.parametrize("tag", ["no_gateway", "no_next_hop", "host_no_forward", "no_block", "other"])
@@ -85,6 +110,9 @@ def test_synthetic_round_trip(name, tag, direction):
     {"result": "DENY", "return": {"reason": "경로 없음"}},
     {"result": "DENY", "decisive": {"step": "acl_in", "rule_seq": []}},
     {"result": "DENY", "decisive": {"step": "acl_out", "rule_seq": True}},
+    {"result": "DENY", "decisive": {"step": "firewall_in", "rule_seq": True}},
+    {"result": "DENY", "decisive": {"step": "firewall_in", "rule_seq": 0}},
+    {"result": "DENY", "decisive": {"step": "firewall_in", "rule_seq": "1"}},
 ])
 def test_unknown_json_is_other(bad):
     assert cause(bad) == {"tag": "other", "direction": "forward"}

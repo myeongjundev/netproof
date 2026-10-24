@@ -31,6 +31,10 @@ export const withoutLimitation = (text: string) => text.endsWith(SUFFIX) ? text.
 export const FIREWALL_NOTE = "방화벽 단계는 제한된 상태 추적 모델로 계산했습니다. 실제 pfSense 장비와 대조하지 않았습니다.";
 export const limitationNote = (texts: string[]) => texts.some((text) => text.endsWith(SUFFIX));
 
+/** 방화벽 기본 차단(원인 태그 firewall_default와 같은 기준): 어느 규칙에도 맞지 않아 막혔고, 막는 규칙이 따로 있지 않다. */
+export const DEFAULT_BLOCK_NOTE = "어느 규칙에도 맞지 않아 기본 차단이 적용됐습니다. 이 통신을 막는 차단 규칙이 따로 있는 것은 아닙니다.";
+export const defaultBlock = (verdict: Verdict) => verdict.result === "DENY" && verdict.decisive?.step === "firewall_in" && verdict.decisive.rule_seq == null;
+
 /** 이유나 단계에 미대조 문장이 붙어 있었는지. 있으면 결과 아래에 한 번 보인다. */
 export function firewallNote(verdict: Verdict): boolean {
   const hops = [...(verdict.forward?.hops ?? []), ...(verdict.return?.hops ?? [])];

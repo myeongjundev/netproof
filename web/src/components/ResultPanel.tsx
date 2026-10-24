@@ -4,7 +4,7 @@ import { TracePlayer } from "./TracePlayer";
 import { AclEvidence } from "./AclEvidence";
 import { comparisonBanner, showsComparisonHeader, statusLine } from "../verdictView";
 import { ANSWER_TEXT, RESULT_TEXT, claimComparisonText, type ClaimContext } from "../displayText";
-import { FIREWALL_NOTE, firewallNote, hopRuleText, withoutLimitation } from "../firewall";
+import { DEFAULT_BLOCK_NOTE, defaultBlock, FIREWALL_NOTE, firewallNote, hopRuleText, withoutLimitation } from "../firewall";
 
 const RESULT_NOTE = {
   PASS: "모델 안에서 계산한 결과, 이 통신은 됩니다.",
@@ -174,6 +174,7 @@ export function ResultPanel({ verdict, claim, stale, error, loading, network, fl
               {verdict.problems.length > 0 && <ul className="problems">{verdict.problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>}
             </>}
             <p>{withoutLimitation(verdict.reason)}</p>
+            {defaultBlock(verdict) && <p className="hint">{DEFAULT_BLOCK_NOTE}</p>}
             <p className="verdict-note">{RESULT_NOTE[verdict.result]}</p>
           </div>
           {!cannotCompare && verdict.problems.length > 0 && (
