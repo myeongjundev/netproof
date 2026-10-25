@@ -94,6 +94,18 @@ it("구성을 준비하기 전에는 편집기 대신 준비 중을 알린다", 
   expect(html).toContain("구성을 준비하는 중");
 });
 
+it("예상 선택지는 키보드로 이동해도 어느 장비의 선택인지 접근성 이름으로 구분한다", () => {
+  const page = driver();
+  const radios = findAll(page.render(), (node) => node.type === "input" && node.props.type === "radio");
+  expect(radios).toHaveLength(6);
+  expect(new Set(radios.map((node) => node.props["aria-label"])).size).toBe(6);
+  for (const radio of radios) {
+    const device = radio.props.name.replace("guess-", "");
+    const choice = radio.props.value === "reach" ? "닿을 것 같다" : "안 닿을 것 같다";
+    expect(radio.props["aria-label"]).toBe(`${device} · ${choice}`);
+  }
+});
+
 it("첫 확인은 지금·처음 매트릭스와 변경 영향을 정확한 본문으로 한 번씩 요청한다", async () => {
   const page = driver();
   await page.check();
