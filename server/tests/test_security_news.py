@@ -1,5 +1,8 @@
 """네트워크 장비 보안 소식(CISA KEV) — 외부 요청은 가짜로 바꾼다. 실제 CISA에 접속하지 않는다."""
 import json
+from email.message import Message
+from io import BytesIO
+from urllib.response import addinfourl
 
 import pytest
 
@@ -142,11 +145,57 @@ def test_download_uses_only_the_fixed_url_with_limits(monkeypatch):
             seen["size"] = size
             return b"x" * (security_news.MAX_BYTES + 1)
 
-    def fake_urlopen(request, timeout):
+    def fake_open(self, request, timeout):
         seen["url"], seen["timeout"] = request.full_url, timeout
         return Response()
 
-    monkeypatch.setattr(security_news.urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(security_news.urllib.request.OpenerDirector, "open", fake_open)
     with pytest.raises(ValueError):
         security_news._download()
     assert seen == {"url": security_news.KEV_URL, "timeout": 5, "size": security_news.MAX_BYTES + 1}
+
+
+@pytest.mark.parametrize("code", [301, 302, 303, 307, 308])
+@pytest.mark.parametrize("cached", [False, True])
+def test_redirect_never_contacts_another_address(api, monkeypatch, code, cached):
+    # 실제 urllib 처리 경로를 쓰되 HTTPS 전송만 메모리 응답으로 바꾼다. 외부 접속은 없다.
+    calls = []
+
+    def transport(self, request):
+        calls.append(request.full_url)
+        headers = Message()
+        if request.full_url == security_news.KEV_URL:
+            headers["Location"] = "https://redirect-target.invalid/catalog"
+            response = addinfourl(BytesIO(b""), headers, request.full_url, code)
+            response.msg = "Redirect"
+        else:
+            response = addinfourl(BytesIO(json.dumps(CATALOG).encode()), headers, request.full_url, 200)
+            response.msg = "OK"
+        return response
+
+    monkeypatch.setattr(security_news.urllib.request.HTTPSHandler, "https_open", transport)
+    if cached:
+        security_news._cache.update(at=1.0, payload=security_news._parse(json.dumps(CATALOG).encode(), "old"))
+    response = api.get("/api/security-news")
+    assert calls == [security_news.KEV_URL]
+    if cached:
+        assert response.status_code == 200
+        assert response.get_json()["stale"] is True
+        assert response.get_json()["fetched_at"] == "old"
+    else:
+        assert response.status_code == 502
+        assert response.get_json()["reason"] == "upstream"
+    assert "redirect-target" not in response.get_data(as_text=True)
+
+
+def test_download_accepts_a_direct_response_without_changing_bytes(monkeypatch):
+    raw = json.dumps(CATALOG).encode()
+
+    def transport(self, request):
+        assert request.full_url == security_news.KEV_URL
+        response = addinfourl(BytesIO(raw), Message(), request.full_url, 200)
+        response.msg = "OK"
+        return response
+
+    monkeypatch.setattr(security_news.urllib.request.HTTPSHandler, "https_open", transport)
+    assert security_news._download() == raw

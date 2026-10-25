@@ -38,9 +38,16 @@ _lock = threading.Lock()
 _fetch_lock = threading.Lock()  # 한 인스턴스에서 CISA에 한 번에 하나만 받으러 간다
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # 고정 주소가 다른 곳을 가리켜도 따라가지 않는다. 기존 502/stale 처리로 보낸다.
+        return None
+
+
 def _download() -> bytes:
     request = urllib.request.Request(KEV_URL, headers={"User-Agent": "NetProof/1.1 (+https://netproof-vert.vercel.app)"})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+    opener = urllib.request.build_opener(_NoRedirect())
+    with opener.open(request, timeout=TIMEOUT) as response:
         data = response.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         raise ValueError("catalog too large")
