@@ -20,7 +20,8 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 - 리뷰 지적에는 파일:줄과 재현 명령을 붙입니다. 의견이 갈리면 가릴 수 있는 테스트부터 만듭니다.
 - 금지: 비밀값 커밋, `--force` 푸시, 승인 없는 `main` 직접 푸시. 이 저장소는 공개입니다.
 
-## 현재 작업 상태 — v1.1.0 (2026-10-24, 최종 제출 준비)
+## 현재 작업 상태 — v1.1.1 (2026-10-25, 최종 제출 전 검토)
+- **최종 제출 전 검토 완료(2026-10-25 사용자 지시, `codex/final-review`):** main `0c144cc`·태그 `v1.1.1`에서 먼저 보고한 뒤 회귀 시험의 실패를 확인하고, CISA 리다이렉트 거절·예상 선택지의 장비별 접근성 이름·문서의 버전/skip 이유/재현 설명만 수정했다. 직접 최종 엔진 508 passed·2 xfailed, 서버 277 passed·1 skipped(+14), 웹 832 passed(+1, 종료 0), 빌드 `index-BHFhZOa8.js` 성공. 공개 장면 1은 15 → 1·막힘 14, 비로그인 보안 소식·pfSense 정상, 공개 JS·CSS는 변경 전 로컬과 SHA256 일치. 375px 라이트·다크 넘침 0·콘솔 오류 0. 수정 후 로컬도 같은 흐름·장비별 접근성 이름·실제 CISA 수신 200 확인. 엔진·사례 기대값·API 모양·의존성·버전 diff 없음. [검토 보고서](docs/final-review-2026-10-25.md)에 파일:줄·재현·실행 출력 기록. 작은 커밋·브랜치 푸시·PR로 전달하고 **사용자의 검토·병합 대기**. 공개 사이트는 병합 전 v1.1.1 그대로이며 제출 뒤 후속·사람 QA는 미완료로 유지한다.
 - **v1.1.1 제출 전 손질(사용자 승인 2026-10-24, 브랜치 `claude/news-public`):** 보안 소식을 로그인 없이 공개하고 학습실 침해 가정 구역에도 보임(서버 받기 잠금 추가), 휴대폰에서 설명 두 줄, README 맨 위 캡처를 10/24 화면으로 교체, 새 화면 다크·휴대폰 점검(넘침 0). 직접 실행: 엔진 508+2xfail, 서버 263+1skip, 웹 831(종료 0).
 - **최종 제출 전 확인(2026-10-24 검토):** 공개 사이트에서 확인 방법 3단계(홈 카드 → 15 → em1 수정·고친 구성 확인하기 → 1, 수복 기록 막힘 14)와 학습실 pfSense가 정상, 콘솔 오류 0. 운영에서 보안 소식이 실제 CISA 자료를 받는 것은 사용자가 로그인해 확인했다(2026-10-24). 남은 일은 최종 제출(사용자)뿐이다. 최종 제출 초안은 저장소 밖 `skt aleph/최종 제출/`.
 - **v1.1.0 릴리스 완료:** PR #80 병합 `b9c0464`, 태그 `v1.1.0`(원격 확인). main에서 엔진 508+2xfail, 서버 262+1skip, 웹 831(종료 0), 공개 JS·CSS SHA256 일치, 공개 `/api/security-news` 비로그인 401 확인. 이후 다시 동결.
@@ -159,6 +160,6 @@ Claude ↔ Codex가 GitHub를 채널로 주고받는 **현재 상태 문서**입
 ## 다음 LLM이 확인할 내용
 - **worktree에서 서버 테스트(F27)**: `server/pyproject.toml`의 pythonpath에 `../engine/src`가 있어 PYTHONPATH 없이 그 worktree 엔진을 쓴다.
 - 테스트·QA 자식 프로세스에서는 `DATABASE_URL`·`NETPROOF_TEST_DATABASE_URL`·`NETPROOF_SECURITY_LOG`·`NETPROOF_SYSLOG`를 비운다. QA는 `scripts/qa_local.py`의 127.0.0.1·임시 SQLite만 쓴다.
-- 기본 venv에는 선택 의존성 pybatfish가 없어 서버 1 skip이 정상이다. 엔진 2 xfail은 PR #12의 strict xfail이다.
+- SQLite로 돌린 서버 1 skip은 PostgreSQL RLS 검사(`tests/test_deploy.py::test_postgres_tables_have_row_level_security`) 제외다. pybatfish 시험은 대역을 쓰므로 설치 여부와 무관하다. 엔진 2 xfail은 PR #12의 strict xfail이다.
 - 주 작업 폴더(`C:/gov/project/skt aleph/netproof`)는 `main`이다.
 - [HOME_HANDOFF.md](HOME_HANDOFF.md)는 2026-10-02 집 인계 시점 기록이다. 날짜별 정리: [10-04~06 첫 배포](docs/work-summary-2026-10-04_06.md), [10-06 배포 이후](docs/work-summary-2026-10-06.md), [10-08](docs/work-summary-2026-10-08.md), [회고 10-06](docs/netproof-retrospective-2026-10-06.md).

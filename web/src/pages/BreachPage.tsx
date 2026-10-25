@@ -150,7 +150,7 @@ export function BreachPage({ id, draft, setDraft, onImport }: Props) {
         const status = before && before.found ? deviceStatus(before, device) : undefined;
         return <li key={device}><strong>{device}</strong> <span className="hint">{scenario.roles[device]}</span>
           <div className="breach-guess-options">{(["reach", "safe"] as const).map((value) => <label key={value}>
-            <input type="radio" name={`guess-${device}`} value={value} checked={guesses[device] === value}
+            <input type="radio" name={`guess-${device}`} aria-label={`${device} · ${GUESS_TEXT[value]}`} value={value} checked={guesses[device] === value}
               onChange={() => setGuesses((current) => ({ ...current, [device]: value }))} /> {GUESS_TEXT[value]}</label>)}</div>
           {(before || startError) && <p>내 예상 {guesses[device] ? GUESS_TEXT[guesses[device]] : "없음"} · 처음 구성 계산 {status ? STATUS_TEXT[status] : "없음"} · {guessText(guesses[device], status)}</p>}
         </li>;
